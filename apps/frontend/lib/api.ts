@@ -61,7 +61,10 @@ export const $api = ofetch.create({
 })
 
 export const createUrl = (path: string, query?: QueryParams) => {
-  const url = new URL(path, baseURL)
+  // tambahkan leading slash jika belum ada
+  const cleanPath = path.startsWith('/') ? path : `/${path}`
+
+  const url = new URL(cleanPath, baseURL)
 
   if (!query) return url.toString()
 
