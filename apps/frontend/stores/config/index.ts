@@ -28,7 +28,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
     // fallback ke API
     try {
-      const url = createUrl('/config', { userId: userData.id })
+      const url = createUrl('config', { userId: userData.id })
       const res = await $api<any>(url)
 
       const list = res.data?.configs || []
@@ -48,7 +48,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     if (!userId) return
 
     try {
-      const url = createUrl('/config')
+      const url = createUrl('config')
 
       const res = await $api<any>(url, {
         method: 'POST',

@@ -5,6 +5,8 @@ type QueryValue = string | number | boolean | Array<string | number | boolean> |
 type QueryParams = Record<string, QueryValue>
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL
+
+console.log('baseURL:', baseURL)
 const isClient = typeof window !== 'undefined'
 
 const getAccessToken = () => getCookie('accessToken')
@@ -61,11 +63,10 @@ export const $api = ofetch.create({
 })
 
 export const createUrl = (path: string, query?: QueryParams) => {
-  // tambahkan leading slash jika belum ada
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  const url = new URL(path, baseURL)
 
-  const url = new URL(cleanPath, baseURL)
-
+  console.log('Base URL:', baseURL)
+  console.log('Constructed URL before query params:', url.toString())
   if (!query) return url.toString()
 
   Object.entries(query).forEach(([key, value]) => {
