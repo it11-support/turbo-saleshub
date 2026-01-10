@@ -50,7 +50,7 @@ jobs:
             EOF
             
             # frontend environment variables
-            cat > /home/sysdevrco1/SalesHub/apps/frontend/.env.production <<EOF
+            cat > /home/sysdevrco1/turbo-saleshub/apps/frontend/.env.production <<EOF
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_APP_TITLE="${{ secrets.NEXT_PUBLIC_APP_TITLE }}"
             NEXT_REMOTE_PROTOCOL=${{ secrets.NEXT_REMOTE_PROTOCOL }}
