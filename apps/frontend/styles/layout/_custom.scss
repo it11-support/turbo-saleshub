@@ -1,0 +1,18 @@
+.blinking {
+  animation: blinking 3s infinite;
+}
+
+@keyframes blinking {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
+.card {
+  padding: 1rem !important;
+}
+
+
+.p-datepicker-monthpicker {
+  left: auto !important;
+  right: auto !important;
+}

@@ -1,0 +1,6 @@
+node_modules
+.turbo
+
+packages/types/node_modules
+packages/types/.turbo
+packages/types/dist

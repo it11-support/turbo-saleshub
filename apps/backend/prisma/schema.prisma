@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+
+model cache {
+  key        String @id @db.VarChar(255)
+  value      String @db.MediumText
+  expiration Int
+}
+
+model cache_locks {
+  key        String @id @db.VarChar(255)
+  owner      String @db.VarChar(255)
+  expiration Int
+}
+
+
+model configs {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt    @db.UnsignedBigInt
+  key        String    @db.VarChar(255)
+  value      String?   @db.Text
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "configs_user_id_foreign")
+
+  @@unique([user_id, key], map: "configs_user_id_key_unique")
+  @@index([key], map: "configs_key_index")
+}
+
+model customers {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  CardCode      String    @unique(map: "customers_cardcode_unique") @db.VarChar(15)
+  CardName      String?   @db.VarChar(100)
+  GroupName     String?   @db.VarChar(20)
+  CntctPrsn     String?   @db.VarChar(90)
+  Phone1        String?   @db.VarChar(20)
+  Cellular      String?   @db.VarChar(50)
+  SlpCode       Int?      @db.SmallInt
+  SalesName     String?   @db.VarChar(155)
+  Territory     Int?
+  Address       String?   @db.VarChar(100)
+  Block         String?   @db.VarChar(100)
+  City          String?   @db.VarChar(100)
+  ZipCode       String?   @db.VarChar(20)
+  Country       String?   @db.VarChar(3)
+  PaymentTerm   String?   @db.VarChar(100)
+  PriceList     String?   @db.VarChar(32)
+  JoinDate      DateTime? @db.DateTime(0)
+  IndustryC     Int?
+  NonActive     String?   @db.Char(1)
+  visit_rule_id BigInt
+  created_at    DateTime? @db.Timestamp(0)
+  updated_at    DateTime? @db.Timestamp(0)
+
+  sales_person sales_persons? @relation(fields: [SlpCode], references: [SlpCode])
+
+  subgroup subgroups? @relation(fields: [IndustryC], references: [IndCode])
+
+  sales_invoices    sales_invoices[]
+  orders            orders[]
+  sales_visit_rules sales_visit_rules[]
+  schedule          sales_visit_schedules[]
+  visits            visits[]
+}
+
+model subgroups {
+  IndCode Int    @id
+  IndName String @db.VarChar(255)
+  IndDesc String @db.VarChar(255)
+
+  customers customers[]
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+
+model job_batches {
+  id             String  @id @db.VarChar(255)
+  name           String  @db.VarChar(255)
+  total_jobs     Int
+  pending_jobs   Int
+  failed_jobs    Int
+  failed_job_ids String  @db.LongText
+  options        String? @db.MediumText
+  cancelled_at   Int?
+  created_at     Int
+  finished_at    Int?
+}
+
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
+
+  @@index([queue], map: "jobs_queue_index")
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
+
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.VarChar(255)
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model products {
+  id              BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  ItemCode        String           @unique(map: "products_itemcode_unique") @db.VarChar(20)
+  ItemName        String?          @db.VarChar(100)
+  ItmsGrpNam      String?          @db.VarChar(20)
+  frozenFor       String?          @db.Char(1)
+  LaunchDate      DateTime?        @db.DateTime(0)
+  SalUnitMsr      String?          @db.VarChar(20)
+  AvgPrice        Decimal?         @db.Decimal(19, 6)
+  HargaBeli       Decimal?         @db.Decimal(19, 6)
+  HargaJualNormal Decimal?         @db.Decimal(19, 6)
+  ItmsGrpCod      Int              @db.SmallInt
+  RevenuesAc      String?          @db.VarChar(15)
+  AcctName        String?          @db.VarChar(100)
+  image           String?          @db.VarChar(100)
+  created_at      DateTime?        @db.Timestamp(0)
+  updated_at      DateTime?        @db.Timestamp(0)
+  sales_invoices  sales_invoices[]
+  visit_items     visit_items[]
+}
+
+
+model roles {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  role        String    @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  users       users[]
+}
+
+model sales_invoices {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  DocNum       Int
+  DocDate      DateTime? @db.DateTime(0)
+  CardCode     String?   @db.VarChar(15)
+  CardName     String?   @db.VarChar(100)
+  ItemCode     String?   @db.VarChar(20)
+  Dscription   String?   @db.VarChar(100)
+  QtyKg        Decimal?  @db.Decimal(19, 6)
+  unitMsr      String?   @db.VarChar(20)
+  PriceBefDisc Decimal?  @db.Decimal(19, 6)
+  DiscLine     Decimal?  @db.Decimal(19, 6)
+  DiscTotal    Decimal?  @db.Decimal(19, 6)
+  TotalSales   Decimal?  @db.Decimal(43, 16)
+  created_at   DateTime? @db.Timestamp(0)
+  updated_at   DateTime? @db.Timestamp(0)
+
+  customer customers? @relation(fields: [CardCode], references: [CardCode])
+  product  products?  @relation(fields: [ItemCode], references: [ItemCode])
+
+  @@unique([DocNum, ItemCode], map: "sales_invoices_docnum_itemcode_unique")
+}
+
+model sales_visit_rules {
+  id                  BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  sales_person_id     BigInt
+  customer_id         BigInt
+  day_of_week         dayOfWeeks
+  visit_weeks         Json
+  max_items_per_visit Int
+  active              Boolean    @default(true)
+  created_at          DateTime   @default(now())
+  updated_at          DateTime   @updatedAt
+
+  salesPerson sales_persons @relation(fields: [sales_person_id], references: [id], onDelete: Cascade)
+  customer            customers @relation(fields: [customer_id], references: [id])
+
+  visit               visits[]
+  schedules sales_visit_schedules[]
+
+  @@unique([sales_person_id, customer_id, day_of_week])
+}
+
+model sales_visit_schedules {
+  id              BigInt   @id @default(autoincrement())
+  rule_id         BigInt
+  sales_person_id BigInt
+  customer_id     BigInt
+  visit_date      DateTime
+  status          String   @default("planned")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  rule        sales_visit_rules @relation(fields: [rule_id], references: [id], onDelete: Cascade)
+  customer    customers         @relation(fields: [customer_id], references: [id])
+  salesPerson sales_persons     @relation(fields: [sales_person_id], references: [id])
+
+  items sales_visit_schedule_items[]
+  @@unique([sales_person_id, customer_id, visit_date])
+  @@index([rule_id])
+}
+
+model sales_visit_schedule_items {
+
+  id                   BigInt               @id @default(autoincrement())
+  schedule_id          BigInt
+  ItemCode             String
+  offered              offeredStatus
+  created_at           DateTime             @default(now())
+  updated_at           DateTime             @updatedAt
+
+  schedule       sales_visit_schedules @relation(fields: [schedule_id], references: [id], onDelete: Cascade)
+}
+
+model sales_persons {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  SlpCode    Int       @unique(map: "sales_persons_slpcode_unique") @db.SmallInt
+  SlpName    String?   @db.VarChar(155)
+  Memo       String?   @db.VarChar(50)
+  Commission Decimal?  @db.Decimal(19, 6)
+  GroupCode  Int?      @db.SmallInt
+  Locked     String?   @db.Char(1)
+  DataSource String?   @db.Char(1)
+  UserSign   Int?      @db.SmallInt
+  EmpID      Int?
+  Active     String?   @db.Char(1)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+
+  user      users?
+  customers customers[]
+
+  sales_visit_rules     sales_visit_rules[]
+  sales_visit_schedules sales_visit_schedules[]
+
+  visits    visits[]
+}
+
+model sales_visit_results {
+  id             BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  sales_visit_id BigInt       @db.UnsignedBigInt
+  created_at     DateTime?    @db.Timestamp(0)
+  updated_at     DateTime?    @db.Timestamp(0)
+  sales_visits   sales_visits @relation(fields: [sales_visit_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "sales_visit_results_sales_visit_id_foreign")
+
+  @@index([sales_visit_id], map: "sales_visit_results_sales_visit_id_foreign")
+}
+
+model sales_visits {
+  id                  BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  visit_date          DateTime              @db.Date
+  created_at          DateTime?             @db.Timestamp(0)
+  updated_at          DateTime?             @db.Timestamp(0)
+  sales_visit_results sales_visit_results[]
+}
+
+model visits {
+  id              BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id     BigInt                    @db.UnsignedBigInt
+  sales_person_id BigInt                    @db.UnsignedBigInt
+  rule_id         BigInt                    @db.UnsignedBigInt
+  visit_date      String                    @db.VarChar(10)
+  start_at        DateTime
+  end_at          DateTime?
+  status          VisitStatus
+  created_at      DateTime?                 @db.Timestamp(0)
+  updated_at      DateTime?                 @db.Timestamp(0)
+  notes           String?                   @db.Text
+
+  @@unique([customer_id, sales_person_id, rule_id, visit_date], name: "unique_daily_visit")
+
+
+  salesPerson    sales_persons      @relation(fields: [sales_person_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  customer       customers          @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rule           sales_visit_rules  @relation(fields: [rule_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  visit_items    visit_items[]
+}
+
+model visit_items {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  visit_id   BigInt   @db.UnsignedBigInt
+  product_id BigInt   @db.UnsignedBigInt
+
+  offered    Boolean  @default(true)
+  purchased  Boolean  @default(false)
+  notes      String?  @db.Text
+
+  created_at DateTime @default(now()) @db.DateTime(0)
+  updated_at DateTime @updatedAt @db.DateTime(0)
+
+  visit   visits   @relation(fields: [visit_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product products @relation(fields: [product_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([visit_id])
+  @@index([product_id])
+  @@map("visit_items")
+}
+
+
+model sessions {
+  id            String  @id @db.VarChar(255)
+  user_id       BigInt? @db.UnsignedBigInt
+  ip_address    String? @db.VarChar(45)
+  user_agent    String? @db.Text
+  payload       String  @db.LongText
+  last_activity Int
+
+  @@index([last_activity], map: "sessions_last_activity_index")
+  @@index([user_id], map: "sessions_user_id_index")
+}
+
+model teams {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @unique(map: "teams_name_unique") @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+  users      users[]
+}
+
+model users {
+  id                                         BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  name                                       String        @db.VarChar(255)
+  email                                      String        @unique(map: "users_email_unique") @db.VarChar(255)
+  username                                   String        @unique(map: "users_username_unique") @db.VarChar(255)
+  sales_person_id                            BigInt?       @unique(map: "users_sales_person_id_unique") @db.UnsignedBigInt
+  role_id                                    BigInt        @db.UnsignedBigInt
+  team_id                                    BigInt?       @db.UnsignedBigInt
+  email_verified_at                          DateTime?     @db.Timestamp(0)
+  password                                   String        @db.VarChar(255)
+  remember_token                             String?       @db.VarChar(100)
+  created_at                                 DateTime?     @db.Timestamp(0)
+  updated_at                                 DateTime?     @db.Timestamp(0)
+  configs                                    configs[]
+  roles                                      roles         @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "users_role_id_foreign")
+  teams                                      teams?        @relation(fields: [team_id], references: [id], onUpdate: Restrict, map: "users_team_id_foreign")
+
+  sales_person sales_persons? @relation(fields: [sales_person_id], references: [id])
+
+  @@index([role_id], map: "users_role_id_foreign")
+  @@index([team_id], map: "users_team_id_foreign")
+}
+
+model orders {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  DocNum     Int?
+  CreateDate DateTime? @db.Date
+  DocDate    DateTime? @db.Date
+  DocTime    String?   @db.VarChar(255)
+  DocDueDate DateTime? @db.Date
+  UpdateDate DateTime? @db.Date
+  CardCode   String?   @db.VarChar(255)
+  CardName   String?   @db.VarChar(255)
+  Address    String?   @db.VarChar(255)
+  Phone1     String?   @db.VarChar(255)
+  TrnspCode  Int?
+  TrnspName  String?   @db.VarChar(255)
+  Comments   String?   @db.Text
+  SlpCode    Int?
+  SlpName    String?   @db.VarChar(255)
+  USERID     String?   @db.VarChar(255)
+  U_NAME     String?   @db.VarChar(255)
+  Memo       String?   @db.VarChar(255)
+  LineNum    Int?
+  ItemCode   String?   @db.VarChar(255)
+  Dscription String?   @db.VarChar(255)
+  ShipDate   DateTime? @db.Date
+  Quantity   Decimal?  @db.Decimal(18, 4)
+  OpenQty    Decimal?  @db.Decimal(18, 4)
+  DelivrdQty Decimal?  @db.Decimal(18, 4)
+  unitMsr    String?   @db.VarChar(255)
+  NumPerMsr  Decimal?  @db.Decimal(18, 4)
+  unitMsr2   String?   @db.VarChar(255)
+  NumPerMsr2 Decimal?  @db.Decimal(18, 4)
+  BuyUnitMsr String?   @db.VarChar(255)
+  SalUnitMsr String?   @db.VarChar(255)
+  NumInSale  Decimal?  @db.Decimal(18, 4)
+  NumInBuy   Decimal?  @db.Decimal(18, 4)
+  SuppCatNum String?   @db.VarChar(255)
+  Price      Decimal?  @db.Decimal(18, 4)
+  OnHand     Decimal?  @db.Decimal(18, 4)
+  InvntryUom String?   @db.VarChar(255)
+  OrdrMulti  Decimal?  @db.Decimal(18, 4)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+
+  customer customers? @relation(fields: [CardCode], references: [CardCode])
+
+  @@unique([DocNum, LineNum], map: "orders_docnum_linenum_unique")
+}
+
+
+enum dayOfWeeks {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+}
+
+enum offeredStatus {
+  Y
+  N
+}
+
+enum VisitStatus {
+  Planned
+  Ongoing
+  Completed
+  Cancelled
+  Pending
+  Missed
+}

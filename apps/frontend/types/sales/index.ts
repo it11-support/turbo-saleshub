@@ -1,0 +1,30 @@
+import { ISalesSummary } from '@saleshub-tsm/types'
+
+export type TRevenueSummary = {
+  current: number
+  last: number
+  diff: number
+  growthPercent: number
+}
+export type TMonthTodateSummary = {
+  [key: string]: TRevenueSummary
+}
+export type ISalesSummaryResponse = Record<string, ISalesSummary[]>
+
+export interface ISalesSummaryState {
+  monthToDateSummary: TMonthTodateSummary
+  monthList: { value: number; label: string }[]
+  month: number
+  salesSummary: {
+    mom: Record<string, Partial<ISalesSummary>[]>
+    yoy: Record<string, Partial<ISalesSummary>[]>
+  }
+  setSalesSummary: (salesSummary: {
+    mom: Record<string, Partial<ISalesSummary>[]>
+    yoy: Record<string, Partial<ISalesSummary>[]>
+  }) => void
+  loading: boolean
+  companies: { label: string; value: string }[]
+  fetchSalesSummary: () => void
+  setMonth: (val: number) => void
+}
