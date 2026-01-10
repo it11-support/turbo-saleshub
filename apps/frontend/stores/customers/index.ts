@@ -71,7 +71,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         ...(slpCode ? { slpCode } : {}),
       }
 
-      const url = createUrl('customers', payload)
+      const url = createUrl('/customers', payload)
       const res = await $api<any>(url)
       const { data, groupNames, salesPersonNames, subGroupNames } = res
       set({ groupNames })
@@ -86,7 +86,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   fetchCustomerSummary: async (id) => {
     try {
       set({ loading: true })
-      const url = createUrl(`customers/${id}`)
+      const url = createUrl(`/customers/${id}`)
 
       const res = await $api<any>(url)
 
@@ -101,7 +101,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   fetchSuggestedItems: async (id) => {
     try {
       set({ loading: true })
-      const url = createUrl(`customers/${id}/suggestions`)
+      const url = createUrl(`/customers/${id}/suggestions`)
       const res = await $api<any>(url)
       set({ loading: false })
       set({ suggestedItems: res.data.suggestions })
@@ -116,7 +116,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   fetchPurchaseHistory: async (id) => {
     try {
       set({ loading: true })
-      const url = createUrl(`customers/${id}/purchases`)
+      const url = createUrl(`/customers/${id}/purchases`)
       const res = await $api<any>(url)
       set({ loading: false })
       set({ invoiceCountByRange: res.data.invoiceCountByRange })
