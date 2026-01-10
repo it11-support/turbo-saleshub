@@ -1,0 +1,83 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Upload source only
+        run: echo "Source ready"
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/sysdevrco1/turbo-saleshub
+            git pull origin main
+
+            # backend environment variables
+            cat > /home/sysdevrco1/turbo-saleshub/apps/backend/.env <<EOF
+            DATABASE_USER=${{ secrets.DATABASE_USER }}
+            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+            DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+            DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+            DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+            DATABASE_URL=mysql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            TZ=Asia/Makassar
+            NODE_ENV=production
+            PORT=4000
+            EOF
+            
+            # frontend environment variables
+            cat > /home/sysdevrco1/SalesHub/apps/frontend/.env.production <<EOF
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_APP_TITLE="${{ secrets.NEXT_PUBLIC_APP_TITLE }}"
+            NEXT_REMOTE_PROTOCOL=${{ secrets.NEXT_REMOTE_PROTOCOL }}
+            NEXT_REMOTE_HOSTNAME=${{ secrets.NEXT_REMOTE_HOSTNAME }}
+            NEXT_REMOTE_PATH=${{ secrets.NEXT_REMOTE_PATH }}
+            NODE_ENV=production
+            PORT=3001
+            TZ=Asia/Makassar
+            EOF
+
+            pnpm install --frozen-lockfile
+            pnpm --filter ./apps/backend prisma:generate
+            pnpm --filter ./apps/backend prisma:migrate deploy
+            pnpm build
+
+            pm2 describe saleshub-backend > /dev/null
+            if [ $? -ne 0 ]; then
+              pm2 start ecosystem.config.js --only saleshub-backend
+            else
+              pm2 reload ecosystem.config.js --only saleshub-backend
+            fi
+
+            pm2 describe saleshub-frontend > /dev/null
+            if [ $? -ne 0 ]; then
+              pm2 start ecosystem.config.js --only saleshub-frontend
+            else
+              pm2 reload ecosystem.config.js --only saleshub-frontend
+            fi
+
+            pm2 save

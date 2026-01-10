@@ -12,7 +12,7 @@ const nextConfig = {
       {
         protocol: process.env.NEXT_REMOTE_PROTOCOL,
         hostname: process.env.NEXT_REMOTE_HOSTNAME,
-        port: process.env.NEXT_REMOTE_PORT,
+        port: process.env.NEXT_REMOTE_PORT || undefined,
         pathname: process.env.NEXT_REMOTE_PATH,
       },
     ],
