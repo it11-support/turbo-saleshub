@@ -64,7 +64,9 @@ const Dashboard = () => {
                         : 'text-red-500'
                     } font-medium`}
                   >
-                    {`${monthToDateSummary[itemKey]?.growthPercent.toFixed(2)} % `}
+                    {monthToDateSummary[itemKey]?.growthPercent != null
+                      ? `${monthToDateSummary[itemKey].growthPercent.toFixed(2)} %`
+                      : '0.00 %'}
 
                     {monthToDateSummary[itemKey]?.diff > 0 ? (
                       <i className="ml-1 pi pi-arrow-up-right text-green-500 text-sm" />
