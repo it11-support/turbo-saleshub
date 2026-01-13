@@ -26,6 +26,7 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
     }
     const salesPersons = await prisma.sales_persons.findMany({
       where,
+      distinct: ['SlpCode'],
       include: { customers: true },
     });
     return res
