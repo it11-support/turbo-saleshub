@@ -103,7 +103,7 @@ const ProductList = () => {
             <Card className="mb-3 p-3 h-[180px]">
               <div className="flex items-start gap-4 h-full">
                 {/* IMAGE */}
-                <div className="w-[150px] h-[150px] flex-shrink-0 flex items-center justify-center">
+                <div className="w-[150px] h-[150px] flex-shrink-0 flex items-center justify-center ">
                   <ProductImageUploader
                     code={item.ItemCode}
                     alt={item.ItemName}

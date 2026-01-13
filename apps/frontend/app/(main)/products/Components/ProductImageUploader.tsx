@@ -112,7 +112,7 @@ export default function ProductImageUploader({
 
   return (
     <div
-      className="relative border-1 border-gray-600 rounded-lg overflow-hidden"
+      className="relative border-1 border-gray-200 overflow-hidden"
       style={{ width, height }}
     >
       {(hasImage || preview) && (
@@ -136,7 +136,7 @@ export default function ProductImageUploader({
           />
 
           {!preview && hasImage && (
-            <div className="absolute top-1 right-1 flex gap-2 my-2 ml-2">
+            <div className="absolute top-1 right-1 flex gap-2 my-2 ml-2 ">
               <Button
                 onClick={() => inputRef.current?.click()}
                 outlined
