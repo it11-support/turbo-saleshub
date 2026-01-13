@@ -99,7 +99,7 @@ const ProductList = () => {
         )}
 
         {products.map((item) => (
-          <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
+          <div className="col-12 lg:col-6 xl:col-6" key={item.ItemCode}>
             <Card className="mb-3 p-3 h-[180px]">
               <div className="flex items-start gap-4 h-full">
                 {/* IMAGE */}
@@ -114,8 +114,11 @@ const ProductList = () => {
 
                 {/* TEXT */}
                 <div className="flex flex-col items-start justify-start">
-                  <div className="font-bold text-base leading-tight line-clamp-2">
-                    {item.ItemName}
+                  <div className="text-base leading-tight line-clamp-2">
+                    <p className="font-semibold">{item.ItemName}</p>
+                    <div className="mt-1 text-sm text-gray-500 mt-3">
+                      <i className="pi pi-tags"></i> {item.ItmsGrpNam}
+                    </div>
                     <div className="mt-1 text-sm font-semibold mt-3">
                       {formatCurrency(Number(item.HargaJualNormal), true, true)}
                     </div>
@@ -128,17 +131,20 @@ const ProductList = () => {
       </div>
 
       {/* Paginator */}
-      <div className="mt-4">
-        <Paginator
-          first={first}
-          rows={limit}
-          totalRecords={total} // total dari backend
-          rowsPerPageOptions={[10, 20, 30]} // dropdown rows per page
-          onPageChange={onPageChange}
-          template="FirstPageLink PrevPageLink  PageLinks  NextPageLink  LastPageLink CurrentPageReport  RowsPerPageDropdown"
-          currentPageReportTemplate={`Page ${page} of ${totalPages}`}
-        />
-      </div>
+      {products.length > 0 && (
+        <div className="mt-4">
+          <Paginator
+            className="paginator border-0"
+            first={first}
+            rows={limit}
+            totalRecords={total} // total dari backend
+            rowsPerPageOptions={[10, 20, 30]} // dropdown rows per page
+            onPageChange={onPageChange}
+            template="FirstPageLink PrevPageLink  PageLinks  NextPageLink  LastPageLink CurrentPageReport  RowsPerPageDropdown"
+            currentPageReportTemplate={`Page ${page} of ${totalPages}`}
+          />
+        </div>
+      )}
     </div>
   )
 }
