@@ -12,6 +12,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { useCustomerStore } from '@/stores/customers'
+import { Button } from 'primereact/button'
 
 export default function CustomerTable() {
   const {
@@ -105,7 +106,17 @@ export default function CustomerTable() {
   }
 
   return (
-    <div className="card">
+    <div className="card p-4">
+      <div className="flex justify-between mb-4 items-center">
+        <Button
+          label="Back"
+          icon="pi pi-chevron-left"
+          severity="danger"
+          size="small"
+          outlined
+          onClick={() => history.back()}
+        />
+      </div>
       <h5>Customer List</h5>
       <div className="grid">
         {/* Kolom 1: Input Search */}

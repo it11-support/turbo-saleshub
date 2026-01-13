@@ -7,6 +7,10 @@ export const getMenus = (isAdmin: boolean): AppMenuItem[] => {
           label: 'Users',
           items: [{ label: 'User List', icon: 'pi pi-fw pi-users', to: '/users' }],
         },
+        {
+          label: 'Products',
+          items: [{ label: 'Product List', icon: 'pi pi-fw pi-tags', to: '/products' }],
+        },
       ]
     : []
 

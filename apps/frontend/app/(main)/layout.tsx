@@ -6,17 +6,17 @@ interface AppLayoutProps {
 }
 
 export const metadata: Metadata = {
-  title: 'PrimeReact Sakai',
+  title: process.env.NEXT_PUBLIC_APP_NAME || 'SalesHub TSM',
   description:
-    'The ultimate collection of design-agnostic, flexible and accessible React UI Components.',
+    'SalesHub TSM is a comprehensive sales management tool designed to streamline your sales processes and enhance productivity. With a user-friendly interface, it provides real-time visibility into your sales data, allowing you to make informed decisions and drive success in your sales operations.',
   robots: { index: false, follow: false },
   openGraph: {
     type: 'website',
-    title: 'PrimeReact SAKAI-REACT',
-    url: 'https://sakai.primereact.org/',
+    title:  process.env.NEXT_PUBLIC_APP_NAME || 'SalesHub TSM',
+    url: 'https://saleshub.centralbali.com',
     description:
-      'The ultimate collection of design-agnostic, flexible and accessible React UI Components.',
-    images: ['https://www.primefaces.org/static/social/sakai-react.png'],
+      'SalesHub TSM is a comprehensive sales management tool designed to streamline your sales processes and enhance productivity. With a user-friendly interface, it provides real-time visibility into your sales data, allowing you to make informed decisions and drive success in your sales operations.',
+    images: ['https://saleshub.centralbali.com/images/logo/logo.png'],
     ttl: 604800,
   },
   icons: {

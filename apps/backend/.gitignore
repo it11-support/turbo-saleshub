@@ -9,7 +9,7 @@ node_modules
 /../../generated/prisma
 
 /prisma/generated/prisma
-
+/public/images/product
 dist
 
 .turbo

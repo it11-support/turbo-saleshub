@@ -242,7 +242,7 @@ export default function VisitsPage(): JSX.Element {
 
   return (
     <div className="card p-4">
-      <div className="col-12 flex justify-content-start align-items-center">
+      <div className="flex justify-between mb-4 items-center">
         <Button
           label="Back"
           icon="pi pi-chevron-left"

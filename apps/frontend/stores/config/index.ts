@@ -7,7 +7,7 @@ import { ConfigState } from '@/types/config'
 export const useConfigStore = create<ConfigState>((set, get) => ({
   userId: null,
   configs: {
-    theme: 'soho-light',
+    theme: 'lara-light-teal',
     colorScheme: 'light',
     ripple: 'false',
   },

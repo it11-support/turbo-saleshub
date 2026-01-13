@@ -115,7 +115,17 @@ export default function UserTable() {
   }
 
   return (
-    <div className="card">
+    <div className="card p-4">
+       <div className="flex justify-between mb-4 items-center">
+        <Button
+          label="Back"
+          icon="pi pi-chevron-left"
+          severity="danger"
+          size="small"
+          outlined
+          onClick={() => history.back()}
+        />
+      </div>
       <h5>User List</h5>
       <div className="grid mb-2">
         <div className="col-12">

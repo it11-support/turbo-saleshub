@@ -58,8 +58,8 @@ const VisitList = () => {
   }, [isAdmin, salesPersonId, user, dates, page, limit, multiSortMeta])
 
   return (
-    <div className="card">
-      <div className="col-12 flex justify-content-start align-items-center">
+    <div className="card p-4">
+      <div className="flex justify-between mb-4 items-center">
         <Button
           label="Back"
           icon="pi pi-chevron-left"
