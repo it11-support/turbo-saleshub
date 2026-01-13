@@ -19,8 +19,27 @@ export const metadata: Metadata = {
     images: ['https://saleshub.centralbali.com/images/logo/logo.png'],
     ttl: 604800,
   },
+  manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      {
+        url: '/android/android-launchericon-192-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        url: '/android/android-launchericon-512-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+    ],
+    apple: [
+      {
+        url: '/android/android-launchericon-180-180.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
   },
 }
 
