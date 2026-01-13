@@ -21,8 +21,10 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
 
     if (withUser) {
       where.user = null;
+      where.customers = { some: {} };
     } else {
       where.user = { isNot: null };
+      where.customers = { some: {} };
     }
     const salesPersons = await prisma.sales_persons.findMany({
       where,
