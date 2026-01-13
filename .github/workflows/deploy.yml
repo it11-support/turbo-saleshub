@@ -21,9 +21,6 @@ jobs:
         with:
           version: 10
 
-      - name: Upload source only
-        run: echo "Source ready"
-
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -35,8 +32,8 @@ jobs:
             cd /home/sysdevrco1/turbo-saleshub
             git pull origin main
 
-            # backend environment variables
-            cat > /home/sysdevrco1/turbo-saleshub/apps/backend/.env <<EOF
+            # Backend env
+            cat > apps/backend/.env <<EOF
             DATABASE_USER=${{ secrets.DATABASE_USER }}
             DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
             DATABASE_NAME=${{ secrets.DATABASE_NAME }}
@@ -48,9 +45,9 @@ jobs:
             NODE_ENV=production
             PORT=4000
             EOF
-            
-            # frontend environment variables
-            cat > /home/sysdevrco1/turbo-saleshub/apps/frontend/.env.production <<EOF
+
+            # Frontend env
+            cat > apps/frontend/.env.production <<EOF
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_APP_TITLE="${{ secrets.NEXT_PUBLIC_APP_TITLE }}"
             NEXT_REMOTE_PROTOCOL=${{ secrets.NEXT_REMOTE_PROTOCOL }}
@@ -61,22 +58,30 @@ jobs:
             TZ=Asia/Makassar
             EOF
 
+            # Install dependencies
             pnpm install --frozen-lockfile
+
+            # Backend prisma generate & build
             pnpm --filter ./apps/backend prisma:generate
-            pnpm build
+            pnpm --filter ./apps/backend build
 
-            pm2 describe saleshub-backend > /dev/null
+            # Frontend build
+            pnpm --filter ./apps/frontend build
+
+            # PM2 backend
+            npx pm2 describe saleshub-backend > /dev/null
             if [ $? -ne 0 ]; then
-              pm2 start ecosystem.config.js --only saleshub-backend
+              npx pm2 start ecosystem.config.js --only saleshub-backend
             else
-              pm2 reload ecosystem.config.js --only saleshub-backend
+              npx pm2 reload ecosystem.config.js --only saleshub-backend
             fi
 
-            pm2 describe saleshub-frontend > /dev/null
+            # PM2 frontend
+            npx pm2 describe saleshub-frontend > /dev/null
             if [ $? -ne 0 ]; then
-              pm2 start ecosystem.config.js --only saleshub-frontend
+              npx pm2 start ecosystem.config.js --only saleshub-frontend
             else
-              pm2 reload ecosystem.config.js --only saleshub-frontend
+              npx pm2 reload ecosystem.config.js --only saleshub-frontend
             fi
 
-            pm2 save
+            npx pm2 save
