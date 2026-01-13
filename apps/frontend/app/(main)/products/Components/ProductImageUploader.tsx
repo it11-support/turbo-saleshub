@@ -111,10 +111,7 @@ export default function ProductImageUploader({
   }
 
   return (
-    <div
-      className="relative border-1 border-gray-200 overflow-hidden"
-      style={{ width, height }}
-    >
+    <div className="relative border-1 border-gray-200 overflow-hidden" style={{ width, height }}>
       {(hasImage || preview) && (
         <>
           <Image

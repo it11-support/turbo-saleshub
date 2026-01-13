@@ -66,6 +66,7 @@ jobs:
             pnpm --filter ./apps/backend build
 
             # Frontend build
+            pnpm --filter ./apps/frontend lint:fix
             pnpm --filter ./apps/frontend build
 
             # PM2 backend
