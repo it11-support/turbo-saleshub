@@ -7,9 +7,10 @@ import { ConfigState } from '@/types/config'
 export const useConfigStore = create<ConfigState>((set, get) => ({
   userId: null,
   configs: {
-    theme: 'lara-light-teal',
+    theme: 'viva-light',
     colorScheme: 'light',
     ripple: 'false',
+    scale: 14,
   },
   loading: false,
   error: null,

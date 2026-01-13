@@ -80,8 +80,6 @@ export const imageUpload = async (req: Request, res: Response) => {
 
     const { itemCode } = req.params
 
-    console.log('Uploading image for itemCode:', itemCode)
-    console.log('Files received:', req.files)
     if (!itemCode) return res.status(400).json({ message: 'itemCode required' })
 
     if (!req.files || Object.keys(req.files).length === 0) {

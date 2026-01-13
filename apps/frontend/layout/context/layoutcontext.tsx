@@ -15,7 +15,7 @@ export const LayoutProvider = ({ children }: ChildContainerProps) => {
     inputStyle: 'outlined',
     menuMode: 'static',
     colorScheme: 'light',
-    theme: 'lara-light-teal',
+    theme: 'viva-light',
     scale: 14,
   })
 
@@ -53,7 +53,6 @@ export const LayoutProvider = ({ children }: ChildContainerProps) => {
       colorScheme: configs.colorScheme as string,
     }))
 
-    console.log('theme changed')
   }, [configs.theme, configs.colorScheme, configs.ripple])
 
   const value: LayoutContextProps = {

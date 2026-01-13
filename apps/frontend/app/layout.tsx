@@ -21,7 +21,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link id="theme-css" href={`/themes/lara-light-teal/theme.css`} rel="stylesheet"></link>
+        <link id="theme-css" href={`/themes/viva-light/theme.css`} rel="stylesheet"></link>
         <meta charSet="utf-8" />
       </head>
       <body>
