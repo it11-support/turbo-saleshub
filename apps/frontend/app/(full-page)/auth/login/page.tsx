@@ -104,11 +104,7 @@ const LoginPage = () => {
   return (
     <div className={containerClassName}>
       <div className="flex flex-column align-items-center justify-content-center">
-        <img
-          src={`/images/logo/logo.png`}
-          alt="Sakai logo"
-          className="mb-5 w-6rem flex-shrink-0"
-        />
+        <img src={`/images/logo/logo.png`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
         <div
           style={{
             borderRadius: '53px',

@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { $api } from '@/lib/api'
-import { FileUpload } from 'primereact/fileupload'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
+import { FileUpload } from 'primereact/fileupload'
+import { useState, useEffect, useRef } from 'react'
+
+import { $api } from '@/lib/api'
 
 type ProductImageUploaderProps = {
   code: string

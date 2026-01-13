@@ -1,6 +1,7 @@
 'use client'
 
 import { ICustomer } from '@saleshub-tsm/types'
+import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
@@ -12,7 +13,6 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { useCustomerStore } from '@/stores/customers'
-import { Button } from 'primereact/button'
 
 export default function CustomerTable() {
   const {

@@ -1,5 +1,6 @@
 'use client'
 
+import ScheduleCard from './components/ScheduleCard'
 import { ISalesPerson } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Accordion, AccordionTab } from 'primereact/accordion'
@@ -7,7 +8,6 @@ import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useState } from 'react'
-import ScheduleCard from './components/ScheduleCard'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { useScheduleStore, useUserStore } from '@/stores'

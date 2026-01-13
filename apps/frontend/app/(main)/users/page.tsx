@@ -116,7 +116,7 @@ export default function UserTable() {
 
   return (
     <div className="card p-4">
-       <div className="flex justify-between mb-4 items-center">
+      <div className="flex justify-between mb-4 items-center">
         <Button
           label="Back"
           icon="pi pi-chevron-left"

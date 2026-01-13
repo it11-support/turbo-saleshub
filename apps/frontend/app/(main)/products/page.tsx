@@ -1,15 +1,23 @@
 'use client'
 
-import { useDebounce } from '@/hooks/useDebounce'
-import { useProductsStore } from '@/stores/products'
+import ProductImageUploader from './Components/ProductImageUploader'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
-import { useEffect } from 'react'
-import ProductImageUploader from './Components/ProductImageUploader'
-import { formatCurrency } from '@/lib/formatter'
 import { Paginator } from 'primereact/paginator'
+import { useEffect } from 'react'
+
+import { useDebounce } from '@/hooks/useDebounce'
+import { formatCurrency } from '@/lib/formatter'
+import { useProductsStore } from '@/stores/products'
+
+interface PaginatorChangeEvent {
+  first: number
+  rows: number
+  page: number
+  pageCount: number
+}
 
 const ProductList = () => {
   const {
@@ -44,7 +52,7 @@ const ProductList = () => {
   }, [selectedCategory, searchDebounced])
 
   // Handler paginator
-  const onPageChange = (e: any) => {
+  const onPageChange = (e: PaginatorChangeEvent) => {
     setLimit(e.rows) // update limit jika user pilih rowsPerPage
     setPage(Math.floor(e.first / e.rows) + 1) // update page
   }
