@@ -9,7 +9,18 @@ export const getMenus = (isAdmin: boolean): AppMenuItem[] => {
         },
         {
           label: 'Products',
-          items: [{ label: 'Product List', icon: 'pi pi-fw pi-tags', to: '/products' }],
+          items: [
+            {
+              label: 'Product List',
+              icon: 'pi pi-fw pi-tags',
+              to: '/products',
+            },
+            {
+              label: 'Bulk Upload',
+              icon: 'pi pi-fw pi-upload',
+              to: '/products/bulk-upload',
+            },
+          ],
         },
       ]
     : []

@@ -1,9 +1,9 @@
 import { Prisma } from '@/generated/prisma/client.js';
 import prisma from '@/libs/prisma.js';
 import { Request, Response } from 'express';
+import fileUpload from 'express-fileupload';
 import fs from 'fs';
 import path from 'path';
-import fileUpload from 'express-fileupload'
 
 export type ImageResponseType = never;
 
@@ -72,47 +72,47 @@ export const deleteImage = async (req: Request, res: Response) => {
       return res.status(500).json({ message: 'Internal server error' });
     }
   }
-}
+};
 
 export const imageUpload = async (req: Request, res: Response) => {
   try {
-    const baseDir = path.join(process.cwd(), 'public/images/product')
+    const baseDir = path.join(process.cwd(), 'public/images/product');
 
-    const { itemCode } = req.params
+    const { itemCode } = req.params;
 
-    if (!itemCode) return res.status(400).json({ message: 'itemCode required' })
+    if (!itemCode) return res.status(400).json({ message: 'itemCode required' });
 
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).json({ message: 'No file uploaded' })
+      return res.status(400).json({ message: 'No file uploaded' });
     }
 
     // ambil file pertama
-    const firstKey = Object.keys(req.files)[0]
-    const imageFile = req.files[firstKey] as fileUpload.UploadedFile
-    const ext = path.extname(imageFile.name).toLowerCase()
-    const fileName = `${itemCode}${ext}`
-    const filePath = path.join(baseDir, fileName)
+    const firstKey = Object.keys(req.files)[0];
+    const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
+    const ext = path.extname(imageFile.name).toLowerCase();
+    const fileName = `${itemCode}${ext}`;
+    const filePath = path.join(baseDir, fileName);
 
     // Hapus semua file lama dengan nama itemCode.*
-    const filesInDir = fs.readdirSync(baseDir)
+    const filesInDir = fs.readdirSync(baseDir);
     filesInDir.forEach((f) => {
       if (f.startsWith(itemCode + '.')) {
-        fs.unlinkSync(path.join(baseDir, f))
+        fs.unlinkSync(path.join(baseDir, f));
       }
-    })
+    });
 
     // Simpan file baru
-    await imageFile.mv(filePath)
+    await imageFile.mv(filePath);
 
     return res.json({
       message: 'Upload successful',
       url: `/images/product/${fileName}`,
-    })
+    });
   } catch (err) {
-    console.error(err)
-    return res.status(500).json({ message: 'Failed to upload image' })
+    console.error(err);
+    return res.status(500).json({ message: 'Failed to upload image' });
   }
-}
+};
 
 export const fetchProducts = async (req: Request, res: Response) => {
   try {
@@ -169,5 +169,70 @@ export const fetchProducts = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const bulkUploadProducts = async (req: Request, res: Response) => {
+  try {
+    const baseDir = path.join(process.cwd(), 'public/images/product');
+    if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+    }
+
+    const files = req.files['files'] as fileUpload.UploadedFile[] | fileUpload.UploadedFile;
+    const fileArray = Array.isArray(files) ? files : [files];
+
+    const uploaded: any[] = [];
+    const invalidFiles: any[] = [];
+
+    for (const imageFile of fileArray) {
+      const originalName = imageFile.name;
+      const ext = path.extname(originalName).toLowerCase();
+      const itemCode = path.parse(originalName).name;
+      const fileName = `${itemCode}${ext}`;
+      const filePath = path.join(baseDir, fileName);
+
+      // max 5MB
+      if (imageFile.size > 5 * 1024 * 1024) {
+        invalidFiles.push({ filename: originalName, reason: 'File exceeds 5MB limit' });
+        continue;
+      }
+
+      const productExist = await prisma.products.findUnique({
+        where: { ItemCode: itemCode },
+      });
+
+      if (!productExist) {
+        invalidFiles.push({ filename: originalName, reason: 'Item code not found' });
+        continue;
+      }
+
+      // hapus file lama
+      fs.readdirSync(baseDir).forEach((f) => {
+        if (f.startsWith(itemCode + '.')) {
+          fs.unlinkSync(path.join(baseDir, f));
+        }
+      });
+
+      await imageFile.mv(filePath);
+
+      uploaded.push({
+        itemCode,
+        filename: fileName,
+        url: `/images/product/${fileName}`,
+      });
+    }
+
+    return res.json({
+      status: invalidFiles.length ? 'partial' : 'success',
+      message: invalidFiles.length ? 'Some files failed to upload' : 'Images uploaded successfully',
+      data: uploaded,
+      invalidFiles,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Bulk upload failed' });
   }
 };
