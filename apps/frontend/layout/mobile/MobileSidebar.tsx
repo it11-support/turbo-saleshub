@@ -72,7 +72,7 @@ const MobileSidebar = (props: Props) => {
           <div className="flex items-center justify-center p-4 border-b border-gray-200">
             <Link href="/" onClick={onHide} className="flex items-center gap-2">
               <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} />
-              <span className="font-semibold text-lg text-gray-800">SalesHub</span>
+              <span className="font-semibold text-lg text-gray-500">{process.env.NEXT_PUBLIC_APP_TITLE}</span>
             </Link>
           </div>
 
