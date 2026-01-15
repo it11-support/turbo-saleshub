@@ -62,7 +62,7 @@ jobs:
             pnpm install --frozen-lockfile
 
             # Backend prisma generate & build
-            pnpm --filter ./apps/backend prisma:generate
+            pnpm --filter ./apps/backend db:generate
             pnpm --filter ./apps/backend build
 
             # Frontend build

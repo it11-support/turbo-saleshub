@@ -51,8 +51,7 @@ const VisitList = () => {
       return
     }
 
-    // ADMIN → fetch hanya jika sudah pilih sales person
-    if (isAdmin && salesPersonId) {
+    if (isAdmin) {
       fetchVisits()
     }
   }, [isAdmin, salesPersonId, user, dates, page, limit, multiSortMeta])

@@ -4,4 +4,5 @@ node_modules
 packages/types/node_modules
 packages/types/.turbo
 packages/types/dist
+apps/backend/src/generated/prisma
 apps/frontend/.env*

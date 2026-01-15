@@ -214,7 +214,7 @@ export type Sales_visit_schedulesGroupByOutputType = {
   rule_id: bigint
   sales_person_id: bigint
   customer_id: bigint
-  visit_date: Date
+  visit_date: Date | null
   status: string
   created_at: Date
   updated_at: Date
@@ -248,7 +248,7 @@ export type sales_visit_schedulesWhereInput = {
   rule_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
   sales_person_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
   customer_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
-  visit_date?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
+  visit_date?: Prisma.DateTimeNullableFilter<"sales_visit_schedules"> | Date | string | null
   status?: Prisma.StringFilter<"sales_visit_schedules"> | string
   created_at?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
@@ -263,7 +263,7 @@ export type sales_visit_schedulesOrderByWithRelationInput = {
   rule_id?: Prisma.SortOrder
   sales_person_id?: Prisma.SortOrder
   customer_id?: Prisma.SortOrder
-  visit_date?: Prisma.SortOrder
+  visit_date?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -283,7 +283,7 @@ export type sales_visit_schedulesWhereUniqueInput = Prisma.AtLeast<{
   rule_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
   sales_person_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
   customer_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
-  visit_date?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
+  visit_date?: Prisma.DateTimeNullableFilter<"sales_visit_schedules"> | Date | string | null
   status?: Prisma.StringFilter<"sales_visit_schedules"> | string
   created_at?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
@@ -298,7 +298,7 @@ export type sales_visit_schedulesOrderByWithAggregationInput = {
   rule_id?: Prisma.SortOrder
   sales_person_id?: Prisma.SortOrder
   customer_id?: Prisma.SortOrder
-  visit_date?: Prisma.SortOrder
+  visit_date?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -317,7 +317,7 @@ export type sales_visit_schedulesScalarWhereWithAggregatesInput = {
   rule_id?: Prisma.BigIntWithAggregatesFilter<"sales_visit_schedules"> | bigint | number
   sales_person_id?: Prisma.BigIntWithAggregatesFilter<"sales_visit_schedules"> | bigint | number
   customer_id?: Prisma.BigIntWithAggregatesFilter<"sales_visit_schedules"> | bigint | number
-  visit_date?: Prisma.DateTimeWithAggregatesFilter<"sales_visit_schedules"> | Date | string
+  visit_date?: Prisma.DateTimeNullableWithAggregatesFilter<"sales_visit_schedules"> | Date | string | null
   status?: Prisma.StringWithAggregatesFilter<"sales_visit_schedules"> | string
   created_at?: Prisma.DateTimeWithAggregatesFilter<"sales_visit_schedules"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"sales_visit_schedules"> | Date | string
@@ -325,7 +325,7 @@ export type sales_visit_schedulesScalarWhereWithAggregatesInput = {
 
 export type sales_visit_schedulesCreateInput = {
   id?: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -340,7 +340,7 @@ export type sales_visit_schedulesUncheckedCreateInput = {
   rule_id: bigint | number
   sales_person_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -349,7 +349,7 @@ export type sales_visit_schedulesUncheckedCreateInput = {
 
 export type sales_visit_schedulesUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -364,7 +364,7 @@ export type sales_visit_schedulesUncheckedUpdateInput = {
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -376,7 +376,7 @@ export type sales_visit_schedulesCreateManyInput = {
   rule_id: bigint | number
   sales_person_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -384,7 +384,7 @@ export type sales_visit_schedulesCreateManyInput = {
 
 export type sales_visit_schedulesUpdateManyMutationInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -395,7 +395,7 @@ export type sales_visit_schedulesUncheckedUpdateManyInput = {
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -617,7 +617,7 @@ export type sales_visit_schedulesUncheckedUpdateManyWithoutSalesPersonNestedInpu
 
 export type sales_visit_schedulesCreateWithoutCustomerInput = {
   id?: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -630,7 +630,7 @@ export type sales_visit_schedulesUncheckedCreateWithoutCustomerInput = {
   id?: bigint | number
   rule_id: bigint | number
   sales_person_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -671,7 +671,7 @@ export type sales_visit_schedulesScalarWhereInput = {
   rule_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
   sales_person_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
   customer_id?: Prisma.BigIntFilter<"sales_visit_schedules"> | bigint | number
-  visit_date?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
+  visit_date?: Prisma.DateTimeNullableFilter<"sales_visit_schedules"> | Date | string | null
   status?: Prisma.StringFilter<"sales_visit_schedules"> | string
   created_at?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"sales_visit_schedules"> | Date | string
@@ -679,7 +679,7 @@ export type sales_visit_schedulesScalarWhereInput = {
 
 export type sales_visit_schedulesCreateWithoutRuleInput = {
   id?: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -692,7 +692,7 @@ export type sales_visit_schedulesUncheckedCreateWithoutRuleInput = {
   id?: bigint | number
   sales_person_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -727,7 +727,7 @@ export type sales_visit_schedulesUpdateManyWithWhereWithoutRuleInput = {
 
 export type sales_visit_schedulesCreateWithoutItemsInput = {
   id?: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -741,7 +741,7 @@ export type sales_visit_schedulesUncheckedCreateWithoutItemsInput = {
   rule_id: bigint | number
   sales_person_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -765,7 +765,7 @@ export type sales_visit_schedulesUpdateToOneWithWhereWithoutItemsInput = {
 
 export type sales_visit_schedulesUpdateWithoutItemsInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -779,7 +779,7 @@ export type sales_visit_schedulesUncheckedUpdateWithoutItemsInput = {
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -787,7 +787,7 @@ export type sales_visit_schedulesUncheckedUpdateWithoutItemsInput = {
 
 export type sales_visit_schedulesCreateWithoutSalesPersonInput = {
   id?: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -800,7 +800,7 @@ export type sales_visit_schedulesUncheckedCreateWithoutSalesPersonInput = {
   id?: bigint | number
   rule_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -837,7 +837,7 @@ export type sales_visit_schedulesCreateManyCustomerInput = {
   id?: bigint | number
   rule_id: bigint | number
   sales_person_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -845,7 +845,7 @@ export type sales_visit_schedulesCreateManyCustomerInput = {
 
 export type sales_visit_schedulesUpdateWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -858,7 +858,7 @@ export type sales_visit_schedulesUncheckedUpdateWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -869,7 +869,7 @@ export type sales_visit_schedulesUncheckedUpdateManyWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -879,7 +879,7 @@ export type sales_visit_schedulesCreateManyRuleInput = {
   id?: bigint | number
   sales_person_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -887,7 +887,7 @@ export type sales_visit_schedulesCreateManyRuleInput = {
 
 export type sales_visit_schedulesUpdateWithoutRuleInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -900,7 +900,7 @@ export type sales_visit_schedulesUncheckedUpdateWithoutRuleInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,7 +911,7 @@ export type sales_visit_schedulesUncheckedUpdateManyWithoutRuleInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -921,7 +921,7 @@ export type sales_visit_schedulesCreateManySalesPersonInput = {
   id?: bigint | number
   rule_id: bigint | number
   customer_id: bigint | number
-  visit_date: Date | string
+  visit_date?: Date | string | null
   status?: string
   created_at?: Date | string
   updated_at?: Date | string
@@ -929,7 +929,7 @@ export type sales_visit_schedulesCreateManySalesPersonInput = {
 
 export type sales_visit_schedulesUpdateWithoutSalesPersonInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -942,7 +942,7 @@ export type sales_visit_schedulesUncheckedUpdateWithoutSalesPersonInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -953,7 +953,7 @@ export type sales_visit_schedulesUncheckedUpdateManyWithoutSalesPersonInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1041,7 +1041,7 @@ export type $sales_visit_schedulesPayload<ExtArgs extends runtime.Types.Extensio
     rule_id: bigint
     sales_person_id: bigint
     customer_id: bigint
-    visit_date: Date
+    visit_date: Date | null
     status: string
     created_at: Date
     updated_at: Date

@@ -2864,7 +2864,6 @@ export type sales_personsOrderByRelevanceFieldEnum = (typeof sales_personsOrderB
 
 
 export const visitsOrderByRelevanceFieldEnum = {
-  visit_date: 'visit_date',
   notes: 'notes'
 } as const
 
