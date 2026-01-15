@@ -62,7 +62,15 @@ const PurchaseHistory = (props: PurchaseHistoryProps) => {
                   <div className="grid">
                     {purchaseHistory.lastPurchase.map((item: ISalesInvoices, idx) => (
                       <div key={idx} className="col-12 md:col-6 lg:col-4">
-                        <Card className="mb-3 p-3 h-[180px] shadow-2 px-0">
+                        <Card className="mb-3 p-3 h-[180px] shadow-2 px-0"
+                        pt={{
+                          root: {
+                            style: {
+                              minHeight: '100%'
+                            }
+                          }
+                        }}
+                        >
                           <h5 className="text-gray-500 font-semibold">{item.Dscription}</h5>
                           <div className="flex flex-column justify-content-between gap-2 text-sm">
                             <div className="flex flex-row justify-content-start gap-3 font-semibold">

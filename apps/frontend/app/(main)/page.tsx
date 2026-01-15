@@ -5,6 +5,7 @@ import { useContext, useEffect } from 'react'
 
 import { formatCurrency } from '@/lib/formatter'
 import { useDashboardStore } from '@/stores'
+import { Card } from 'primereact/card'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -36,7 +37,16 @@ const Dashboard = () => {
           return (
             monthToDateSummary[itemKey].current && (
               <div className="col-12 lg:col-6 xl:col-3" key={itemKey}>
-                <div className="card mb-0">
+                <Card
+                  pt={{
+                    root: {
+                      style: {
+                        border: `1px solid ${monthToDateSummary[itemKey]?.growthPercent > 0 ? 'var(--green-500)' : 'var(--red-500)'}`,
+                        borderRadius: '12px',
+                      }
+                    }
+                  }}
+                >
                   <div className="flex justify-content-between mb-3">
                     <div>
                       <span className="block text-500 font-medium mb-3">
@@ -75,7 +85,7 @@ const Dashboard = () => {
                     )}
                   </span>
                   <span className="ml-2 text-500">vs last month</span>
-                </div>
+                </Card>
               </div>
             )
           )
