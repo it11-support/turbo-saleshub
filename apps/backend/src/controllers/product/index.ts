@@ -143,6 +143,11 @@ export const fetchProducts = async (req: Request, res: Response) => {
       skip: (currentPage - 1) * perPage,
       take: perPage,
       where,
+      include: {
+        product_developments: {
+          include: { subgroup: true },
+        },
+      },
     });
 
     const totalRecords = await prisma.products.count({ where });
@@ -234,5 +239,64 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: 'error', message: 'Bulk upload failed' });
+  }
+};
+
+export const productDevelopment = async (req: Request, res: Response) => {
+  try {
+    const { productId, subgroupIds } = req.body;
+
+    await prisma.product_developments.deleteMany({
+      where: {
+        product_id: productId,
+      },
+    });
+
+    await prisma.product_developments.createMany({
+      data: subgroupIds.map((subgroupId: number) => ({
+        product_id: productId,
+        subgroup_id: subgroupId,
+      })),
+    });
+
+    const dev = await prisma.products.findUnique({
+      where: { id: BigInt(productId) },
+      include: {
+        product_developments: {
+          include: { subgroup: true },
+        },
+      },
+    });
+    if (dev) {
+      return res.json({
+        id: Number(dev.id),
+        ItemCode: dev.ItemCode,
+        ItemName: dev.ItemName,
+        subgroups: dev.product_developments.map((d) => d.subgroup),
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const removeProductDevelopment = async (req: Request, res: Response) => {
+  try {
+    const { productId, subgroupIds } = req.body;
+
+    await prisma.product_developments.deleteMany({
+      where: {
+        product_id: Number(productId),
+        subgroup_id: {
+          in: subgroupIds,
+        },
+      },
+    });
+
+    return res.json({ message: 'Success' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

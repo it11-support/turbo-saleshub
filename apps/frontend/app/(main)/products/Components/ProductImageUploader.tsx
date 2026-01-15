@@ -98,8 +98,15 @@ export default function ProductImageUploader({
 
   // Jika tidak ada gambar sama sekali, tampil FileUpload
   if (!hasImage && !preview) {
+    const chooseOptions = {
+      icon: 'pi pi-fw pi-images',
+      iconOnly: false,
+      className: 'custom-choose-btn p-button-rounded p-button-outlined p-button-success',
+    }
+
     return (
       <FileUpload
+        chooseOptions={chooseOptions}
         mode="basic"
         chooseLabel="Upload"
         accept="image/png,image/jpeg"

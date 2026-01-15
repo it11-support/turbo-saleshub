@@ -266,7 +266,31 @@ export const CustomerDetail = (props: Props) => {
           <div className="grid">
             {suggestedItems.map((item) => (
               <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
-                <Card className="mb-3 p-3 h-[180px]">
+                <Card
+                  className="mb-3 p-3 h-[180px]"
+                  pt={{
+                    root: {
+                      style: {
+                        minHeight: '100%',
+                      },
+                    },
+                  }}
+                >
+                  <div className="flex items-start gap-2 h-[28px] mb-2">
+                    <i
+                      className={`pi pi-star-fill text-xl text-yellow-500 transition-opacity ${
+                        item.product_developments?.length ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    ></i>
+                    <p
+                      className={`font-italic transition-opacity text-gray-500 font-semibold ${
+                        item.product_developments?.length ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      Product Development
+                    </p>
+                  </div>
+
                   <div className="flex items-start gap-4 h-full">
                     {/* IMAGE */}
                     <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">

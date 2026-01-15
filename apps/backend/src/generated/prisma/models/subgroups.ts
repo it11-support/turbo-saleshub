@@ -201,6 +201,7 @@ export type subgroupsWhereInput = {
   IndName?: Prisma.StringFilter<"subgroups"> | string
   IndDesc?: Prisma.StringFilter<"subgroups"> | string
   customers?: Prisma.CustomersListRelationFilter
+  product_developments?: Prisma.Product_developmentsListRelationFilter
 }
 
 export type subgroupsOrderByWithRelationInput = {
@@ -208,6 +209,7 @@ export type subgroupsOrderByWithRelationInput = {
   IndName?: Prisma.SortOrder
   IndDesc?: Prisma.SortOrder
   customers?: Prisma.customersOrderByRelationAggregateInput
+  product_developments?: Prisma.product_developmentsOrderByRelationAggregateInput
   _relevance?: Prisma.subgroupsOrderByRelevanceInput
 }
 
@@ -219,6 +221,7 @@ export type subgroupsWhereUniqueInput = Prisma.AtLeast<{
   IndName?: Prisma.StringFilter<"subgroups"> | string
   IndDesc?: Prisma.StringFilter<"subgroups"> | string
   customers?: Prisma.CustomersListRelationFilter
+  product_developments?: Prisma.Product_developmentsListRelationFilter
 }, "IndCode">
 
 export type subgroupsOrderByWithAggregationInput = {
@@ -246,6 +249,7 @@ export type subgroupsCreateInput = {
   IndName: string
   IndDesc: string
   customers?: Prisma.customersCreateNestedManyWithoutSubgroupInput
+  product_developments?: Prisma.product_developmentsCreateNestedManyWithoutSubgroupInput
 }
 
 export type subgroupsUncheckedCreateInput = {
@@ -253,6 +257,7 @@ export type subgroupsUncheckedCreateInput = {
   IndName: string
   IndDesc: string
   customers?: Prisma.customersUncheckedCreateNestedManyWithoutSubgroupInput
+  product_developments?: Prisma.product_developmentsUncheckedCreateNestedManyWithoutSubgroupInput
 }
 
 export type subgroupsUpdateInput = {
@@ -260,6 +265,7 @@ export type subgroupsUpdateInput = {
   IndName?: Prisma.StringFieldUpdateOperationsInput | string
   IndDesc?: Prisma.StringFieldUpdateOperationsInput | string
   customers?: Prisma.customersUpdateManyWithoutSubgroupNestedInput
+  product_developments?: Prisma.product_developmentsUpdateManyWithoutSubgroupNestedInput
 }
 
 export type subgroupsUncheckedUpdateInput = {
@@ -267,6 +273,7 @@ export type subgroupsUncheckedUpdateInput = {
   IndName?: Prisma.StringFieldUpdateOperationsInput | string
   IndDesc?: Prisma.StringFieldUpdateOperationsInput | string
   customers?: Prisma.customersUncheckedUpdateManyWithoutSubgroupNestedInput
+  product_developments?: Prisma.product_developmentsUncheckedUpdateManyWithoutSubgroupNestedInput
 }
 
 export type subgroupsCreateManyInput = {
@@ -324,6 +331,11 @@ export type subgroupsSumOrderByAggregateInput = {
   IndCode?: Prisma.SortOrder
 }
 
+export type SubgroupsScalarRelationFilter = {
+  is?: Prisma.subgroupsWhereInput
+  isNot?: Prisma.subgroupsWhereInput
+}
+
 export type subgroupsCreateNestedOneWithoutCustomersInput = {
   create?: Prisma.XOR<Prisma.subgroupsCreateWithoutCustomersInput, Prisma.subgroupsUncheckedCreateWithoutCustomersInput>
   connectOrCreate?: Prisma.subgroupsCreateOrConnectWithoutCustomersInput
@@ -340,16 +352,32 @@ export type subgroupsUpdateOneWithoutCustomersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.subgroupsUpdateToOneWithWhereWithoutCustomersInput, Prisma.subgroupsUpdateWithoutCustomersInput>, Prisma.subgroupsUncheckedUpdateWithoutCustomersInput>
 }
 
+export type subgroupsCreateNestedOneWithoutProduct_developmentsInput = {
+  create?: Prisma.XOR<Prisma.subgroupsCreateWithoutProduct_developmentsInput, Prisma.subgroupsUncheckedCreateWithoutProduct_developmentsInput>
+  connectOrCreate?: Prisma.subgroupsCreateOrConnectWithoutProduct_developmentsInput
+  connect?: Prisma.subgroupsWhereUniqueInput
+}
+
+export type subgroupsUpdateOneRequiredWithoutProduct_developmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.subgroupsCreateWithoutProduct_developmentsInput, Prisma.subgroupsUncheckedCreateWithoutProduct_developmentsInput>
+  connectOrCreate?: Prisma.subgroupsCreateOrConnectWithoutProduct_developmentsInput
+  upsert?: Prisma.subgroupsUpsertWithoutProduct_developmentsInput
+  connect?: Prisma.subgroupsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.subgroupsUpdateToOneWithWhereWithoutProduct_developmentsInput, Prisma.subgroupsUpdateWithoutProduct_developmentsInput>, Prisma.subgroupsUncheckedUpdateWithoutProduct_developmentsInput>
+}
+
 export type subgroupsCreateWithoutCustomersInput = {
   IndCode: number
   IndName: string
   IndDesc: string
+  product_developments?: Prisma.product_developmentsCreateNestedManyWithoutSubgroupInput
 }
 
 export type subgroupsUncheckedCreateWithoutCustomersInput = {
   IndCode: number
   IndName: string
   IndDesc: string
+  product_developments?: Prisma.product_developmentsUncheckedCreateNestedManyWithoutSubgroupInput
 }
 
 export type subgroupsCreateOrConnectWithoutCustomersInput = {
@@ -372,12 +400,58 @@ export type subgroupsUpdateWithoutCustomersInput = {
   IndCode?: Prisma.IntFieldUpdateOperationsInput | number
   IndName?: Prisma.StringFieldUpdateOperationsInput | string
   IndDesc?: Prisma.StringFieldUpdateOperationsInput | string
+  product_developments?: Prisma.product_developmentsUpdateManyWithoutSubgroupNestedInput
 }
 
 export type subgroupsUncheckedUpdateWithoutCustomersInput = {
   IndCode?: Prisma.IntFieldUpdateOperationsInput | number
   IndName?: Prisma.StringFieldUpdateOperationsInput | string
   IndDesc?: Prisma.StringFieldUpdateOperationsInput | string
+  product_developments?: Prisma.product_developmentsUncheckedUpdateManyWithoutSubgroupNestedInput
+}
+
+export type subgroupsCreateWithoutProduct_developmentsInput = {
+  IndCode: number
+  IndName: string
+  IndDesc: string
+  customers?: Prisma.customersCreateNestedManyWithoutSubgroupInput
+}
+
+export type subgroupsUncheckedCreateWithoutProduct_developmentsInput = {
+  IndCode: number
+  IndName: string
+  IndDesc: string
+  customers?: Prisma.customersUncheckedCreateNestedManyWithoutSubgroupInput
+}
+
+export type subgroupsCreateOrConnectWithoutProduct_developmentsInput = {
+  where: Prisma.subgroupsWhereUniqueInput
+  create: Prisma.XOR<Prisma.subgroupsCreateWithoutProduct_developmentsInput, Prisma.subgroupsUncheckedCreateWithoutProduct_developmentsInput>
+}
+
+export type subgroupsUpsertWithoutProduct_developmentsInput = {
+  update: Prisma.XOR<Prisma.subgroupsUpdateWithoutProduct_developmentsInput, Prisma.subgroupsUncheckedUpdateWithoutProduct_developmentsInput>
+  create: Prisma.XOR<Prisma.subgroupsCreateWithoutProduct_developmentsInput, Prisma.subgroupsUncheckedCreateWithoutProduct_developmentsInput>
+  where?: Prisma.subgroupsWhereInput
+}
+
+export type subgroupsUpdateToOneWithWhereWithoutProduct_developmentsInput = {
+  where?: Prisma.subgroupsWhereInput
+  data: Prisma.XOR<Prisma.subgroupsUpdateWithoutProduct_developmentsInput, Prisma.subgroupsUncheckedUpdateWithoutProduct_developmentsInput>
+}
+
+export type subgroupsUpdateWithoutProduct_developmentsInput = {
+  IndCode?: Prisma.IntFieldUpdateOperationsInput | number
+  IndName?: Prisma.StringFieldUpdateOperationsInput | string
+  IndDesc?: Prisma.StringFieldUpdateOperationsInput | string
+  customers?: Prisma.customersUpdateManyWithoutSubgroupNestedInput
+}
+
+export type subgroupsUncheckedUpdateWithoutProduct_developmentsInput = {
+  IndCode?: Prisma.IntFieldUpdateOperationsInput | number
+  IndName?: Prisma.StringFieldUpdateOperationsInput | string
+  IndDesc?: Prisma.StringFieldUpdateOperationsInput | string
+  customers?: Prisma.customersUncheckedUpdateManyWithoutSubgroupNestedInput
 }
 
 
@@ -387,10 +461,12 @@ export type subgroupsUncheckedUpdateWithoutCustomersInput = {
 
 export type SubgroupsCountOutputType = {
   customers: number
+  product_developments: number
 }
 
 export type SubgroupsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customers?: boolean | SubgroupsCountOutputTypeCountCustomersArgs
+  product_developments?: boolean | SubgroupsCountOutputTypeCountProduct_developmentsArgs
 }
 
 /**
@@ -410,12 +486,20 @@ export type SubgroupsCountOutputTypeCountCustomersArgs<ExtArgs extends runtime.T
   where?: Prisma.customersWhereInput
 }
 
+/**
+ * SubgroupsCountOutputType without action
+ */
+export type SubgroupsCountOutputTypeCountProduct_developmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.product_developmentsWhereInput
+}
+
 
 export type subgroupsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   IndCode?: boolean
   IndName?: boolean
   IndDesc?: boolean
   customers?: boolean | Prisma.subgroups$customersArgs<ExtArgs>
+  product_developments?: boolean | Prisma.subgroups$product_developmentsArgs<ExtArgs>
   _count?: boolean | Prisma.SubgroupsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["subgroups"]>
 
@@ -430,6 +514,7 @@ export type subgroupsSelectScalar = {
 export type subgroupsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"IndCode" | "IndName" | "IndDesc", ExtArgs["result"]["subgroups"]>
 export type subgroupsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customers?: boolean | Prisma.subgroups$customersArgs<ExtArgs>
+  product_developments?: boolean | Prisma.subgroups$product_developmentsArgs<ExtArgs>
   _count?: boolean | Prisma.SubgroupsCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -437,6 +522,7 @@ export type $subgroupsPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   name: "subgroups"
   objects: {
     customers: Prisma.$customersPayload<ExtArgs>[]
+    product_developments: Prisma.$product_developmentsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     IndCode: number
@@ -783,6 +869,7 @@ readonly fields: subgroupsFieldRefs;
 export interface Prisma__subgroupsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   customers<T extends Prisma.subgroups$customersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.subgroups$customersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$customersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  product_developments<T extends Prisma.subgroups$product_developmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.subgroups$product_developmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$product_developmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1179,6 +1266,30 @@ export type subgroups$customersArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.CustomersScalarFieldEnum | Prisma.CustomersScalarFieldEnum[]
+}
+
+/**
+ * subgroups.product_developments
+ */
+export type subgroups$product_developmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the product_developments
+   */
+  select?: Prisma.product_developmentsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the product_developments
+   */
+  omit?: Prisma.product_developmentsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.product_developmentsInclude<ExtArgs> | null
+  where?: Prisma.product_developmentsWhereInput
+  orderBy?: Prisma.product_developmentsOrderByWithRelationInput | Prisma.product_developmentsOrderByWithRelationInput[]
+  cursor?: Prisma.product_developmentsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Product_developmentsScalarFieldEnum | Prisma.Product_developmentsScalarFieldEnum[]
 }
 
 /**

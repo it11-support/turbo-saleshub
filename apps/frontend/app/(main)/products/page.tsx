@@ -6,11 +6,19 @@ import { Card } from 'primereact/card'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { Paginator } from 'primereact/paginator'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatCurrency } from '@/lib/formatter'
 import { useProductsStore } from '@/stores/products'
+import { useCustomerStore } from '@/stores/customers'
+import { Dialog } from 'primereact/dialog'
+import { DialogFooter, DialogHeader } from '../components/ui/dialog'
+import { IProduct } from '@saleshub-tsm/types'
+import { useProductDevelopmentStore } from '@/stores/product-development'
+import { Checkbox } from 'primereact/checkbox'
+import { Divider } from 'primereact/divider'
+import { Toast } from 'primereact/toast'
 
 interface PaginatorChangeEvent {
   first: number
@@ -37,10 +45,22 @@ const ProductList = () => {
     setLimit,
   } = useProductsStore()
 
+  const [visible, setVisible] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const toast = useRef<Toast>(null)
+
+  const { fetchSubgroupOptions, subgroupOptions } = useCustomerStore()
+
+  const { setActiveProduct, activeProduct, subgroupIds, setSubgroups, reset, sync, removeActiveProduct } =
+    useProductDevelopmentStore()
+
   const searchDebounced = useDebounce(search, 300)
 
   const first = (page - 1) * limit
 
+  useEffect(() => {
+    fetchSubgroupOptions()
+  }, [])
   // Fetch products saat mount & saat page, limit, filter, search berubah
   useEffect(() => {
     fetchProducts()
@@ -53,13 +73,103 @@ const ProductList = () => {
 
   // Handler paginator
   const onPageChange = (e: PaginatorChangeEvent) => {
-    setLimit(e.rows) // update limit jika user pilih rowsPerPage
-    setPage(Math.floor(e.first / e.rows) + 1) // update page
+    setLimit(e.rows)
+    setPage(Math.floor(e.first / e.rows) + 1)
   }
+
+
+  const handleRemove = async () => {
+    await removeActiveProduct()
+    setShowDeleteDialog(false)
+    fetchProducts()
+  }
+
+  const onSetPriority = (item: IProduct) => {
+    setActiveProduct(item)
+    setVisible(true)
+  }
+
+  const syncProductDevelopment = async () => {
+    if (!subgroupIds.length) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Please select at least one subgroup',
+      })
+
+      return
+    }
+
+    await sync()
+    fetchProducts()
+    setVisible(false)
+  }
+  const footer = (item: IProduct) => {
+    if (item.product_developments?.length) {
+      return (
+        <div className='flex gap-2'>
+         <Button
+            label="Update Priority"
+            rounded
+            severity="success"
+            size="small"
+            outlined
+            onClick={() => onSetPriority(item)}
+            icon="pi pi-star"
+          />
+          <Button
+            label="Remove Priority"
+            rounded
+            severity="warning"
+            size="small"
+            outlined
+            onClick={() => {
+              setActiveProduct(item)
+              setShowDeleteDialog(true)
+            }}
+            icon="pi pi-trash"
+          />
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <Button
+          label="Set Priority"
+          rounded
+          severity="success"
+          size="small"
+          outlined
+          onClick={() => onSetPriority(item)}
+          icon="pi pi-star"
+        />
+      </>
+    )
+  }
+
+  const dialogFooter = (
+    <div>
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        onClick={() => setVisible(false)}
+        className="p-button-text"
+        severity="danger"
+      />
+      <Button
+        label="Save"
+        icon="pi pi-save"
+        onClick={syncProductDevelopment}
+        autoFocus
+        outlined
+        severity="success"
+      />
+    </div>
+  )
 
   return (
     <div className="card p-4">
-      {/* Header */}
       <div className="flex justify-between mb-4 items-center">
         <Button
           label="Back"
@@ -100,7 +210,18 @@ const ProductList = () => {
 
         {products.map((item) => (
           <div className="col-12 lg:col-6 xl:col-6" key={item.ItemCode}>
-            <Card className="mb-3 p-3 h-[180px]">
+            <Card
+              footer={() => footer(item)}
+              className="mb-3 p-3 h-[180px]"
+              pt={{
+                root: {
+                  style: {
+                    minHeight: '100%',
+                  },
+                },
+              }}
+            >
+
               <div className="flex items-start gap-4 h-full">
                 {/* IMAGE */}
                 <div className="w-[150px] h-[150px] flex-shrink-0 flex items-center justify-center ">
@@ -145,6 +266,80 @@ const ProductList = () => {
           />
         </div>
       )}
+      <Toast ref={toast} position="top-right" />
+
+      <Dialog
+        modal
+        blockScroll
+        visible={visible}
+        onHide={() => {
+          reset()
+          setVisible(false)
+        }}
+        style={{ width: '80%' }}
+        header="Subgroups"
+        footer={dialogFooter}
+      >
+        <DialogHeader className="mb-3">
+          Set target subgroup for {activeProduct?.ItemName}
+        </DialogHeader>
+
+        <Divider />
+        <div className="flex items-start gap-2 mb-3">
+          <Checkbox
+            checked={subgroupIds.length === subgroupOptions.length}
+            onChange={(e) => {
+              if (e.checked) {
+                setSubgroups(subgroupOptions.map((sg) => sg.value))
+              } else {
+                setSubgroups([])
+              }
+            }}
+            inputId="select-all"
+          />
+          <label htmlFor="select-all" className="cursor-pointer font-semibold">
+            Select All
+          </label>
+        </div>
+        <div className="grid">
+          {subgroupOptions.map((sg) => (
+            <div key={sg.value} className="col-12 md:col-4 flex items-center gap-2">
+              <Checkbox
+                checked={subgroupIds.includes(sg.value)}
+                inputId={`sg-${sg.value}`}
+                value={sg.value}
+                onChange={(e) => {
+                  const value = e.value as number
+
+                  if (subgroupIds.includes(value)) {
+                    setSubgroups(subgroupIds.filter((id) => id !== value)) // uncheck
+                  } else {
+                    setSubgroups([...subgroupIds, value]) // check
+                  }
+                }}
+              />
+              <label htmlFor={`sg-${sg.value}`} className="cursor-pointer">
+                {sg.label}
+              </label>
+            </div>
+          ))}
+        </div>
+        <DialogFooter></DialogFooter>
+      </Dialog>
+       <Dialog
+        header="Confirm Delete"
+        visible={showDeleteDialog}
+        onHide={() => setShowDeleteDialog(false)}
+        modal
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button label="Cancel" outlined onClick={() => setShowDeleteDialog(false)} />
+            <Button label="Delete" severity="danger" onClick={handleRemove} />
+          </div>
+        }
+      >
+        <p>Remove this product from product development?</p>
+      </Dialog>
     </div>
   )
 }

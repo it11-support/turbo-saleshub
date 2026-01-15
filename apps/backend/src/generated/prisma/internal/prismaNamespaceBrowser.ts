@@ -63,6 +63,7 @@ export const ModelName = {
   password_reset_tokens: 'password_reset_tokens',
   personal_access_tokens: 'personal_access_tokens',
   products: 'products',
+  product_developments: 'product_developments',
   roles: 'roles',
   sales_invoices: 'sales_invoices',
   sales_visit_rules: 'sales_visit_rules',
@@ -259,6 +260,17 @@ export const ProductsScalarFieldEnum = {
 } as const
 
 export type ProductsScalarFieldEnum = (typeof ProductsScalarFieldEnum)[keyof typeof ProductsScalarFieldEnum]
+
+
+export const Product_developmentsScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  subgroup_id: 'subgroup_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Product_developmentsScalarFieldEnum = (typeof Product_developmentsScalarFieldEnum)[keyof typeof Product_developmentsScalarFieldEnum]
 
 
 export const RolesScalarFieldEnum = {

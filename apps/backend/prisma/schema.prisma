@@ -76,6 +76,7 @@ model subgroups {
   IndDesc String @db.VarChar(255)
 
   customers customers[]
+  product_developments product_developments[]
 }
 
 model failed_jobs {
@@ -160,8 +161,22 @@ model products {
   updated_at      DateTime?        @db.Timestamp(0)
   sales_invoices  sales_invoices[]
   visit_items     visit_items[]
+
+  product_developments product_developments[]
 }
 
+model product_developments {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id  BigInt    @db.UnsignedBigInt
+  subgroup_id Int       @db.UnsignedInt
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  product   products  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  subgroup  subgroups @relation(fields: [subgroup_id], references: [IndCode], onDelete: Cascade)
+
+  @@unique([product_id, subgroup_id])
+}
 
 model roles {
   id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt

@@ -182,6 +182,28 @@ const BulkUpload = () => {
     }
   }
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+  const items = e.clipboardData.items
+
+  const files: File[] = []
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (item.type.startsWith('image')) {
+      const file = item.getAsFile()
+      if (file) files.push(file)
+    }
+  }
+
+  if (files.length && fileUploadRef.current) {
+    fileUploadRef.current.setFiles([
+      ...(fileUploadRef.current.getFiles() || []),
+      ...files,
+    ])
+  }
+}
+
+
   return (
     <div className="card p-4">
       {/* Header */}
@@ -206,6 +228,7 @@ const BulkUpload = () => {
           <Tooltip target=".custom-choose-btn" content="Choose" position="bottom" />
           <Tooltip target=".custom-upload-btn" content="Upload" position="bottom" />
           <Tooltip target=".custom-cancel-btn" content="Clear" position="bottom" />
+          <div onPaste={handlePaste}>
           <FileUpload
             ref={fileUploadRef}
             name="product_images[]"
@@ -225,6 +248,7 @@ const BulkUpload = () => {
             customUpload
             uploadHandler={uploadHandler}
           />
+          </div>
         </div>
       </div>
     </div>

@@ -396,6 +396,7 @@ export const ModelName = {
   password_reset_tokens: 'password_reset_tokens',
   personal_access_tokens: 'personal_access_tokens',
   products: 'products',
+  product_developments: 'product_developments',
   roles: 'roles',
   sales_invoices: 'sales_invoices',
   sales_visit_rules: 'sales_visit_rules',
@@ -425,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "cache" | "cache_locks" | "configs" | "customers" | "subgroups" | "failed_jobs" | "job_batches" | "jobs" | "migrations" | "password_reset_tokens" | "personal_access_tokens" | "products" | "roles" | "sales_invoices" | "sales_visit_rules" | "sales_visit_schedules" | "sales_visit_schedule_items" | "sales_persons" | "sales_visit_results" | "sales_visits" | "visits" | "visit_items" | "sessions" | "teams" | "users" | "orders"
+    modelProps: "cache" | "cache_locks" | "configs" | "customers" | "subgroups" | "failed_jobs" | "job_batches" | "jobs" | "migrations" | "password_reset_tokens" | "personal_access_tokens" | "products" | "product_developments" | "roles" | "sales_invoices" | "sales_visit_rules" | "sales_visit_schedules" | "sales_visit_schedule_items" | "sales_persons" | "sales_visit_results" | "sales_visits" | "visits" | "visit_items" | "sessions" | "teams" | "users" | "orders"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1218,6 +1219,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.productsCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProductsCountAggregateOutputType> | number
+        }
+      }
+    }
+    product_developments: {
+      payload: Prisma.$product_developmentsPayload<ExtArgs>
+      fields: Prisma.product_developmentsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.product_developmentsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.product_developmentsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>
+        }
+        findFirst: {
+          args: Prisma.product_developmentsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.product_developmentsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>
+        }
+        findMany: {
+          args: Prisma.product_developmentsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>[]
+        }
+        create: {
+          args: Prisma.product_developmentsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>
+        }
+        createMany: {
+          args: Prisma.product_developmentsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.product_developmentsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>
+        }
+        update: {
+          args: Prisma.product_developmentsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>
+        }
+        deleteMany: {
+          args: Prisma.product_developmentsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.product_developmentsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.product_developmentsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$product_developmentsPayload>
+        }
+        aggregate: {
+          args: Prisma.Product_developmentsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProduct_developments>
+        }
+        groupBy: {
+          args: Prisma.product_developmentsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Product_developmentsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.product_developmentsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Product_developmentsCountAggregateOutputType> | number
         }
       }
     }
@@ -2350,6 +2417,17 @@ export const ProductsScalarFieldEnum = {
 export type ProductsScalarFieldEnum = (typeof ProductsScalarFieldEnum)[keyof typeof ProductsScalarFieldEnum]
 
 
+export const Product_developmentsScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  subgroup_id: 'subgroup_id',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Product_developmentsScalarFieldEnum = (typeof Product_developmentsScalarFieldEnum)[keyof typeof Product_developmentsScalarFieldEnum]
+
+
 export const RolesScalarFieldEnum = {
   id: 'id',
   role: 'role',
@@ -3033,6 +3111,7 @@ export type GlobalOmitConfig = {
   password_reset_tokens?: Prisma.password_reset_tokensOmit
   personal_access_tokens?: Prisma.personal_access_tokensOmit
   products?: Prisma.productsOmit
+  product_developments?: Prisma.product_developmentsOmit
   roles?: Prisma.rolesOmit
   sales_invoices?: Prisma.sales_invoicesOmit
   sales_visit_rules?: Prisma.sales_visit_rulesOmit

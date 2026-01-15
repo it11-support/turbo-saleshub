@@ -1,8 +1,8 @@
+import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
 import { ICommonRequestType, ICustomer, PaginationResult } from '@saleshub-tsm/types';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
-import prisma from '@/libs/prisma.js';
 
 export type CustomerRequestType = {
   active?: string[];
@@ -400,6 +400,9 @@ export const getSuggestedItems = async (
     // 5. Ambil detail produk dari item top-selling
     const products = await prisma.products.findMany({
       where: { ItemCode: { in: topItemCodes } },
+      include: {
+        product_developments: true,
+      },
     });
 
     // 6. Buat map frekuensi pembelian
@@ -439,9 +442,50 @@ export const getSuggestedItems = async (
       suggestions = suggestions.filter((p) => !recentProductIds.has(p.id));
     }
 
+    const productDevelopments = await prisma.products.findMany({
+      where: {
+        product_developments: {
+          some: {
+            subgroup: {
+              IndCode: subgroupCode,
+            },
+          },
+        },
+      },
+      include: {
+        product_developments: true,
+      },
+    });
+
+    const devIds = new Set(productDevelopments.map((p) => p.id));
+
+    suggestions = [
+      ...productDevelopments.map((p) => ({
+        ...p,
+        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
+      })),
+      ...suggestions.filter((p) => !devIds.has(p.id)),
+    ];
+
     return suggestions;
   } catch (err) {
     console.error('getSuggestedItems error:', err);
     return [];
+  }
+};
+
+export const fetchSubgroups = async (req: Request, res: Response) => {
+  try {
+    const subgroups = await prisma.subgroups.findMany({
+      select: {
+        IndCode: true,
+        IndName: true,
+      },
+      distinct: ['IndCode'],
+    });
+    return res.status(200).json({ message: 'Subgroups fetched successfully', data: { subgroups } });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

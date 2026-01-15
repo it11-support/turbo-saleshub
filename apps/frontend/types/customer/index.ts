@@ -11,6 +11,8 @@ export interface ICustomerState {
   groupNames: string[]
   salesPersonNames: string[]
   subGroupNames: string[] | []
+  subgroupOptions: { value: number; label: string }[]
+  setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) => void
   setSubGroupNames: (subGroupNames: string[]) => void
   groups: string[] | []
   setSalesPersonNames: (salesPersons: string[]) => void
@@ -34,6 +36,7 @@ export interface ICustomerState {
   fetchCustomerSummary: (id: string) => Promise<ICustomer | null>
   fetchSuggestedItems: (id: string) => Promise<any | null>
   fetchPurchaseHistory: (id: string) => Promise<any | null>
+  fetchSubgroupOptions: () => Promise<void>
   lastPurchase: ISalesInvoices[]
   setLastPurchase: (lastPurchase: ISalesInvoices[]) => void
   invoiceCountByRange: { current: number; last3Months: number; last6Months: number }

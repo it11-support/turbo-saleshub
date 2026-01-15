@@ -1,4 +1,5 @@
 import { ISalesInvoices } from "../sales"
+import { ISubGroup } from "../subgroups"
 
 export interface IProduct {
   id: BigInt | number
@@ -16,10 +17,19 @@ export interface IProduct {
   AcctName?: String
   sales_invoices?: ISalesInvoices[]
   created_at?: Date
-  updated_at?: Date
+  updated_at?: Date,
+  product_developments?: IProductDevelopment[]
 }
-
-
+export interface IProductDevelopment {
+  subgroup_id: number
+  subgroup: ISubGroup
+}
+export interface IProductDevelopmentList  {
+  id: BigInt | number
+  ItemCode: string
+  ItemName: string
+  subgroups: ISubGroup[]
+}
 export type ProductWithFrequency = IProduct & {
   boughtFrequency: number
 }

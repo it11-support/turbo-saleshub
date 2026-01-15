@@ -100,6 +100,11 @@ export type personal_access_tokens = Prisma.personal_access_tokensModel
  */
 export type products = Prisma.productsModel
 /**
+ * Model product_developments
+ * 
+ */
+export type product_developments = Prisma.product_developmentsModel
+/**
  * Model roles
  * 
  */

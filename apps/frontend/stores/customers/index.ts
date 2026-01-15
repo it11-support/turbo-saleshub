@@ -1,4 +1,4 @@
-import { ICustomer } from '@saleshub-tsm/types'
+import { ICustomer, ISubGroup } from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
 
@@ -22,6 +22,9 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setSalesPersons: (salesPersons: string[]) => set({ salesPersons }),
   groups: [],
   subgroups: [],
+  subgroupOptions: [],
+  setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) =>
+    set({ subgroupOptions }),
   setSubgroups: (subgroups: string[]) => set({ subgroups }),
   setGroups: (groups: string[]) => set({ groups }),
   setGroupNames: (groupNames: string[]) => set({ groupNames }),
@@ -126,6 +129,20 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       console.error(error)
       set({ loading: false })
       return null
+    }
+  },
+  fetchSubgroupOptions: async () => {
+    try {
+      const url = createUrl('customers/subgroups')
+      const res = await $api<any>(url)
+      set({
+        subgroupOptions: res.data.subgroups.map((sg: any) => ({
+          label: sg.IndName,
+          value: sg.IndCode,
+        })),
+      })
+    } catch (err) {
+      console.error(err)
     }
   },
 }))
