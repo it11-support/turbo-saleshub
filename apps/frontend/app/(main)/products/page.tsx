@@ -1,24 +1,24 @@
 'use client'
 
 import ProductImageUploader from './Components/ProductImageUploader'
+import { DialogFooter, DialogHeader } from '../components/ui/dialog'
+import { IProduct } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
+import { Checkbox } from 'primereact/checkbox'
+import { Dialog } from 'primereact/dialog'
+import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { Paginator } from 'primereact/paginator'
+import { Toast } from 'primereact/toast'
 import { useEffect, useRef, useState } from 'react'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatCurrency } from '@/lib/formatter'
-import { useProductsStore } from '@/stores/products'
 import { useCustomerStore } from '@/stores/customers'
-import { Dialog } from 'primereact/dialog'
-import { DialogFooter, DialogHeader } from '../components/ui/dialog'
-import { IProduct } from '@saleshub-tsm/types'
 import { useProductDevelopmentStore } from '@/stores/product-development'
-import { Checkbox } from 'primereact/checkbox'
-import { Divider } from 'primereact/divider'
-import { Toast } from 'primereact/toast'
+import { useProductsStore } from '@/stores/products'
 
 interface PaginatorChangeEvent {
   first: number
@@ -51,8 +51,15 @@ const ProductList = () => {
 
   const { fetchSubgroupOptions, subgroupOptions } = useCustomerStore()
 
-  const { setActiveProduct, activeProduct, subgroupIds, setSubgroups, reset, sync, removeActiveProduct } =
-    useProductDevelopmentStore()
+  const {
+    setActiveProduct,
+    activeProduct,
+    subgroupIds,
+    setSubgroups,
+    reset,
+    sync,
+    removeActiveProduct,
+  } = useProductDevelopmentStore()
 
   const searchDebounced = useDebounce(search, 300)
 
@@ -76,7 +83,6 @@ const ProductList = () => {
     setLimit(e.rows)
     setPage(Math.floor(e.first / e.rows) + 1)
   }
-
 
   const handleRemove = async () => {
     await removeActiveProduct()
@@ -107,8 +113,8 @@ const ProductList = () => {
   const footer = (item: IProduct) => {
     if (item.product_developments?.length) {
       return (
-        <div className='flex gap-2'>
-         <Button
+        <div className="flex gap-2">
+          <Button
             label="Update Priority"
             rounded
             severity="success"
@@ -221,7 +227,6 @@ const ProductList = () => {
                 },
               }}
             >
-
               <div className="flex items-start gap-4 h-full">
                 {/* IMAGE */}
                 <div className="w-[150px] h-[150px] flex-shrink-0 flex items-center justify-center ">
@@ -326,7 +331,7 @@ const ProductList = () => {
         </div>
         <DialogFooter></DialogFooter>
       </Dialog>
-       <Dialog
+      <Dialog
         header="Confirm Delete"
         visible={showDeleteDialog}
         onHide={() => setShowDeleteDialog(false)}
