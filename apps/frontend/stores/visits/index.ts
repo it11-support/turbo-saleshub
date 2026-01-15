@@ -52,7 +52,6 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
     set({ loading: true })
     const { page, limit, dates, multiSortMeta, salesPersonId } = get()
 
-    console.log(page)
     try {
       const sort_options = JSON.stringify(
         (multiSortMeta || []).map((meta) => ({
