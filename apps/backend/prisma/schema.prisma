@@ -235,7 +235,7 @@ model sales_visit_schedules {
   rule_id         BigInt
   sales_person_id BigInt
   customer_id     BigInt
-  visit_date      DateTime
+  visit_date      DateTime?
   status          String   @default("planned")
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
@@ -308,7 +308,7 @@ model visits {
   customer_id     BigInt                    @db.UnsignedBigInt
   sales_person_id BigInt                    @db.UnsignedBigInt
   rule_id         BigInt                    @db.UnsignedBigInt
-  visit_date      String                    @db.VarChar(10)
+  visit_date      DateTime?
   start_at        DateTime
   end_at          DateTime?
   status          VisitStatus

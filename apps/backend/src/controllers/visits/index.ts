@@ -19,7 +19,7 @@ export const getScheduleList = async (req: Request, res: Response) => {
 
     const where: visitsWhereInput = {
       status: { in: [VisitStatus.Ongoing, VisitStatus.Completed] },
-      visit_date: { not: '' },
+      visit_date: { not: null },
       ...(!Number.isNaN(parsedSalesPersonId)
         ? { sales_person_id: BigInt(parsedSalesPersonId) }
         : {}),
@@ -31,10 +31,15 @@ export const getScheduleList = async (req: Request, res: Response) => {
       const dateFilters: any[] = [];
 
       if (start && dayjs(start).isValid()) {
-        dateFilters.push({ visit_date: { gte: dayjs(start).format('YYYY-MM-DD') } });
+        dateFilters.push({
+          visit_date: { gte: dayjs(start).startOf('day').toDate() },
+        });
       }
+
       if (end && dayjs(end).isValid()) {
-        dateFilters.push({ visit_date: { lte: dayjs(end).format('YYYY-MM-DD') } });
+        dateFilters.push({
+          visit_date: { lte: dayjs(end).endOf('day').toDate() },
+        });
       }
 
       if (dateFilters.length) {
