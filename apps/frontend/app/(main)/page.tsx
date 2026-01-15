@@ -51,7 +51,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div
-                      className="flex align-items-center justify-content-center bg-blue-100 border-round"
+                      className="flex align-items-center justify-content-center border-round"
                       style={{ width: '2.5rem', height: '2.5rem' }}
                     >
                       <i className="pi pi-chart-line text-blue-500 text-xl" />
