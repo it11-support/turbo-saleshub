@@ -312,11 +312,17 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
         const lastVisit = todayVisits.sort(
           (a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime()
         )[0];
-        status = lastVisit.status;
         visit = lastVisit;
+
+        // 🔥 override status kalau tanggal sudah lewat dan masih Planned
+        if (dayjs(lastVisit.start_at).isBefore(dayjs(), 'day') && lastVisit.status === 'Planned') {
+          status = 'Missed';
+        } else {
+          status = lastVisit.status;
+        }
       } else {
-        // Kalau tanggal sudah lewat → otomatis Missed
-        if (dayjs(targetDateKey).isBefore(today, 'day')) {
+        // Tidak ada visit, cek kalau tanggal sudah lewat
+        if (dayjs(targetDateKey).isBefore(dayjs(), 'day')) {
           status = 'Missed';
         }
       }
