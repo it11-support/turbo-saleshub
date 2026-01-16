@@ -308,7 +308,7 @@ model visits {
   customer_id     BigInt                    @db.UnsignedBigInt
   sales_person_id BigInt                    @db.UnsignedBigInt
   rule_id         BigInt                    @db.UnsignedBigInt
-  visit_date      DateTime?
+  visit_date      String?
   start_at        DateTime
   end_at          DateTime?
   status          VisitStatus

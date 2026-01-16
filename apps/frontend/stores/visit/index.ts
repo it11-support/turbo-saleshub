@@ -18,7 +18,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       const url = createUrl(`visit/${rule_id}`)
       const res = await $api<any>(url)
 
-      set({ loading: false, salesVisit: res.data, visitNote: res.data.notes })
+      set({ loading: false, salesVisit: res.data, visitNote: res.data.notes ?? '' })
       const offeredItems =
         res.data.visit_items?.map((item: any) => ({
           product_id: item.product_id,

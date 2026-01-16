@@ -45,7 +45,7 @@ export type VisitsMinAggregateOutputType = {
   customer_id: bigint | null
   sales_person_id: bigint | null
   rule_id: bigint | null
-  visit_date: Date | null
+  visit_date: string | null
   start_at: Date | null
   end_at: Date | null
   status: $Enums.VisitStatus | null
@@ -59,7 +59,7 @@ export type VisitsMaxAggregateOutputType = {
   customer_id: bigint | null
   sales_person_id: bigint | null
   rule_id: bigint | null
-  visit_date: Date | null
+  visit_date: string | null
   start_at: Date | null
   end_at: Date | null
   status: $Enums.VisitStatus | null
@@ -232,7 +232,7 @@ export type VisitsGroupByOutputType = {
   customer_id: bigint
   sales_person_id: bigint
   rule_id: bigint
-  visit_date: Date | null
+  visit_date: string | null
   start_at: Date
   end_at: Date | null
   status: $Enums.VisitStatus
@@ -269,7 +269,7 @@ export type visitsWhereInput = {
   customer_id?: Prisma.BigIntFilter<"visits"> | bigint | number
   sales_person_id?: Prisma.BigIntFilter<"visits"> | bigint | number
   rule_id?: Prisma.BigIntFilter<"visits"> | bigint | number
-  visit_date?: Prisma.DateTimeNullableFilter<"visits"> | Date | string | null
+  visit_date?: Prisma.StringNullableFilter<"visits"> | string | null
   start_at?: Prisma.DateTimeFilter<"visits"> | Date | string
   end_at?: Prisma.DateTimeNullableFilter<"visits"> | Date | string | null
   status?: Prisma.EnumVisitStatusFilter<"visits"> | $Enums.VisitStatus
@@ -310,7 +310,7 @@ export type visitsWhereUniqueInput = Prisma.AtLeast<{
   customer_id?: Prisma.BigIntFilter<"visits"> | bigint | number
   sales_person_id?: Prisma.BigIntFilter<"visits"> | bigint | number
   rule_id?: Prisma.BigIntFilter<"visits"> | bigint | number
-  visit_date?: Prisma.DateTimeNullableFilter<"visits"> | Date | string | null
+  visit_date?: Prisma.StringNullableFilter<"visits"> | string | null
   start_at?: Prisma.DateTimeFilter<"visits"> | Date | string
   end_at?: Prisma.DateTimeNullableFilter<"visits"> | Date | string | null
   status?: Prisma.EnumVisitStatusFilter<"visits"> | $Enums.VisitStatus
@@ -350,7 +350,7 @@ export type visitsScalarWhereWithAggregatesInput = {
   customer_id?: Prisma.BigIntWithAggregatesFilter<"visits"> | bigint | number
   sales_person_id?: Prisma.BigIntWithAggregatesFilter<"visits"> | bigint | number
   rule_id?: Prisma.BigIntWithAggregatesFilter<"visits"> | bigint | number
-  visit_date?: Prisma.DateTimeNullableWithAggregatesFilter<"visits"> | Date | string | null
+  visit_date?: Prisma.StringNullableWithAggregatesFilter<"visits"> | string | null
   start_at?: Prisma.DateTimeWithAggregatesFilter<"visits"> | Date | string
   end_at?: Prisma.DateTimeNullableWithAggregatesFilter<"visits"> | Date | string | null
   status?: Prisma.EnumVisitStatusWithAggregatesFilter<"visits"> | $Enums.VisitStatus
@@ -361,7 +361,7 @@ export type visitsScalarWhereWithAggregatesInput = {
 
 export type visitsCreateInput = {
   id?: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -379,7 +379,7 @@ export type visitsUncheckedCreateInput = {
   customer_id: bigint | number
   sales_person_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -391,7 +391,7 @@ export type visitsUncheckedCreateInput = {
 
 export type visitsUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -409,7 +409,7 @@ export type visitsUncheckedUpdateInput = {
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -424,7 +424,7 @@ export type visitsCreateManyInput = {
   customer_id: bigint | number
   sales_person_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -435,7 +435,7 @@ export type visitsCreateManyInput = {
 
 export type visitsUpdateManyMutationInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -449,7 +449,7 @@ export type visitsUncheckedUpdateManyInput = {
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -478,7 +478,7 @@ export type visitsUnique_daily_visitCompoundUniqueInput = {
   customer_id: bigint | number
   sales_person_id: bigint | number
   rule_id: bigint | number
-  visit_date: Date | string
+  visit_date: string
 }
 
 export type visitsCountOrderByAggregateInput = {
@@ -688,7 +688,7 @@ export type visitsUpdateOneRequiredWithoutVisit_itemsNestedInput = {
 
 export type visitsCreateWithoutCustomerInput = {
   id?: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -704,7 +704,7 @@ export type visitsUncheckedCreateWithoutCustomerInput = {
   id?: bigint | number
   sales_person_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -748,7 +748,7 @@ export type visitsScalarWhereInput = {
   customer_id?: Prisma.BigIntFilter<"visits"> | bigint | number
   sales_person_id?: Prisma.BigIntFilter<"visits"> | bigint | number
   rule_id?: Prisma.BigIntFilter<"visits"> | bigint | number
-  visit_date?: Prisma.DateTimeNullableFilter<"visits"> | Date | string | null
+  visit_date?: Prisma.StringNullableFilter<"visits"> | string | null
   start_at?: Prisma.DateTimeFilter<"visits"> | Date | string
   end_at?: Prisma.DateTimeNullableFilter<"visits"> | Date | string | null
   status?: Prisma.EnumVisitStatusFilter<"visits"> | $Enums.VisitStatus
@@ -759,7 +759,7 @@ export type visitsScalarWhereInput = {
 
 export type visitsCreateWithoutRuleInput = {
   id?: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -775,7 +775,7 @@ export type visitsUncheckedCreateWithoutRuleInput = {
   id?: bigint | number
   customer_id: bigint | number
   sales_person_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -813,7 +813,7 @@ export type visitsUpdateManyWithWhereWithoutRuleInput = {
 
 export type visitsCreateWithoutSalesPersonInput = {
   id?: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -829,7 +829,7 @@ export type visitsUncheckedCreateWithoutSalesPersonInput = {
   id?: bigint | number
   customer_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -867,7 +867,7 @@ export type visitsUpdateManyWithWhereWithoutSalesPersonInput = {
 
 export type visitsCreateWithoutVisit_itemsInput = {
   id?: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -884,7 +884,7 @@ export type visitsUncheckedCreateWithoutVisit_itemsInput = {
   customer_id: bigint | number
   sales_person_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -911,7 +911,7 @@ export type visitsUpdateToOneWithWhereWithoutVisit_itemsInput = {
 
 export type visitsUpdateWithoutVisit_itemsInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -928,7 +928,7 @@ export type visitsUncheckedUpdateWithoutVisit_itemsInput = {
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -941,7 +941,7 @@ export type visitsCreateManyCustomerInput = {
   id?: bigint | number
   sales_person_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -952,7 +952,7 @@ export type visitsCreateManyCustomerInput = {
 
 export type visitsUpdateWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -968,7 +968,7 @@ export type visitsUncheckedUpdateWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -982,7 +982,7 @@ export type visitsUncheckedUpdateManyWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -995,7 +995,7 @@ export type visitsCreateManyRuleInput = {
   id?: bigint | number
   customer_id: bigint | number
   sales_person_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -1006,7 +1006,7 @@ export type visitsCreateManyRuleInput = {
 
 export type visitsUpdateWithoutRuleInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -1022,7 +1022,7 @@ export type visitsUncheckedUpdateWithoutRuleInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -1036,7 +1036,7 @@ export type visitsUncheckedUpdateManyWithoutRuleInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   sales_person_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -1049,7 +1049,7 @@ export type visitsCreateManySalesPersonInput = {
   id?: bigint | number
   customer_id: bigint | number
   rule_id: bigint | number
-  visit_date?: Date | string | null
+  visit_date?: string | null
   start_at: Date | string
   end_at?: Date | string | null
   status: $Enums.VisitStatus
@@ -1060,7 +1060,7 @@ export type visitsCreateManySalesPersonInput = {
 
 export type visitsUpdateWithoutSalesPersonInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -1076,7 +1076,7 @@ export type visitsUncheckedUpdateWithoutSalesPersonInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -1090,7 +1090,7 @@ export type visitsUncheckedUpdateManyWithoutSalesPersonInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   customer_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   rule_id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
-  visit_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  visit_date?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   start_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   end_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumVisitStatusFieldUpdateOperationsInput | $Enums.VisitStatus
@@ -1187,7 +1187,7 @@ export type $visitsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     customer_id: bigint
     sales_person_id: bigint
     rule_id: bigint
-    visit_date: Date | null
+    visit_date: string | null
     start_at: Date
     end_at: Date | null
     status: $Enums.VisitStatus
@@ -1571,7 +1571,7 @@ export interface visitsFieldRefs {
   readonly customer_id: Prisma.FieldRef<"visits", 'BigInt'>
   readonly sales_person_id: Prisma.FieldRef<"visits", 'BigInt'>
   readonly rule_id: Prisma.FieldRef<"visits", 'BigInt'>
-  readonly visit_date: Prisma.FieldRef<"visits", 'DateTime'>
+  readonly visit_date: Prisma.FieldRef<"visits", 'String'>
   readonly start_at: Prisma.FieldRef<"visits", 'DateTime'>
   readonly end_at: Prisma.FieldRef<"visits", 'DateTime'>
   readonly status: Prisma.FieldRef<"visits", 'VisitStatus'>
