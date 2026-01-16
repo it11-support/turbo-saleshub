@@ -231,23 +231,28 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'salesPersonId and date are required' });
     }
 
-    const date = new Date(dateStr);
+    // Gunakan dayjs untuk semua logika tanggal
+    const date = dayjs(dateStr);
+    const today = dayjs();
 
-    if (date.getDay() === 0) {
+    // Skip Sunday
+    if (date.day() === 0) {
       return res.status(200).json({
         message: 'Sunday has no schedule',
         data: { data: [], total: 0 },
       });
     }
 
-    const weekOfMonth = getWeekOfMonth(date);
-    const dayOfWeek = getDayOfWeekEnum(date);
+    const weekOfMonth = getWeekOfMonth(date.toDate());
+    const dayOfWeek = getDayOfWeekEnum(date.toDate());
 
-    const toDateKey = (d: Date | string) => new Date(d).toISOString().slice(0, 10);
+    // Helper untuk format YYYY-MM-DD, aman dari timezone
+    const toDateKey = (d: dayjs.Dayjs | string | Date) => dayjs(d).format('YYYY-MM-DD');
 
     const targetDateKey = toDateKey(date);
-    const todayKey = toDateKey(new Date());
+    const todayKey = toDateKey(today);
 
+    // Ambil rules aktif sesuai sales person, hari, dan cycle
     const rules = await prisma.sales_visit_rules.findMany({
       where: {
         sales_person_id: salesPersonId,
@@ -261,16 +266,16 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       orderBy: { customer_id: 'asc' },
     });
 
-    const cycleSlot = getCycleSlot(date);
+    const cycleSlot = getCycleSlot(date.toDate());
 
-    // 🔁 filter hanya berdasar cycle
     const matchedRules = rules.filter(
       (r) => Array.isArray(r.visit_weeks) && r.visit_weeks.includes(cycleSlot)
     );
 
-    const monthStart = startOfMonth(date);
-    const monthEnd = endOfMonth(date);
+    const monthStart = startOfMonth(date.toDate());
+    const monthEnd = endOfMonth(date.toDate());
 
+    // Ambil semua visits bulan ini
     const visitsInMonth = await prisma.visits.findMany({
       where: {
         sales_person_id: salesPersonId,
@@ -286,32 +291,34 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       },
     });
 
-    const visitsToday = visitsInMonth.filter((v) => toDateKey(v.start_at) === targetDateKey);
+    // Group visits berdasarkan tanggal target
+    const visitsOnTargetDate = visitsInMonth.filter((v) => toDateKey(v.start_at) === targetDateKey);
 
-    const visitTodayMap = new Map<number, typeof visitsToday>();
-
-    for (const v of visitsToday) {
-      if (!visitTodayMap.has(Number(v.customer_id))) {
-        visitTodayMap.set(Number(v.customer_id), []);
-      }
-      visitTodayMap.get(Number(v.customer_id))!.push(v);
+    const visitMap = new Map<number, typeof visitsOnTargetDate>();
+    for (const v of visitsOnTargetDate) {
+      if (!visitMap.has(Number(v.customer_id))) visitMap.set(Number(v.customer_id), []);
+      visitMap.get(Number(v.customer_id))!.push(v);
     }
 
+    // Mapping rules ke data output
     const data = matchedRules.map((rule) => {
-      const todayVisits = visitTodayMap.get(Number(rule.customer_id)) || [];
+      const todayVisits = visitMap.get(Number(rule.customer_id)) || [];
 
       let status = 'Planned';
-      let visit: TodayVisit | null = null;
+      let visit: (typeof todayVisits)[0] | null = null;
 
-      if (todayVisits.length) {
+      if (todayVisits.length > 0) {
+        // Ambil visit terakhir
         const lastVisit = todayVisits.sort(
           (a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime()
         )[0];
-
         status = lastVisit.status;
         visit = lastVisit;
-      } else if (dayjs(date).startOf('day').isBefore(dayjs().startOf('day'))) {
-        status = 'Missed';
+      } else {
+        // Kalau tanggal sudah lewat → otomatis Missed
+        if (dayjs(targetDateKey).isBefore(today, 'day')) {
+          status = 'Missed';
+        }
       }
 
       return {
@@ -319,7 +326,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
         id: visit?.id ?? null,
         sales_person_id: rule.sales_person_id,
         customer_id: rule.customer_id,
-        visit_date: dateStr,
+        visit_date: targetDateKey,
         max_items_per_visit: rule.max_items_per_visit,
         status,
         is_virtual: !visit,
@@ -327,10 +334,11 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       };
     });
 
-    // auto missed
+    // Auto update status Missed untuk visits yang Ongoing dan sudah lewat
     await prisma.visits.updateMany({
       where: {
-        start_at: { lt: new Date(todayKey) },
+        sales_person_id: salesPersonId,
+        start_at: { lt: today.toDate() },
         status: VisitStatus.Ongoing,
       },
       data: { status: VisitStatus.Missed },
