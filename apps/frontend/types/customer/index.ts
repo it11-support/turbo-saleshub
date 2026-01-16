@@ -1,6 +1,7 @@
 import { ICustomer, ISalesInvoices, ProductWithFrequency } from '@saleshub-tsm/types'
 export interface ICustomerState {
   customer: ICustomer | null
+  itemCount: number
   customers: ICustomer[]
   loading: boolean
   page: number
@@ -14,6 +15,7 @@ export interface ICustomerState {
   subgroupOptions: { value: number; label: string }[]
   setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) => void
   setSubGroupNames: (subGroupNames: string[]) => void
+  setItemCount: (itemCount: number) => void
   groups: string[] | []
   setSalesPersonNames: (salesPersons: string[]) => void
   salesPersons: string[] | []

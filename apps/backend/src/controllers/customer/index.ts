@@ -26,12 +26,13 @@ export const customerList = async (
   try {
     const { search = '', per_page = 10, page = 1, sort_options = [] } = req.query;
 
-    const { groups, active, salesPersons, subgroups, slpCode } = req.query as {
+    const { groups, active, salesPersons, subgroups, slpCode, itemCount } = req.query as {
       groups?: string | string[];
       active?: string | string[];
       salesPersons?: string | string[];
       subgroups?: string | string[];
       slpCode?: number;
+      itemCount?: number;
     };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
@@ -121,6 +122,21 @@ export const customerList = async (
         selectedSalesPersons.length === 1
           ? { equals: selectedSalesPersons[0] }
           : { in: selectedSalesPersons };
+    }
+    if (itemCount) {
+      // prettier-ignore
+      const grouped = await prisma.$queryRaw<
+        { CardCode: string; itemCount: number }[]
+      >`
+        SELECT
+          CardCode,
+          COUNT(DISTINCT ItemCode) AS itemCount
+        FROM sales_invoices
+        GROUP BY CardCode
+        HAVING COUNT(DISTINCT ItemCode) >= ${Number(itemCount)}
+      `;
+
+      query.CardCode = { in: grouped.map((g) => g.CardCode) };
     }
 
     const sortOptions = sortOptionsParser(sort_options);

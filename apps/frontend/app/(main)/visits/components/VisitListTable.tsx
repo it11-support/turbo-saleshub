@@ -101,7 +101,7 @@ const VisitListTable = () => {
         <Column field="visits.notes" header="Visit Notes" sortField="notes" sortable />
         <Column
           field="visits.status"
-          header="Visit Notes"
+          header="Status"
           sortField="status"
           body={statusBodyTemplate}
           sortable

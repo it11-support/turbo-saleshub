@@ -7,6 +7,7 @@ import { ICustomerState } from '@/types/customer'
 
 export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   customer: null,
+  itemCount: 0,
   customers: [],
   loading: false,
   page: 1,
@@ -37,6 +38,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setSearch: (value: string) => set({ search: value }),
   setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
   setActive: (active: string[]) => set({ active }),
+  setItemCount: (itemCount: number) => set({ itemCount }),
   suggestedItems: [],
   totalRecords: 0,
   lastPurchase: [],
@@ -53,7 +55,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       const userData = userCookie ? JSON.parse(String(userCookie)) : null
       const slpCode = userData?.sales_person?.SlpCode
 
-      const { page, limit, search, multiSortMeta, active, groups, salesPersons, subgroups } = get()
+      const { page, limit, search, multiSortMeta, active, groups, salesPersons, subgroups, itemCount } = get()
 
       set({ loading: true })
 
@@ -72,6 +74,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         ...(subgroups && subgroups.length > 0 ? { subgroups } : {}),
         ...(salesPersons && salesPersons.length > 0 ? { salesPersons } : {}),
         ...(slpCode ? { slpCode } : {}),
+        ...(itemCount ? { itemCount } : {}),
       }
 
       const url = createUrl('customers', payload)

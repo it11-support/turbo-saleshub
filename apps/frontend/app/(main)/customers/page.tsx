@@ -13,6 +13,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { useCustomerStore } from '@/stores/customers'
+import { Slider } from 'primereact/slider'
 
 export default function CustomerTable() {
   const {
@@ -39,6 +40,8 @@ export default function CustomerTable() {
     salesPersons,
     setSalesPersons,
     salesPersonNames,
+    itemCount,
+    setItemCount,
   } = useCustomerStore()
 
   const authStore = useAuth()
@@ -58,6 +61,7 @@ export default function CustomerTable() {
     value: SlpName,
   }))
   const debouncedSearch = useDebounce(search, 300)
+  const debounceCountSlider = useDebounce(itemCount, 300)
   const isMobile = useIsMobile(768)
 
   useEffect(() => {
@@ -73,7 +77,7 @@ export default function CustomerTable() {
 
   useEffect(() => {
     fetchCustomers()
-  }, [page, limit, multiSortMeta, debouncedSearch, value, groups, salesPersons, subgroups])
+  }, [page, limit, multiSortMeta, debouncedSearch, value, groups, salesPersons, subgroups, debounceCountSlider])
 
   const clearFilter = () => {
     setSearch('')
@@ -91,7 +95,6 @@ export default function CustomerTable() {
   }
 
   const headers = [
-    { field: 'CardCode', header: 'CardCode', sortable: true, hideOnMobile: true },
     { field: 'CardName', header: 'Name', sortable: true },
     { field: 'GroupName', header: 'Group', sortable: true, hideOnMobile: true },
     { field: 'subgroup.IndDesc', header: 'Subgroup', sortable: true },
@@ -120,6 +123,10 @@ export default function CustomerTable() {
       <h5>Customer List</h5>
       <div className="grid">
         {/* Kolom 1: Input Search */}
+        <div className="col-12 sm:col-6 md:col-2">
+        <h6>Item Count &gt; {itemCount}</h6>
+          <Slider value={itemCount} onChange={(e) => setItemCount(e.value as number)} step={10} className='ml-2' />
+        </div>
         <div className="col-12 sm:col-6 md:col-2">
           <div className="p-inputgroup">
             <InputText
