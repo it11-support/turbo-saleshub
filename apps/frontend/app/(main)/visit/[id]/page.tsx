@@ -149,7 +149,16 @@ const VisitsPage = () => {
 
             return (
               <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
-                <Card className="mb-3 min-h-[180px]">
+                <Card
+                  className="mb-3 min-h-[180px]"
+                  pt={{
+                    root: {
+                      style: {
+                        minHeight: '100%',
+                      },
+                    },
+                  }}
+                >
                   <div className="flex items-start gap-2 h-[28px] mb-2">
                     <i
                       className={`pi pi-star-fill text-xl text-yellow-500 transition-opacity ${
