@@ -121,7 +121,7 @@ export default function CustomerTable() {
         />
       </div>
       <h5>Customer List</h5>
-      <div className="grid">
+      <div className="grid my-4">
         {/* Kolom 1: Input Search */}
         <div className="col-12 sm:col-6 md:col-2">
         <h6>Item Count &gt; {itemCount}</h6>
