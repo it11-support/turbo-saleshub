@@ -165,7 +165,7 @@ const VisitSchedules = () => {
               {scheduledVisits?.map((schedule) => (
                 <div
                   key={`${schedule.customer_id}-${schedule.visit_date}`}
-                  className="col-12 md:col-4 p-2"
+                  className="col-12 md:col-4 p-2 h-[300px]"
                 >
                   <ScheduleCard schedule={schedule} />
                 </div>
@@ -179,7 +179,7 @@ const VisitSchedules = () => {
               {missedVisits?.map((schedule) => (
                 <div
                   key={`${schedule.customer_id}-${schedule.visit_date}`}
-                  className="col-12 md:col-4 p-2"
+                  className="col-12 md:col-4 p-2 h-[300px]"
                 >
                   <ScheduleCard schedule={schedule} />
                 </div>
@@ -193,7 +193,7 @@ const VisitSchedules = () => {
               {completedSchedule?.map((schedule) => (
                 <div
                   key={`${schedule.customer_id}-${schedule.visit_date}`}
-                  className="col-12 md:col-4"
+                  className="col-12 md:col-4 p-2 h-[300px]"
                 >
                   <ScheduleCard schedule={schedule} />
                 </div>
@@ -207,7 +207,7 @@ const VisitSchedules = () => {
               {ongoingVisits?.map((schedule) => (
                 <div
                   key={`${schedule.customer_id}-${schedule.visit_date}`}
-                  className="col-12 md:col-4"
+                  className="col-12 md:col-4 p-2 h-[300px]"
                 >
                   <ScheduleCard schedule={schedule} />
                 </div>

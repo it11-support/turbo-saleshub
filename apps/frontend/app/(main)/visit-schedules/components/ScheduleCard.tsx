@@ -90,6 +90,13 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
   return (
     <>
       <Card
+        pt={{
+          root: {
+            style: {
+              minHeight: '100%',
+            },
+          },
+        }}
         className="mb-2 shadow-md border rounded min-h-[200px]"
         subTitle={subTitle()}
         title={title()}
