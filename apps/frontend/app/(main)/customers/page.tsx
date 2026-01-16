@@ -7,13 +7,13 @@ import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { SelectButton } from 'primereact/selectbutton'
+import { Slider } from 'primereact/slider'
 import { useEffect, useState } from 'react'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { useCustomerStore } from '@/stores/customers'
-import { Slider } from 'primereact/slider'
 
 export default function CustomerTable() {
   const {
@@ -77,7 +77,17 @@ export default function CustomerTable() {
 
   useEffect(() => {
     fetchCustomers()
-  }, [page, limit, multiSortMeta, debouncedSearch, value, groups, salesPersons, subgroups, debounceCountSlider])
+  }, [
+    page,
+    limit,
+    multiSortMeta,
+    debouncedSearch,
+    value,
+    groups,
+    salesPersons,
+    subgroups,
+    debounceCountSlider,
+  ])
 
   const clearFilter = () => {
     setSearch('')
@@ -124,8 +134,13 @@ export default function CustomerTable() {
       <div className="grid">
         {/* Kolom 1: Input Search */}
         <div className="col-12 sm:col-6 md:col-2">
-        <h6>Item Count &gt; {itemCount}</h6>
-          <Slider value={itemCount} onChange={(e) => setItemCount(e.value as number)} step={10} className='ml-2' />
+          <h6>Item Count &gt; {itemCount}</h6>
+          <Slider
+            value={itemCount}
+            onChange={(e) => setItemCount(e.value as number)}
+            step={10}
+            className="ml-2"
+          />
         </div>
         <div className="col-12 sm:col-6 md:col-2">
           <div className="p-inputgroup">

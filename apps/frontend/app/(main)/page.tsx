@@ -1,11 +1,11 @@
 'use client'
 
 import { LayoutContext } from '../../layout/context/layoutcontext'
+import { Card } from 'primereact/card'
 import { useContext, useEffect } from 'react'
 
 import { formatCurrency } from '@/lib/formatter'
 import { useDashboardStore } from '@/stores'
-import { Card } from 'primereact/card'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -41,10 +41,14 @@ const Dashboard = () => {
                   pt={{
                     root: {
                       style: {
-                        border: `1px solid ${monthToDateSummary[itemKey]?.growthPercent > 0 ? 'var(--green-500)' : 'var(--red-500)'}`,
+                        border: `1px solid ${
+                          monthToDateSummary[itemKey]?.growthPercent > 0
+                            ? 'var(--green-500)'
+                            : 'var(--red-500)'
+                        }`,
                         borderRadius: '12px',
-                      }
-                    }
+                      },
+                    },
                   }}
                 >
                   <div className="flex justify-content-between mb-3">
