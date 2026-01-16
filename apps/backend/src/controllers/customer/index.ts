@@ -474,9 +474,10 @@ export const getSuggestedItems = async (
     });
 
     const devIds = new Set(productDevelopments.map((p) => p.id));
+    const filteredDevProducts = productDevelopments.filter((p) => !recentProductIds.has(p.id));
 
     suggestions = [
-      ...productDevelopments.map((p) => ({
+      ...filteredDevProducts.map((p) => ({
         ...p,
         boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
       })),

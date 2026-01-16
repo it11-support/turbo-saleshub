@@ -287,7 +287,7 @@ export const CustomerDetail = (props: Props) => {
                         item.product_developments?.length ? 'opacity-100' : 'opacity-0'
                       }`}
                     >
-                      Product Development
+                      Product Focus
                     </p>
                   </div>
 
