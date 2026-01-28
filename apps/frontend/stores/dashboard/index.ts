@@ -6,6 +6,8 @@ import { ISalesSummaryState, TMonthTodateSummary } from '@/types'
 
 export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   monthToDateSummary: {} as TMonthTodateSummary,
+  revenueTrend: [],
+  orderTrend: [],
   salesSummary: {
     mom: {},
     yoy: {},
@@ -56,6 +58,8 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
           aov: res.data.aov,
         },
       })
+
+      set({ revenueTrend: res.data.revenueTrend, orderTrend: res.data.orderTrend })
     } catch (error) {
       console.error(error)
     } finally {

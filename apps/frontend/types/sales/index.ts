@@ -13,6 +13,8 @@ export type ISalesSummaryResponse = Record<string, ISalesSummary[]>
 
 export interface ISalesSummaryState {
   monthToDateSummary: TMonthTodateSummary
+  revenueTrend: {period: string, revenue: number}[],
+  orderTrend: {period: string, order: number}[],
   monthList: { value: number; label: string }[]
   month: number
   salesSummary: {

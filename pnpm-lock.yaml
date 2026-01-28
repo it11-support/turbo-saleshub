@@ -41,6 +41,9 @@ importers:
       '@types/qs':
         specifier: ^6.14.0
         version: 6.14.0
+      chartjs-adapter-date-fns:
+        specifier: ^3.0.0
+        version: 3.0.0(chart.js@4.2.1)(date-fns@4.1.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1951,6 +1954,12 @@ packages:
   chart.js@4.2.1:
     resolution: {integrity: sha512-6YbpQ0nt3NovAgOzbkSSeeAQu/3za1319dPUQTXn9WcOpywM8rGKxJHrhS8V8xEkAlk8YhEfjbuAPfUyp6jIsw==}
     engines: {pnpm: ^7.0.0}
+
+  chartjs-adapter-date-fns@3.0.0:
+    resolution: {integrity: sha512-Rs3iEB3Q5pJ973J93OBTpnP7qoGwvq3nUnoMdtxO+9aoJof7UFcRbWcIDteXuYd1fgAvct/32T9qaLyLuZVwCg==}
+    peerDependencies:
+      chart.js: '>=2.8.0'
+      date-fns: '>=2.0.0'
 
   chevrotain@10.5.0:
     resolution: {integrity: sha512-Pkv5rBY3+CsHOYfV5g/Vs5JY9WTHHDEKOlohI2XeygaZhUeqhAlldZ8Hz9cRmxu709bvS08YzxHdTPHhffc13A==}
@@ -5784,6 +5793,11 @@ snapshots:
   chart.js@4.2.1:
     dependencies:
       '@kurkle/color': 0.3.4
+
+  chartjs-adapter-date-fns@3.0.0(chart.js@4.2.1)(date-fns@4.1.0):
+    dependencies:
+      chart.js: 4.2.1
+      date-fns: 4.1.0
 
   chevrotain@10.5.0:
     dependencies:

@@ -2,16 +2,18 @@
 
 import { LayoutContext } from '../../layout/context/layoutcontext'
 import { Card } from 'primereact/card'
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 
 import { formatCurrency } from '@/lib/formatter'
 import { useDashboardStore } from '@/stores'
+import { Chart } from 'primereact/chart'
+import 'chartjs-adapter-date-fns'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
   const dashboard = useDashboardStore()
 
-  const { monthToDateSummary } = dashboard
+  const { monthToDateSummary, revenueTrend, orderTrend } = dashboard
 
   const applyLightTheme = () => {}
 
@@ -28,6 +30,14 @@ const Dashboard = () => {
       applyDarkTheme()
     }
   }, [layoutConfig.colorScheme])
+
+
+
+  const revenuLabel = revenueTrend.map((item) => item.period)
+  const revenueData = revenueTrend.map((item) => item.revenue)
+
+  const trendLabel = orderTrend.map((item) => item.period)
+  const trendData = orderTrend.map((item) => item.order)
 
   return (
     <>
@@ -94,6 +104,103 @@ const Dashboard = () => {
             )
           )
         })}
+      </div>
+
+      <div className="grid mt-4">
+        <div className="col-12 lg:col-12 xl:col-6">
+          <Card>
+            <Chart
+              type="bar"
+              data={{ labels: revenuLabel, datasets: [{ data: revenueData, label: 'Revenue' }] }}
+              options={{
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: function (context: any) {
+                        return formatCurrency(context.parsed.y, true, true)
+                      },
+                      title: function (context: any) {
+                        const date = new Date(context[0].parsed.x)
+                        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    type: 'time',
+                    time: {
+                      unit: 'month',
+                      displayFormats: {
+                        month: 'MMM yyyy',
+                      },
+                    },
+                  },
+                  y: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      callback: function (value: string) {
+                        return formatCurrency(value, false, true)
+                      },
+                    },
+                  },
+                },
+              }}
+            />
+          </Card>
+        </div>
+         <div className="col-12 lg:col-12 xl:col-6">
+          <Card>
+            <Chart
+              type="bar"
+              data={{ labels: trendLabel, datasets: [{ data: trendData, label: 'Order' }] }}
+              options={{
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: function (context: any) {
+                        return formatCurrency(context.parsed.y, true, false)
+                      },
+                      title: function (context: any) {
+                        const date = new Date(context[0].parsed.x)
+                        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    grid: {
+                      display: false,
+                    },
+                    type: 'time',
+                    time: {
+                      unit: 'month',
+                      displayFormats: {
+                        month: 'MMM yyyy',
+                      },
+                    },
+                  },
+                  y: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      callback: function (value: string) {
+                        return formatCurrency(value, false, false)
+                      },
+                    },
+                  },
+                },
+              }}
+            />
+          </Card>
+        </div>
       </div>
     </>
   )

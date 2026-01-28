@@ -31,12 +31,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         },
         ...(salesPersonId
           ? {
-              customer: {
-                sales_person: {
-                  id: Number(salesPersonId),
-                },
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
               },
-            }
+            },
+          }
           : {}),
       },
     });
@@ -47,12 +47,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: startLast, lte: endLast },
         ...(salesPersonId
           ? {
-              customer: {
-                sales_person: {
-                  id: Number(salesPersonId),
-                },
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
               },
-            }
+            },
+          }
           : {}),
       },
     });
@@ -71,12 +71,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: startCurrent, lte: endCurrent },
         ...(salesPersonId
           ? {
-              customer: {
-                sales_person: {
-                  id: Number(salesPersonId),
-                },
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
               },
-            }
+            },
+          }
           : {}),
       },
     });
@@ -87,12 +87,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: startLast, lte: endLast },
         ...(salesPersonId
           ? {
-              customer: {
-                sales_person: {
-                  id: Number(salesPersonId),
-                },
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
               },
-            }
+            },
+          }
           : {}),
       },
     });
@@ -108,12 +108,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: startCurrent, lte: endCurrent },
         ...(salesPersonId
           ? {
-              customer: {
-                sales_person: {
-                  id: Number(salesPersonId),
-                },
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
               },
-            }
+            },
+          }
           : {}),
       },
     });
@@ -124,12 +124,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: startLast, lte: endLast },
         ...(salesPersonId
           ? {
-              customer: {
-                sales_person: {
-                  id: Number(salesPersonId),
-                },
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
               },
-            }
+            },
+          }
           : {}),
       },
     });
@@ -154,9 +154,113 @@ export const mtdSummary = async (req: Request, res: Response) => {
 
     const aov = calcMTD(aovCurrent, aovLast);
 
+    const start = dayjs()
+      .subtract(11, 'month')
+      .startOf('month')
+      .toDate()
+
+    const end = dayjs()
+      .endOf('month')
+      .toDate()
+
+    const revenue30Days = await prisma.sales_invoices.findMany({
+      where: {
+        DocDate: { gte: start, lte: end },
+        ...(salesPersonId
+          ? {
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
+              },
+            },
+          }
+          : {}),
+      },
+      select: {
+        DocDate: true,
+        TotalSales: true
+      }
+    })
+
+    const revenueByMonth = revenue30Days.reduce<Record<string, number>>(
+      (acc, cur) => {
+        if (!cur.DocDate) return acc
+
+        const date =
+          cur.DocDate instanceof Date
+            ? cur.DocDate
+            : new Date(cur.DocDate)
+
+        const period = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, '0')}`
+
+        acc[period] = (acc[period] ?? 0) + Number(cur.TotalSales)
+        return acc
+      },
+      {}
+    )
+
+    const revenueTrend = Object.entries(revenueByMonth).map(([key, value]) => ({
+      period: key,
+      revenue: Number(value)
+    })).sort((a, b) => {
+      const dateA = new Date(a.period)
+      const dateB = new Date(b.period)
+      return dateA.getTime() - dateB.getTime()
+    })
+
+    const allOrders = await prisma.orders.findMany({
+      where: {
+        DocDate: { gte: start, lte: end },
+        ...(salesPersonId
+          ? {
+            customer: {
+              sales_person: {
+                id: Number(salesPersonId),
+              },
+            },
+          }
+          : {}),
+      },
+      distinct: ['DocNum'],
+      select: {
+        DocDate: true,
+        DocNum: true
+      }
+    })
+
+
+    const ordersMap = allOrders.reduce<Record<string, Set<number>>>(
+      (acc, cur) => {
+        if (!cur.DocDate || cur.DocNum == null) return acc
+
+        const period = dayjs(cur.DocDate)
+          .format('YYYY-MM')
+
+        if (!acc[period]) acc[period] = new Set<number>()
+        acc[period].add(cur.DocNum)
+
+        return acc
+      },
+      {}
+    )
+
+    const ordersCountByMonth = Object.fromEntries(
+      Object.entries(ordersMap).map(([k, v]) => [k, v.size])
+    )
+    const orderTrend = Object.entries(ordersCountByMonth).map(([key, value]) => ({
+      period: key,
+      order: Number(value)
+    })).sort((a, b) => {
+      const dateA = new Date(a.period)
+      const dateB = new Date(b.period)
+      return dateA.getTime() - dateB.getTime()
+    })
+
     return res.status(200).json({
       message: 'Success',
-      data: { revenue, orders, customers, aov },
+      data: { revenue, orders, customers, aov, revenueTrend, orderTrend },
     });
   } catch (error) {
     console.error(error);
