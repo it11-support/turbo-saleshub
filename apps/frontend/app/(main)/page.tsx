@@ -1,12 +1,14 @@
 'use client'
 
 import { LayoutContext } from '../../layout/context/layoutcontext'
+import { TooltipItem } from 'chart.js'
 import { Card } from 'primereact/card'
-import { useContext, useEffect, useRef, useState } from 'react'
+import { Chart } from 'primereact/chart'
+import { useContext, useEffect } from 'react'
 
 import { formatCurrency } from '@/lib/formatter'
 import { useDashboardStore } from '@/stores'
-import { Chart } from 'primereact/chart'
+
 import 'chartjs-adapter-date-fns'
 
 const Dashboard = () => {
@@ -30,8 +32,6 @@ const Dashboard = () => {
       applyDarkTheme()
     }
   }, [layoutConfig.colorScheme])
-
-
 
   const revenuLabel = revenueTrend.map((item) => item.period)
   const revenueData = revenueTrend.map((item) => item.revenue)
@@ -116,10 +116,10 @@ const Dashboard = () => {
                 plugins: {
                   tooltip: {
                     callbacks: {
-                      label: function (context: any) {
+                      label: function (context: TooltipItem<'bar'>) {
                         return formatCurrency(context.parsed.y, true, true)
                       },
-                      title: function (context: any) {
+                      title: function (context: TooltipItem<'bar'>[]) {
                         const date = new Date(context[0].parsed.x)
                         return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
                       },
@@ -154,7 +154,7 @@ const Dashboard = () => {
             />
           </Card>
         </div>
-         <div className="col-12 lg:col-12 xl:col-6">
+        <div className="col-12 lg:col-12 xl:col-6">
           <Card>
             <Chart
               type="bar"
@@ -163,10 +163,10 @@ const Dashboard = () => {
                 plugins: {
                   tooltip: {
                     callbacks: {
-                      label: function (context: any) {
+                      label: function (context: TooltipItem<'bar'>) {
                         return formatCurrency(context.parsed.y, true, false)
                       },
-                      title: function (context: any) {
+                      title: function (context: TooltipItem<'bar'>[]) {
                         const date = new Date(context[0].parsed.x)
                         return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
                       },
