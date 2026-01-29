@@ -15,6 +15,10 @@ export interface ISalesSummaryState {
   monthToDateSummary: TMonthTodateSummary
   revenueTrend: {period: string, revenue: number}[],
   orderTrend: {period: string, order: number}[],
+  customerTrend: {period: string, activeCustomers: number}[],
+  aovTrend: {period: string, aov: number}[],
+  slpRevenue: {slp: string, revenue: number}[],
+  productRevenue: { ItemName: string, orders: number, revenue: number}[],
   monthList: { value: number; label: string }[]
   month: number
   salesSummary: {
