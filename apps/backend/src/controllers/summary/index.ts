@@ -321,6 +321,97 @@ export const mtdSummary = async (req: Request, res: Response) => {
       orders: i._count.DocNum,
     })).sort((a, b) => b.revenue - a.revenue)
 
+
+    // New Vs Returning
+    const monthStart = dayjs().subtract(3, 'month').startOf('month').toDate()
+    const monthEnd = dayjs().toDate()
+
+
+    const invoicesCurrent = await prisma.sales_invoices.findMany({
+      where: {
+        DocDate: { gte: monthStart, lte: monthEnd },
+        ...(salesPersonId
+          ? { customer: { sales_person: { id: Number(salesPersonId) } } }
+          : {}),
+      },
+      select: { CardCode: true },
+    })
+
+    const invoicesBefore = await prisma.sales_invoices.findMany({
+      where: {
+        DocDate: { lt: monthStart },
+        ...(salesPersonId
+          ? { customer: { sales_person: { id: Number(salesPersonId) } } }
+          : {}),
+      },
+      select: { CardCode: true },
+    })
+
+    const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))
+    const currentSet = new Set(invoicesCurrent.map(i => i.CardCode))
+
+    let newCustomerCount = 0
+    let returningCustomerCount = 0
+
+    currentSet.forEach(card => {
+      if (beforeSet.has(card)) returningCustomerCount += 1
+      else newCustomerCount += 1
+    })
+
+    const newVsReturning = {
+      newCustomer: newCustomerCount,
+      returningCustomer: returningCustomerCount
+    }
+
+
+  const CRRPeriodStart = dayjs().subtract(3, 'month').startOf('month').toDate(); // 3 bulan lalu
+const CRRPeriodEnd = dayjs().endOf('month').toDate(); // akhir bulan ini
+
+const RPRPeriodStart = dayjs().startOf('month').toDate(); // awal bulan ini
+const RPRPeriodEnd = dayjs().endOf('month').toDate();
+
+    // Pelanggan periode sebelumnya (bulan lalu)
+    const previousPeriodStart = dayjs(CRRPeriodStart).subtract(1, 'month').startOf('month').toDate();
+    const previousPeriodEnd = dayjs(CRRPeriodEnd).subtract(1, 'day').endOf('day').toDate();
+
+    const existingCustomers = await prisma.orders.findMany({
+      where: {
+        DocDate: { gte: previousPeriodStart, lte: previousPeriodEnd }
+      },
+      select: { CardCode: true },
+      distinct: ['CardCode']
+    });
+
+    const activeCustomers = await prisma.orders.findMany({
+      where: {
+        DocDate: { gte: CRRPeriodStart, lte: CRRPeriodEnd }
+      },
+      select: { CardCode: true },
+      distinct: ['CardCode']
+    });
+
+    const existingSet = new Set(existingCustomers.map(c => c.CardCode));
+    const retained = activeCustomers.filter(c => existingSet.has(c.CardCode));
+
+    const CRR = existingCustomers.length === 0
+      ? 0
+      : (retained.length / existingCustomers.length) * 100;
+
+
+    const rawRepeatCustomer = await prisma.orders.groupBy({
+      by: ['CardCode'],
+      where: {
+        DocDate: { gte: RPRPeriodStart, lte: RPRPeriodEnd }
+      },
+      _count: { CardCode: true }
+    })
+
+    const totalRepeatCustomers = rawRepeatCustomer.length
+    const repeatCustomer = rawRepeatCustomer.filter(ro => ro._count.CardCode > 1).length
+
+    const RPR = totalRepeatCustomers === 0 ? 0 : (repeatCustomer / totalRepeatCustomers) * 100
+
+
     // =====================
     // RESPONSE
     // =====================
@@ -336,7 +427,10 @@ export const mtdSummary = async (req: Request, res: Response) => {
         orderTrend,
         aovTrend,
         slpRevenue,
-        productRevenue
+        productRevenue,
+        newVsReturning,
+        CRR,
+        RPR
       },
     })
   } catch (error) {

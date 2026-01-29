@@ -5,6 +5,7 @@ import { TooltipItem } from 'chart.js'
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
+import { Knob } from 'primereact/knob'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { useContext, useEffect } from 'react'
 
@@ -29,6 +30,9 @@ const Dashboard = () => {
     slpRevenue,
     productRevenue,
     loading,
+    newVsReturning,
+    CRR,
+    RPR,
   } = dashboard
 
   const applyLightTheme = () => {}
@@ -65,7 +69,9 @@ const Dashboard = () => {
   const productRevenueLabel = productRevenue.map((item) => item.ItemName)
   const productRevenueData = productRevenue.map((item) => item.revenue)
 
-  console.log(productRevenueLabel, productRevenueData)
+  const newVsReturningLabel = ['New Customer', 'Returning Customer']
+  const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
+
   return (
     <>
       {loading ? (
@@ -141,7 +147,103 @@ const Dashboard = () => {
               )
             })}
           </div>
+          <div className="grid mt-4">
+            {/* <div className="col-12 lg:col-4 xl:col-4">
+              <Card>
+              <Chart
+                type="pie"
+                data={{
+                  labels: newVsReturningLabel,
+                  datasets: [
+                    {
+                      data: newVsReturningData,
+                      backgroundColor: ['#FF9F43', '#007BFF'],
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+                options={{
+                  plugins: {},
+                  radius: '60%',
+                }}
+                className="w-full md:w-30rem"
+              />
+              </Card>
+            </div> */}
+            {CRR > 0 && (
+              <div className="col-12 sm:col-6 lg:col-4 xl:col-4">
+                <Card className="text-center">
+                  <h5>Customer Retention Rate</h5>
+                  <p className="text-sm">Last 3 Months</p>
+                  <Knob
+                    value={Number(CRR.toFixed(2))}
+                    readOnly
+                    min={0}
+                    max={100}
+                    size={200}
+                    valueTemplate="{value}%"
+                    valueColor={'var(--green-500)'}
+                  />
+                </Card>
+              </div>
+            )}
 
+            {RPR > 0 && (
+              <div className="col-12 sm:col-6 lg:col-4 xl:col-4">
+                <Card className="text-center">
+                  <h5>Repeat Purchase Rate</h5>
+                  <p className="text-sm">Current Month</p>
+                  <Knob
+                    value={Number(CRR.toFixed(2))}
+                    readOnly
+                    min={0}
+                    max={100}
+                    size={200}
+                    valueTemplate="{value}%"
+                    valueColor={'var(--orange-500)'}
+                  />
+                </Card>
+              </div>
+            )}
+
+            <div className="col-12 lg:col-4 xl:col-4">
+              <Card className="text-center">
+                <h5>New vs Returning</h5>
+                <p className="text-sm">Last 3 Months</p>
+                <div
+                  style={{
+                    width: '200px',
+                    height: '200px',
+                    margin: '0 auto',
+                  }}
+                >
+                  <Chart
+                    type="pie"
+                    data={{
+                      labels: newVsReturningLabel,
+                      datasets: [
+                        {
+                          data: newVsReturningData,
+                          backgroundColor: ['#FF9F43', '#007BFF'],
+                          borderWidth: 1,
+                        },
+                      ],
+                    }}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          display: true,
+                          position: 'bottom',
+                        },
+                      },
+                    }}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
+              </Card>
+            </div>
+          </div>
           <div className="grid mt-4 ">
             <div className="col-12 lg:col-12 xl:col-6">
               <Card>
@@ -359,7 +461,7 @@ const Dashboard = () => {
                       plugins: {
                         datalabels: {
                           display: true,
-                          color: 'white',
+                          color: 'gray',
                           align: 'end',
                           anchor: 'start',
                           clip: false,
@@ -411,45 +513,75 @@ const Dashboard = () => {
             {isAdmin && (
               <div className="col-12 lg:col-12 xl:col-6">
                 <Card>
-                  <Chart
-                    type="bar"
-                    data={{
-                      labels: slpRevenueLabel,
-                      datasets: [{ data: slpRevenueData, label: 'Top Performing Sales Person' }],
-                    }}
-                    options={{
-                      indexAxis: 'y',
-                      plugins: {
-                        tooltip: {
-                          callbacks: {
-                            label: function (context: TooltipItem<'bar'>) {
-                              return formatCurrency(context.parsed.x, true, true)
+                  <div style={{ position: 'relative', width: '100%', height: '500px' }}>
+                    <Chart
+                      width="100%"
+                      height="100%"
+                      type="bar"
+                      data={{
+                        labels: slpRevenueLabel,
+                        datasets: [
+                          {
+                            data: slpRevenueData,
+                            label: 'Top Performing Salesperson',
+                            barPercentage: 0.9,
+                            categoryPercentage: 0.5,
+                          },
+                        ],
+                      }}
+                      options={{
+                        indexAxis: 'y',
+                        maintainAspectRatio: false,
+                        plugins: {
+                          datalabels: {
+                            display: true,
+                            color: 'gray',
+                            align: 'end',
+                            anchor: 'start',
+                            clip: false,
+                            clamp: true,
+                            formatter: (_: number | string, context: Context) => {
+                              return context.chart.data.labels?.[context.dataIndex]
                             },
-                            title: function (context: TooltipItem<'bar'>[]) {
-                              return context[0].label
+                            font: {
+                              size: 10,
+                            },
+                          },
+                          tooltip: {
+                            callbacks: {
+                              label: function (context: TooltipItem<'bar'>) {
+                                return formatCurrency(context.parsed.x, true, true)
+                              },
+                              title: function (context: TooltipItem<'bar'>[]) {
+                                return context[0].label
+                              },
                             },
                           },
                         },
-                      },
-                      scales: {
-                        x: {
-                          grid: {
-                            display: false,
+                        scales: {
+                          x: {
+                            grid: {
+                              display: false,
+                            },
+                            ticks: {
+                              callback: function (value: string) {
+                                return formatCurrency(value, false, true)
+                              },
+                            },
                           },
-                          ticks: {
-                            callback: function (value: string) {
-                              return formatCurrency(value, false, true)
+                          y: {
+                            grid: {
+                              display: false,
+                            },
+                            ticks: {
+                              display: false,
                             },
                           },
                         },
-                        y: {
-                          grid: {
-                            display: false,
-                          },
-                        },
-                      },
-                    }}
-                  />
+                      }}
+                      plugins={[ChartDataLabels]}
+                    />
+                  </div>
                 </Card>
               </div>
             )}

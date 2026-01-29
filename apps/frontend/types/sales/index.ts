@@ -19,6 +19,9 @@ export interface ISalesSummaryState {
   aovTrend: {period: string, aov: number}[],
   slpRevenue: {slp: string, revenue: number}[],
   productRevenue: { ItemName: string, orders: number, revenue: number}[],
+  newVsReturning: {newCustomer: number, returningCustomer: number},
+  CRR: number,
+  RPR: number,
   monthList: { value: number; label: string }[]
   month: number
   salesSummary: {

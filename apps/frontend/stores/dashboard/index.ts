@@ -12,6 +12,9 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   productRevenue: [],
   aovTrend: [],
   slpRevenue:[],
+  newVsReturning: {newCustomer: 0, returningCustomer: 0},
+  CRR: 0,
+  RPR: 0,
   salesSummary: {
     mom: {},
     yoy: {},
@@ -70,6 +73,9 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
         aovTrend: res.data.aovTrend,
         slpRevenue: res.data.slpRevenue,
         productRevenue: res.data.productRevenue,
+        newVsReturning: res.data.newVsReturning,
+        CRR: res.data.CRR,
+        RPR: res.data.RPR
       })
     } catch (error) {
       console.error(error)
