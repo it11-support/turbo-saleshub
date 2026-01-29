@@ -148,28 +148,6 @@ const Dashboard = () => {
             })}
           </div>
           <div className="grid mt-4">
-            {/* <div className="col-12 lg:col-4 xl:col-4">
-              <Card>
-              <Chart
-                type="pie"
-                data={{
-                  labels: newVsReturningLabel,
-                  datasets: [
-                    {
-                      data: newVsReturningData,
-                      backgroundColor: ['#FF9F43', '#007BFF'],
-                      borderWidth: 1,
-                    },
-                  ],
-                }}
-                options={{
-                  plugins: {},
-                  radius: '60%',
-                }}
-                className="w-full md:w-30rem"
-              />
-              </Card>
-            </div> */}
             {CRR > 0 && (
               <div className="col-12 sm:col-6 lg:col-4 xl:col-4">
                 <Card className="text-center">
@@ -461,7 +439,7 @@ const Dashboard = () => {
                       plugins: {
                         datalabels: {
                           display: true,
-                          color: 'gray',
+                          color: '#212121',
                           align: 'end',
                           anchor: 'start',
                           clip: false,
@@ -486,9 +464,6 @@ const Dashboard = () => {
                       },
                       scales: {
                         x: {
-                          grid: {
-                            display: false,
-                          },
                           ticks: {
                             callback: function (value: string) {
                               return formatCurrency(value, false, true)
@@ -535,7 +510,7 @@ const Dashboard = () => {
                         plugins: {
                           datalabels: {
                             display: true,
-                            color: 'gray',
+                            color: '#212121',
                             align: 'end',
                             anchor: 'start',
                             clip: false,
@@ -544,7 +519,7 @@ const Dashboard = () => {
                               return context.chart.data.labels?.[context.dataIndex]
                             },
                             font: {
-                              size: 10,
+                              size: 12,
                             },
                           },
                           tooltip: {
@@ -560,9 +535,6 @@ const Dashboard = () => {
                         },
                         scales: {
                           x: {
-                            grid: {
-                              display: false,
-                            },
                             ticks: {
                               callback: function (value: string) {
                                 return formatCurrency(value, false, true)
