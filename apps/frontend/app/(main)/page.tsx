@@ -72,7 +72,7 @@ const Dashboard = () => {
   const newVsReturningLabel = ['New Customer', 'Returning Customer']
   const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
 
-  const baseColor = layoutConfig.colorScheme === 'light' ?  '#2d353e' : '#f8f9fa'
+  const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
 
   return (
     <>
