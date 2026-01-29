@@ -43,6 +43,8 @@ const ProductList = () => {
     limit,
     setPage,
     setLimit,
+    isProductFocused,
+    setIsProductFocused,
   } = useProductsStore()
 
   const [visible, setVisible] = useState(false)
@@ -71,7 +73,7 @@ const ProductList = () => {
   // Fetch products saat mount & saat page, limit, filter, search berubah
   useEffect(() => {
     fetchProducts()
-  }, [page, limit, selectedCategory, searchDebounced])
+  }, [page, limit, selectedCategory, searchDebounced, isProductFocused])
 
   // Reset page ke 1 saat filter atau search berubah
   useEffect(() => {
@@ -198,13 +200,27 @@ const ProductList = () => {
             className="w-full md:w-48"
           />
         </div>
-        <div className="col-12 md:col-3">
+        <div className="col-12 md:col-3 flex align-items-center">
           <InputText
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search..."
             className="w-full md:w-48"
           />
+        </div>
+        <div className="col-12 md:col-3 flex align-items-center">
+          <div className="flex align-items-center gap-2">
+            <Checkbox
+              inputId="productFocused"
+              name="productFocused"
+              value={isProductFocused}
+              onChange={(e) => setIsProductFocused(e.checked as boolean)}
+              checked={isProductFocused}
+            />
+            <label htmlFor="productFocused" className="ml-2">
+              Product Developmnent Only
+            </label>
+          </div>
         </div>
       </div>
 

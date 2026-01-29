@@ -116,10 +116,11 @@ export const imageUpload = async (req: Request, res: Response) => {
 
 export const fetchProducts = async (req: Request, res: Response) => {
   try {
-    const { page, limit, search, category } = req.query;
+    const { page, limit, search, category, productFocused } = req.query;
     const perPage = limit ? Number(limit) : 10;
     const currentPage = page ? Number(page) : 1;
     const keyword = typeof search === 'string' && search.trim() !== '' ? search.trim() : null;
+    const isProductFocused = productFocused === 'true';
 
     const where: Prisma.productsWhereInput = {
       ...(category ? { ItmsGrpCod: Number(category) } : {}),
@@ -138,6 +139,7 @@ export const fetchProducts = async (req: Request, res: Response) => {
             ],
           }
         : {}),
+      ...(isProductFocused ? {product_developments: {some: {}}} : {})
     };
     const products = await prisma.products.findMany({
       skip: (currentPage - 1) * perPage,
