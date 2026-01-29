@@ -72,6 +72,8 @@ const Dashboard = () => {
   const newVsReturningLabel = ['New Customer', 'Returning Customer']
   const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
 
+  const baseColor = layoutConfig.colorScheme === 'light' ?  '#2d353e' : '#f8f9fa'
+
   return (
     <>
       {loading ? (
@@ -439,7 +441,7 @@ const Dashboard = () => {
                       plugins: {
                         datalabels: {
                           display: true,
-                          color: '#212121',
+                          color: baseColor,
                           align: 'end',
                           anchor: 'start',
                           clip: false,
@@ -510,7 +512,7 @@ const Dashboard = () => {
                         plugins: {
                           datalabels: {
                             display: true,
-                            color: '#212121',
+                            color: baseColor,
                             align: 'end',
                             anchor: 'start',
                             clip: false,
