@@ -341,7 +341,7 @@ const Dashboard = () => {
               </Card>
             </div>
           </div>
-          <div className="grid mt-4 ">
+          <div className="grid mt-2 ">
             {isAdmin && (
               <div className="col-12 lg:col-12 xl:col-6">
                 <Card>
