@@ -342,51 +342,6 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="grid mt-2 ">
-            {isAdmin && (
-              <div className="col-12 lg:col-12 xl:col-6">
-                <Card>
-                  <Chart
-                    type="bar"
-                    data={{
-                      labels: slpRevenueLabel,
-                      datasets: [{ data: slpRevenueData, label: 'Top Performing Sales Person' }],
-                    }}
-                    options={{
-                      indexAxis: 'y',
-                      plugins: {
-                        tooltip: {
-                          callbacks: {
-                            label: function (context: TooltipItem<'bar'>) {
-                              return formatCurrency(context.parsed.x, true, true)
-                            },
-                            title: function (context: TooltipItem<'bar'>[]) {
-                              return context[0].label
-                            },
-                          },
-                        },
-                      },
-                      scales: {
-                        x: {
-                          grid: {
-                            display: false,
-                          },
-                          ticks: {
-                            callback: function (value: string) {
-                              return formatCurrency(value, false, true)
-                            },
-                          },
-                        },
-                        y: {
-                          grid: {
-                            display: false,
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </Card>
-              </div>
-            )}
             <div className="col-12 lg:col-12 xl:col-6">
               <Card>
                 <div style={{ position: 'relative', width: '100%', height: '500px' }}>
@@ -453,6 +408,51 @@ const Dashboard = () => {
                 </div>
               </Card>
             </div>
+            {isAdmin && (
+              <div className="col-12 lg:col-12 xl:col-6">
+                <Card>
+                  <Chart
+                    type="bar"
+                    data={{
+                      labels: slpRevenueLabel,
+                      datasets: [{ data: slpRevenueData, label: 'Top Performing Sales Person' }],
+                    }}
+                    options={{
+                      indexAxis: 'y',
+                      plugins: {
+                        tooltip: {
+                          callbacks: {
+                            label: function (context: TooltipItem<'bar'>) {
+                              return formatCurrency(context.parsed.x, true, true)
+                            },
+                            title: function (context: TooltipItem<'bar'>[]) {
+                              return context[0].label
+                            },
+                          },
+                        },
+                      },
+                      scales: {
+                        x: {
+                          grid: {
+                            display: false,
+                          },
+                          ticks: {
+                            callback: function (value: string) {
+                              return formatCurrency(value, false, true)
+                            },
+                          },
+                        },
+                        y: {
+                          grid: {
+                            display: false,
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </Card>
+              </div>
+            )}
           </div>
         </>
       )}
