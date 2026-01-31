@@ -98,7 +98,6 @@ export const segmentToStars = (segment?: string | null) => {
   }
 }
 
-
 export const getClass = (segment?: string | null) => {
   switch (segment) {
     case 'VIP':

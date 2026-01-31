@@ -1,11 +1,13 @@
 'use client'
 
+import { getClass, segmentToStars } from './components/functions'
 import { ICustomer } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
+import { Rating } from 'primereact/rating'
 import { SelectButton } from 'primereact/selectbutton'
 import { Slider } from 'primereact/slider'
 import { useEffect, useState } from 'react'
@@ -14,8 +16,6 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { useCustomerStore } from '@/stores/customers'
-import { getClass, segmentToStars } from './components/functions'
-import { Rating } from 'primereact/rating'
 
 export default function CustomerTable() {
   const {
@@ -109,14 +109,18 @@ export default function CustomerTable() {
   const segmentTemplate = (row: ICustomer) => {
     const stars = segmentToStars(row.rfm?.segment)
 
-
-
     return <Rating value={stars} readOnly cancel={false} className={getClass(row.rfm?.segment)} />
   }
 
   const headers = [
     { field: 'CardName', header: 'Name', sortable: true },
-    { field: 'rfm.segment', header: 'Loyalty Level', sortable: true, body: segmentTemplate, sortField: 'rfm.rfmScore' },
+    {
+      field: 'rfm.segment',
+      header: 'Loyalty Level',
+      sortable: true,
+      body: segmentTemplate,
+      sortField: 'rfm.rfmScore',
+    },
     { field: 'GroupName', header: 'Group', sortable: true, hideOnMobile: true },
     { field: 'subgroup.IndDesc', header: 'Subgroup', sortable: true },
     { field: 'sales_person.SlpName', header: 'Sales Person', sortable: true, hideOnMobile: true },
