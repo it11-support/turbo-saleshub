@@ -1,6 +1,7 @@
 import { ISalesPerson } from "../user"
 import { ISalesInvoices } from '../sales'
 import { ISubGroup } from "../subgroups";
+import { CustomerRFM } from "../rfm";
 
 export interface ICustomer {
   id: bigint;
@@ -28,4 +29,5 @@ export interface ICustomer {
   sales_invoices?: ISalesInvoices[] | null;
   // Relasi (dari sales_persons)
   sales_person?: ISalesPerson | null;
+  rfm?: CustomerRFM | null
 }

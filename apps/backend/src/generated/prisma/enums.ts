@@ -39,3 +39,14 @@ export const VisitStatus = {
 } as const
 
 export type VisitStatus = (typeof VisitStatus)[keyof typeof VisitStatus]
+
+
+export const CustomerSegment = {
+  VIP: 'VIP',
+  LOYAL: 'LOYAL',
+  POTENTIAL: 'POTENTIAL',
+  AT_RISK: 'AT_RISK',
+  LOST: 'LOST'
+} as const
+
+export type CustomerSegment = (typeof CustomerSegment)[keyof typeof CustomerSegment]

@@ -388,6 +388,7 @@ export const ModelName = {
   cache_locks: 'cache_locks',
   configs: 'configs',
   customers: 'customers',
+  customer_rfm: 'customer_rfm',
   subgroups: 'subgroups',
   failed_jobs: 'failed_jobs',
   job_batches: 'job_batches',
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "cache" | "cache_locks" | "configs" | "customers" | "subgroups" | "failed_jobs" | "job_batches" | "jobs" | "migrations" | "password_reset_tokens" | "personal_access_tokens" | "products" | "product_developments" | "roles" | "sales_invoices" | "sales_visit_rules" | "sales_visit_schedules" | "sales_visit_schedule_items" | "sales_persons" | "sales_visit_results" | "sales_visits" | "visits" | "visit_items" | "sessions" | "teams" | "users" | "orders"
+    modelProps: "cache" | "cache_locks" | "configs" | "customers" | "customer_rfm" | "subgroups" | "failed_jobs" | "job_batches" | "jobs" | "migrations" | "password_reset_tokens" | "personal_access_tokens" | "products" | "product_developments" | "roles" | "sales_invoices" | "sales_visit_rules" | "sales_visit_schedules" | "sales_visit_schedule_items" | "sales_persons" | "sales_visit_results" | "sales_visits" | "visits" | "visit_items" | "sessions" | "teams" | "users" | "orders"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -691,6 +692,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.customersCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CustomersCountAggregateOutputType> | number
+        }
+      }
+    }
+    customer_rfm: {
+      payload: Prisma.$customer_rfmPayload<ExtArgs>
+      fields: Prisma.customer_rfmFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.customer_rfmFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.customer_rfmFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>
+        }
+        findFirst: {
+          args: Prisma.customer_rfmFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.customer_rfmFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>
+        }
+        findMany: {
+          args: Prisma.customer_rfmFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>[]
+        }
+        create: {
+          args: Prisma.customer_rfmCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>
+        }
+        createMany: {
+          args: Prisma.customer_rfmCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.customer_rfmDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>
+        }
+        update: {
+          args: Prisma.customer_rfmUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>
+        }
+        deleteMany: {
+          args: Prisma.customer_rfmDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.customer_rfmUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.customer_rfmUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$customer_rfmPayload>
+        }
+        aggregate: {
+          args: Prisma.Customer_rfmAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCustomer_rfm>
+        }
+        groupBy: {
+          args: Prisma.customer_rfmGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Customer_rfmGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.customer_rfmCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Customer_rfmCountAggregateOutputType> | number
         }
       }
     }
@@ -2310,6 +2377,23 @@ export const CustomersScalarFieldEnum = {
 export type CustomersScalarFieldEnum = (typeof CustomersScalarFieldEnum)[keyof typeof CustomersScalarFieldEnum]
 
 
+export const Customer_rfmScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  recency: 'recency',
+  frequency: 'frequency',
+  monetary: 'monetary',
+  rScore: 'rScore',
+  fScore: 'fScore',
+  mScore: 'mScore',
+  rfmScore: 'rfmScore',
+  segment: 'segment',
+  lastCalculated: 'lastCalculated'
+} as const
+
+export type Customer_rfmScalarFieldEnum = (typeof Customer_rfmScalarFieldEnum)[keyof typeof Customer_rfmScalarFieldEnum]
+
+
 export const SubgroupsScalarFieldEnum = {
   IndCode: 'IndCode',
   IndName: 'IndName',
@@ -2726,6 +2810,13 @@ export const customersOrderByRelevanceFieldEnum = {
 export type customersOrderByRelevanceFieldEnum = (typeof customersOrderByRelevanceFieldEnum)[keyof typeof customersOrderByRelevanceFieldEnum]
 
 
+export const customer_rfmOrderByRelevanceFieldEnum = {
+  rfmScore: 'rfmScore'
+} as const
+
+export type customer_rfmOrderByRelevanceFieldEnum = (typeof customer_rfmOrderByRelevanceFieldEnum)[keyof typeof customer_rfmOrderByRelevanceFieldEnum]
+
+
 export const subgroupsOrderByRelevanceFieldEnum = {
   IndName: 'IndName',
   IndDesc: 'IndDesc'
@@ -2973,6 +3064,13 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'CustomerSegment'
+ */
+export type EnumCustomerSegmentFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CustomerSegment'>
+    
+
+
+/**
  * Reference to a field of type 'dayOfWeeks'
  */
 export type EnumdayOfWeeksFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'dayOfWeeks'>
@@ -3103,6 +3201,7 @@ export type GlobalOmitConfig = {
   cache_locks?: Prisma.cache_locksOmit
   configs?: Prisma.configsOmit
   customers?: Prisma.customersOmit
+  customer_rfm?: Prisma.customer_rfmOmit
   subgroups?: Prisma.subgroupsOmit
   failed_jobs?: Prisma.failed_jobsOmit
   job_batches?: Prisma.job_batchesOmit

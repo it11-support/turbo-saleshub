@@ -60,6 +60,11 @@ export type configs = Prisma.configsModel
  */
 export type customers = Prisma.customersModel
 /**
+ * Model customer_rfm
+ * 
+ */
+export type customer_rfm = Prisma.customer_rfmModel
+/**
  * Model subgroups
  * 
  */

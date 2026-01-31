@@ -26,6 +26,21 @@ export const customerList = async (
   try {
     const { search = '', per_page = 10, page = 1, sort_options = [] } = req.query;
 
+    const sort_options_mapped = () => {
+      const sortOptions = JSON.parse(sort_options as string);
+      return sortOptions.map((s: any) => {
+        if (s.key === 'rfm.segment' || s.key === 'segment') {
+          return {
+            ...s,
+            key: 'rfm.rfmScore',
+          };
+        }
+
+        return s;
+      });
+    };
+
+
     const { groups, active, salesPersons, subgroups, slpCode, itemCount } = req.query as {
       groups?: string | string[];
       active?: string | string[];
@@ -41,25 +56,25 @@ export const customerList = async (
 
     const query: any = search
       ? {
-          OR: [
-            { CardCode: { contains: search } },
-            { CardName: { contains: search } },
-            { GroupName: { contains: search } },
-            { CntctPrsn: { contains: search } },
-            { Phone1: { contains: search } },
-            { Cellular: { contains: search } },
-            { SalesName: { contains: search } },
-            { Address: { contains: search } },
-            { City: { contains: search } },
-            { PaymentTerm: { contains: search } },
-            { PriceList: { contains: search } },
-            {
-              subgroup: {
-                OR: [{ IndName: { contains: search } }, { IndDesc: { contains: search } }],
-              },
+        OR: [
+          { CardCode: { contains: search } },
+          { CardName: { contains: search } },
+          { GroupName: { contains: search } },
+          { CntctPrsn: { contains: search } },
+          { Phone1: { contains: search } },
+          { Cellular: { contains: search } },
+          { SalesName: { contains: search } },
+          { Address: { contains: search } },
+          { City: { contains: search } },
+          { PaymentTerm: { contains: search } },
+          { PriceList: { contains: search } },
+          {
+            subgroup: {
+              OR: [{ IndName: { contains: search } }, { IndDesc: { contains: search } }],
             },
-          ],
-        }
+          },
+        ],
+      }
       : {};
 
     if (active) {
@@ -139,7 +154,7 @@ export const customerList = async (
       query.CardCode = { in: grouped.map((g) => g.CardCode) };
     }
 
-    const sortOptions = sortOptionsParser(sort_options);
+    const sortOptions = sortOptionsParser(sort_options_mapped());
     const orderBy = convertToPrismaOrderBy(sortOptions);
 
     const [customers, meta] = await prisma.customers
@@ -148,6 +163,7 @@ export const customerList = async (
         include: {
           sales_person: true,
           subgroup: true,
+          rfm: true
         },
         orderBy,
       })
@@ -185,7 +201,17 @@ export const customerList = async (
     return res.status(200).json({
       message: 'Success',
       data: {
-        items: customers,
+        items: customers.map((c) => ({
+          ...c,
+          rfm: c.rfm
+            ? {
+              ...c.rfm,
+              monetary: c.rfm.monetary
+                ? Number(c.rfm.monetary)
+                : null,
+            }
+            : null,
+        })),
         totalRecords: meta.totalCount,
         currentPage: meta.currentPage,
         perPage: Number(per_page),

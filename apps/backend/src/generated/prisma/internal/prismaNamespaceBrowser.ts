@@ -55,6 +55,7 @@ export const ModelName = {
   cache_locks: 'cache_locks',
   configs: 'configs',
   customers: 'customers',
+  customer_rfm: 'customer_rfm',
   subgroups: 'subgroups',
   failed_jobs: 'failed_jobs',
   job_batches: 'job_batches',
@@ -153,6 +154,23 @@ export const CustomersScalarFieldEnum = {
 } as const
 
 export type CustomersScalarFieldEnum = (typeof CustomersScalarFieldEnum)[keyof typeof CustomersScalarFieldEnum]
+
+
+export const Customer_rfmScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  recency: 'recency',
+  frequency: 'frequency',
+  monetary: 'monetary',
+  rScore: 'rScore',
+  fScore: 'fScore',
+  mScore: 'mScore',
+  rfmScore: 'rfmScore',
+  segment: 'segment',
+  lastCalculated: 'lastCalculated'
+} as const
+
+export type Customer_rfmScalarFieldEnum = (typeof Customer_rfmScalarFieldEnum)[keyof typeof Customer_rfmScalarFieldEnum]
 
 
 export const SubgroupsScalarFieldEnum = {
@@ -569,6 +587,13 @@ export const customersOrderByRelevanceFieldEnum = {
 } as const
 
 export type customersOrderByRelevanceFieldEnum = (typeof customersOrderByRelevanceFieldEnum)[keyof typeof customersOrderByRelevanceFieldEnum]
+
+
+export const customer_rfmOrderByRelevanceFieldEnum = {
+  rfmScore: 'rfmScore'
+} as const
+
+export type customer_rfmOrderByRelevanceFieldEnum = (typeof customer_rfmOrderByRelevanceFieldEnum)[keyof typeof customer_rfmOrderByRelevanceFieldEnum]
 
 
 export const subgroupsOrderByRelevanceFieldEnum = {

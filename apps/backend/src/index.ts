@@ -2,6 +2,7 @@ import express from 'express'
 import routes from './routes/index.js'
 import cors from "cors"
 import fileUpload from 'express-fileupload'
+import { startRfmScheduler } from './scheduler/index.js'
 
 
 const PORT = process.env.PORT || 4000
@@ -17,6 +18,8 @@ app.use(
 )
 app.use(express.json())
 app.use("/api/v1", routes)
+
+startRfmScheduler()
 
 app.listen(PORT, () => {
   console.log(`Express running on ${PORT}`);

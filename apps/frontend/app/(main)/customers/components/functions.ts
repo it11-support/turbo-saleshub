@@ -80,3 +80,38 @@ export const getMonthlySummary = (
     activeItems: summary[key].itemsSet.size,
   }))
 }
+
+export const segmentToStars = (segment?: string | null) => {
+  switch (segment) {
+    case 'VIP':
+      return 5
+    case 'LOYAL':
+      return 4
+    case 'POTENTIAL':
+      return 3
+    case 'AT_RISK':
+      return 2
+    case 'LOST':
+      return 1
+    default:
+      return 0
+  }
+}
+
+
+export const getClass = (segment?: string | null) => {
+  switch (segment) {
+    case 'VIP':
+      return 'rfm-rating rating-vip'
+    case 'LOYAL':
+      return 'rfm-rating rating-loyal'
+    case 'POTENTIAL':
+      return 'rfm-rating rating-potential'
+    case 'AT_RISK':
+      return 'rfm-rating rating-risk'
+    case 'LOST':
+      return 'rfm-rating rating-lost'
+    default:
+      return 'rfm-rating'
+  }
+}
