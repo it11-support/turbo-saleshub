@@ -22,6 +22,7 @@ export interface ISalesSummaryState {
   newVsReturning: {newCustomer: number, returningCustomer: number},
   CRR: number,
   RPR: number,
+  RFM: {segment: string, count: number}[],
   monthList: { value: number; label: string }[]
   month: number
   salesSummary: {

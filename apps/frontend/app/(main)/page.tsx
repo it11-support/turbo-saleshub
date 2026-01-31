@@ -33,6 +33,7 @@ const Dashboard = () => {
     newVsReturning,
     CRR,
     RPR,
+    RFM,
   } = dashboard
 
   const applyLightTheme = () => {}
@@ -73,6 +74,14 @@ const Dashboard = () => {
   const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
 
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
+
+  const rfmLabels = RFM.map((item) => {
+    return item.segment.replace('_', ' ')
+  })
+
+  const rfmData = RFM.map((item) => {
+    return item.count
+  })
 
   return (
     <>
@@ -150,8 +159,76 @@ const Dashboard = () => {
             })}
           </div>
           <div className="grid mt-4">
+            <div className="col-12 lg:col-6 xl:col-3">
+              <Card className="text-center">
+                <h5>Customer Loyalty</h5>
+                <p className="text-sm">Based on RFM</p>
+                <div
+                  style={{
+                    width: '200px',
+                    height: '200px',
+                    margin: '0 auto',
+                  }}
+                >
+                  <Chart
+                    type="pie"
+                    data={{
+                      labels: rfmLabels,
+                      datasets: [
+                        {
+                          data: rfmData,
+                          backgroundColor: [
+                            '#FFD700', // VIP = gold
+                            '#4CAF50', // LOYAL = green
+                            '#2196F3', // POTENTIAL = blue
+                            '#FF9800', // AT_RISK = orange
+                            '#9E9E9E', // LOST = gray
+                          ],
+                          hoverBackgroundColor: [
+                            '#FFC700',
+                            '#43A047',
+                            '#1E88E5',
+                            '#FB8C00',
+                            '#757575',
+                          ],
+                          borderWidth: 1,
+                        },
+                      ],
+                    }}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          display: false,
+                          position: 'bottom',
+                        },
+                        datalabels: {
+                          color: '#0F0F0F',
+                          anchor: 'center',
+                          formatter: (value: number, context: Context) => {
+                            let sum = 0
+                            const dataArr = context.chart.data.datasets[0].data
+                            const dataLAbel = context.chart.data.labels?.[context.dataIndex]
+                            dataArr.forEach((value) => {
+                              if (typeof value === 'number' && !isNaN(value)) {
+                                sum += value
+                              }
+                            })
+                            const percentage = ((value * 100) / sum).toFixed(2) + '%\n'
+                            return percentage + dataLAbel
+                          },
+                        },
+                      },
+                    }}
+                    plugins={[ChartDataLabels]}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </div>
+              </Card>
+            </div>
+
             {CRR > 0 && (
-              <div className="col-12 sm:col-6 lg:col-4 xl:col-4">
+              <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Customer Retention Rate</h5>
                   <p className="text-sm">Last 3 Months</p>
@@ -169,7 +246,7 @@ const Dashboard = () => {
             )}
 
             {RPR > 0 && (
-              <div className="col-12 sm:col-6 lg:col-4 xl:col-4">
+              <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Repeat Purchase Rate</h5>
                   <p className="text-sm">Current Month</p>
@@ -186,7 +263,7 @@ const Dashboard = () => {
               </div>
             )}
 
-            <div className="col-12 lg:col-4 xl:col-4">
+            <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
                 <h5>New vs Returning</h5>
                 <p className="text-sm">Last 3 Months</p>
@@ -213,11 +290,28 @@ const Dashboard = () => {
                       maintainAspectRatio: false,
                       plugins: {
                         legend: {
-                          display: true,
+                          display: false,
                           position: 'bottom',
+                        },
+                        datalabels: {
+                          color: '#0F0F0F',
+                          anchor: 'center',
+                          formatter: (value: number, context: Context) => {
+                            let sum = 0
+                            const dataArr = context.chart.data.datasets[0].data
+                            const dataLAbel = context.chart.data.labels?.[context.dataIndex]
+                            dataArr.forEach((value) => {
+                              if (typeof value === 'number' && !isNaN(value)) {
+                                sum += value
+                              }
+                            })
+                            const percentage = ((value * 100) / sum).toFixed(2) + '%\n'
+                            return percentage + dataLAbel
+                          },
                         },
                       },
                     }}
+                    plugins={[ChartDataLabels]}
                     style={{ width: '100%', height: '100%' }}
                   />
                 </div>

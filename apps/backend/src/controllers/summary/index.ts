@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
+import { CustomerSegment } from '@/generated/prisma/enums.js'
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
@@ -412,6 +413,33 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
     const RPR = totalRepeatCustomers === 0 ? 0 : (repeatCustomer / totalRepeatCustomers) * 100
 
 
+    // RFM
+    const fromDate = dayjs().subtract(12, "month").toDate()
+
+    const frmRaw = await prisma.customer_rfm.findMany({
+      where: {
+        lastCalculated: { gte: fromDate }
+      },
+      select: {
+        segment: true
+      }
+    })
+
+    if(!frmRaw) return []
+
+    const counts: Record<CustomerSegment, number> = {
+      VIP: 0,
+      LOYAL: 0,
+      POTENTIAL: 0,
+      AT_RISK: 0,
+      LOST: 0
+    }
+
+    for (const r of frmRaw) {
+    if (r.segment) counts[r.segment] += 1
+  }
+   const RFM = Object.entries(counts).map(([segment, count]) => ({ segment, count }))
+
     // =====================
     // RESPONSE
     // =====================
@@ -430,7 +458,8 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
         productRevenue,
         newVsReturning,
         CRR,
-        RPR
+        RPR,
+        RFM
       },
     })
   } catch (error) {
