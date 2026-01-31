@@ -5,7 +5,7 @@ import cron from 'node-cron'
 export const startRfmScheduler = () =>{
 
   // Jalan tiap hari jam 02:00 pagi
-  cron.schedule('0 2 * * *', async () => {
+  cron.schedule('* * * * *', async () => {
     console.log('[RFM] Start calculating...')
     try {
       await calculateRFM()
