@@ -32,7 +32,7 @@ const initialState = {
   search: '',
   categories: [] as { value: number; label: string }[],
   selectedCategory: undefined,
-  isProductFocused: true
+  isProductFocused: false
 }
 
 export const useProductsStore = create<ProductStoreState>((set, get) => ({
