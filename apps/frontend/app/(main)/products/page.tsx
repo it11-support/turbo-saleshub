@@ -230,7 +230,7 @@ const ProductList = () => {
           <div className="col-12 text-center py-5">No products found</div>
         )}
 
-        {products.map((item) => (
+        {products.map((item: IProduct) => (
           <div className="col-12 lg:col-6 xl:col-6" key={item.ItemCode}>
             <Card
               footer={() => footer(item)}
@@ -264,6 +264,18 @@ const ProductList = () => {
                     <div className="mt-1 text-sm font-semibold mt-3">
                       {formatCurrency(Number(item.HargaJualNormal), true, true)}
                     </div>
+                    <Divider />
+                    <p className="font-semibold">Monthly Summary</p>
+                    {item.unitsSold > 0 && (
+                      <div className="mt-1 text-sm font-semibold mt-3">
+                        Unit Sold: {item.unitsSold} {item.SalUnitMsr}
+                      </div>
+                    )}
+                    {item.revenue > 0 && (
+                      <div className="mt-1 text-sm font-semibold mt-3">
+                        Revenue: {formatCurrency(Number(item.revenue), true, true)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -17,8 +17,10 @@ export interface IProduct {
   AcctName?: String
   sales_invoices?: ISalesInvoices[]
   created_at?: Date
-  updated_at?: Date,
+  updated_at?: Date
   product_developments?: IProductDevelopment[]
+  unitsSold: number
+  revenue: number
 }
 export interface IProductDevelopment {
   subgroup_id: number

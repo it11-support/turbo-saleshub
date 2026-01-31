@@ -83,7 +83,6 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
       // hitung totalPages jika backend tidak mengirim
       const totalPages = res.data.totalPages ?? (Math.ceil((res.data.totalRecords || 0) / limit) || 1)
 
-
       set({
         data: res.data.items || [],
         total: res.data.totalRecords || 0,

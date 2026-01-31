@@ -1,5 +1,6 @@
 import { Prisma } from '@/generated/prisma/client.js';
 import prisma from '@/libs/prisma.js';
+import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
@@ -126,20 +127,20 @@ export const fetchProducts = async (req: Request, res: Response) => {
       ...(category ? { ItmsGrpCod: Number(category) } : {}),
       ...(keyword
         ? {
-            OR: [
-              {
-                ItemCode: { contains: keyword },
-              },
-              {
-                ItemName: { contains: keyword },
-              },
-              {
-                ItmsGrpNam: { contains: keyword },
-              },
-            ],
-          }
+          OR: [
+            {
+              ItemCode: { contains: keyword },
+            },
+            {
+              ItemName: { contains: keyword },
+            },
+            {
+              ItmsGrpNam: { contains: keyword },
+            },
+          ],
+        }
         : {}),
-      ...(isProductFocused ? {product_developments: {some: {}}} : {})
+      ...(isProductFocused ? { product_developments: { some: {} } } : {})
     };
     const products = await prisma.products.findMany({
       skip: (currentPage - 1) * perPage,
@@ -149,6 +150,18 @@ export const fetchProducts = async (req: Request, res: Response) => {
         product_developments: {
           include: { subgroup: true },
         },
+        sales_invoices: {
+          where: {
+            DocDate: {
+              gte: dayjs().subtract(1, 'month').startOf('day').toDate(),
+            }
+          },
+          select: {
+            QtyKg: true,
+            unitMsr: true,
+            TotalSales: true,
+          }
+        }
       },
     });
 
@@ -164,10 +177,23 @@ export const fetchProducts = async (req: Request, res: Response) => {
       distinct: ['ItmsGrpCod'],
     });
 
+    const productList = products.map(p => {
+      const unitsSold = p.sales_invoices.reduce((sum, inv) => sum + Number(inv.QtyKg ?? 0), 0);
+      const revenue = p.sales_invoices.reduce(
+        (sum, inv) => sum + Number(inv.TotalSales ?? 0),
+        0
+      );
+
+      return {
+        ...p,
+        unitsSold,
+        revenue
+      };
+    });
     return res.status(200).json({
       message: 'Products fetched successfully',
       data: {
-        items: products,
+        items: productList,
         totalRecords,
         totalPages,
         categories: producCategories,
