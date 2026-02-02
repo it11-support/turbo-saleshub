@@ -125,13 +125,35 @@ export const customerList = async (
     }
 
     if (selectedLevel.length > 0) {
-      query.rfm = {
-        segment:
-          selectedLevel.length === 1
-            ? { equals: selectedLevel[0] }
-            : { in: selectedLevel },
+      const hasLost = selectedLevel.includes('LOST');
+
+      const segments = selectedLevel.filter((v) => v !== 'LOST');
+
+      if (hasLost) {
+        query.OR = [
+          { rfm: null },
+
+          {
+            rfm: {
+              segment:
+                segments.length > 0
+                  ? { in: ['LOST', ...segments] }
+                  : { equals: 'LOST' },
+            },
+          },
+        ];
+      }
+
+      else {
+        query.rfm = {
+          segment:
+            selectedLevel.length === 1
+              ? { equals: selectedLevel[0] }
+              : { in: selectedLevel },
+        };
       }
     }
+
     if (salesPersons) {
       if (Array.isArray(salesPersons)) {
         selectedSalesPersons = salesPersons;
