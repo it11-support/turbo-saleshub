@@ -41,18 +41,19 @@ export const customerList = async (
     };
 
 
-    const { groups, active, salesPersons, subgroups, slpCode, itemCount } = req.query as {
+    const { groups, salesPersons, subgroups, slpCode, itemCount, loyaltyLevel } = req.query as {
       groups?: string | string[];
-      active?: string | string[];
       salesPersons?: string | string[];
       subgroups?: string | string[];
       slpCode?: number;
       itemCount?: number;
+      loyaltyLevel?: string | string[];
     };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
     let activeOpts: string[] = [];
     let selectedSalesPersons: string[] = [];
+    let selectedLevel: string[] = [];
 
     const query: any = search
       ? {
@@ -77,18 +78,17 @@ export const customerList = async (
       }
       : {};
 
-    if (active) {
-      if (Array.isArray(active)) {
-        activeOpts = active;
-      } else {
-        activeOpts = [active];
-      }
-    }
-
     if (activeOpts.length > 0) {
       query.NonActive = activeOpts.length === 1 ? { equals: activeOpts[0] } : { in: activeOpts };
     }
 
+    if (loyaltyLevel) {
+      if (Array.isArray(loyaltyLevel)) {
+        selectedLevel = loyaltyLevel;
+      } else {
+        selectedLevel = [loyaltyLevel];
+      }
+    }
     if (groups) {
       if (Array.isArray(groups)) {
         selectedGroups = groups;
@@ -124,6 +124,14 @@ export const customerList = async (
       };
     }
 
+    if (selectedLevel.length > 0) {
+      query.rfm = {
+        segment:
+          selectedLevel.length === 1
+            ? { equals: selectedLevel[0] }
+            : { in: selectedLevel },
+      }
+    }
     if (salesPersons) {
       if (Array.isArray(salesPersons)) {
         selectedSalesPersons = salesPersons;

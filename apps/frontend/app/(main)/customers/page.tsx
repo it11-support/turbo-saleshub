@@ -8,9 +8,8 @@ import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { Rating } from 'primereact/rating'
-import { SelectButton } from 'primereact/selectbutton'
 import { Slider } from 'primereact/slider'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
@@ -26,8 +25,7 @@ export default function CustomerTable() {
     limit,
     search,
     multiSortMeta,
-    active,
-    setActive,
+
     setPage,
     setLimit,
     setSearch,
@@ -44,17 +42,12 @@ export default function CustomerTable() {
     salesPersonNames,
     itemCount,
     setItemCount,
+    loyaltyLevel,
+    setLoyaltyLevel,
   } = useCustomerStore()
 
   const authStore = useAuth()
   const { isAdmin } = authStore
-
-  const [value, setValue] = useState<string[]>(active ?? ['N'])
-
-  const activeOptions = [
-    { label: 'Active', value: 'N' },
-    { label: 'Inactive', value: 'Y' },
-  ]
 
   const groupOptions = groupNames.map((name) => ({ label: name, value: name }))
   const subGroupOptions = subGroupNames.map((name) => ({ label: name, value: name }))
@@ -66,16 +59,13 @@ export default function CustomerTable() {
   const debounceCountSlider = useDebounce(itemCount, 300)
   const isMobile = useIsMobile(768)
 
-  useEffect(() => {
-    if (Array.isArray(active)) {
-      setValue(active)
-    }
-  }, [active])
-
-  const handleChange = (e: { value: string[] }) => {
-    setValue(e.value)
-    setActive(e.value)
-  }
+  const loyaltyLevelOptions = [
+    { label: 'VIP', value: 'VIP' },
+    { label: 'LOYAL', value: 'LOYAL' },
+    { label: 'POTENTIAL', value: 'POTENTIAL' },
+    { label: 'AT_RISK', value: 'AT_RISK' },
+    { label: 'LOST', value: 'LOST' },
+  ]
 
   useEffect(() => {
     fetchCustomers()
@@ -84,11 +74,11 @@ export default function CustomerTable() {
     limit,
     multiSortMeta,
     debouncedSearch,
-    value,
     groups,
     salesPersons,
     subgroups,
     debounceCountSlider,
+    loyaltyLevel,
   ])
 
   const clearFilter = () => {
@@ -221,17 +211,18 @@ export default function CustomerTable() {
             />
           </div>
         )}
-        <div className="col-12 sm:col-6 md:col-3">
-          <div className="p-inputgroup">
-            <SelectButton
-              value={value}
-              onChange={handleChange}
-              optionLabel="label"
-              options={activeOptions}
-              multiple
-              className="w-full"
-            />
-          </div>
+        <div className="col-12 sm:col-6 md:col-2">
+          <MultiSelect
+            value={loyaltyLevel}
+            onChange={(e) => setLoyaltyLevel(e.value)}
+            options={loyaltyLevelOptions}
+            optionLabel="label"
+            showClear
+            maxSelectedLabels={3}
+            placeholder="Select Loyalty Levels"
+            className="w-full"
+            style={{ minWidth: 'unset' }}
+          />
         </div>
       </div>
       <DataTable

@@ -277,6 +277,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const invoices = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
+        ...salesFilter,
       },
       include: {
         customer: {
@@ -331,9 +332,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const invoicesCurrent = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: monthStart, lte: monthEnd },
-        ...(salesPersonId
-          ? { customer: { sales_person: { id: Number(salesPersonId) } } }
-          : {}),
+        ...salesFilter
       },
       select: { CardCode: true },
     })
@@ -341,9 +340,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const invoicesBefore = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { lt: monthStart },
-        ...(salesPersonId
-          ? { customer: { sales_person: { id: Number(salesPersonId) } } }
-          : {}),
+        ...salesFilter
       },
       select: { CardCode: true },
     })
@@ -365,11 +362,11 @@ export const mtdSummary = async (req: Request, res: Response) => {
     }
 
 
-  const CRRPeriodStart = dayjs().subtract(3, 'month').startOf('month').toDate(); // 3 bulan lalu
-const CRRPeriodEnd = dayjs().endOf('month').toDate(); // akhir bulan ini
+    const CRRPeriodStart = dayjs().subtract(3, 'month').startOf('month').toDate(); // 3 bulan lalu
+    const CRRPeriodEnd = dayjs().endOf('month').toDate(); // akhir bulan ini
 
-const RPRPeriodStart = dayjs().startOf('month').toDate(); // awal bulan ini
-const RPRPeriodEnd = dayjs().endOf('month').toDate();
+    const RPRPeriodStart = dayjs().startOf('month').toDate(); // awal bulan ini
+    const RPRPeriodEnd = dayjs().endOf('month').toDate();
 
     // Pelanggan periode sebelumnya (bulan lalu)
     const previousPeriodStart = dayjs(CRRPeriodStart).subtract(1, 'month').startOf('month').toDate();
@@ -377,7 +374,8 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
 
     const existingCustomers = await prisma.orders.findMany({
       where: {
-        DocDate: { gte: previousPeriodStart, lte: previousPeriodEnd }
+        DocDate: { gte: previousPeriodStart, lte: previousPeriodEnd },
+        ...salesFilter
       },
       select: { CardCode: true },
       distinct: ['CardCode']
@@ -385,7 +383,8 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
 
     const activeCustomers = await prisma.orders.findMany({
       where: {
-        DocDate: { gte: CRRPeriodStart, lte: CRRPeriodEnd }
+        DocDate: { gte: CRRPeriodStart, lte: CRRPeriodEnd },
+        ...salesFilter
       },
       select: { CardCode: true },
       distinct: ['CardCode']
@@ -402,7 +401,8 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
     const rawRepeatCustomer = await prisma.orders.groupBy({
       by: ['CardCode'],
       where: {
-        DocDate: { gte: RPRPeriodStart, lte: RPRPeriodEnd }
+        DocDate: { gte: RPRPeriodStart, lte: RPRPeriodEnd },
+        ...salesFilter
       },
       _count: { CardCode: true }
     })
@@ -418,14 +418,15 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
 
     const frmRaw = await prisma.customer_rfm.findMany({
       where: {
-        lastCalculated: { gte: fromDate }
+        lastCalculated: { gte: fromDate },
+        ...salesFilter
       },
       select: {
         segment: true
       }
     })
 
-    if(!frmRaw) return []
+    if (!frmRaw) return []
 
     const counts: Record<CustomerSegment, number> = {
       VIP: 0,
@@ -436,9 +437,9 @@ const RPRPeriodEnd = dayjs().endOf('month').toDate();
     }
 
     for (const r of frmRaw) {
-    if (r.segment) counts[r.segment] += 1
-  }
-   const RFM = Object.entries(counts).map(([segment, count]) => ({ segment, count }))
+      if (r.segment) counts[r.segment] += 1
+    }
+    const RFM = Object.entries(counts).map(([segment, count]) => ({ segment, count }))
 
     // =====================
     // RESPONSE

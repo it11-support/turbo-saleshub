@@ -11,9 +11,9 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   customers: [],
   loading: false,
   page: 1,
+  loyaltyLevel: [],
   limit: 20,
   search: '',
-  active: ['N'],
   groupNames: [],
   subGroupNames: [],
   setSubGroupNames: (subGroupNames: string[]) => set({ subGroupNames }),
@@ -37,7 +37,6 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setLimit: (limit: number) => set({ limit }),
   setSearch: (value: string) => set({ search: value }),
   setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
-  setActive: (active: string[]) => set({ active }),
   setItemCount: (itemCount: number) => set({ itemCount }),
   suggestedItems: [],
   totalRecords: 0,
@@ -49,13 +48,14 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setOrdersByRange(ordersByRange) {
     set({ ordersByRange })
   },
+  setLoyaltyLevel: (loyaltyLevel: string[]) => set({ loyaltyLevel }),
   fetchCustomers: async () => {
     try {
       const userCookie = getCookie('userData')
       const userData = userCookie ? JSON.parse(String(userCookie)) : null
       const slpCode = userData?.sales_person?.SlpCode
 
-      const { page, limit, search, multiSortMeta, active, groups, salesPersons, subgroups, itemCount } = get()
+      const { page, limit, search, multiSortMeta, groups, salesPersons, subgroups, itemCount, loyaltyLevel } = get()
 
       set({ loading: true })
 
@@ -69,12 +69,12 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
           }))
         ),
         ...(search ? { search } : {}),
-        ...(active && active.length > 0 ? { active } : {}),
         ...(groups && groups.length > 0 ? { groups } : {}),
         ...(subgroups && subgroups.length > 0 ? { subgroups } : {}),
         ...(salesPersons && salesPersons.length > 0 ? { salesPersons } : {}),
         ...(slpCode ? { slpCode } : {}),
         ...(itemCount ? { itemCount } : {}),
+        ...(loyaltyLevel ? { loyaltyLevel } : {}),
       }
 
       const url = createUrl('customers', payload)

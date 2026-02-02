@@ -7,15 +7,16 @@ export interface ICustomerState {
   page: number
   limit: number
   search: string
-  active: string[]
   multiSortMeta: any[]
   groupNames: string[]
   salesPersonNames: string[]
+  loyaltyLevel: string[] | []
   subGroupNames: string[] | []
   subgroupOptions: { value: number; label: string }[]
   setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) => void
   setSubGroupNames: (subGroupNames: string[]) => void
   setItemCount: (itemCount: number) => void
+  setLoyaltyLevel: (loyaltyLevel: string[]) => void
   groups: string[] | []
   setSalesPersonNames: (salesPersons: string[]) => void
   salesPersons: string[] | []
@@ -31,7 +32,6 @@ export interface ICustomerState {
   setLimit: (limit: number) => void
   setSearch: (value: string) => void
   setMultiSortMeta: (meta: any[]) => void
-  setActive: (active: string[]) => void
   totalRecords: number
   suggestedItems: ProductWithFrequency[]
   fetchCustomers: () => Promise<void>
