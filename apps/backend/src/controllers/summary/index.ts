@@ -5,7 +5,20 @@ import { CustomerSegment } from '@/generated/prisma/enums.js'
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
+
+
     const now = dayjs()
+
+    const months: string[] = []
+
+    let cursor = dayjs(now)
+      .startOf('month')
+      .subtract(11, 'month')
+
+    for (let i = 0; i < 12; i++) {
+      months.push(cursor.format('YYYY-MM'))
+      cursor = cursor.add(1, 'month')
+    }
 
     // =====================
     // DATE RANGE
@@ -186,16 +199,13 @@ export const mtdSummary = async (req: Request, res: Response) => {
 
     const currentPeriod = now.format('YYYY-MM')
 
-    const orderTrend = Object.entries(ordersMap)
-      .map(([period, set]) => ({
-        period,
-        order:
-          period === currentPeriod
-            ? ordersCurrent.length // ⬅️ DIKUNCI SAMA
-            : set.size,
-      }))
-      .sort((a, b) => a.period.localeCompare(b.period))
-
+    const orderTrend = months.map((period) => ({
+      period,
+      order:
+        period === currentPeriod
+          ? ordersCurrent.length
+          : ordersMap[period]?.size ?? 0,
+    }))
 
     const customerTrendRaw = await prisma.sales_invoices.findMany({
       where: {
