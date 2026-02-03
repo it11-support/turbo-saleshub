@@ -15,4 +15,19 @@ export interface IVisit {
   notes?: string;
   created_at: string;
   updated_at: string;
+  visit_date: Date
+}
+
+
+export interface IVisitItem {
+  id: number;
+  visit_id: number;
+  offered: boolean;
+  purchased: boolean;
+  product_id: number;
+  product: IProduct;
+  notes: string;
+  visit?: IVisit;
+  created_at: string;
+  updated_at: string;
 }

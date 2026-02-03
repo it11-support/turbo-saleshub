@@ -35,7 +35,7 @@ const VisitDetailsPage = () => {
             onClick={() => history.back()}
           />
         </div>
-        <h5 className="ml-2">Visit Details</h5>
+        <h5 className="ml-2">Customer</h5>
         <div className="col-12">
           <div>
             <p className="font-bold text-2xl">{customer?.CardName}</p>
@@ -60,7 +60,7 @@ const VisitDetailsPage = () => {
         </div>
       </div>
       <div className="card  mb-2">
-        <h5 className="ml-2">Visit Date</h5>
+        <h5 className="ml-2">Visit Details</h5>
         <div className="col-12">
           <p>
             <span className="font-semibold">Started At: </span>{' '}

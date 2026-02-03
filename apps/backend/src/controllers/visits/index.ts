@@ -4,6 +4,7 @@ import { VisitStatus } from '@/generated/prisma/enums.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
+import QueryString from 'qs';
 
 export const getScheduleList = async (req: Request, res: Response) => {
   try {
@@ -32,13 +33,13 @@ export const getScheduleList = async (req: Request, res: Response) => {
 
       if (start && dayjs(start).isValid()) {
         dateFilters.push({
-          visit_date: { gte: dayjs(start).startOf('day').toDate() },
+          visit_date: { gte: dayjs(start).startOf('day').toISOString() },
         });
       }
 
       if (end && dayjs(end).isValid()) {
         dateFilters.push({
-          visit_date: { lte: dayjs(end).endOf('day').toDate() },
+          visit_date: { lte: dayjs(end).endOf('day').toISOString() },
         });
       }
 
@@ -103,5 +104,68 @@ export const getScheduleList = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const exportVisits = async (req: Request, res: Response) => {
+  let dates = req.query.dates as string[] | undefined;
+  try {
+
+    if (!dates) dates = []
+    else if (!Array.isArray(dates)) dates = [dates]
+    const [start, end] = dates
+
+    const dateFilters: QueryString.ParsedQs[] = [];
+
+    if (start && dayjs(start).isValid()) {
+      dateFilters.push({
+        visit_date: { gte: dayjs(start).startOf('day').toISOString() },
+      });
+    }
+
+    if (end && dayjs(end).isValid()) {
+      dateFilters.push({
+        visit_date: { lte: dayjs(end).endOf('day').toISOString() },
+      });
+    }
+
+    const where: visitsWhereInput = {
+      status: { in: [VisitStatus.Ongoing, VisitStatus.Completed] },
+      visit_date: { not: null },
+    };
+
+    if (dateFilters.length) where.AND = dateFilters
+
+    const visitItems = await prisma.visit_items.findMany({
+      where: {
+        visit: {
+          // filter conditions untuk visit
+          visit_date: { gte: start, lte: end },
+        },
+      },
+      include: {
+        product: true,
+        visit: {
+          include: {
+            customer: true,
+            salesPerson: true
+          },
+        },
+      },
+    })
+
+    const data = visitItems.reduce((acc, item) => {
+      const key = Number(item.product_id)
+      if (!acc[key]) acc[key] = []
+      acc[key].push(item)
+      return acc
+    }, {} as Record<number, typeof visitItems>)
+
+    return res.status(200).json({
+      message: 'Success',
+      data
+    })
+  } catch (error) {
+    console.error(error);
   }
 };
