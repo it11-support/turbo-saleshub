@@ -28,7 +28,8 @@ const Dashboard = () => {
     customerTrend,
     aovTrend,
     slpRevenue,
-    productRevenue,
+    productRevenueDistributor,
+    productRevenueGrocery,
     loading,
     newVsReturning,
     CRR,
@@ -67,8 +68,11 @@ const Dashboard = () => {
   const slpRevenueLabel = slpRevenue.map((item) => item.slp)
   const slpRevenueData = slpRevenue.map((item) => item.revenue)
 
-  const productRevenueLabel = productRevenue.map((item) => item.ItemName)
-  const productRevenueData = productRevenue.map((item) => item.revenue)
+  const productRevenueDistributorLabel = productRevenueDistributor.map((item) => item.ItemName)
+  const productRevenueDistributorData = productRevenueDistributor.map((item) => item.revenue)
+
+  const productRevenueGroceryLabel = productRevenueGrocery.map((item) => item.ItemName)
+  const productRevenueGroceryData = productRevenueGrocery.map((item) => item.revenue)
 
   const newVsReturningLabel = ['New Customer', 'Returning Customer']
   const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
@@ -526,8 +530,82 @@ const Dashboard = () => {
                     height="100%"
                     type="bar"
                     data={{
-                      labels: productRevenueLabel,
-                      datasets: [{ data: productRevenueData, label: 'Top Performing Product' }],
+                      labels: productRevenueDistributorLabel,
+                      datasets: [
+                        {
+                          data: productRevenueDistributorData,
+                          label: 'Top Performing Distributor Product',
+                        },
+                      ],
+                    }}
+                    options={{
+                      indexAxis: 'y',
+                      maintainAspectRatio: false,
+                      plugins: {
+                        datalabels: {
+                          display: true,
+                          color: baseColor,
+                          align: 'end',
+                          anchor: 'start',
+                          clip: false,
+                          clamp: true,
+                          formatter: (_: number | string, context: Context) => {
+                            return context.chart.data.labels?.[context.dataIndex]
+                          },
+                          font: {
+                            size: 10,
+                          },
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function (context: TooltipItem<'bar'>) {
+                              return formatCurrency(context.parsed.x, true, true)
+                            },
+                            title: function (context: TooltipItem<'bar'>[]) {
+                              return context[0].label
+                            },
+                          },
+                        },
+                      },
+                      scales: {
+                        x: {
+                          ticks: {
+                            callback: function (value: string) {
+                              return formatCurrency(value, false, true)
+                            },
+                          },
+                        },
+                        y: {
+                          grid: {
+                            display: false,
+                          },
+                          ticks: {
+                            display: false,
+                          },
+                        },
+                      },
+                    }}
+                    plugins={[ChartDataLabels]}
+                  />
+                </div>
+              </Card>
+            </div>
+
+            <div className="col-12 lg:col-12 xl:col-6">
+              <Card>
+                <div style={{ position: 'relative', width: '100%', height: '500px' }}>
+                  <Chart
+                    width="100%"
+                    height="100%"
+                    type="bar"
+                    data={{
+                      labels: productRevenueGroceryLabel,
+                      datasets: [
+                        {
+                          data: productRevenueGroceryData,
+                          label: 'Top Performing Grocery Product',
+                        },
+                      ],
                     }}
                     options={{
                       indexAxis: 'y',

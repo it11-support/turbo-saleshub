@@ -308,31 +308,62 @@ export const mtdSummary = async (req: Request, res: Response) => {
       .map(([slp, revenue]) => ({ slp, revenue }))
       .sort((a, b) => b.revenue - a.revenue).slice(0, 5)
 
-
-    const topItems = await prisma.sales_invoices.groupBy({
+    const topItemsDistributor = await prisma.sales_invoices.groupBy({
       by: ['ItemCode'],
       _sum: { TotalSales: true },
       _count: { DocNum: true },
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
+        product: {
+          ItemName: { contains: 'LIVI' },
+        },
         ...salesFilter,
       },
       orderBy: { _sum: { TotalSales: 'desc' } },
       take: 10,
     })
 
-    const itemCodes: string[] = topItems.map(i => i.ItemCode).filter((code) => code !== null)
-    const products = await prisma.products.findMany({
-      where: { ItemCode: { in: itemCodes } },
+    const topItemsGrocery = await prisma.sales_invoices.groupBy({
+      by: ['ItemCode'],
+      _sum: { TotalSales: true },
+      _count: { DocNum: true },
+      where: {
+        DocDate: { gte: mtdStart, lte: mtdEnd },
+        product: {
+          ItemName: {
+            not: { contains: 'LIVI' },
+          }
+        },
+        ...salesFilter,
+      },
+      orderBy: { _sum: { TotalSales: 'desc' } },
+      take: 10,
+    })
+
+    const itemCodesDistributor: string[] = topItemsDistributor.map(i => i.ItemCode).filter((code) => code !== null)
+    const itemCodesGrocery: string[] = topItemsGrocery.map(i => i.ItemCode).filter((code) => code !== null)
+
+    const productDistributor = await prisma.products.findMany({
+      where: { ItemCode: { in: itemCodesDistributor } },
       select: { ItemCode: true, ItemName: true },
     })
 
-    const productRevenue = topItems.map(i => ({
-      ItemName: products.find(p => p.ItemCode === i.ItemCode)?.ItemName ?? i.ItemCode,
+    const productGrocery = await prisma.products.findMany({
+      where: { ItemCode: { in: itemCodesGrocery } },
+      select: { ItemCode: true, ItemName: true },
+    })
+
+    const productRevenueDistributor = topItemsDistributor.map(i => ({
+      ItemName: productDistributor.find(p => p.ItemCode === i.ItemCode)?.ItemName ?? i.ItemCode,
       revenue: Number(i._sum.TotalSales ?? 0),
       orders: i._count.DocNum,
     })).sort((a, b) => b.revenue - a.revenue)
 
+    const productRevenueGrocery = topItemsGrocery.map(i => ({
+      ItemName: productGrocery.find(p => p.ItemCode === i.ItemCode)?.ItemName ?? i.ItemCode,
+      revenue: Number(i._sum.TotalSales ?? 0),
+      orders: i._count.DocNum,
+    })).sort((a, b) => b.revenue - a.revenue)
 
     // New Vs Returning
     const monthStart = dayjs().subtract(3, 'month').startOf('month').toDate()
@@ -466,7 +497,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         orderTrend,
         aovTrend,
         slpRevenue,
-        productRevenue,
+        productRevenueDistributor,
+        productRevenueGrocery,
         newVsReturning,
         CRR,
         RPR,
