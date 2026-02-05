@@ -41,7 +41,7 @@ export interface IProductDevelopment {
 export interface IProductDevelopmentList  {
   id: BigInt | number
   ItemCode: string
-  ItemName: string
+  ItemName?: string | null
   subgroups: ISubGroup[]
 }
 export type ProductWithFrequency = IProduct & {

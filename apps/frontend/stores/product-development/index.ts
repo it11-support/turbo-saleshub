@@ -68,7 +68,7 @@ export const useProductDevelopmentStore = create<ProductDevelopmentStore>((set, 
           id: activeProduct.id,
           ItemCode: activeProduct.ItemCode,
           ItemName: activeProduct.ItemName,
-          subgroups: serverSubgroups, // ⬅ langsung pakai dari backend
+          subgroups: serverSubgroups
         }
 
         const exists = state.devProducts.find((p) => p.id === activeProduct.id)
