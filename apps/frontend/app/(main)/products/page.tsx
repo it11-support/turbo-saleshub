@@ -271,18 +271,14 @@ const ProductList = () => {
                         Unit Sold: {item.unitsSold} {item.SalUnitMsr}
                       </div>
                     ) : (
-                       <div className="mt-1 text-sm font-semibold mt-3">
-                        Unit Sold: -
-                      </div>
+                      <div className="mt-1 text-sm font-semibold mt-3">Unit Sold: -</div>
                     )}
                     {item.revenue! > 0 ? (
                       <div className="mt-1 text-sm font-semibold mt-3">
                         Revenue: {formatCurrency(Number(item.revenue), true, true)}
                       </div>
                     ) : (
-                      <div className="mt-1 text-sm font-semibold mt-3">
-                        Revenue: -
-                      </div>
+                      <div className="mt-1 text-sm font-semibold mt-3">Revenue: -</div>
                     )}
                   </div>
                 </div>
