@@ -21,51 +21,21 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
     const withUser = String(withFilterUser) === '1' || String(withFilterUser) === 'true';
 
     if (withUser) {
-      where.user = null;
+      where.user = { is: null };
       where.customers = { some: {} };
     } else {
       where.user = { isNot: null };
       where.customers = { some: {} };
     }
 
-    const rawSalesPersons = await prisma.sales_persons.findMany({
+    const salesPersons = await prisma.sales_persons.findMany({
       where,
-      include: {
-        customers: true,
-        visits: {
-          include: {
-            salesPerson: true,
-            customer: true,
-            visit_items: {
-              include: {
-                product: true,
-              },
-            }
-          },
-        },
-      },
     });
-
-    const salesPersons = rawSalesPersons.map(sp => ({
-      ...sp,
-      visits: sp.visits.map(v => ({
-        ...v,
-        visit_items: v.visit_items.map(vi => ({
-          ...vi,
-          product: {
-            ...vi.product,
-            AvgPrice: Number(vi.product.AvgPrice),
-            HargaBeli: Number(vi.product.HargaBeli),
-            HargaJualNormal: Number(vi.product.HargaJualNormal)
-          }
-        }))
-      }))
-    }));
-
 
     return res
       .status(200)
       .json({ message: 'Sales person data fetched successfully', data: { salesPersons } });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
