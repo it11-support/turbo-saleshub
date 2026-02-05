@@ -25,7 +25,7 @@ export interface IVisitItem {
   visit_id: bigint | number;
   offered: boolean;
   purchased: boolean;
-  product_id: number;
+  product_id: bigint | number;
   product: IProduct;
   notes: string;
   visit?: IVisit;
