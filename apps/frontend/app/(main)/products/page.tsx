@@ -248,7 +248,7 @@ const ProductList = () => {
                 <div className="w-[150px] h-[150px] flex-shrink-0 flex items-center justify-center ">
                   <ProductImageUploader
                     code={item.ItemCode}
-                    alt={item.ItemName}
+                    alt={item.ItemName || ''}
                     width={150}
                     height={150}
                   />

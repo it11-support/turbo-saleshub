@@ -89,7 +89,7 @@ const VisitDetailsPage = () => {
                   {/* IMAGE */}
                   {item.product && (
                     <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
-                      <ProductImage code={item.product?.ItemCode} alt={item.product?.ItemName} />
+                      <ProductImage code={item.product?.ItemCode} alt={item.product?.ItemName || ''} />
                     </div>
                   )}
 
