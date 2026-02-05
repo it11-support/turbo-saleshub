@@ -5,7 +5,7 @@ import fileUpload from 'express-fileupload'
 import { startRfmScheduler } from './scheduler/index.js'
 
 
-const PORT = process.env.PORT || 4000
+const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
 app.use(cors())
@@ -21,7 +21,7 @@ app.use("/api/v1", routes)
 
 startRfmScheduler()
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Express running on ${PORT}`);
   console.log(`Server Time: ${new Date()}` , process.env.TZ);
 })
