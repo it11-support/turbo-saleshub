@@ -21,15 +21,14 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
     const withUser = String(withFilterUser) === '1' || String(withFilterUser) === 'true';
 
     if (withUser) {
-      where.user = { is: null };
-      where.customers = { some: {} };
+      where.user = null
     } else {
       where.user = { isNot: null };
-      where.customers = { some: {} };
     }
 
     const salesPersons = await prisma.sales_persons.findMany({
       where,
+      distinct: ['SlpCode']
     });
 
     return res
