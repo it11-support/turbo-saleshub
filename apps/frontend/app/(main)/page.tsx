@@ -138,6 +138,12 @@ const Dashboard = () => {
                           <i className="pi pi-chart-line text-blue-500 text-xl" />
                         </div>
                       </div>
+                      <div className="text-400 font-medium text-sm">
+                        Previous Month
+                        <span className="ml-2">
+                          {formatCurrency(Number(monthToDateSummary[itemKey]?.last), true, isMoney)}
+                        </span>
+                      </div>
                       <span
                         className={`${
                           monthToDateSummary[itemKey]?.growthPercent > 0
