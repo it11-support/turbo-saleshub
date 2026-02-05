@@ -176,7 +176,7 @@ const VisitsPage = () => {
                   <div className="flex items-start gap-4 h-full">
                     {/* IMAGE */}
                     <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
-                      <ProductImage code={item.ItemCode} alt={item.ItemName} />
+                      <ProductImage code={item.ItemCode} alt={item.ItemName || ''} />
                     </div>
 
                     {/* TEXT */}

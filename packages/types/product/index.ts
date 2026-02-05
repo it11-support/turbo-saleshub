@@ -2,25 +2,37 @@ import { ISalesInvoices } from "../sales"
 import { ISubGroup } from "../subgroups"
 
 export interface IProduct {
-  id: BigInt | number
-  ItemCode: string
-  ItemName: string
-  ItmsGrpNam?: String
-  frozenFor?: string
-  LaunchDate?: Date
-  SalUnitMsr?: String
-  AvgPrice?: number
-  HargaBeli?: number
-  HargaJualNormal?: number
-  ItmsGrpCode?: number
-  RevenuesAc?: String
-  AcctName?: String
-  sales_invoices?: ISalesInvoices[]
-  created_at?: Date
-  updated_at?: Date
-  product_developments?: IProductDevelopment[]
-  unitsSold?: number
-  revenue?: number
+  id: bigint | number; // ✅
+
+  ItemCode: string;
+
+  ItemName?: string | null;
+  ItmsGrpNam?: string | null;
+  frozenFor?: string | null;
+
+  LaunchDate?: Date | null;
+  SalUnitMsr?: string | null;
+
+  AvgPrice?: number | string | null;
+  HargaBeli?: number | string | null;
+  HargaJualNormal?: number | string | null;
+
+  ItmsGrpCod?: number | null; // ✅ fixed name
+
+  RevenuesAc?: string | null;
+  AcctName?: string | null;
+
+  image?: string | null; // ✅ tambah
+
+  created_at?: Date | null;
+  updated_at?: Date | null;
+
+  sales_invoices?: ISalesInvoices[];
+  product_developments?: IProductDevelopment[];
+
+  // Report fields
+  unitsSold?: number;
+  revenue?: number;
 }
 export interface IProductDevelopment {
   subgroup_id: number
