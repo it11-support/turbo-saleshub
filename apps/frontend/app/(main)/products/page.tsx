@@ -266,14 +266,22 @@ const ProductList = () => {
                     </div>
                     <Divider />
                     <p className="font-semibold">Monthly Summary</p>
-                    {item.unitsSold && item.unitsSold > 0 && (
+                    {item.unitsSold! > 0 ? (
                       <div className="mt-1 text-sm font-semibold mt-3">
                         Unit Sold: {item.unitsSold} {item.SalUnitMsr}
                       </div>
+                    ) : (
+                       <div className="mt-1 text-sm font-semibold mt-3">
+                        Unit Sold: -
+                      </div>
                     )}
-                    {item.revenue && item.revenue > 0 && (
+                    {item.revenue! > 0 ? (
                       <div className="mt-1 text-sm font-semibold mt-3">
                         Revenue: {formatCurrency(Number(item.revenue), true, true)}
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-sm font-semibold mt-3">
+                        Revenue: -
                       </div>
                     )}
                   </div>
