@@ -1,6 +1,7 @@
 import { ISalesPerson } from '@saleshub-tsm/types';
 import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
+import dayjs from 'dayjs';
 
 export type SalsePersonResponseType = {
   message: string;
@@ -26,6 +27,7 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
       where.user = { isNot: null };
       where.customers = { some: {} };
     }
+
     const rawSalesPersons = await prisma.sales_persons.findMany({
       where,
       include: {
@@ -52,13 +54,10 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
           ...vi,
           product: {
             ...vi.product,
-            AvgPrice: vi.product.AvgPrice?.toNumber() ?? null,
-            HargaBeli: vi.product.HargaBeli?.toNumber() ?? null,
-            HargaJualNormal: vi.product.HargaJualNormal?.toNumber() ?? null,
-          },
-          notes: vi.notes ?? '',
-          created_at: vi.created_at.toISOString(),
-          updated_at: vi.updated_at.toISOString(),
+            AvgPrice: Number(vi.product.AvgPrice),
+            HargaBeli: Number(vi.product.HargaBeli),
+            HargaJualNormal: Number(vi.product.HargaJualNormal)
+          }
         }))
       }))
     }));

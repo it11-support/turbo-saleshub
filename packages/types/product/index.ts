@@ -13,9 +13,9 @@ export interface IProduct {
   LaunchDate?: Date | null;
   SalUnitMsr?: string | null;
 
-  AvgPrice?: number | string | null;
-  HargaBeli?: number | string | null;
-  HargaJualNormal?: number | string | null;
+  AvgPrice?: number | null;
+  HargaBeli?: number | null;
+  HargaJualNormal?: number | null;
 
   ItmsGrpCod?: number | null; // ✅ fixed name
 
@@ -24,8 +24,8 @@ export interface IProduct {
 
   image?: string | null; // ✅ tambah
 
-  created_at?: Date | null;
-  updated_at?: Date | null;
+  created_at?: string | Date | null;
+  updated_at?: string | Date | null;
 
   sales_invoices?: ISalesInvoices[];
   product_developments?: IProductDevelopment[];
@@ -38,7 +38,7 @@ export interface IProductDevelopment {
   subgroup_id: number
   subgroup: ISubGroup
 }
-export interface IProductDevelopmentList  {
+export interface IProductDevelopmentList {
   id: BigInt | number
   ItemCode: string
   ItemName?: string | null
