@@ -19,8 +19,8 @@ export interface IProduct {
   created_at?: Date
   updated_at?: Date
   product_developments?: IProductDevelopment[]
-  unitsSold: number
-  revenue: number
+  unitsSold?: number
+  revenue?: number
 }
 export interface IProductDevelopment {
   subgroup_id: number
