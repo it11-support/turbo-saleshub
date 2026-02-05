@@ -50,6 +50,9 @@ const VisitList = () => {
     setExportDates,
     fetchExportedData,
     loadingExport,
+    salesPersonFilter,
+    setSalesPersonFilter,
+    setExportData,
   } = visitStore
 
   useEffect(() => {
@@ -79,27 +82,30 @@ const VisitList = () => {
   }, [isAdmin, salesPersonId, user, dates, page, limit, multiSortMeta])
 
   useEffect(() => {
-    if (exportDates) {
+    if (exportDates || salesPersonFilter) {
       fetchExportedData()
     }
-  }, [exportDates])
+  }, [exportDates, salesPersonFilter])
 
   const handleExportData = () => {
     const rawData = Object.values(exportData).flatMap((row) => Object.values(row))
-    const data: VisitRow[] = rawData.map((row) => ({
-      'Visit Date': row.visit?.visit_date
-        ? format(new Date(row.visit.visit_date), 'EEE MMM do, yyyy')
-        : '',
-      Sales: row.visit?.salesPerson?.SlpName,
-      Customer: row.visit?.customer.CardName,
-      'Start Time': row.visit?.start_at ? format(new Date(row.visit.start_at), 'HH:mm') : '',
-      'End Time': row.visit?.end_at ? format(new Date(row.visit.end_at), 'HH:mm') : '',
-      'Visit Note': row.visit?.notes,
-      Status: row.visit?.status,
 
-      'Offered Item': row.product.ItemName,
-      'Item Notes': row.notes,
-    }))
+    const data: VisitRow[] = rawData
+      .sort((a, b) => b.visit_id - a.visit_id)
+      .map((row) => ({
+        'Visit Date': row.visit?.visit_date
+          ? format(new Date(row.visit.visit_date), 'EEE MMM do, yyyy')
+          : '',
+        Sales: row.visit?.salesPerson?.SlpName,
+        Customer: row.visit?.customer.CardName,
+        'Start Time': row.visit?.start_at ? format(new Date(row.visit.start_at), 'HH:mm') : '',
+        'End Time': row.visit?.end_at ? format(new Date(row.visit.end_at), 'HH:mm') : '',
+        'Visit Note': row.visit?.notes,
+        Status: row.visit?.status,
+
+        'Offered Item': row.product.ItemName,
+        'Item Notes': row.notes,
+      }))
 
     const ws = XLSX.utils.json_to_sheet(data)
 
@@ -123,74 +129,72 @@ const VisitList = () => {
   }
 
   return (
-    <div className="card p-4">
-      <div className="flex justify-between mb-4 items-center">
-        <Button
-          label="Back"
-          icon="pi pi-chevron-left"
-          severity="danger"
-          size="small"
-          outlined
-          onClick={() => history.back()}
-        />
-      </div>
-      <h5>Visits</h5>
+    <>
+      <div className="card p-4">
+        <div className="flex justify-between mb-4 items-center">
+          <Button
+            label="Back"
+            icon="pi pi-chevron-left"
+            severity="danger"
+            size="small"
+            outlined
+            onClick={() => history.back()}
+          />
+        </div>
+        <h5>Visits</h5>
 
-      <div className="grid my-4">
-        {isAdmin && (
+        <div className="grid my-4">
+          {isAdmin && (
+            <div className="col-12 md:col-3">
+              <Dropdown
+                value={salesPersonId}
+                options={salesPersons.map((sp: ISalesPerson) => ({
+                  label: sp.SlpName,
+                  value: Number(sp.id),
+                }))}
+                onChange={(e) => {
+                  setSalesPersonId(e.value === null ? undefined : e.value)
+                }}
+                placeholder="Select Sales Person"
+                className="w-full"
+                showClear
+              />
+            </div>
+          )}
           <div className="col-12 md:col-3">
-            <Dropdown
-              value={salesPersonId}
-              options={salesPersons.map((sp: ISalesPerson) => ({
-                label: sp.SlpName,
-                value: Number(sp.id),
-              }))}
-              onChange={(e) => {
-                setSalesPersonId(e.value === null ? undefined : e.value)
-              }}
-              placeholder="Select Sales Person"
+            <Calendar
+              value={dates}
+              onChange={(e) => setDates(e.value!)}
+              selectionMode="range"
+              readOnlyInput
               className="w-full"
-              showClear
+              showButtonBar
+              placeholder="Select Visit Date Range"
             />
           </div>
-        )}
-        <div className="col-12 md:col-3">
-          <Calendar
-            value={dates}
-            onChange={(e) => setDates(e.value!)}
-            selectionMode="range"
-            readOnlyInput
-            className="w-full"
-            showButtonBar
-            placeholder="Select Visit Date Range"
-          />
+          <div className="col-12 md:col-3">
+            <Button
+              label="Export"
+              icon="pi pi-download"
+              severity="success"
+              size="small"
+              onClick={() => setDialogVisible(true)}
+            />
+          </div>
         </div>
-        <div className="col-12 md:col-3">
-          <Button
-            label="Export"
-            icon="pi pi-download"
-            severity="success"
-            size="small"
-            onClick={() => setDialogVisible(true)}
-          />
-        </div>
+        {data && <VisitListTable />}
       </div>
-      {data && <VisitListTable />}
       <Dialog
+        className="w-full lg:w-3 md:w-4 sm:w-6"
         header="Export Visits Report"
         visible={dialogVisible}
         onHide={() => {
           setExportDates(null)
           setDialogVisible(false)
+          setSalesPersonFilter(null)
+          setExportData([])
         }}
         modal
-        pt={{
-          root: {
-            style: {
-              width: '30vw',
-            },
-          },
-        }}
         footer={
           <div className="flex justify-end gap-2">
             <Button
@@ -200,6 +204,8 @@ const VisitList = () => {
               onClick={() => {
                 setExportDates(null)
                 setDialogVisible(false)
+                setSalesPersonFilter(null)
+                setExportData([])
               }}
             />
             <Button
@@ -208,21 +214,41 @@ const VisitList = () => {
               severity="success"
               onClick={handleExportData}
               loading={loadingExport}
+              disabled={exportData.length === 0 || Object.keys(exportData).length === 0}
             />
           </div>
         }
       >
-        <Calendar
-          value={exportDates}
-          onChange={(e) => setExportDates(e.value!)}
-          selectionMode="range"
-          readOnlyInput
-          className="w-full"
-          showButtonBar
-          placeholder="Select Visit Date Range"
-        />
+        <div className="grid gap-2 my-2">
+          <Calendar
+            value={exportDates}
+            onChange={(e) => setExportDates(e.value!)}
+            selectionMode="range"
+            readOnlyInput
+            className="w-full"
+            showButtonBar
+            placeholder="Select Visit Date Range"
+          />
+          {isAdmin && (
+            <Dropdown
+              value={salesPersonFilter}
+              options={salesPersons
+                .filter((sp) => sp?.visits?.some((visit) => visit?.visit_items?.length))
+                .map((sp) => ({
+                  label: sp.SlpName,
+                  value: String(sp.id),
+                }))}
+              onChange={(e) => {
+                setSalesPersonFilter(e.value === null ? undefined : e.value)
+              }}
+              placeholder="Select Sales Person"
+              className="w-full"
+              showClear
+            />
+          )}
+        </div>
       </Dialog>
-    </div>
+    </>
   )
 }
 

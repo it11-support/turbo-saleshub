@@ -19,7 +19,9 @@ interface VisitListState {
   setExportData: (data: IVisitItem[]) => void
   fetchVisits: () => Promise<void>
   salesPersonId?: number
+  salesPersonFilter?: number | null
   setSalesPersonId: (salesPersonId?: number) => void
+  setSalesPersonFilter: (salesPersonFilter?: number | null) => void
   setDates: (dates: Nullable<(Date | null)[]>) => void
   setExportDates: (exportDates: Nullable<(Date | null)[]>) => void
   setPage: (page: number) => void
@@ -42,12 +44,16 @@ const initialState = {
   exportDates: null,
   multiSortMeta: [{ field: 'visit_date', order: -1 }],
   exportData: [],
+  salesPersonFilter: null
 }
 
 export const useVisitsStore = create<VisitListState>((set, get) => ({
   ...initialState,
   setPage(page) {
     set({ page })
+  },
+  setSalesPersonFilter(salesPersonFilter) {
+    set({ salesPersonFilter })
   },
   setLoadingExport(loading) {
     set({ loadingExport: loading })
@@ -63,13 +69,14 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
   },
   salesPersonId: undefined,
   fetchExportedData: async () => {
-    const { setLoadingExport, exportDates, setExportData, exportData } = get()
+    const { setLoadingExport, exportDates, setExportData, salesPersonFilter } = get()
     try {
       setLoadingExport(true)
       const url = createUrl('visits/export', {
         dates: exportDates
           ?.filter((d): d is Date => !!d)
-          .map((d) => formatDate(d, 'yyyy-MM-dd'))
+          .map((d) => formatDate(d, 'yyyy-MM-dd')),
+        salesPersonId: salesPersonFilter
       })
       const res = await $api(url)
       const { data } = res

@@ -43,11 +43,23 @@ const VisitListTable = () => {
     return (
       <>
         <Button
-          severity={`${rowData.status === 'Completed' ? 'success' : 'warning'}`}
+          severity={`${
+            rowData.status === 'Completed'
+              ? 'success'
+              : rowData.status === 'Missed'
+              ? 'danger'
+              : 'warning'
+          }`}
           label={rowData.status}
           className={`p-button-outlined p-button-sm p-2`}
           size="small"
-          icon={`${rowData.status === 'Completed' ? 'pi pi-check' : 'pi pi-clock'}`}
+          icon={`${
+            rowData.status === 'Completed'
+              ? 'pi pi-check'
+              : rowData.status === 'Missed'
+              ? 'pi pi-times'
+              : 'pi pi-clock'
+          }`}
         />
       </>
     )

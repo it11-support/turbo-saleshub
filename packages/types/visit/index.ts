@@ -3,19 +3,20 @@ import { IProduct } from "../product";
 import { ISalesPerson } from "../user";
 
 export interface IVisit {
-  id: number;
-  sales_person_id: number;
+  id: bigint | number;
+  sales_person_id: bigint | number;
   salesPerson: ISalesPerson;
   suggestedItems?: IProduct[];
-  customer_id: number;
+  customer_id: bigint | number;
   customer: ICustomer
   start_at: Date;
-  end_at?: Date;
-  status: 'planned' | 'ongoing' | 'completed' | 'cancelled' | 'pending'
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  visit_date: Date
+  end_at?: Date | null;
+  status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' | 'Pending' | 'Missed';
+  notes?: string | null;
+  created_at: string | Date | null;
+  updated_at: string | Date | null;
+  visit_date: string | Date | null
+  visit_items?: IVisitItem[]
 }
 
 

@@ -1,4 +1,5 @@
 import { ICustomer } from "../customer";
+import { IVisit } from "../visit";
 
 export interface SortMeta {
     field: string;
@@ -25,9 +26,10 @@ export interface ISalesPerson {
   UserSign?: number | null;
   EmpID?: number | null;
   Active?: string | null;
-  created_at?: Date | null;
-  updated_at?: Date | null;
+  created_at?: string | Date | null;
+  updated_at?:string | Date | null;
   customers?: ICustomer[]
+  visits?: IVisit[]
 }
 
 

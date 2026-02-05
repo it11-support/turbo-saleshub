@@ -28,9 +28,22 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
     }
     const salesPersons = await prisma.sales_persons.findMany({
       where,
-      distinct: ['SlpCode'],
-      include: { customers: true },
+      include: {
+        customers: true,
+         visits: {
+            include: {
+              salesPerson: true,
+              customer: true,
+              visit_items: {
+                include: {
+                  product: true,
+                },
+              }
+            },
+          },
+      },
     });
+
     return res
       .status(200)
       .json({ message: 'Sales person data fetched successfully', data: { salesPersons } });

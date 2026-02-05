@@ -234,7 +234,8 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     // Gunakan dayjs untuk semua logika tanggal
     const date = dayjs(dateStr);
     const today = dayjs();
-
+    const limit = dayjs().subtract(1, 'day');
+    
     // Skip Sunday
     if (date.day() === 0) {
       return res.status(200).json({
@@ -344,7 +345,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     await prisma.visits.updateMany({
       where: {
         sales_person_id: salesPersonId,
-        start_at: { lt: today.toDate() },
+        start_at: { lt: limit.toDate() },
         status: VisitStatus.Ongoing,
       },
       data: { status: VisitStatus.Missed },

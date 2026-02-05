@@ -4,7 +4,6 @@ import { VisitStatus } from '@/generated/prisma/enums.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
-import QueryString from 'qs';
 
 export const getScheduleList = async (req: Request, res: Response) => {
   try {
@@ -19,7 +18,7 @@ export const getScheduleList = async (req: Request, res: Response) => {
     const parsedSalesPersonId = Number(salesPersonId);
 
     const where: visitsWhereInput = {
-      status: { in: [VisitStatus.Ongoing, VisitStatus.Completed] },
+      status: { in: [VisitStatus.Ongoing, VisitStatus.Completed, VisitStatus.Missed] },
       visit_date: { not: null },
       ...(!Number.isNaN(parsedSalesPersonId)
         ? { sales_person_id: BigInt(parsedSalesPersonId) }
@@ -109,63 +108,89 @@ export const getScheduleList = async (req: Request, res: Response) => {
 
 export const exportVisits = async (req: Request, res: Response) => {
   let dates = req.query.dates as string[] | undefined;
+  let salesPersonId = req.query.salesPersonId as string | undefined;
+
   try {
+    // Normalisasi dates
+    if (!dates) dates = [];
+    else if (!Array.isArray(dates)) dates = [dates];
 
-    if (!dates) dates = []
-    else if (!Array.isArray(dates)) dates = [dates]
-    const [start, end] = dates
+    const [start, end] = dates;
 
-    const dateFilters: QueryString.ParsedQs[] = [];
+    // Validasi ketat
+    const isStartValid =
+      typeof start === 'string' &&
+      start.trim() !== '' &&
+      dayjs(start).isValid();
 
-    if (start && dayjs(start).isValid()) {
-      dateFilters.push({
-        visit_date: { gte: dayjs(start).startOf('day').toISOString() },
-      });
-    }
+    const isEndValid =
+      typeof end === 'string' &&
+      end.trim() !== '' &&
+      dayjs(end).isValid();
 
-    if (end && dayjs(end).isValid()) {
-      dateFilters.push({
-        visit_date: { lte: dayjs(end).endOf('day').toISOString() },
-      });
-    }
+    // Convert salesPersonId ke BigInt (AMAN)
+    const salesId = salesPersonId
+      ? BigInt(salesPersonId)
+      : undefined;
 
+    // Build where condition
     const where: visitsWhereInput = {
-      status: { in: [VisitStatus.Ongoing, VisitStatus.Completed] },
-      visit_date: { not: null },
+      ...(salesId && { sales_person_id: salesId }),
+
+      ...(isStartValid && !isEndValid && {
+        visit_date: dayjs(start).format('YYYY-MM-DD'),
+      }),
+
+      ...(isStartValid && isEndValid && {
+        visit_date: {
+          gte: dayjs(start).format('YYYY-MM-DD'),
+          lte: dayjs(end).format('YYYY-MM-DD'),
+        },
+      }),
     };
 
-    if (dateFilters.length) where.AND = dateFilters
-
+    // Query
     const visitItems = await prisma.visit_items.findMany({
       where: {
-        visit: {
-          // filter conditions untuk visit
-          visit_date: { gte: start, lte: end },
-        },
+        visit: where,
       },
       include: {
         product: true,
         visit: {
           include: {
             customer: true,
-            salesPerson: true
+            salesPerson: true,
           },
         },
       },
-    })
+    });
 
+    // Grouping by product_id
     const data = visitItems.reduce((acc, item) => {
-      const key = Number(item.product_id)
-      if (!acc[key]) acc[key] = []
-      acc[key].push(item)
-      return acc
-    }, {} as Record<number, typeof visitItems>)
+      const key = Number(item.product_id);
+
+      if (!acc[key]) acc[key] = [];
+
+      acc[key].push({
+        ...item,
+
+        // convert bigint → string (biar JSON aman)
+        id: item.id.toString(),
+        visit_id: item.visit_id.toString(),
+      });
+
+      return acc;
+    }, {} as Record<number, any[]>);
 
     return res.status(200).json({
       message: 'Success',
-      data
-    })
+      data,
+    });
   } catch (error) {
-    console.error(error);
+    console.error('EXPORT ERROR:', error);
+
+    return res.status(500).json({
+      message: 'Export failed',
+    });
   }
 };
