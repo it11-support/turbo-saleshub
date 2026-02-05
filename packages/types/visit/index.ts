@@ -22,7 +22,7 @@ export interface IVisit {
 
 export interface IVisitItem {
   id: bigint | number;
-  visit_id: number;
+  visit_id: bigint | number;
   offered: boolean;
   purchased: boolean;
   product_id: number;
