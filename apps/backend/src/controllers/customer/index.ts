@@ -530,7 +530,9 @@ export const getSuggestedItems = async (
     });
 
     const devIds = new Set(productDevelopments.map((p) => p.id));
-    const filteredDevProducts = productDevelopments.filter((p) => !recentProductIds.has(p.id));
+    const filteredDevProducts = includeRecentOffered
+      ? productDevelopments
+      : productDevelopments.filter((p) => !recentProductIds.has(p.id));
 
     suggestions = [
       ...filteredDevProducts.map((p) => ({
