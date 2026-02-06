@@ -28,6 +28,7 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
 
       include: {
         user: true,
+        customers: true,
       },
 
       distinct: ['SlpCode'],
