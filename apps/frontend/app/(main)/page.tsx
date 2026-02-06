@@ -172,7 +172,7 @@ const Dashboard = () => {
             <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
                 <h5>Customer Loyalty</h5>
-                <p className="text-sm">Based on RFM</p>
+                <p className="text-sm">Last 3 Months</p>
                 <div
                   style={{
                     width: '200px',
@@ -259,9 +259,9 @@ const Dashboard = () => {
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Repeat Purchase Rate</h5>
-                  <p className="text-sm">Current Month</p>
+                  <p className="text-sm">Last 3 Months</p>
                   <Knob
-                    value={Number(CRR.toFixed(2))}
+                    value={Number(RPR.toFixed(2))}
                     readOnly
                     min={0}
                     max={100}

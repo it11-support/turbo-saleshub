@@ -402,72 +402,92 @@ export const mtdSummary = async (req: Request, res: Response) => {
       returningCustomer: returningCustomerCount
     }
 
+    // ========== CRR ==========
+    const baseStart = dayjs().subtract(3, 'month').startOf('month').toDate();
+    const baseEnd = dayjs().subtract(3, 'month').endOf('month').toDate();
 
-    const CRRPeriodStart = dayjs().subtract(3, 'month').startOf('month').toDate(); // 3 bulan lalu
-    const CRRPeriodEnd = dayjs().endOf('month').toDate(); // akhir bulan ini
+    const currentStart = dayjs().startOf('month').toDate();
+    const currentEnd = dayjs().endOf('month').toDate();
 
-    const RPRPeriodStart = dayjs().startOf('month').toDate(); // awal bulan ini
-    const RPRPeriodEnd = dayjs().endOf('month').toDate();
-
-    // Pelanggan periode sebelumnya (bulan lalu)
-    const previousPeriodStart = dayjs(CRRPeriodStart).subtract(1, 'month').startOf('month').toDate();
-    const previousPeriodEnd = dayjs(CRRPeriodEnd).subtract(1, 'day').endOf('day').toDate();
-
-    const existingCustomers = await prisma.orders.findMany({
+    const baseCustomers = await prisma.orders.findMany({
       where: {
-        DocDate: { gte: previousPeriodStart, lte: previousPeriodEnd },
-        ...salesFilter
+        DocDate: { gte: baseStart, lte: baseEnd },
+        ...salesFilter,
       },
+      distinct: ['CardCode'],
       select: { CardCode: true },
-      distinct: ['CardCode']
     });
 
-    const activeCustomers = await prisma.orders.findMany({
+    const currentCustomersCRR = await prisma.orders.findMany({
       where: {
-        DocDate: { gte: CRRPeriodStart, lte: CRRPeriodEnd },
-        ...salesFilter
+        DocDate: { gte: currentStart, lte: currentEnd },
+        ...salesFilter,
       },
+      distinct: ['CardCode'],
       select: { CardCode: true },
-      distinct: ['CardCode']
     });
 
-    const existingSet = new Set(existingCustomers.map(c => c.CardCode));
-    const retained = activeCustomers.filter(c => existingSet.has(c.CardCode));
+    const baseSet = new Set(baseCustomers.map(c => c.CardCode));
 
-    const CRR = existingCustomers.length === 0
-      ? 0
-      : (retained.length / existingCustomers.length) * 100;
+    const retained = currentCustomersCRR.filter(c =>
+      baseSet.has(c.CardCode)
+    );
 
+    const CRR =
+      baseCustomers.length === 0
+        ? 0
+        : (retained.length / baseCustomers.length) * 100;
+
+
+    // ========== RPR ==========
+    const threeMonthStart = dayjs()
+      .subtract(2, 'month')
+      .startOf('month')
+      .toDate();
+
+    const threeMonthEnd = dayjs()
+      .endOf('month')
+      .toDate();
 
     const rawRepeatCustomer = await prisma.orders.groupBy({
       by: ['CardCode'],
       where: {
-        DocDate: { gte: RPRPeriodStart, lte: RPRPeriodEnd },
-        ...salesFilter
+        DocDate: { gte: threeMonthStart, lte: threeMonthEnd },
+        ...salesFilter,
       },
-      _count: { CardCode: true }
-    })
+      _count: { CardCode: true },
+    });
 
-    const totalRepeatCustomers = rawRepeatCustomer.length
-    const repeatCustomer = rawRepeatCustomer.filter(ro => ro._count.CardCode > 1).length
+    const totalCustomers = rawRepeatCustomer.length;
 
-    const RPR = totalRepeatCustomers === 0 ? 0 : (repeatCustomer / totalRepeatCustomers) * 100
+    const repeatCustomers = rawRepeatCustomer.filter(
+      r => r._count.CardCode >= 2
+    ).length;
+
+    const RPR =
+      totalCustomers === 0
+        ? 0
+        : (repeatCustomers / totalCustomers) * 100;
+
 
 
     // RFM
-    const fromDate = dayjs().subtract(12, "month").toDate()
+    const fromDate = dayjs()
+      .subtract(3, "month")
+      .startOf("month")
+      .toDate()
 
     const frmRaw = await prisma.customer_rfm.findMany({
       where: {
-        lastCalculated: { gte: fromDate },
+        lastCalculated: {
+          gte: fromDate
+        },
         ...salesFilter
       },
       select: {
         segment: true
       }
     })
-
-    if (!frmRaw) return []
 
     const counts: Record<CustomerSegment, number> = {
       VIP: 0,
@@ -477,10 +497,20 @@ export const mtdSummary = async (req: Request, res: Response) => {
       LOST: 0
     }
 
+    // Hitung
     for (const r of frmRaw) {
-      if (r.segment) counts[r.segment] += 1
+      if (r.segment && counts[r.segment] !== undefined) {
+        counts[r.segment]++
+      }
     }
-    const RFM = Object.entries(counts).map(([segment, count]) => ({ segment, count }))
+
+    // Format return (konsisten)
+    const RFM = Object.keys(counts).map((key) => ({
+      segment: key as CustomerSegment,
+      count: counts[key as CustomerSegment]
+    }))
+
+
 
     // =====================
     // RESPONSE

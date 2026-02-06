@@ -42,14 +42,19 @@ export const getSegment = (r: number, f: number, m: number): CustomerSegment => 
 
 
 export const calculateRFM = async () => {
-  // All customer orders
-  const fromDate = dayjs().subtract(12, 'month').toDate()
+
+  // === CONFIG ===
+  const MONTH_RANGE = 3
+  const fromDate = dayjs()
+    .subtract(MONTH_RANGE, 'month')
+    .startOf('month')
+    .toDate()
+
+  // ============================
 
   const orders = await prisma.orders.findMany({
     where: {
-      CardCode: {
-        not: null
-      },
+      CardCode: { not: null },
       DocDate: {
         not: null,
         gte: fromDate
@@ -66,47 +71,47 @@ export const calculateRFM = async () => {
 
   if (!orders.length) return
 
+
+  // ============================
+  // GROUPING
+  // ============================
+
   const map = new Map<string, CustomerScoreMap>()
 
   for (const o of orders) {
 
     if (!o.CardCode || !o.DocNum || !o.DocDate) continue
 
-    const key = o.CardCode
-
-    if (!map.has(key)) {
-      map.set(key, {
+    if (!map.has(o.CardCode)) {
+      map.set(o.CardCode, {
         lastOrder: o.DocDate,
         frequencySet: new Set(),
         monetary: 0
       })
     }
 
-    const data = map.get(key)!
+    const data = map.get(o.CardCode)!
 
-    // frequency = unique DocNum
     data.frequencySet.add(o.DocNum)
 
-    // monetary = price * qty
     const price = Number(o.Price ?? 0)
     const qty = Number(o.Quantity ?? 0)
 
     data.monetary += price * qty
 
-    // last order
     if (o.DocDate > data.lastOrder) {
       data.lastOrder = o.DocDate
     }
   }
 
+
+  // ============================
+  // BUILD CUSTOMER DATA
+  // ============================
+
   const today = dayjs()
 
-  const customers: {
-    cardCode: string
-    recency: number
-    frequency: number
-    monetary: number
-  }[] = []
+  const customers = []
 
   for (const [cardCode, d] of map) {
 
@@ -120,12 +125,45 @@ export const calculateRFM = async () => {
     })
   }
 
+
+  // ============================
+  // SCORING
+  // ============================
+
   const recencies = customers.map(c => c.recency).sort((a, b) => a - b)
   const frequencies = customers.map(c => c.frequency).sort((a, b) => a - b)
   const monetaries = customers.map(c => c.monetary).sort((a, b) => a - b)
 
 
+  // ============================
+  // GET ALL CUSTOMERS (ONCE)
+  // ============================
+
+  const dbCustomers = await prisma.customers.findMany({
+    where: {
+      CardCode: {
+        in: customers.map(c => c.cardCode)
+      }
+    },
+    select: {
+      id: true,
+      CardCode: true
+    }
+  })
+
+  const customerMap = new Map(
+    dbCustomers.map(c => [c.CardCode, c.id])
+  )
+
+
+  // ============================
+  // UPSERT RFM
+  // ============================
+
+  const now = new Date()
+
   for (const c of customers) {
+
     const rScore = scoreByQuintile(c.recency, recencies, true)
     const fScore = scoreByQuintile(c.frequency, frequencies)
     const mScore = scoreByQuintile(c.monetary, monetaries)
@@ -134,21 +172,17 @@ export const calculateRFM = async () => {
 
     const rfmScore = `${rScore}${fScore}${mScore}`
 
-    const customer = await prisma.customers.findUnique({
-      where: {
-        CardCode: c.cardCode
-      },
-      select: {
-        id: true
-      }
-    })
-    if (!customer) continue
+    const customerId = customerMap.get(c.cardCode)
+
+    if (!customerId) continue
 
 
     await prisma.customer_rfm.upsert({
+
       where: {
-        customerId: customer.id
+        customerId
       },
+
       update: {
         recency: c.recency,
         frequency: c.frequency,
@@ -159,10 +193,13 @@ export const calculateRFM = async () => {
         mScore,
 
         rfmScore,
-        segment
+        segment,
+
+        lastCalculated: now
       },
+
       create: {
-        customerId: customer.id,
+        customerId,
 
         recency: c.recency,
         frequency: c.frequency,
@@ -173,7 +210,9 @@ export const calculateRFM = async () => {
         mScore,
 
         rfmScore,
-        segment
+        segment,
+
+        lastCalculated: now
       }
     })
   }
