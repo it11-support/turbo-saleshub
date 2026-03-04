@@ -170,10 +170,13 @@ model products {
   ItemName        String?          @db.VarChar(100)
   ItmsGrpNam      String?          @db.VarChar(20)
   frozenFor       String?          @db.Char(1)
+  validFor        String?          @db.Char(1)
   LaunchDate      DateTime?        @db.DateTime(0)
   SalUnitMsr      String?          @db.VarChar(20)
   AvgPrice        Decimal?         @db.Decimal(19, 6)
   HargaBeli       Decimal?         @db.Decimal(19, 6)
+  MinPrice        Decimal?         @db.Decimal(19, 6)
+  MaxPrice        Decimal?         @db.Decimal(19, 6)
   HargaJualNormal Decimal?         @db.Decimal(19, 6)
   ItmsGrpCod      Int              @db.SmallInt
   RevenuesAc      String?          @db.VarChar(15)
@@ -200,6 +203,13 @@ model product_developments {
   @@unique([product_id, subgroup_id])
 }
 
+model concern_categories {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String    @db.VarChar(50)
+  description String?   @db.VarChar(255)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+}
 model roles {
   id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   role        String    @db.VarChar(255)
@@ -212,10 +222,11 @@ model roles {
 model sales_invoices {
   id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   DocNum       Int
+  LineNum      Int
   DocDate      DateTime? @db.DateTime(0)
-  CardCode     String?   @db.VarChar(15)
+  CardCode     String   @db.VarChar(15)
   CardName     String?   @db.VarChar(100)
-  ItemCode     String?   @db.VarChar(20)
+  ItemCode     String   @db.VarChar(20)
   Dscription   String?   @db.VarChar(100)
   QtyKg        Decimal?  @db.Decimal(19, 6)
   unitMsr      String?   @db.VarChar(20)
@@ -229,9 +240,33 @@ model sales_invoices {
   customer customers? @relation(fields: [CardCode], references: [CardCode])
   product  products?  @relation(fields: [ItemCode], references: [ItemCode])
 
-  @@unique([DocNum, ItemCode], map: "sales_invoices_docnum_itemcode_unique")
+  returs retur_invoices[]
+
+  @@unique([DocNum, LineNum], map: "sales_invoices_docnum_itemcode_unique")
 }
 
+model retur_invoices {
+  id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  DocNum       Int
+  LineNum      Int
+  DocDate      DateTime? @db.DateTime(0)
+  CardCode     String   @db.VarChar(15)
+  CardName     String?   @db.VarChar(100)
+  ItemCode     String   @db.VarChar(20)
+  Dscription   String?   @db.VarChar(100)
+  QtyKg        Decimal?  @db.Decimal(19, 6)
+  unitMsr      String?   @db.VarChar(20)
+  PriceBefDisc Decimal?  @db.Decimal(19, 6)
+  DiscLine     Decimal?  @db.Decimal(19, 6)
+  DiscTotal    Decimal?  @db.Decimal(19, 6)
+  TotalSales   Decimal?  @db.Decimal(43, 16)
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
+
+  sales sales_invoices @relation(fields: [DocNum, LineNum], references: [DocNum, LineNum], onDelete: Cascade)
+
+   @@index([DocNum, LineNum])
+}
 model sales_visit_rules {
   id                  BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
   sales_person_id     BigInt

@@ -9,3 +9,4 @@ export * from './visit-rule/index.js';
 export * from './visit-schedule/index.js';
 export * from './visit/index.js';
 export * from './visits/index.js';
+export * from './concerns/index.js'

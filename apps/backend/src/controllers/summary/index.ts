@@ -45,20 +45,61 @@ export const mtdSummary = async (req: Request, res: Response) => {
       }
       : {}
 
+    // const calcMTD = (current: number, last: number) => {
+    //   const diff = current - last
+    //   const growthPercent = last === 0 ? null : (diff / last) * 100
+    //   return { current, last, diff, growthPercent }
+    // }
+
     const calcMTD = (current: number, last: number) => {
-      const diff = current - last
-      const growthPercent = last === 0 ? null : (diff / last) * 100
-      return { current, last, diff, growthPercent }
+      const today = new Date();
+
+      // 1. Ambil jumlah hari yang sudah berjalan di bulan ini (misal: tanggal 4)
+      const currentDayCount = today.getDate();
+
+      // 2. Ambil total hari di bulan sebelumnya (misal: Februari = 28)
+      const prevDayCount = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+
+      // 3. Hitung rata-rata harian
+      const currentAvg = current / currentDayCount;
+      const lastAvg = last / prevDayCount;
+
+      // 4. Hitung selisih dan persentase pertumbuhan rata-rata
+      const diff = currentAvg - lastAvg;
+
+      // Hindari pembagian dengan nol jika data bulan lalu kosong
+      const growthPercent = lastAvg === 0 ? 0 : (diff / lastAvg) * 100;
+
+      return {
+        current,
+        last,
+        diff,
+        growthPercent: parseFloat(growthPercent.toFixed(2)) // Dibulatkan agar rapi
+      };
     }
 
     // =====================
     // REVENUE
     // =====================
-    const [revenueCurrent, revenueLast] = await Promise.all([
+    const [revenueCurrent, returCurrent, revenueLast, returLast] = await Promise.all([
       prisma.sales_invoices.aggregate({
         _sum: { TotalSales: true },
         where: {
           DocDate: { gte: mtdStart, lte: mtdEnd },
+          ...salesFilter,
+        },
+      }),
+      prisma.retur_invoices.aggregate({
+        _sum: {
+          TotalSales: true,
+        },
+        where: {
+          sales: {
+            DocDate: {
+              gte: mtdStart,
+              lte: mtdEnd,
+            }
+          },
           ...salesFilter,
         },
       }),
@@ -72,12 +113,26 @@ export const mtdSummary = async (req: Request, res: Response) => {
           ...salesFilter,
         },
       }),
+
+      prisma.retur_invoices.aggregate({
+        _sum: { TotalSales: true },
+        where: {
+          sales: {
+            DocDate: {
+              gte: now.subtract(1, 'month').startOf('month').toDate(),
+              lte: now.subtract(1, 'month').date(now.date()).toDate(),
+            },
+          },
+          ...salesFilter
+        },
+      }),
+
     ])
 
-    const revenue = calcMTD(
-      Number(revenueCurrent._sum.TotalSales || 0),
-      Number(revenueLast._sum.TotalSales || 0)
-    )
+    const totalRevCurrent = Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)
+    const totalRevLast = Number(revenueLast._sum.TotalSales || 0) + Number(returLast._sum.TotalSales || 0)
+
+    const revenue = calcMTD(totalRevCurrent, totalRevLast)
 
     // =====================
     // ORDERS (CURRENT & LAST)
@@ -137,10 +192,10 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     const aov = calcMTD(
       ordersCurrent.length
-        ? Number(revenueCurrent._sum.TotalSales || 0) / ordersCurrent.length
+        ?  (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
         : 0,
       ordersLast.length
-        ? Number(revenueLast._sum.TotalSales || 0) / ordersLast.length
+        ? (Number(revenueLast._sum.TotalSales || 0) + Number(returLast._sum.TotalSales || 0)) / ordersLast.length
         : 0
     )
 
@@ -155,14 +210,31 @@ export const mtdSummary = async (req: Request, res: Response) => {
       select: {
         DocDate: true,
         TotalSales: true,
+        returs: {
+          select: {
+            TotalSales: true,
+          },
+        }
       },
     })
 
     const revenueByMonth = revenueTrendRaw.reduce<Record<string, number>>(
       (acc, cur) => {
         if (!cur.DocDate) return acc
+
         const period = dayjs(cur.DocDate).format('YYYY-MM')
-        acc[period] = (acc[period] ?? 0) + Number(cur.TotalSales)
+
+        const sales = Number(cur.TotalSales ?? 0)
+
+        const retur = cur.returs.reduce(
+          (sum, r) => sum + Number(r.TotalSales ?? 0),
+          0
+        )
+
+        const net = sales + retur
+
+        acc[period] = (acc[period] ?? 0) + net
+
         return acc
       },
       {}
@@ -250,25 +322,41 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: true,
         TotalSales: true,
         DocNum: true,
+        returs: {
+          select: {
+            TotalSales: true,
+          },
+        }
       },
     })
 
     // Group by month
-    const aovMap = aovTrendRaw.reduce<Record<string, { totalSales: number; orders: Set<number> }>>(
-      (acc, cur) => {
-        if (!cur.DocDate || !cur.DocNum) return acc
+    const aovMap = aovTrendRaw.reduce<Record<string, { totalSales: number; orders: Set<number> }>>((acc, cur) => {
+      if (!cur.DocDate || !cur.DocNum) return acc
 
-        const period = dayjs(cur.DocDate).format('YYYY-MM')
+      const period = dayjs(cur.DocDate).format('YYYY-MM')
 
-        if (!acc[period]) acc[period] = { totalSales: 0, orders: new Set<number>() }
+      if (!acc[period]) {
+        acc[period] = {
+          totalSales: 0,
+          orders: new Set<number>(),
+        }
+      }
 
-        acc[period].totalSales += Number(cur.TotalSales ?? 0)
-        acc[period].orders.add(cur.DocNum)
+      const sales = Number(cur.TotalSales ?? 0)
 
-        return acc
-      },
-      {}
-    )
+      const retur = cur.returs.reduce(
+        (sum, r) => sum + Number(r.TotalSales ?? 0),
+        0
+      )
+
+      const netSales = sales + retur
+
+      acc[period].totalSales += netSales
+      acc[period].orders.add(cur.DocNum)
+
+      return acc
+    }, {})
 
 
     const aovTrend = Object.entries(aovMap)
@@ -295,13 +383,19 @@ export const mtdSummary = async (req: Request, res: Response) => {
             sales_person: true,
           },
         },
+        returs: true
       },
     })
     const revenueBySales: Record<string, number> = {}
 
     invoices.forEach(inv => {
       const slp = inv.customer?.sales_person?.SlpName ?? 'Unknown'
-      revenueBySales[slp] = (revenueBySales[slp] ?? 0) + Number(inv.TotalSales ?? 0)
+
+      // Total invoice + total retur
+      const totalRetur = inv.returs?.reduce((sum, r) => sum + Number(r.TotalSales ?? 0), 0) ?? 0
+      const totalInvoice = Number(inv.TotalSales ?? 0)
+
+      revenueBySales[slp] = (revenueBySales[slp] ?? 0) + totalInvoice + totalRetur
     })
 
     const slpRevenue = Object.entries(revenueBySales)
@@ -375,7 +469,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: monthStart, lte: monthEnd },
         ...salesFilter
       },
-      select: { CardCode: true },
+      select: { CardCode: true, returs: true },
     })
 
     const invoicesBefore = await prisma.sales_invoices.findMany({
@@ -383,7 +477,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { lt: monthStart },
         ...salesFilter
       },
-      select: { CardCode: true },
+      select: { CardCode: true, returs: true },
     })
 
     const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))

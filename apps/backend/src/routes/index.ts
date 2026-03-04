@@ -11,6 +11,7 @@ import visit from './visit.js';
 import visitRulesRoutes from './visit-rules.js';
 import visitSchedule from './visit-schedule.js';
 import visits from './visits.js';
+import concerns from './concerns.js'
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/visit-rules', visitRulesRoutes);
 router.use('/schedule', visitSchedule);
 router.use('/visit', visit);
 router.use('/visits', visits);
+router.use('/concern-categories', concerns);
 
 export default router;

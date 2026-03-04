@@ -88,6 +88,11 @@ export type products = Prisma.productsModel
  */
 export type product_developments = Prisma.product_developmentsModel
 /**
+ * Model concern_categories
+ * 
+ */
+export type concern_categories = Prisma.concern_categoriesModel
+/**
  * Model roles
  * 
  */
@@ -97,6 +102,11 @@ export type roles = Prisma.rolesModel
  * 
  */
 export type sales_invoices = Prisma.sales_invoicesModel
+/**
+ * Model retur_invoices
+ * 
+ */
+export type retur_invoices = Prisma.retur_invoicesModel
 /**
  * Model sales_visit_rules
  * 

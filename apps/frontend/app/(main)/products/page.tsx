@@ -198,6 +198,8 @@ const ProductList = () => {
             onChange={(e) => setSelectedCategory(e.value)}
             placeholder="Select Category"
             className="w-full md:w-48"
+            clearIcon="pi pi-times"
+            showClear
           />
         </div>
         <div className="col-12 md:col-3 flex align-items-center">
@@ -262,7 +264,7 @@ const ProductList = () => {
                       <i className="pi pi-tags"></i> {item.ItmsGrpNam}
                     </div>
                     <div className="mt-1 text-sm font-semibold mt-3">
-                      {formatCurrency(Number(item.HargaJualNormal), true, true)}
+                      {formatCurrency(Number(item.MinPrice), true, true)} - {formatCurrency(Number(item.MaxPrice), true, true)}
                     </div>
                     <Divider />
                     <p className="font-semibold">Monthly Summary</p>

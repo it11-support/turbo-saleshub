@@ -398,8 +398,10 @@ export const ModelName = {
   personal_access_tokens: 'personal_access_tokens',
   products: 'products',
   product_developments: 'product_developments',
+  concern_categories: 'concern_categories',
   roles: 'roles',
   sales_invoices: 'sales_invoices',
+  retur_invoices: 'retur_invoices',
   sales_visit_rules: 'sales_visit_rules',
   sales_visit_schedules: 'sales_visit_schedules',
   sales_visit_schedule_items: 'sales_visit_schedule_items',
@@ -427,7 +429,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "cache" | "cache_locks" | "configs" | "customers" | "customer_rfm" | "subgroups" | "failed_jobs" | "job_batches" | "jobs" | "migrations" | "password_reset_tokens" | "personal_access_tokens" | "products" | "product_developments" | "roles" | "sales_invoices" | "sales_visit_rules" | "sales_visit_schedules" | "sales_visit_schedule_items" | "sales_persons" | "sales_visit_results" | "sales_visits" | "visits" | "visit_items" | "sessions" | "teams" | "users" | "orders"
+    modelProps: "cache" | "cache_locks" | "configs" | "customers" | "customer_rfm" | "subgroups" | "failed_jobs" | "job_batches" | "jobs" | "migrations" | "password_reset_tokens" | "personal_access_tokens" | "products" | "product_developments" | "concern_categories" | "roles" | "sales_invoices" | "retur_invoices" | "sales_visit_rules" | "sales_visit_schedules" | "sales_visit_schedule_items" | "sales_persons" | "sales_visit_results" | "sales_visits" | "visits" | "visit_items" | "sessions" | "teams" | "users" | "orders"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1355,6 +1357,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    concern_categories: {
+      payload: Prisma.$concern_categoriesPayload<ExtArgs>
+      fields: Prisma.concern_categoriesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.concern_categoriesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.concern_categoriesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>
+        }
+        findFirst: {
+          args: Prisma.concern_categoriesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.concern_categoriesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>
+        }
+        findMany: {
+          args: Prisma.concern_categoriesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>[]
+        }
+        create: {
+          args: Prisma.concern_categoriesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>
+        }
+        createMany: {
+          args: Prisma.concern_categoriesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.concern_categoriesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>
+        }
+        update: {
+          args: Prisma.concern_categoriesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>
+        }
+        deleteMany: {
+          args: Prisma.concern_categoriesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.concern_categoriesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.concern_categoriesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$concern_categoriesPayload>
+        }
+        aggregate: {
+          args: Prisma.Concern_categoriesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConcern_categories>
+        }
+        groupBy: {
+          args: Prisma.concern_categoriesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Concern_categoriesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.concern_categoriesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Concern_categoriesCountAggregateOutputType> | number
+        }
+      }
+    }
     roles: {
       payload: Prisma.$rolesPayload<ExtArgs>
       fields: Prisma.rolesFieldRefs
@@ -1484,6 +1552,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.sales_invoicesCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.Sales_invoicesCountAggregateOutputType> | number
+        }
+      }
+    }
+    retur_invoices: {
+      payload: Prisma.$retur_invoicesPayload<ExtArgs>
+      fields: Prisma.retur_invoicesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.retur_invoicesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.retur_invoicesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>
+        }
+        findFirst: {
+          args: Prisma.retur_invoicesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.retur_invoicesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>
+        }
+        findMany: {
+          args: Prisma.retur_invoicesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>[]
+        }
+        create: {
+          args: Prisma.retur_invoicesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>
+        }
+        createMany: {
+          args: Prisma.retur_invoicesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.retur_invoicesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>
+        }
+        update: {
+          args: Prisma.retur_invoicesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>
+        }
+        deleteMany: {
+          args: Prisma.retur_invoicesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.retur_invoicesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.retur_invoicesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$retur_invoicesPayload>
+        }
+        aggregate: {
+          args: Prisma.Retur_invoicesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRetur_invoices>
+        }
+        groupBy: {
+          args: Prisma.retur_invoicesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Retur_invoicesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.retur_invoicesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Retur_invoicesCountAggregateOutputType> | number
         }
       }
     }
@@ -2485,10 +2619,13 @@ export const ProductsScalarFieldEnum = {
   ItemName: 'ItemName',
   ItmsGrpNam: 'ItmsGrpNam',
   frozenFor: 'frozenFor',
+  validFor: 'validFor',
   LaunchDate: 'LaunchDate',
   SalUnitMsr: 'SalUnitMsr',
   AvgPrice: 'AvgPrice',
   HargaBeli: 'HargaBeli',
+  MinPrice: 'MinPrice',
+  MaxPrice: 'MaxPrice',
   HargaJualNormal: 'HargaJualNormal',
   ItmsGrpCod: 'ItmsGrpCod',
   RevenuesAc: 'RevenuesAc',
@@ -2512,6 +2649,17 @@ export const Product_developmentsScalarFieldEnum = {
 export type Product_developmentsScalarFieldEnum = (typeof Product_developmentsScalarFieldEnum)[keyof typeof Product_developmentsScalarFieldEnum]
 
 
+export const Concern_categoriesScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Concern_categoriesScalarFieldEnum = (typeof Concern_categoriesScalarFieldEnum)[keyof typeof Concern_categoriesScalarFieldEnum]
+
+
 export const RolesScalarFieldEnum = {
   id: 'id',
   role: 'role',
@@ -2526,6 +2674,7 @@ export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof Ro
 export const Sales_invoicesScalarFieldEnum = {
   id: 'id',
   DocNum: 'DocNum',
+  LineNum: 'LineNum',
   DocDate: 'DocDate',
   CardCode: 'CardCode',
   CardName: 'CardName',
@@ -2542,6 +2691,28 @@ export const Sales_invoicesScalarFieldEnum = {
 } as const
 
 export type Sales_invoicesScalarFieldEnum = (typeof Sales_invoicesScalarFieldEnum)[keyof typeof Sales_invoicesScalarFieldEnum]
+
+
+export const Retur_invoicesScalarFieldEnum = {
+  id: 'id',
+  DocNum: 'DocNum',
+  LineNum: 'LineNum',
+  DocDate: 'DocDate',
+  CardCode: 'CardCode',
+  CardName: 'CardName',
+  ItemCode: 'ItemCode',
+  Dscription: 'Dscription',
+  QtyKg: 'QtyKg',
+  unitMsr: 'unitMsr',
+  PriceBefDisc: 'PriceBefDisc',
+  DiscLine: 'DiscLine',
+  DiscTotal: 'DiscTotal',
+  TotalSales: 'TotalSales',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Retur_invoicesScalarFieldEnum = (typeof Retur_invoicesScalarFieldEnum)[keyof typeof Retur_invoicesScalarFieldEnum]
 
 
 export const Sales_visit_rulesScalarFieldEnum = {
@@ -2884,6 +3055,7 @@ export const productsOrderByRelevanceFieldEnum = {
   ItemName: 'ItemName',
   ItmsGrpNam: 'ItmsGrpNam',
   frozenFor: 'frozenFor',
+  validFor: 'validFor',
   SalUnitMsr: 'SalUnitMsr',
   RevenuesAc: 'RevenuesAc',
   AcctName: 'AcctName',
@@ -2891,6 +3063,14 @@ export const productsOrderByRelevanceFieldEnum = {
 } as const
 
 export type productsOrderByRelevanceFieldEnum = (typeof productsOrderByRelevanceFieldEnum)[keyof typeof productsOrderByRelevanceFieldEnum]
+
+
+export const concern_categoriesOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description'
+} as const
+
+export type concern_categoriesOrderByRelevanceFieldEnum = (typeof concern_categoriesOrderByRelevanceFieldEnum)[keyof typeof concern_categoriesOrderByRelevanceFieldEnum]
 
 
 export const rolesOrderByRelevanceFieldEnum = {
@@ -2910,6 +3090,17 @@ export const sales_invoicesOrderByRelevanceFieldEnum = {
 } as const
 
 export type sales_invoicesOrderByRelevanceFieldEnum = (typeof sales_invoicesOrderByRelevanceFieldEnum)[keyof typeof sales_invoicesOrderByRelevanceFieldEnum]
+
+
+export const retur_invoicesOrderByRelevanceFieldEnum = {
+  CardCode: 'CardCode',
+  CardName: 'CardName',
+  ItemCode: 'ItemCode',
+  Dscription: 'Dscription',
+  unitMsr: 'unitMsr'
+} as const
+
+export type retur_invoicesOrderByRelevanceFieldEnum = (typeof retur_invoicesOrderByRelevanceFieldEnum)[keyof typeof retur_invoicesOrderByRelevanceFieldEnum]
 
 
 export const JsonNullValueFilter = {
@@ -3211,8 +3402,10 @@ export type GlobalOmitConfig = {
   personal_access_tokens?: Prisma.personal_access_tokensOmit
   products?: Prisma.productsOmit
   product_developments?: Prisma.product_developmentsOmit
+  concern_categories?: Prisma.concern_categoriesOmit
   roles?: Prisma.rolesOmit
   sales_invoices?: Prisma.sales_invoicesOmit
+  retur_invoices?: Prisma.retur_invoicesOmit
   sales_visit_rules?: Prisma.sales_visit_rulesOmit
   sales_visit_schedules?: Prisma.sales_visit_schedulesOmit
   sales_visit_schedule_items?: Prisma.sales_visit_schedule_itemsOmit

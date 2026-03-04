@@ -16,7 +16,8 @@ export interface IProduct {
   AvgPrice?: number | null;
   HargaBeli?: number | null;
   HargaJualNormal?: number | null;
-
+  MinPrice?: number | null;
+  MaxPrice?: number | null;
   ItmsGrpCod?: number | null; // ✅ fixed name
 
   RevenuesAc?: string | null;

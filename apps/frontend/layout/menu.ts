@@ -57,5 +57,15 @@ export const getMenus = (isAdmin: boolean): AppMenuItem[] => {
         },
       ],
     },
+    {
+      label: 'Settings',
+      items: [
+        {
+          label: 'Settings',
+          icon: 'pi pi-fw pi-cog',
+          to: '/settings',
+        },
+      ],
+    }
   ]
 }

@@ -13,6 +13,7 @@ import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Divider } from 'primereact/divider'
 import { TabPanel, TabView } from 'primereact/tabview'
+import { formatCurrency } from '@/lib/formatter'
 
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { getActiveItems } from '@/lib/customers'
@@ -47,9 +48,6 @@ export const CustomerDetail = (props: Props) => {
   const summary = getMonthlySummary(customer?.sales_invoices || [])
 
   const isMobile = useIsMobile(768)
-
-  const formatCurrency = (value: number) =>
-    value.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })
 
   const formatDate = (value?: Date | string | null) => {
     if (!value) return ''
@@ -302,7 +300,7 @@ export const CustomerDetail = (props: Props) => {
                       <div className="font-bold text-base leading-tight line-clamp-2">
                         {item.ItemName}
                         <div className="mt-1 text-sm font-semibold mt-3">
-                          {formatCurrency(Number(item.HargaJualNormal))}
+                          {formatCurrency(Number(item.MinPrice), true, true)} - {formatCurrency(Number(item.MaxPrice), true, true)}
                         </div>
                       </div>
                     </div>

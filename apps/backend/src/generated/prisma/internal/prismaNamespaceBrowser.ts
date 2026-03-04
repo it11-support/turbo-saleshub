@@ -65,8 +65,10 @@ export const ModelName = {
   personal_access_tokens: 'personal_access_tokens',
   products: 'products',
   product_developments: 'product_developments',
+  concern_categories: 'concern_categories',
   roles: 'roles',
   sales_invoices: 'sales_invoices',
+  retur_invoices: 'retur_invoices',
   sales_visit_rules: 'sales_visit_rules',
   sales_visit_schedules: 'sales_visit_schedules',
   sales_visit_schedule_items: 'sales_visit_schedule_items',
@@ -264,10 +266,13 @@ export const ProductsScalarFieldEnum = {
   ItemName: 'ItemName',
   ItmsGrpNam: 'ItmsGrpNam',
   frozenFor: 'frozenFor',
+  validFor: 'validFor',
   LaunchDate: 'LaunchDate',
   SalUnitMsr: 'SalUnitMsr',
   AvgPrice: 'AvgPrice',
   HargaBeli: 'HargaBeli',
+  MinPrice: 'MinPrice',
+  MaxPrice: 'MaxPrice',
   HargaJualNormal: 'HargaJualNormal',
   ItmsGrpCod: 'ItmsGrpCod',
   RevenuesAc: 'RevenuesAc',
@@ -291,6 +296,17 @@ export const Product_developmentsScalarFieldEnum = {
 export type Product_developmentsScalarFieldEnum = (typeof Product_developmentsScalarFieldEnum)[keyof typeof Product_developmentsScalarFieldEnum]
 
 
+export const Concern_categoriesScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Concern_categoriesScalarFieldEnum = (typeof Concern_categoriesScalarFieldEnum)[keyof typeof Concern_categoriesScalarFieldEnum]
+
+
 export const RolesScalarFieldEnum = {
   id: 'id',
   role: 'role',
@@ -305,6 +321,7 @@ export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof Ro
 export const Sales_invoicesScalarFieldEnum = {
   id: 'id',
   DocNum: 'DocNum',
+  LineNum: 'LineNum',
   DocDate: 'DocDate',
   CardCode: 'CardCode',
   CardName: 'CardName',
@@ -321,6 +338,28 @@ export const Sales_invoicesScalarFieldEnum = {
 } as const
 
 export type Sales_invoicesScalarFieldEnum = (typeof Sales_invoicesScalarFieldEnum)[keyof typeof Sales_invoicesScalarFieldEnum]
+
+
+export const Retur_invoicesScalarFieldEnum = {
+  id: 'id',
+  DocNum: 'DocNum',
+  LineNum: 'LineNum',
+  DocDate: 'DocDate',
+  CardCode: 'CardCode',
+  CardName: 'CardName',
+  ItemCode: 'ItemCode',
+  Dscription: 'Dscription',
+  QtyKg: 'QtyKg',
+  unitMsr: 'unitMsr',
+  PriceBefDisc: 'PriceBefDisc',
+  DiscLine: 'DiscLine',
+  DiscTotal: 'DiscTotal',
+  TotalSales: 'TotalSales',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Retur_invoicesScalarFieldEnum = (typeof Retur_invoicesScalarFieldEnum)[keyof typeof Retur_invoicesScalarFieldEnum]
 
 
 export const Sales_visit_rulesScalarFieldEnum = {
@@ -663,6 +702,7 @@ export const productsOrderByRelevanceFieldEnum = {
   ItemName: 'ItemName',
   ItmsGrpNam: 'ItmsGrpNam',
   frozenFor: 'frozenFor',
+  validFor: 'validFor',
   SalUnitMsr: 'SalUnitMsr',
   RevenuesAc: 'RevenuesAc',
   AcctName: 'AcctName',
@@ -670,6 +710,14 @@ export const productsOrderByRelevanceFieldEnum = {
 } as const
 
 export type productsOrderByRelevanceFieldEnum = (typeof productsOrderByRelevanceFieldEnum)[keyof typeof productsOrderByRelevanceFieldEnum]
+
+
+export const concern_categoriesOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description'
+} as const
+
+export type concern_categoriesOrderByRelevanceFieldEnum = (typeof concern_categoriesOrderByRelevanceFieldEnum)[keyof typeof concern_categoriesOrderByRelevanceFieldEnum]
 
 
 export const rolesOrderByRelevanceFieldEnum = {
@@ -689,6 +737,17 @@ export const sales_invoicesOrderByRelevanceFieldEnum = {
 } as const
 
 export type sales_invoicesOrderByRelevanceFieldEnum = (typeof sales_invoicesOrderByRelevanceFieldEnum)[keyof typeof sales_invoicesOrderByRelevanceFieldEnum]
+
+
+export const retur_invoicesOrderByRelevanceFieldEnum = {
+  CardCode: 'CardCode',
+  CardName: 'CardName',
+  ItemCode: 'ItemCode',
+  Dscription: 'Dscription',
+  unitMsr: 'unitMsr'
+} as const
+
+export type retur_invoicesOrderByRelevanceFieldEnum = (typeof retur_invoicesOrderByRelevanceFieldEnum)[keyof typeof retur_invoicesOrderByRelevanceFieldEnum]
 
 
 export const JsonNullValueFilter = {

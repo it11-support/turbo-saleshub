@@ -140,6 +140,12 @@ export const fetchProducts = async (req: Request, res: Response) => {
           ],
         }
         : {}),
+      ...(isProductFocused
+        ? {}
+        : {
+          validFor: 'Y',
+          frozenFor: 'N',
+        }),
       ...(isProductFocused ? { product_developments: { some: {} } } : {})
     };
     const products = await prisma.products.findMany({

@@ -184,7 +184,7 @@ const VisitsPage = () => {
                       <div className="font-bold text-base leading-tight line-clamp-2">
                         {item.ItemName}
                         <div className="mt-1 text-sm font-semibold mt-3">
-                          {formatCurrency(Number(item.HargaJualNormal), true, true)}
+                          {formatCurrency(Number(item.MinPrice), true, true)} -  {formatCurrency(Number(item.MaxPrice), true, true)}
                         </div>
                       </div>
                     </div>

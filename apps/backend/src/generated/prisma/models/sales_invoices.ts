@@ -29,6 +29,7 @@ export type AggregateSales_invoices = {
 export type Sales_invoicesAvgAggregateOutputType = {
   id: number | null
   DocNum: number | null
+  LineNum: number | null
   QtyKg: runtime.Decimal | null
   PriceBefDisc: runtime.Decimal | null
   DiscLine: runtime.Decimal | null
@@ -39,6 +40,7 @@ export type Sales_invoicesAvgAggregateOutputType = {
 export type Sales_invoicesSumAggregateOutputType = {
   id: bigint | null
   DocNum: number | null
+  LineNum: number | null
   QtyKg: runtime.Decimal | null
   PriceBefDisc: runtime.Decimal | null
   DiscLine: runtime.Decimal | null
@@ -49,6 +51,7 @@ export type Sales_invoicesSumAggregateOutputType = {
 export type Sales_invoicesMinAggregateOutputType = {
   id: bigint | null
   DocNum: number | null
+  LineNum: number | null
   DocDate: Date | null
   CardCode: string | null
   CardName: string | null
@@ -67,6 +70,7 @@ export type Sales_invoicesMinAggregateOutputType = {
 export type Sales_invoicesMaxAggregateOutputType = {
   id: bigint | null
   DocNum: number | null
+  LineNum: number | null
   DocDate: Date | null
   CardCode: string | null
   CardName: string | null
@@ -85,6 +89,7 @@ export type Sales_invoicesMaxAggregateOutputType = {
 export type Sales_invoicesCountAggregateOutputType = {
   id: number
   DocNum: number
+  LineNum: number
   DocDate: number
   CardCode: number
   CardName: number
@@ -105,6 +110,7 @@ export type Sales_invoicesCountAggregateOutputType = {
 export type Sales_invoicesAvgAggregateInputType = {
   id?: true
   DocNum?: true
+  LineNum?: true
   QtyKg?: true
   PriceBefDisc?: true
   DiscLine?: true
@@ -115,6 +121,7 @@ export type Sales_invoicesAvgAggregateInputType = {
 export type Sales_invoicesSumAggregateInputType = {
   id?: true
   DocNum?: true
+  LineNum?: true
   QtyKg?: true
   PriceBefDisc?: true
   DiscLine?: true
@@ -125,6 +132,7 @@ export type Sales_invoicesSumAggregateInputType = {
 export type Sales_invoicesMinAggregateInputType = {
   id?: true
   DocNum?: true
+  LineNum?: true
   DocDate?: true
   CardCode?: true
   CardName?: true
@@ -143,6 +151,7 @@ export type Sales_invoicesMinAggregateInputType = {
 export type Sales_invoicesMaxAggregateInputType = {
   id?: true
   DocNum?: true
+  LineNum?: true
   DocDate?: true
   CardCode?: true
   CardName?: true
@@ -161,6 +170,7 @@ export type Sales_invoicesMaxAggregateInputType = {
 export type Sales_invoicesCountAggregateInputType = {
   id?: true
   DocNum?: true
+  LineNum?: true
   DocDate?: true
   CardCode?: true
   CardName?: true
@@ -266,10 +276,11 @@ export type sales_invoicesGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 export type Sales_invoicesGroupByOutputType = {
   id: bigint
   DocNum: number
+  LineNum: number
   DocDate: Date | null
-  CardCode: string | null
+  CardCode: string
   CardName: string | null
-  ItemCode: string | null
+  ItemCode: string
   Dscription: string | null
   QtyKg: runtime.Decimal | null
   unitMsr: string | null
@@ -307,10 +318,11 @@ export type sales_invoicesWhereInput = {
   NOT?: Prisma.sales_invoicesWhereInput | Prisma.sales_invoicesWhereInput[]
   id?: Prisma.BigIntFilter<"sales_invoices"> | bigint | number
   DocNum?: Prisma.IntFilter<"sales_invoices"> | number
+  LineNum?: Prisma.IntFilter<"sales_invoices"> | number
   DocDate?: Prisma.DateTimeNullableFilter<"sales_invoices"> | Date | string | null
-  CardCode?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
+  CardCode?: Prisma.StringFilter<"sales_invoices"> | string
   CardName?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
-  ItemCode?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
+  ItemCode?: Prisma.StringFilter<"sales_invoices"> | string
   Dscription?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
   QtyKg?: Prisma.DecimalNullableFilter<"sales_invoices"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
@@ -322,15 +334,17 @@ export type sales_invoicesWhereInput = {
   updated_at?: Prisma.DateTimeNullableFilter<"sales_invoices"> | Date | string | null
   customer?: Prisma.XOR<Prisma.CustomersNullableScalarRelationFilter, Prisma.customersWhereInput> | null
   product?: Prisma.XOR<Prisma.ProductsNullableScalarRelationFilter, Prisma.productsWhereInput> | null
+  returs?: Prisma.Retur_invoicesListRelationFilter
 }
 
 export type sales_invoicesOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   DocDate?: Prisma.SortOrderInput | Prisma.SortOrder
-  CardCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  CardCode?: Prisma.SortOrder
   CardName?: Prisma.SortOrderInput | Prisma.SortOrder
-  ItemCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  ItemCode?: Prisma.SortOrder
   Dscription?: Prisma.SortOrderInput | Prisma.SortOrder
   QtyKg?: Prisma.SortOrderInput | Prisma.SortOrder
   unitMsr?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -342,20 +356,22 @@ export type sales_invoicesOrderByWithRelationInput = {
   updated_at?: Prisma.SortOrderInput | Prisma.SortOrder
   customer?: Prisma.customersOrderByWithRelationInput
   product?: Prisma.productsOrderByWithRelationInput
+  returs?: Prisma.retur_invoicesOrderByRelationAggregateInput
   _relevance?: Prisma.sales_invoicesOrderByRelevanceInput
 }
 
 export type sales_invoicesWhereUniqueInput = Prisma.AtLeast<{
   id?: bigint | number
-  DocNum_ItemCode?: Prisma.sales_invoicesDocNumItemCodeCompoundUniqueInput
+  DocNum_LineNum?: Prisma.sales_invoicesDocNumLineNumCompoundUniqueInput
   AND?: Prisma.sales_invoicesWhereInput | Prisma.sales_invoicesWhereInput[]
   OR?: Prisma.sales_invoicesWhereInput[]
   NOT?: Prisma.sales_invoicesWhereInput | Prisma.sales_invoicesWhereInput[]
   DocNum?: Prisma.IntFilter<"sales_invoices"> | number
+  LineNum?: Prisma.IntFilter<"sales_invoices"> | number
   DocDate?: Prisma.DateTimeNullableFilter<"sales_invoices"> | Date | string | null
-  CardCode?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
+  CardCode?: Prisma.StringFilter<"sales_invoices"> | string
   CardName?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
-  ItemCode?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
+  ItemCode?: Prisma.StringFilter<"sales_invoices"> | string
   Dscription?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
   QtyKg?: Prisma.DecimalNullableFilter<"sales_invoices"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
@@ -367,15 +383,17 @@ export type sales_invoicesWhereUniqueInput = Prisma.AtLeast<{
   updated_at?: Prisma.DateTimeNullableFilter<"sales_invoices"> | Date | string | null
   customer?: Prisma.XOR<Prisma.CustomersNullableScalarRelationFilter, Prisma.customersWhereInput> | null
   product?: Prisma.XOR<Prisma.ProductsNullableScalarRelationFilter, Prisma.productsWhereInput> | null
-}, "id" | "DocNum_ItemCode">
+  returs?: Prisma.Retur_invoicesListRelationFilter
+}, "id" | "DocNum_LineNum">
 
 export type sales_invoicesOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   DocDate?: Prisma.SortOrderInput | Prisma.SortOrder
-  CardCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  CardCode?: Prisma.SortOrder
   CardName?: Prisma.SortOrderInput | Prisma.SortOrder
-  ItemCode?: Prisma.SortOrderInput | Prisma.SortOrder
+  ItemCode?: Prisma.SortOrder
   Dscription?: Prisma.SortOrderInput | Prisma.SortOrder
   QtyKg?: Prisma.SortOrderInput | Prisma.SortOrder
   unitMsr?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -398,10 +416,11 @@ export type sales_invoicesScalarWhereWithAggregatesInput = {
   NOT?: Prisma.sales_invoicesScalarWhereWithAggregatesInput | Prisma.sales_invoicesScalarWhereWithAggregatesInput[]
   id?: Prisma.BigIntWithAggregatesFilter<"sales_invoices"> | bigint | number
   DocNum?: Prisma.IntWithAggregatesFilter<"sales_invoices"> | number
+  LineNum?: Prisma.IntWithAggregatesFilter<"sales_invoices"> | number
   DocDate?: Prisma.DateTimeNullableWithAggregatesFilter<"sales_invoices"> | Date | string | null
-  CardCode?: Prisma.StringNullableWithAggregatesFilter<"sales_invoices"> | string | null
+  CardCode?: Prisma.StringWithAggregatesFilter<"sales_invoices"> | string
   CardName?: Prisma.StringNullableWithAggregatesFilter<"sales_invoices"> | string | null
-  ItemCode?: Prisma.StringNullableWithAggregatesFilter<"sales_invoices"> | string | null
+  ItemCode?: Prisma.StringWithAggregatesFilter<"sales_invoices"> | string
   Dscription?: Prisma.StringNullableWithAggregatesFilter<"sales_invoices"> | string | null
   QtyKg?: Prisma.DecimalNullableWithAggregatesFilter<"sales_invoices"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.StringNullableWithAggregatesFilter<"sales_invoices"> | string | null
@@ -416,6 +435,7 @@ export type sales_invoicesScalarWhereWithAggregatesInput = {
 export type sales_invoicesCreateInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
   CardName?: string | null
   Dscription?: string | null
@@ -429,15 +449,17 @@ export type sales_invoicesCreateInput = {
   updated_at?: Date | string | null
   customer?: Prisma.customersCreateNestedOneWithoutSales_invoicesInput
   product?: Prisma.productsCreateNestedOneWithoutSales_invoicesInput
+  returs?: Prisma.retur_invoicesCreateNestedManyWithoutSalesInput
 }
 
 export type sales_invoicesUncheckedCreateInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
-  CardCode?: string | null
+  CardCode: string
   CardName?: string | null
-  ItemCode?: string | null
+  ItemCode: string
   Dscription?: string | null
   QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: string | null
@@ -447,11 +469,13 @@ export type sales_invoicesUncheckedCreateInput = {
   TotalSales?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string | null
   updated_at?: Date | string | null
+  returs?: Prisma.retur_invoicesUncheckedCreateNestedManyWithoutSalesInput
 }
 
 export type sales_invoicesUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -465,15 +489,17 @@ export type sales_invoicesUpdateInput = {
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.customersUpdateOneWithoutSales_invoicesNestedInput
   product?: Prisma.productsUpdateOneWithoutSales_invoicesNestedInput
+  returs?: Prisma.retur_invoicesUpdateManyWithoutSalesNestedInput
 }
 
 export type sales_invoicesUncheckedUpdateInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  CardCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  CardCode?: Prisma.StringFieldUpdateOperationsInput | string
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ItemCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ItemCode?: Prisma.StringFieldUpdateOperationsInput | string
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -483,15 +509,17 @@ export type sales_invoicesUncheckedUpdateInput = {
   TotalSales?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  returs?: Prisma.retur_invoicesUncheckedUpdateManyWithoutSalesNestedInput
 }
 
 export type sales_invoicesCreateManyInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
-  CardCode?: string | null
+  CardCode: string
   CardName?: string | null
-  ItemCode?: string | null
+  ItemCode: string
   Dscription?: string | null
   QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: string | null
@@ -506,6 +534,7 @@ export type sales_invoicesCreateManyInput = {
 export type sales_invoicesUpdateManyMutationInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -522,10 +551,11 @@ export type sales_invoicesUpdateManyMutationInput = {
 export type sales_invoicesUncheckedUpdateManyInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  CardCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  CardCode?: Prisma.StringFieldUpdateOperationsInput | string
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ItemCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ItemCode?: Prisma.StringFieldUpdateOperationsInput | string
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -553,14 +583,15 @@ export type sales_invoicesOrderByRelevanceInput = {
   search: string
 }
 
-export type sales_invoicesDocNumItemCodeCompoundUniqueInput = {
+export type sales_invoicesDocNumLineNumCompoundUniqueInput = {
   DocNum: number
-  ItemCode: string
+  LineNum: number
 }
 
 export type sales_invoicesCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   DocDate?: Prisma.SortOrder
   CardCode?: Prisma.SortOrder
   CardName?: Prisma.SortOrder
@@ -579,6 +610,7 @@ export type sales_invoicesCountOrderByAggregateInput = {
 export type sales_invoicesAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   QtyKg?: Prisma.SortOrder
   PriceBefDisc?: Prisma.SortOrder
   DiscLine?: Prisma.SortOrder
@@ -589,6 +621,7 @@ export type sales_invoicesAvgOrderByAggregateInput = {
 export type sales_invoicesMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   DocDate?: Prisma.SortOrder
   CardCode?: Prisma.SortOrder
   CardName?: Prisma.SortOrder
@@ -607,6 +640,7 @@ export type sales_invoicesMaxOrderByAggregateInput = {
 export type sales_invoicesMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   DocDate?: Prisma.SortOrder
   CardCode?: Prisma.SortOrder
   CardName?: Prisma.SortOrder
@@ -625,11 +659,17 @@ export type sales_invoicesMinOrderByAggregateInput = {
 export type sales_invoicesSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   DocNum?: Prisma.SortOrder
+  LineNum?: Prisma.SortOrder
   QtyKg?: Prisma.SortOrder
   PriceBefDisc?: Prisma.SortOrder
   DiscLine?: Prisma.SortOrder
   DiscTotal?: Prisma.SortOrder
   TotalSales?: Prisma.SortOrder
+}
+
+export type Sales_invoicesScalarRelationFilter = {
+  is?: Prisma.sales_invoicesWhereInput
+  isNot?: Prisma.sales_invoicesWhereInput
 }
 
 export type sales_invoicesCreateNestedManyWithoutCustomerInput = {
@@ -716,9 +756,24 @@ export type sales_invoicesUncheckedUpdateManyWithoutProductNestedInput = {
   deleteMany?: Prisma.sales_invoicesScalarWhereInput | Prisma.sales_invoicesScalarWhereInput[]
 }
 
+export type sales_invoicesCreateNestedOneWithoutRetursInput = {
+  create?: Prisma.XOR<Prisma.sales_invoicesCreateWithoutRetursInput, Prisma.sales_invoicesUncheckedCreateWithoutRetursInput>
+  connectOrCreate?: Prisma.sales_invoicesCreateOrConnectWithoutRetursInput
+  connect?: Prisma.sales_invoicesWhereUniqueInput
+}
+
+export type sales_invoicesUpdateOneRequiredWithoutRetursNestedInput = {
+  create?: Prisma.XOR<Prisma.sales_invoicesCreateWithoutRetursInput, Prisma.sales_invoicesUncheckedCreateWithoutRetursInput>
+  connectOrCreate?: Prisma.sales_invoicesCreateOrConnectWithoutRetursInput
+  upsert?: Prisma.sales_invoicesUpsertWithoutRetursInput
+  connect?: Prisma.sales_invoicesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.sales_invoicesUpdateToOneWithWhereWithoutRetursInput, Prisma.sales_invoicesUpdateWithoutRetursInput>, Prisma.sales_invoicesUncheckedUpdateWithoutRetursInput>
+}
+
 export type sales_invoicesCreateWithoutCustomerInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
   CardName?: string | null
   Dscription?: string | null
@@ -731,14 +786,16 @@ export type sales_invoicesCreateWithoutCustomerInput = {
   created_at?: Date | string | null
   updated_at?: Date | string | null
   product?: Prisma.productsCreateNestedOneWithoutSales_invoicesInput
+  returs?: Prisma.retur_invoicesCreateNestedManyWithoutSalesInput
 }
 
 export type sales_invoicesUncheckedCreateWithoutCustomerInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
   CardName?: string | null
-  ItemCode?: string | null
+  ItemCode: string
   Dscription?: string | null
   QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: string | null
@@ -748,6 +805,7 @@ export type sales_invoicesUncheckedCreateWithoutCustomerInput = {
   TotalSales?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string | null
   updated_at?: Date | string | null
+  returs?: Prisma.retur_invoicesUncheckedCreateNestedManyWithoutSalesInput
 }
 
 export type sales_invoicesCreateOrConnectWithoutCustomerInput = {
@@ -782,10 +840,11 @@ export type sales_invoicesScalarWhereInput = {
   NOT?: Prisma.sales_invoicesScalarWhereInput | Prisma.sales_invoicesScalarWhereInput[]
   id?: Prisma.BigIntFilter<"sales_invoices"> | bigint | number
   DocNum?: Prisma.IntFilter<"sales_invoices"> | number
+  LineNum?: Prisma.IntFilter<"sales_invoices"> | number
   DocDate?: Prisma.DateTimeNullableFilter<"sales_invoices"> | Date | string | null
-  CardCode?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
+  CardCode?: Prisma.StringFilter<"sales_invoices"> | string
   CardName?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
-  ItemCode?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
+  ItemCode?: Prisma.StringFilter<"sales_invoices"> | string
   Dscription?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
   QtyKg?: Prisma.DecimalNullableFilter<"sales_invoices"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.StringNullableFilter<"sales_invoices"> | string | null
@@ -800,6 +859,7 @@ export type sales_invoicesScalarWhereInput = {
 export type sales_invoicesCreateWithoutProductInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
   CardName?: string | null
   Dscription?: string | null
@@ -812,13 +872,15 @@ export type sales_invoicesCreateWithoutProductInput = {
   created_at?: Date | string | null
   updated_at?: Date | string | null
   customer?: Prisma.customersCreateNestedOneWithoutSales_invoicesInput
+  returs?: Prisma.retur_invoicesCreateNestedManyWithoutSalesInput
 }
 
 export type sales_invoicesUncheckedCreateWithoutProductInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
-  CardCode?: string | null
+  CardCode: string
   CardName?: string | null
   Dscription?: string | null
   QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -829,6 +891,7 @@ export type sales_invoicesUncheckedCreateWithoutProductInput = {
   TotalSales?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Date | string | null
   updated_at?: Date | string | null
+  returs?: Prisma.retur_invoicesUncheckedCreateNestedManyWithoutSalesInput
 }
 
 export type sales_invoicesCreateOrConnectWithoutProductInput = {
@@ -857,12 +920,105 @@ export type sales_invoicesUpdateManyWithWhereWithoutProductInput = {
   data: Prisma.XOR<Prisma.sales_invoicesUpdateManyMutationInput, Prisma.sales_invoicesUncheckedUpdateManyWithoutProductInput>
 }
 
+export type sales_invoicesCreateWithoutRetursInput = {
+  id?: bigint | number
+  DocNum: number
+  LineNum: number
+  DocDate?: Date | string | null
+  CardName?: string | null
+  Dscription?: string | null
+  QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  unitMsr?: string | null
+  PriceBefDisc?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscLine?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscTotal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  TotalSales?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Date | string | null
+  updated_at?: Date | string | null
+  customer?: Prisma.customersCreateNestedOneWithoutSales_invoicesInput
+  product?: Prisma.productsCreateNestedOneWithoutSales_invoicesInput
+}
+
+export type sales_invoicesUncheckedCreateWithoutRetursInput = {
+  id?: bigint | number
+  DocNum: number
+  LineNum: number
+  DocDate?: Date | string | null
+  CardCode: string
+  CardName?: string | null
+  ItemCode: string
+  Dscription?: string | null
+  QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  unitMsr?: string | null
+  PriceBefDisc?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscLine?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscTotal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  TotalSales?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Date | string | null
+  updated_at?: Date | string | null
+}
+
+export type sales_invoicesCreateOrConnectWithoutRetursInput = {
+  where: Prisma.sales_invoicesWhereUniqueInput
+  create: Prisma.XOR<Prisma.sales_invoicesCreateWithoutRetursInput, Prisma.sales_invoicesUncheckedCreateWithoutRetursInput>
+}
+
+export type sales_invoicesUpsertWithoutRetursInput = {
+  update: Prisma.XOR<Prisma.sales_invoicesUpdateWithoutRetursInput, Prisma.sales_invoicesUncheckedUpdateWithoutRetursInput>
+  create: Prisma.XOR<Prisma.sales_invoicesCreateWithoutRetursInput, Prisma.sales_invoicesUncheckedCreateWithoutRetursInput>
+  where?: Prisma.sales_invoicesWhereInput
+}
+
+export type sales_invoicesUpdateToOneWithWhereWithoutRetursInput = {
+  where?: Prisma.sales_invoicesWhereInput
+  data: Prisma.XOR<Prisma.sales_invoicesUpdateWithoutRetursInput, Prisma.sales_invoicesUncheckedUpdateWithoutRetursInput>
+}
+
+export type sales_invoicesUpdateWithoutRetursInput = {
+  id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
+  DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  unitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  PriceBefDisc?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscLine?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscTotal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  TotalSales?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  customer?: Prisma.customersUpdateOneWithoutSales_invoicesNestedInput
+  product?: Prisma.productsUpdateOneWithoutSales_invoicesNestedInput
+}
+
+export type sales_invoicesUncheckedUpdateWithoutRetursInput = {
+  id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
+  DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  CardCode?: Prisma.StringFieldUpdateOperationsInput | string
+  CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ItemCode?: Prisma.StringFieldUpdateOperationsInput | string
+  Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  unitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  PriceBefDisc?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscLine?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  DiscTotal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  TotalSales?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
 export type sales_invoicesCreateManyCustomerInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
   CardName?: string | null
-  ItemCode?: string | null
+  ItemCode: string
   Dscription?: string | null
   QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: string | null
@@ -877,6 +1033,7 @@ export type sales_invoicesCreateManyCustomerInput = {
 export type sales_invoicesUpdateWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -889,14 +1046,16 @@ export type sales_invoicesUpdateWithoutCustomerInput = {
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   product?: Prisma.productsUpdateOneWithoutSales_invoicesNestedInput
+  returs?: Prisma.retur_invoicesUpdateManyWithoutSalesNestedInput
 }
 
 export type sales_invoicesUncheckedUpdateWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ItemCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ItemCode?: Prisma.StringFieldUpdateOperationsInput | string
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -906,14 +1065,16 @@ export type sales_invoicesUncheckedUpdateWithoutCustomerInput = {
   TotalSales?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  returs?: Prisma.retur_invoicesUncheckedUpdateManyWithoutSalesNestedInput
 }
 
 export type sales_invoicesUncheckedUpdateManyWithoutCustomerInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  ItemCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ItemCode?: Prisma.StringFieldUpdateOperationsInput | string
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   unitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -928,8 +1089,9 @@ export type sales_invoicesUncheckedUpdateManyWithoutCustomerInput = {
 export type sales_invoicesCreateManyProductInput = {
   id?: bigint | number
   DocNum: number
+  LineNum: number
   DocDate?: Date | string | null
-  CardCode?: string | null
+  CardCode: string
   CardName?: string | null
   Dscription?: string | null
   QtyKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -945,6 +1107,7 @@ export type sales_invoicesCreateManyProductInput = {
 export type sales_invoicesUpdateWithoutProductInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -957,13 +1120,15 @@ export type sales_invoicesUpdateWithoutProductInput = {
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.customersUpdateOneWithoutSales_invoicesNestedInput
+  returs?: Prisma.retur_invoicesUpdateManyWithoutSalesNestedInput
 }
 
 export type sales_invoicesUncheckedUpdateWithoutProductInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  CardCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  CardCode?: Prisma.StringFieldUpdateOperationsInput | string
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -974,13 +1139,15 @@ export type sales_invoicesUncheckedUpdateWithoutProductInput = {
   TotalSales?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updated_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  returs?: Prisma.retur_invoicesUncheckedUpdateManyWithoutSalesNestedInput
 }
 
 export type sales_invoicesUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   DocNum?: Prisma.IntFieldUpdateOperationsInput | number
+  LineNum?: Prisma.IntFieldUpdateOperationsInput | number
   DocDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  CardCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  CardCode?: Prisma.StringFieldUpdateOperationsInput | string
   CardName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   Dscription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   QtyKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -994,10 +1161,40 @@ export type sales_invoicesUncheckedUpdateManyWithoutProductInput = {
 }
 
 
+/**
+ * Count Type Sales_invoicesCountOutputType
+ */
+
+export type Sales_invoicesCountOutputType = {
+  returs: number
+}
+
+export type Sales_invoicesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  returs?: boolean | Sales_invoicesCountOutputTypeCountRetursArgs
+}
+
+/**
+ * Sales_invoicesCountOutputType without action
+ */
+export type Sales_invoicesCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Sales_invoicesCountOutputType
+   */
+  select?: Prisma.Sales_invoicesCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * Sales_invoicesCountOutputType without action
+ */
+export type Sales_invoicesCountOutputTypeCountRetursArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.retur_invoicesWhereInput
+}
+
 
 export type sales_invoicesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   DocNum?: boolean
+  LineNum?: boolean
   DocDate?: boolean
   CardCode?: boolean
   CardName?: boolean
@@ -1013,6 +1210,8 @@ export type sales_invoicesSelect<ExtArgs extends runtime.Types.Extensions.Intern
   updated_at?: boolean
   customer?: boolean | Prisma.sales_invoices$customerArgs<ExtArgs>
   product?: boolean | Prisma.sales_invoices$productArgs<ExtArgs>
+  returs?: boolean | Prisma.sales_invoices$retursArgs<ExtArgs>
+  _count?: boolean | Prisma.Sales_invoicesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["sales_invoices"]>
 
 
@@ -1020,6 +1219,7 @@ export type sales_invoicesSelect<ExtArgs extends runtime.Types.Extensions.Intern
 export type sales_invoicesSelectScalar = {
   id?: boolean
   DocNum?: boolean
+  LineNum?: boolean
   DocDate?: boolean
   CardCode?: boolean
   CardName?: boolean
@@ -1035,10 +1235,12 @@ export type sales_invoicesSelectScalar = {
   updated_at?: boolean
 }
 
-export type sales_invoicesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "DocNum" | "DocDate" | "CardCode" | "CardName" | "ItemCode" | "Dscription" | "QtyKg" | "unitMsr" | "PriceBefDisc" | "DiscLine" | "DiscTotal" | "TotalSales" | "created_at" | "updated_at", ExtArgs["result"]["sales_invoices"]>
+export type sales_invoicesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "DocNum" | "LineNum" | "DocDate" | "CardCode" | "CardName" | "ItemCode" | "Dscription" | "QtyKg" | "unitMsr" | "PriceBefDisc" | "DiscLine" | "DiscTotal" | "TotalSales" | "created_at" | "updated_at", ExtArgs["result"]["sales_invoices"]>
 export type sales_invoicesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.sales_invoices$customerArgs<ExtArgs>
   product?: boolean | Prisma.sales_invoices$productArgs<ExtArgs>
+  returs?: boolean | Prisma.sales_invoices$retursArgs<ExtArgs>
+  _count?: boolean | Prisma.Sales_invoicesCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $sales_invoicesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1046,14 +1248,16 @@ export type $sales_invoicesPayload<ExtArgs extends runtime.Types.Extensions.Inte
   objects: {
     customer: Prisma.$customersPayload<ExtArgs> | null
     product: Prisma.$productsPayload<ExtArgs> | null
+    returs: Prisma.$retur_invoicesPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: bigint
     DocNum: number
+    LineNum: number
     DocDate: Date | null
-    CardCode: string | null
+    CardCode: string
     CardName: string | null
-    ItemCode: string | null
+    ItemCode: string
     Dscription: string | null
     QtyKg: runtime.Decimal | null
     unitMsr: string | null
@@ -1405,6 +1609,7 @@ export interface Prisma__sales_invoicesClient<T, Null = never, ExtArgs extends r
   readonly [Symbol.toStringTag]: "PrismaPromise"
   customer<T extends Prisma.sales_invoices$customerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.sales_invoices$customerArgs<ExtArgs>>): Prisma.Prisma__customersClient<runtime.Types.Result.GetResult<Prisma.$customersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   product<T extends Prisma.sales_invoices$productArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.sales_invoices$productArgs<ExtArgs>>): Prisma.Prisma__productsClient<runtime.Types.Result.GetResult<Prisma.$productsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  returs<T extends Prisma.sales_invoices$retursArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.sales_invoices$retursArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$retur_invoicesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1436,6 +1641,7 @@ export interface Prisma__sales_invoicesClient<T, Null = never, ExtArgs extends r
 export interface sales_invoicesFieldRefs {
   readonly id: Prisma.FieldRef<"sales_invoices", 'BigInt'>
   readonly DocNum: Prisma.FieldRef<"sales_invoices", 'Int'>
+  readonly LineNum: Prisma.FieldRef<"sales_invoices", 'Int'>
   readonly DocDate: Prisma.FieldRef<"sales_invoices", 'DateTime'>
   readonly CardCode: Prisma.FieldRef<"sales_invoices", 'String'>
   readonly CardName: Prisma.FieldRef<"sales_invoices", 'String'>
@@ -1827,6 +2033,30 @@ export type sales_invoices$productArgs<ExtArgs extends runtime.Types.Extensions.
    */
   include?: Prisma.productsInclude<ExtArgs> | null
   where?: Prisma.productsWhereInput
+}
+
+/**
+ * sales_invoices.returs
+ */
+export type sales_invoices$retursArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the retur_invoices
+   */
+  select?: Prisma.retur_invoicesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the retur_invoices
+   */
+  omit?: Prisma.retur_invoicesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.retur_invoicesInclude<ExtArgs> | null
+  where?: Prisma.retur_invoicesWhereInput
+  orderBy?: Prisma.retur_invoicesOrderByWithRelationInput | Prisma.retur_invoicesOrderByWithRelationInput[]
+  cursor?: Prisma.retur_invoicesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Retur_invoicesScalarFieldEnum | Prisma.Retur_invoicesScalarFieldEnum[]
 }
 
 /**

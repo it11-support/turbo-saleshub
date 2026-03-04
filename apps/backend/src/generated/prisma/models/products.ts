@@ -30,6 +30,8 @@ export type ProductsAvgAggregateOutputType = {
   id: number | null
   AvgPrice: runtime.Decimal | null
   HargaBeli: runtime.Decimal | null
+  MinPrice: runtime.Decimal | null
+  MaxPrice: runtime.Decimal | null
   HargaJualNormal: runtime.Decimal | null
   ItmsGrpCod: number | null
 }
@@ -38,6 +40,8 @@ export type ProductsSumAggregateOutputType = {
   id: bigint | null
   AvgPrice: runtime.Decimal | null
   HargaBeli: runtime.Decimal | null
+  MinPrice: runtime.Decimal | null
+  MaxPrice: runtime.Decimal | null
   HargaJualNormal: runtime.Decimal | null
   ItmsGrpCod: number | null
 }
@@ -48,10 +52,13 @@ export type ProductsMinAggregateOutputType = {
   ItemName: string | null
   ItmsGrpNam: string | null
   frozenFor: string | null
+  validFor: string | null
   LaunchDate: Date | null
   SalUnitMsr: string | null
   AvgPrice: runtime.Decimal | null
   HargaBeli: runtime.Decimal | null
+  MinPrice: runtime.Decimal | null
+  MaxPrice: runtime.Decimal | null
   HargaJualNormal: runtime.Decimal | null
   ItmsGrpCod: number | null
   RevenuesAc: string | null
@@ -67,10 +74,13 @@ export type ProductsMaxAggregateOutputType = {
   ItemName: string | null
   ItmsGrpNam: string | null
   frozenFor: string | null
+  validFor: string | null
   LaunchDate: Date | null
   SalUnitMsr: string | null
   AvgPrice: runtime.Decimal | null
   HargaBeli: runtime.Decimal | null
+  MinPrice: runtime.Decimal | null
+  MaxPrice: runtime.Decimal | null
   HargaJualNormal: runtime.Decimal | null
   ItmsGrpCod: number | null
   RevenuesAc: string | null
@@ -86,10 +96,13 @@ export type ProductsCountAggregateOutputType = {
   ItemName: number
   ItmsGrpNam: number
   frozenFor: number
+  validFor: number
   LaunchDate: number
   SalUnitMsr: number
   AvgPrice: number
   HargaBeli: number
+  MinPrice: number
+  MaxPrice: number
   HargaJualNormal: number
   ItmsGrpCod: number
   RevenuesAc: number
@@ -105,6 +118,8 @@ export type ProductsAvgAggregateInputType = {
   id?: true
   AvgPrice?: true
   HargaBeli?: true
+  MinPrice?: true
+  MaxPrice?: true
   HargaJualNormal?: true
   ItmsGrpCod?: true
 }
@@ -113,6 +128,8 @@ export type ProductsSumAggregateInputType = {
   id?: true
   AvgPrice?: true
   HargaBeli?: true
+  MinPrice?: true
+  MaxPrice?: true
   HargaJualNormal?: true
   ItmsGrpCod?: true
 }
@@ -123,10 +140,13 @@ export type ProductsMinAggregateInputType = {
   ItemName?: true
   ItmsGrpNam?: true
   frozenFor?: true
+  validFor?: true
   LaunchDate?: true
   SalUnitMsr?: true
   AvgPrice?: true
   HargaBeli?: true
+  MinPrice?: true
+  MaxPrice?: true
   HargaJualNormal?: true
   ItmsGrpCod?: true
   RevenuesAc?: true
@@ -142,10 +162,13 @@ export type ProductsMaxAggregateInputType = {
   ItemName?: true
   ItmsGrpNam?: true
   frozenFor?: true
+  validFor?: true
   LaunchDate?: true
   SalUnitMsr?: true
   AvgPrice?: true
   HargaBeli?: true
+  MinPrice?: true
+  MaxPrice?: true
   HargaJualNormal?: true
   ItmsGrpCod?: true
   RevenuesAc?: true
@@ -161,10 +184,13 @@ export type ProductsCountAggregateInputType = {
   ItemName?: true
   ItmsGrpNam?: true
   frozenFor?: true
+  validFor?: true
   LaunchDate?: true
   SalUnitMsr?: true
   AvgPrice?: true
   HargaBeli?: true
+  MinPrice?: true
+  MaxPrice?: true
   HargaJualNormal?: true
   ItmsGrpCod?: true
   RevenuesAc?: true
@@ -267,10 +293,13 @@ export type ProductsGroupByOutputType = {
   ItemName: string | null
   ItmsGrpNam: string | null
   frozenFor: string | null
+  validFor: string | null
   LaunchDate: Date | null
   SalUnitMsr: string | null
   AvgPrice: runtime.Decimal | null
   HargaBeli: runtime.Decimal | null
+  MinPrice: runtime.Decimal | null
+  MaxPrice: runtime.Decimal | null
   HargaJualNormal: runtime.Decimal | null
   ItmsGrpCod: number
   RevenuesAc: string | null
@@ -309,10 +338,13 @@ export type productsWhereInput = {
   ItemName?: Prisma.StringNullableFilter<"products"> | string | null
   ItmsGrpNam?: Prisma.StringNullableFilter<"products"> | string | null
   frozenFor?: Prisma.StringNullableFilter<"products"> | string | null
+  validFor?: Prisma.StringNullableFilter<"products"> | string | null
   LaunchDate?: Prisma.DateTimeNullableFilter<"products"> | Date | string | null
   SalUnitMsr?: Prisma.StringNullableFilter<"products"> | string | null
   AvgPrice?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFilter<"products"> | number
   RevenuesAc?: Prisma.StringNullableFilter<"products"> | string | null
@@ -331,10 +363,13 @@ export type productsOrderByWithRelationInput = {
   ItemName?: Prisma.SortOrderInput | Prisma.SortOrder
   ItmsGrpNam?: Prisma.SortOrderInput | Prisma.SortOrder
   frozenFor?: Prisma.SortOrderInput | Prisma.SortOrder
+  validFor?: Prisma.SortOrderInput | Prisma.SortOrder
   LaunchDate?: Prisma.SortOrderInput | Prisma.SortOrder
   SalUnitMsr?: Prisma.SortOrderInput | Prisma.SortOrder
   AvgPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   HargaBeli?: Prisma.SortOrderInput | Prisma.SortOrder
+  MinPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrderInput | Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
   RevenuesAc?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -357,10 +392,13 @@ export type productsWhereUniqueInput = Prisma.AtLeast<{
   ItemName?: Prisma.StringNullableFilter<"products"> | string | null
   ItmsGrpNam?: Prisma.StringNullableFilter<"products"> | string | null
   frozenFor?: Prisma.StringNullableFilter<"products"> | string | null
+  validFor?: Prisma.StringNullableFilter<"products"> | string | null
   LaunchDate?: Prisma.DateTimeNullableFilter<"products"> | Date | string | null
   SalUnitMsr?: Prisma.StringNullableFilter<"products"> | string | null
   AvgPrice?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.DecimalNullableFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFilter<"products"> | number
   RevenuesAc?: Prisma.StringNullableFilter<"products"> | string | null
@@ -379,10 +417,13 @@ export type productsOrderByWithAggregationInput = {
   ItemName?: Prisma.SortOrderInput | Prisma.SortOrder
   ItmsGrpNam?: Prisma.SortOrderInput | Prisma.SortOrder
   frozenFor?: Prisma.SortOrderInput | Prisma.SortOrder
+  validFor?: Prisma.SortOrderInput | Prisma.SortOrder
   LaunchDate?: Prisma.SortOrderInput | Prisma.SortOrder
   SalUnitMsr?: Prisma.SortOrderInput | Prisma.SortOrder
   AvgPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   HargaBeli?: Prisma.SortOrderInput | Prisma.SortOrder
+  MinPrice?: Prisma.SortOrderInput | Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrderInput | Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrderInput | Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
   RevenuesAc?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -406,10 +447,13 @@ export type productsScalarWhereWithAggregatesInput = {
   ItemName?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
   ItmsGrpNam?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
   frozenFor?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
+  validFor?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
   LaunchDate?: Prisma.DateTimeNullableWithAggregatesFilter<"products"> | Date | string | null
   SalUnitMsr?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
   AvgPrice?: Prisma.DecimalNullableWithAggregatesFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.DecimalNullableWithAggregatesFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.DecimalNullableWithAggregatesFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.DecimalNullableWithAggregatesFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.DecimalNullableWithAggregatesFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntWithAggregatesFilter<"products"> | number
   RevenuesAc?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
@@ -425,10 +469,13 @@ export type productsCreateInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -447,10 +494,13 @@ export type productsUncheckedCreateInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -469,10 +519,13 @@ export type productsUpdateInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -491,10 +544,13 @@ export type productsUncheckedUpdateInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -513,10 +569,13 @@ export type productsCreateManyInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -532,10 +591,13 @@ export type productsUpdateManyMutationInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -551,10 +613,13 @@ export type productsUncheckedUpdateManyInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -576,10 +641,13 @@ export type productsCountOrderByAggregateInput = {
   ItemName?: Prisma.SortOrder
   ItmsGrpNam?: Prisma.SortOrder
   frozenFor?: Prisma.SortOrder
+  validFor?: Prisma.SortOrder
   LaunchDate?: Prisma.SortOrder
   SalUnitMsr?: Prisma.SortOrder
   AvgPrice?: Prisma.SortOrder
   HargaBeli?: Prisma.SortOrder
+  MinPrice?: Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
   RevenuesAc?: Prisma.SortOrder
@@ -593,6 +661,8 @@ export type productsAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   AvgPrice?: Prisma.SortOrder
   HargaBeli?: Prisma.SortOrder
+  MinPrice?: Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
 }
@@ -603,10 +673,13 @@ export type productsMaxOrderByAggregateInput = {
   ItemName?: Prisma.SortOrder
   ItmsGrpNam?: Prisma.SortOrder
   frozenFor?: Prisma.SortOrder
+  validFor?: Prisma.SortOrder
   LaunchDate?: Prisma.SortOrder
   SalUnitMsr?: Prisma.SortOrder
   AvgPrice?: Prisma.SortOrder
   HargaBeli?: Prisma.SortOrder
+  MinPrice?: Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
   RevenuesAc?: Prisma.SortOrder
@@ -622,10 +695,13 @@ export type productsMinOrderByAggregateInput = {
   ItemName?: Prisma.SortOrder
   ItmsGrpNam?: Prisma.SortOrder
   frozenFor?: Prisma.SortOrder
+  validFor?: Prisma.SortOrder
   LaunchDate?: Prisma.SortOrder
   SalUnitMsr?: Prisma.SortOrder
   AvgPrice?: Prisma.SortOrder
   HargaBeli?: Prisma.SortOrder
+  MinPrice?: Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
   RevenuesAc?: Prisma.SortOrder
@@ -639,6 +715,8 @@ export type productsSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   AvgPrice?: Prisma.SortOrder
   HargaBeli?: Prisma.SortOrder
+  MinPrice?: Prisma.SortOrder
+  MaxPrice?: Prisma.SortOrder
   HargaJualNormal?: Prisma.SortOrder
   ItmsGrpCod?: Prisma.SortOrder
 }
@@ -703,10 +781,13 @@ export type productsCreateWithoutProduct_developmentsInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -724,10 +805,13 @@ export type productsUncheckedCreateWithoutProduct_developmentsInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -761,10 +845,13 @@ export type productsUpdateWithoutProduct_developmentsInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -782,10 +869,13 @@ export type productsUncheckedUpdateWithoutProduct_developmentsInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -803,10 +893,13 @@ export type productsCreateWithoutSales_invoicesInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -824,10 +917,13 @@ export type productsUncheckedCreateWithoutSales_invoicesInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -861,10 +957,13 @@ export type productsUpdateWithoutSales_invoicesInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -882,10 +981,13 @@ export type productsUncheckedUpdateWithoutSales_invoicesInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -903,10 +1005,13 @@ export type productsCreateWithoutVisit_itemsInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -924,10 +1029,13 @@ export type productsUncheckedCreateWithoutVisit_itemsInput = {
   ItemName?: string | null
   ItmsGrpNam?: string | null
   frozenFor?: string | null
+  validFor?: string | null
   LaunchDate?: Date | string | null
   SalUnitMsr?: string | null
   AvgPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod: number
   RevenuesAc?: string | null
@@ -961,10 +1069,13 @@ export type productsUpdateWithoutVisit_itemsInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -982,10 +1093,13 @@ export type productsUncheckedUpdateWithoutVisit_itemsInput = {
   ItemName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ItmsGrpNam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   frozenFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   LaunchDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   SalUnitMsr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   AvgPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaBeli?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MinPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  MaxPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   HargaJualNormal?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   ItmsGrpCod?: Prisma.IntFieldUpdateOperationsInput | number
   RevenuesAc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1052,10 +1166,13 @@ export type productsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   ItemName?: boolean
   ItmsGrpNam?: boolean
   frozenFor?: boolean
+  validFor?: boolean
   LaunchDate?: boolean
   SalUnitMsr?: boolean
   AvgPrice?: boolean
   HargaBeli?: boolean
+  MinPrice?: boolean
+  MaxPrice?: boolean
   HargaJualNormal?: boolean
   ItmsGrpCod?: boolean
   RevenuesAc?: boolean
@@ -1077,10 +1194,13 @@ export type productsSelectScalar = {
   ItemName?: boolean
   ItmsGrpNam?: boolean
   frozenFor?: boolean
+  validFor?: boolean
   LaunchDate?: boolean
   SalUnitMsr?: boolean
   AvgPrice?: boolean
   HargaBeli?: boolean
+  MinPrice?: boolean
+  MaxPrice?: boolean
   HargaJualNormal?: boolean
   ItmsGrpCod?: boolean
   RevenuesAc?: boolean
@@ -1090,7 +1210,7 @@ export type productsSelectScalar = {
   updated_at?: boolean
 }
 
-export type productsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ItemCode" | "ItemName" | "ItmsGrpNam" | "frozenFor" | "LaunchDate" | "SalUnitMsr" | "AvgPrice" | "HargaBeli" | "HargaJualNormal" | "ItmsGrpCod" | "RevenuesAc" | "AcctName" | "image" | "created_at" | "updated_at", ExtArgs["result"]["products"]>
+export type productsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ItemCode" | "ItemName" | "ItmsGrpNam" | "frozenFor" | "validFor" | "LaunchDate" | "SalUnitMsr" | "AvgPrice" | "HargaBeli" | "MinPrice" | "MaxPrice" | "HargaJualNormal" | "ItmsGrpCod" | "RevenuesAc" | "AcctName" | "image" | "created_at" | "updated_at", ExtArgs["result"]["products"]>
 export type productsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sales_invoices?: boolean | Prisma.products$sales_invoicesArgs<ExtArgs>
   visit_items?: boolean | Prisma.products$visit_itemsArgs<ExtArgs>
@@ -1111,10 +1231,13 @@ export type $productsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     ItemName: string | null
     ItmsGrpNam: string | null
     frozenFor: string | null
+    validFor: string | null
     LaunchDate: Date | null
     SalUnitMsr: string | null
     AvgPrice: runtime.Decimal | null
     HargaBeli: runtime.Decimal | null
+    MinPrice: runtime.Decimal | null
+    MaxPrice: runtime.Decimal | null
     HargaJualNormal: runtime.Decimal | null
     ItmsGrpCod: number
     RevenuesAc: string | null
@@ -1499,10 +1622,13 @@ export interface productsFieldRefs {
   readonly ItemName: Prisma.FieldRef<"products", 'String'>
   readonly ItmsGrpNam: Prisma.FieldRef<"products", 'String'>
   readonly frozenFor: Prisma.FieldRef<"products", 'String'>
+  readonly validFor: Prisma.FieldRef<"products", 'String'>
   readonly LaunchDate: Prisma.FieldRef<"products", 'DateTime'>
   readonly SalUnitMsr: Prisma.FieldRef<"products", 'String'>
   readonly AvgPrice: Prisma.FieldRef<"products", 'Decimal'>
   readonly HargaBeli: Prisma.FieldRef<"products", 'Decimal'>
+  readonly MinPrice: Prisma.FieldRef<"products", 'Decimal'>
+  readonly MaxPrice: Prisma.FieldRef<"products", 'Decimal'>
   readonly HargaJualNormal: Prisma.FieldRef<"products", 'Decimal'>
   readonly ItmsGrpCod: Prisma.FieldRef<"products", 'Int'>
   readonly RevenuesAc: Prisma.FieldRef<"products", 'String'>
