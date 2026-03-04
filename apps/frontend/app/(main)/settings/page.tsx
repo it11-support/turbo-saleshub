@@ -1,11 +1,11 @@
 'use client'
 
-import { useConcernStore } from '@/stores'
 import { Button } from 'primereact/button'
 import { useEffect } from 'react'
 
-const SettingsPage = () => {
+import { useConcernStore } from '@/stores'
 
+const SettingsPage = () => {
   const concernStore = useConcernStore()
   const { fetchConcernCategories, concernCategories } = concernStore
 

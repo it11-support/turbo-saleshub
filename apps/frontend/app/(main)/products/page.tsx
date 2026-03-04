@@ -264,7 +264,8 @@ const ProductList = () => {
                       <i className="pi pi-tags"></i> {item.ItmsGrpNam}
                     </div>
                     <div className="mt-1 text-sm font-semibold mt-3">
-                      {formatCurrency(Number(item.MinPrice), true, true)} - {formatCurrency(Number(item.MaxPrice), true, true)}
+                      {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
+                      {formatCurrency(Number(item.MaxPrice), true, true)}
                     </div>
                     <Divider />
                     <p className="font-semibold">Monthly Summary</p>
