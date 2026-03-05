@@ -239,7 +239,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // REVENUE TREND (12 MONTHS, MTD)
     // =====================
-    console.log("STEP 1")
     const revenueTrendRaw = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
@@ -255,9 +254,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
         }
       },
     })
-    console.log("STEP 2")
-
-
 
     const revenueByMonth = revenueTrendRaw.reduce<Record<string, number>>(
       (acc, cur) => {
@@ -288,8 +284,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // ORDER TREND (12 MONTHS)
     // =====================
-    console.log("STEP 3")
-
     const ordersTrendRaw = await prisma.orders.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
@@ -322,7 +316,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
           : ordersMap[period]?.size ?? 0,
     }))
 
-
     const customerTrendRaw = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
@@ -333,9 +326,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
         CardCode: true,
       },
     })
-
-    console.log("STEP 4")
-
     const customerMap = customerTrendRaw.reduce<Record<string, Set<string>>>(
       (acc, cur) => {
         if (!cur.DocDate || !cur.CardCode) return acc
@@ -376,9 +366,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
         }
       },
     })
-
-    console.log("STEP 5")
-
 
     // Group by month
     const aovMap = aovTrendRaw.reduce<Record<string, { totalSales: number; orders: Set<number> }>>((acc, cur) => {
@@ -436,7 +423,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
         returs: true
       },
     })
-    console.log("STEP 6")
     const revenueBySales: Record<string, number> = {}
 
     invoices.forEach(inv => {
