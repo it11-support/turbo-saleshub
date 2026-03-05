@@ -255,27 +255,23 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
-    const revenueByMonth = revenueTrendRaw.reduce<Record<string, number>>(
-      (acc, cur) => {
-        if (!cur.DocDate) return acc
+    const revenueByMonth: Record<string, number> = {}
 
-        const period = dayjs(cur.DocDate).format('YYYY-MM')
+    for (const cur of revenueTrendRaw) {
+      if (!cur.DocDate) continue
 
-        const sales = Number(cur.TotalSales ?? 0)
+      const period = dayjs(cur.DocDate).format('YYYY-MM')
 
-        const retur = cur.returs.reduce(
-          (sum, r) => sum + Number(r.TotalSales ?? 0),
-          0
-        )
+      const sales = Number(cur.TotalSales ?? 0)
 
-        const net = sales + retur
+      const retur = (cur.returs ?? []).reduce(
+        (sum, r) => sum + Number(r.TotalSales ?? 0),
+        0
+      )
 
-        acc[period] = (acc[period] ?? 0) + net
+      revenueByMonth[period] = (revenueByMonth[period] ?? 0) + sales + retur
+    }
 
-        return acc
-      },
-      {}
-    )
 
     const revenueTrend = Object.entries(revenueByMonth)
       .map(([period, revenue]) => ({ period, revenue }))
@@ -420,7 +416,11 @@ export const mtdSummary = async (req: Request, res: Response) => {
             sales_person: true,
           },
         },
-        returs: true
+        returs: {
+          select: {
+            TotalSales: true
+          }
+        }
       },
     })
     const revenueBySales: Record<string, number> = {}
@@ -506,7 +506,13 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: monthStart, lte: monthEnd },
         ...cardCodeFilter
       },
-      select: { CardCode: true, returs: true },
+      select: {
+        CardCode: true, returs: {
+          select: {
+            TotalSales: true
+          }
+        }
+      },
     })
 
     const invoicesBefore = await prisma.sales_invoices.findMany({
@@ -514,7 +520,13 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { lt: monthStart },
         ...cardCodeFilter
       },
-      select: { CardCode: true, returs: true },
+      select: {
+        CardCode: true, returs: {
+          select: {
+            TotalSales: true
+          }
+        }
+      },
     })
 
     const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))
