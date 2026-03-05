@@ -187,6 +187,7 @@ model products {
   updated_at      DateTime?        @db.Timestamp(0)
   sales_invoices  sales_invoices[]
   visit_items     visit_items[]
+  returs          retur_invoices[]
 
   product_developments product_developments[]
 }
@@ -269,7 +270,7 @@ model retur_invoices {
   sales sales_invoices @relation("SalesToRetur",fields: [DocNum, LineNum],references: [DocNum, LineNum],onDelete: Cascade)
 
   customer customers @relation(fields: [CardCode], references: [CardCode])
-
+  product  products?  @relation(fields: [ItemCode], references: [ItemCode])
   @@index([DocNum, LineNum])
   @@index([CardCode])
 }
