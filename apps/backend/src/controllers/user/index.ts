@@ -36,13 +36,13 @@ export const userList = async (
 
     const whereQuery: any = search
       ? {
-          OR: [
-            { name: { contains: search } },
-            { email: { contains: search } },
-            { username: { contains: search } },
-            { sales_person: { SlpName: { contains: search } } },
-          ],
-        }
+        OR: [
+          { name: { contains: search } },
+          { email: { contains: search } },
+          { username: { contains: search } },
+          { sales_person: { SlpName: { contains: search } } },
+        ],
+      }
       : {};
 
     const sortOptions = sortOptionsParser(req.query.sort_options);
@@ -145,8 +145,16 @@ export const updateUser = async (req: Request<{ id: string }>, res: Response) =>
 
 export const createUser = async (req: Request, res: Response) => {
   try {
+    const { password, ...rest } = req.body;
+    const data: any = { ...rest };
+
+    if (password && password.trim() !== '') {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      data.password = hashedPassword;
+    }
+
     const user = await prisma.users.create({
-      data: req.body,
+      data
     });
     return res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
