@@ -101,16 +101,16 @@ export const mtdSummary = async (req: Request, res: Response) => {
               gte: mtdStart,
               lte: mtdEnd,
             },
-            ...(hasSalesPersonFilter
-              ? {
-                customer: {
-                  sales_person: {
-                    id: parsedSalesPersonId,
-                  },
-                },
-              }
-              : {}),
           },
+          ...(hasSalesPersonFilter
+            ? {
+              customer: {
+                sales_person: {
+                  id: parsedSalesPersonId,
+                },
+              },
+            }
+            : {}),
         },
       }),
       prisma.sales_invoices.aggregate({
@@ -132,16 +132,16 @@ export const mtdSummary = async (req: Request, res: Response) => {
               gte: now.subtract(1, 'month').startOf('month').toDate(),
               lte: now.subtract(1, 'month').date(now.date()).toDate(),
             },
-            ...(hasSalesPersonFilter
-              ? {
-                customer: {
-                  sales_person: {
-                    id: parsedSalesPersonId,
-                  },
-                },
-              }
-              : {}),
           },
+          ...(hasSalesPersonFilter
+            ? {
+              customer: {
+                sales_person: {
+                  id: parsedSalesPersonId,
+                },
+              },
+            }
+            : {}),
         },
       }),
 
@@ -210,7 +210,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     const aov = calcMTD(
       ordersCurrent.length
-        ?  (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
+        ? (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
         : 0,
       ordersLast.length
         ? (Number(revenueLast._sum.TotalSales || 0) + Number(returLast._sum.TotalSales || 0)) / ordersLast.length
