@@ -34,12 +34,14 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const trendEnd = mtdEnd // ⬅️ PENTING: MTD, bukan endOfMonth
 
     const { salesPersonId } = req.query
+    const parsedSalesPersonId = Number(salesPersonId)
+    const hasSalesPersonFilter = Number.isFinite(parsedSalesPersonId)
 
-    const salesFilter = salesPersonId
+    const salesFilter = hasSalesPersonFilter
       ? {
         customer: {
           sales_person: {
-            id: Number(salesPersonId),
+            id: parsedSalesPersonId,
           },
         },
       }
@@ -98,9 +100,17 @@ export const mtdSummary = async (req: Request, res: Response) => {
             DocDate: {
               gte: mtdStart,
               lte: mtdEnd,
-            }
+            },
+            ...(hasSalesPersonFilter
+              ? {
+                customer: {
+                  sales_person: {
+                    id: parsedSalesPersonId,
+                  },
+                },
+              }
+              : {}),
           },
-          ...salesFilter,
         },
       }),
       prisma.sales_invoices.aggregate({
@@ -122,8 +132,16 @@ export const mtdSummary = async (req: Request, res: Response) => {
               gte: now.subtract(1, 'month').startOf('month').toDate(),
               lte: now.subtract(1, 'month').date(now.date()).toDate(),
             },
+            ...(hasSalesPersonFilter
+              ? {
+                customer: {
+                  sales_person: {
+                    id: parsedSalesPersonId,
+                  },
+                },
+              }
+              : {}),
           },
-          ...salesFilter
         },
       }),
 
