@@ -264,8 +264,8 @@ model retur_invoices {
   created_at   DateTime? @default(now())
   updated_at   DateTime? @updatedAt
 
-  sales sales_invoices @relation(fields: [DocNum, LineNum], references: [DocNum, LineNum], onDelete: Cascade)
-  customer customers? @relation(fields: [CardCode], references: [CardCode])
+  sales        sales_invoices   @relation(fields: [DocNum, LineNum], references: [DocNum, LineNum], onDelete: Cascade)
+  customer     customers        @relation(fields: [CardCode], references: [CardCode])
 
   @@index([DocNum, LineNum])
 }

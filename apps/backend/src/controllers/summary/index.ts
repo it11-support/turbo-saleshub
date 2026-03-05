@@ -101,16 +101,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
               gte: mtdStart,
               lte: mtdEnd,
             },
+            ...salesFilter,
           },
-          ...(hasSalesPersonFilter
-            ? {
-              customer: {
-                sales_person: {
-                  id: parsedSalesPersonId,
-                },
-              },
-            }
-            : {}),
         },
       }),
       prisma.sales_invoices.aggregate({
@@ -120,7 +112,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
             gte: now.subtract(1, 'month').startOf('month').toDate(),
             lte: now.subtract(1, 'month').date(now.date()).toDate(),
           },
-          ...salesFilter,
+
         },
       }),
 
@@ -132,16 +124,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
               gte: now.subtract(1, 'month').startOf('month').toDate(),
               lte: now.subtract(1, 'month').date(now.date()).toDate(),
             },
-          },
-          ...(hasSalesPersonFilter
-            ? {
-              customer: {
-                sales_person: {
-                  id: parsedSalesPersonId,
-                },
-              },
-            }
-            : {}),
+            ...salesFilter,
+          }
         },
       }),
 
