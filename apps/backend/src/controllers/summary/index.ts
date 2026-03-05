@@ -205,6 +205,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         : 0
     )
 
+    console.log(aov)
     // =====================
     // REVENUE TREND (12 MONTHS, MTD)
     // =====================
@@ -224,6 +225,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
+    console.log(revenueTrendRaw)
     const revenueByMonth = revenueTrendRaw.reduce<Record<string, number>>(
       (acc, cur) => {
         if (!cur.DocDate) return acc
@@ -246,6 +248,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
       {}
     )
 
+
+    console.log(revenueByMonth)
     const revenueTrend = Object.entries(revenueByMonth)
       .map(([period, revenue]) => ({ period, revenue }))
       .sort((a, b) => a.period.localeCompare(b.period))
@@ -336,6 +340,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
+    console.log(aovTrendRaw)
     // Group by month
     const aovMap = aovTrendRaw.reduce<Record<string, { totalSales: number; orders: Set<number> }>>((acc, cur) => {
       if (!cur.DocDate || !cur.DocNum) return acc
@@ -364,6 +369,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       return acc
     }, {})
 
+    console.log(aovMap)
 
     const aovTrend = Object.entries(aovMap)
       .map(([period, data]) => ({
@@ -401,6 +407,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         }
       }
     })
+
+    console.log(invoices)
     const revenueBySales: Record<string, number> = {}
 
     invoices.forEach(inv => {
@@ -408,6 +416,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
 
       // Total invoice + total retur
       const totalRetur = inv.returs?.reduce((sum, r) => sum + Number(r.TotalSales ?? 0), 0) ?? 0
+      console.log(totalRetur)
       const totalInvoice = Number(inv.TotalSales ?? 0)
 
       revenueBySales[slp] = (revenueBySales[slp] ?? 0) + totalInvoice + totalRetur
@@ -493,6 +502,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
+    console.log(invoicesCurrent)
     const invoicesBefore = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { lt: monthStart },
@@ -506,6 +516,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         }
       },
     })
+
+    console.log(invoicesBefore)
 
     const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))
     const currentSet = new Set(invoicesCurrent.map(i => i.CardCode))
