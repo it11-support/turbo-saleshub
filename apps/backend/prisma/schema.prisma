@@ -64,6 +64,7 @@ model customers {
   subgroup subgroups? @relation(fields: [IndustryC], references: [IndCode])
 
   sales_invoices    sales_invoices[]
+  returs            retur_invoices[]
   orders            orders[]
   sales_visit_rules sales_visit_rules[]
   schedule          sales_visit_schedules[]
@@ -263,9 +264,10 @@ model retur_invoices {
   created_at   DateTime? @default(now())
   updated_at   DateTime? @updatedAt
 
-  sales sales_invoices @relation(fields: [DocNum, LineNum], references: [DocNum, LineNum], onDelete: Cascade)
+  sales        sales_invoices   @relation(fields: [DocNum, LineNum], references: [DocNum, LineNum], onDelete: Cascade)
+  customer     customers        @relation(fields: [CardCode], references: [CardCode])
 
-   @@index([DocNum, LineNum])
+  @@index([DocNum, LineNum])
 }
 model sales_visit_rules {
   id                  BigInt     @id @default(autoincrement()) @db.UnsignedBigInt

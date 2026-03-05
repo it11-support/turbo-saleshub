@@ -181,7 +181,7 @@ export default function VisitsPage(): JSX.Element {
         sales_person_id: selectedSalesPerson,
         dayFilter: day,
         data: {
-          [lastChangedCustomer]: [true, false, false, false], // trigger DELETE
+          [lastChangedCustomer]: [false, false, false, false], // trigger DELETE
         },
       }
     }

@@ -34,12 +34,14 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const trendEnd = mtdEnd // ⬅️ PENTING: MTD, bukan endOfMonth
 
     const { salesPersonId } = req.query
+    const parsedSalesPersonId = Number(salesPersonId)
+    const hasSalesPersonFilter = Number.isFinite(parsedSalesPersonId)
 
-    const salesFilter = salesPersonId
+    const salesFilter = hasSalesPersonFilter
       ? {
         customer: {
           sales_person: {
-            id: Number(salesPersonId),
+            id: parsedSalesPersonId,
           },
         },
       }
@@ -98,9 +100,9 @@ export const mtdSummary = async (req: Request, res: Response) => {
             DocDate: {
               gte: mtdStart,
               lte: mtdEnd,
-            }
+            },
+            ...salesFilter,
           },
-          ...salesFilter,
         },
       }),
       prisma.sales_invoices.aggregate({
@@ -110,7 +112,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
             gte: now.subtract(1, 'month').startOf('month').toDate(),
             lte: now.subtract(1, 'month').date(now.date()).toDate(),
           },
-          ...salesFilter,
+
         },
       }),
 
@@ -122,8 +124,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
               gte: now.subtract(1, 'month').startOf('month').toDate(),
               lte: now.subtract(1, 'month').date(now.date()).toDate(),
             },
-          },
-          ...salesFilter
+            ...salesFilter,
+          }
         },
       }),
 
@@ -192,7 +194,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     const aov = calcMTD(
       ordersCurrent.length
-        ?  (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
+        ? (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
         : 0,
       ordersLast.length
         ? (Number(revenueLast._sum.TotalSales || 0) + Number(returLast._sum.TotalSales || 0)) / ordersLast.length

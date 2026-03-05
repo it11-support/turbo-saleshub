@@ -3,8 +3,12 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient, Prisma } from '../generated/prisma/client.js';
 import { pagination } from "prisma-extension-pagination";
 
-function convertValue(value: any): any {
-  if (typeof value === "bigint") return Number(value);
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === "[object Object]";
+}
+
+function convertScalar(value: any): { converted: boolean; value: any } {
+  if (typeof value === "bigint") return { converted: true, value: Number(value) };
 
   if (
     typeof value === "object" &&
@@ -12,7 +16,7 @@ function convertValue(value: any): any {
     "toNumber" in value &&
     typeof (value as Prisma.Decimal).toNumber === "function"
   ) {
-    return (value as Prisma.Decimal).toNumber();
+    return { converted: true, value: (value as Prisma.Decimal).toNumber() };
   }
 
   if (value instanceof Date) {
@@ -23,18 +27,89 @@ function convertValue(value: any): any {
     const hours = pad(value.getHours());
     const minutes = pad(value.getMinutes());
     const seconds = pad(value.getSeconds());
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return {
+      converted: true,
+      value: `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`,
+    };
   }
 
-  if (Array.isArray(value)) return value.map(convertValue);
+  return { converted: false, value };
+}
 
-  if (value && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [k, convertValue(v)])
-    );
+function convertValue(input: any): any {
+  const scalar = convertScalar(input);
+  if (scalar.converted) return scalar.value;
+
+  if (!Array.isArray(input) && !(input && typeof input === "object" && isPlainObject(input))) {
+    return input;
   }
 
-  return value;
+  const seen = new WeakMap<object, any>();
+  const root = Array.isArray(input) ? [] : {};
+  seen.set(input as object, root);
+
+  const stack: Array<{ source: any; target: any }> = [{ source: input, target: root }];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) continue;
+
+    const { source, target } = current;
+
+    if (Array.isArray(source)) {
+      for (let i = 0; i < source.length; i++) {
+        const item = source[i];
+        const itemScalar = convertScalar(item);
+        if (itemScalar.converted) {
+          target[i] = itemScalar.value;
+          continue;
+        }
+
+        if (Array.isArray(item) || (item && typeof item === "object" && isPlainObject(item))) {
+          const cached = seen.get(item);
+          if (cached) {
+            target[i] = cached;
+            continue;
+          }
+
+          const child = Array.isArray(item) ? [] : {};
+          seen.set(item, child);
+          target[i] = child;
+          stack.push({ source: item, target: child });
+          continue;
+        }
+
+        target[i] = item;
+      }
+      continue;
+    }
+
+    for (const [key, value] of Object.entries(source)) {
+      const valueScalar = convertScalar(value);
+      if (valueScalar.converted) {
+        target[key] = valueScalar.value;
+        continue;
+      }
+
+      if (Array.isArray(value) || (value && typeof value === "object" && isPlainObject(value))) {
+        const cached = seen.get(value);
+        if (cached) {
+          target[key] = cached;
+          continue;
+        }
+
+        const child = Array.isArray(value) ? [] : {};
+        seen.set(value, child);
+        target[key] = child;
+        stack.push({ source: value, target: child });
+        continue;
+      }
+
+      target[key] = value;
+    }
+  }
+
+  return root;
 }
 
 
