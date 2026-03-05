@@ -43,17 +43,48 @@ export const mtdSummary = async (req: Request, res: Response) => {
       salesPersonIdRaw.trim() !== '' &&
       Number.isFinite(parsedSalesPersonId)
 
-    // Return a fresh object per query to avoid Prisma parser edge-cases in prod.
-    const getSalesFilter = () =>
-      hasSalesPersonFilter
-        ? {
-          customer: {
-            sales_person: {
-              id: parsedSalesPersonId,
-            },
-          },
-        }
-        : {}
+    // Resolve sales scope once, then use scalar filters to avoid deep relation-filter parsing.
+    const salesPerson = hasSalesPersonFilter
+      ? await prisma.sales_persons.findUnique({
+        where: {
+          id: parsedSalesPersonId,
+        },
+        select: {
+          SlpCode: true,
+        },
+      })
+      : null
+
+    const scopedCustomers = hasSalesPersonFilter && salesPerson
+      ? await prisma.customers.findMany({
+        where: {
+          SlpCode: salesPerson.SlpCode,
+        },
+        select: {
+          CardCode: true,
+          id: true,
+        },
+      })
+      : []
+
+    const scopedCardCodes = scopedCustomers.map((c) => c.CardCode)
+    const scopedCustomerIds = scopedCustomers.map((c) => Number(c.id))
+
+    const cardCodeFilter = hasSalesPersonFilter
+      ? {
+        CardCode: {
+          in: scopedCardCodes,
+        },
+      }
+      : {}
+
+    const customerIdFilter = hasSalesPersonFilter
+      ? {
+        customerId: {
+          in: scopedCustomerIds,
+        },
+      }
+      : {}
 
     // const calcMTD = (current: number, last: number) => {
     //   const diff = current - last
@@ -96,7 +127,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         _sum: { TotalSales: true },
         where: {
           DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...getSalesFilter(),
+          ...cardCodeFilter,
         },
       }),
       prisma.retur_invoices.aggregate({
@@ -104,13 +135,11 @@ export const mtdSummary = async (req: Request, res: Response) => {
           TotalSales: true,
         },
         where: {
-          sales: {
-            DocDate: {
-              gte: mtdStart,
-              lte: mtdEnd,
-            },
-            ...getSalesFilter(),
+          DocDate: {
+            gte: mtdStart,
+            lte: mtdEnd,
           },
+          ...cardCodeFilter,
         },
       }),
       prisma.sales_invoices.aggregate({
@@ -120,20 +149,18 @@ export const mtdSummary = async (req: Request, res: Response) => {
             gte: now.subtract(1, 'month').startOf('month').toDate(),
             lte: now.subtract(1, 'month').date(now.date()).toDate(),
           },
-          ...getSalesFilter(),
+          ...cardCodeFilter,
         },
       }),
 
       prisma.retur_invoices.aggregate({
         _sum: { TotalSales: true },
         where: {
-          sales: {
-            DocDate: {
-              gte: now.subtract(1, 'month').startOf('month').toDate(),
-              lte: now.subtract(1, 'month').date(now.date()).toDate(),
-            },
-            ...getSalesFilter(),
-          }
+          DocDate: {
+            gte: now.subtract(1, 'month').startOf('month').toDate(),
+            lte: now.subtract(1, 'month').date(now.date()).toDate(),
+          },
+          ...cardCodeFilter,
         },
       }),
 
@@ -152,7 +179,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         by: ['DocNum'],
         where: {
           DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...getSalesFilter(),
+          ...cardCodeFilter,
         },
       }),
       prisma.orders.groupBy({
@@ -162,7 +189,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
             gte: now.subtract(1, 'month').startOf('month').toDate(),
             lte: now.subtract(1, 'month').date(now.date()).toDate(),
           },
-          ...getSalesFilter(),
+          ...cardCodeFilter,
         },
       }),
     ])
@@ -177,7 +204,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         by: ['CardCode'],
         where: {
           DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...getSalesFilter(),
+          ...cardCodeFilter,
         },
       }),
       prisma.sales_invoices.groupBy({
@@ -187,7 +214,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
             gte: now.subtract(1, 'month').startOf('month').toDate(),
             lte: now.subtract(1, 'month').date(now.date()).toDate(),
           },
-          ...getSalesFilter(),
+          ...cardCodeFilter,
         },
       }),
     ])
@@ -215,7 +242,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const revenueTrendRaw = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       select: {
         DocDate: true,
@@ -260,7 +287,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const ordersTrendRaw = await prisma.orders.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       select: {
         DocDate: true,
@@ -292,7 +319,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const customerTrendRaw = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       select: {
         DocDate: true,
@@ -326,7 +353,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const aovTrendRaw = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       select: {
         DocDate: true,
@@ -385,7 +412,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const invoices = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       include: {
         customer: {
@@ -421,7 +448,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         product: {
           ItemName: { contains: 'LIVI' },
         },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       orderBy: { _sum: { TotalSales: 'desc' } },
       take: 10,
@@ -438,7 +465,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
             not: { contains: 'LIVI' },
           }
         },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       orderBy: { _sum: { TotalSales: 'desc' } },
       take: 10,
@@ -477,7 +504,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const invoicesCurrent = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: monthStart, lte: monthEnd },
-        ...getSalesFilter()
+        ...cardCodeFilter
       },
       select: { CardCode: true, returs: true },
     })
@@ -485,7 +512,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const invoicesBefore = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { lt: monthStart },
-        ...getSalesFilter()
+        ...cardCodeFilter
       },
       select: { CardCode: true, returs: true },
     })
@@ -516,7 +543,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const baseCustomers = await prisma.orders.findMany({
       where: {
         DocDate: { gte: baseStart, lte: baseEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       distinct: ['CardCode'],
       select: { CardCode: true },
@@ -525,7 +552,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const currentCustomersCRR = await prisma.orders.findMany({
       where: {
         DocDate: { gte: currentStart, lte: currentEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       distinct: ['CardCode'],
       select: { CardCode: true },
@@ -557,7 +584,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       by: ['CardCode'],
       where: {
         DocDate: { gte: threeMonthStart, lte: threeMonthEnd },
-        ...getSalesFilter(),
+        ...cardCodeFilter,
       },
       _count: { CardCode: true },
     });
@@ -586,7 +613,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         lastCalculated: {
           gte: fromDate
         },
-        ...getSalesFilter()
+        ...customerIdFilter
       },
       select: {
         segment: true
