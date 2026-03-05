@@ -373,7 +373,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       .sort((a, b) => a.period.localeCompare(b.period))
 
     // Ambil semua invoice dalam 12 bulan terakhir
-    const aovTrendRaw = await prisma.sales_invoices.findMany({
+    const aovSalesRaw = await prisma.sales_invoices.findMany({
       where: {
         DocDate: { gte: trendStart, lte: trendEnd },
         ...salesFilter,
@@ -382,41 +382,41 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: true,
         TotalSales: true,
         DocNum: true,
-        returs: {
-          select: {
-            TotalSales: true,
-          },
-        }
       },
     })
 
-    // Group by month
-    // 1️⃣ Buat map AOV per bulan
-    const aovMap = aovTrendRaw.reduce<
-      Record<string, { totalSales: number; orders: Set<number> }>
-    >((acc, cur) => {
-      if (!cur.DocDate || !cur.DocNum) return acc
+    const aovReturRaw = await prisma.retur_invoices.findMany({
+      where: {
+        DocDate: { gte: trendStart, lte: trendEnd },
+        ...salesFilter,
+      },
+      select: {
+        DocDate: true,
+        TotalSales: true,
+        DocNum: true,
+      },
+    })
 
+    const aovMap: Record<string, { totalSales: number; orders: Set<number> }> = {}
+
+    // Tambahkan sales
+    aovSalesRaw.forEach((cur) => {
+      if (!cur.DocDate || !cur.DocNum) return
       const period = dayjs(cur.DocDate).format('YYYY-MM')
+      aovMap[period] ??= { totalSales: 0, orders: new Set() }
+      aovMap[period].totalSales += Number(cur.TotalSales ?? 0)
+      aovMap[period].orders.add(cur.DocNum)
+    })
 
-      // Inisialisasi jika periode belum ada
-      acc[period] ??= { totalSales: 0, orders: new Set<number>() }
+    // Tambahkan retur (dipisah tapi dijumlah ke totalSales untuk net)
+    aovReturRaw.forEach((cur) => {
+      if (!cur.DocDate || !cur.DocNum) return
+      const period = dayjs(cur.DocDate).format('YYYY-MM')
+      aovMap[period] ??= { totalSales: 0, orders: new Set() }
+      aovMap[period].totalSales += Number(cur.TotalSales ?? 0)
+      aovMap[period].orders.add(cur.DocNum)
+    })
 
-      const sales = Number(cur.TotalSales ?? 0)
-
-      // Jumlahkan total retur untuk invoice ini
-      const retur = cur.returs?.reduce(
-        (sum, r) => sum + Number(r.TotalSales ?? 0),
-        0
-      ) ?? 0
-
-      const netSales = sales + retur
-
-      acc[period].totalSales += netSales
-      acc[period].orders.add(cur.DocNum)
-
-      return acc
-    }, {})
 
     // 2️⃣ Buat array tren AOV
     const aovTrend = Object.entries(aovMap)
@@ -424,7 +424,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         period,
         aov:
           period === currentPeriod
-            ? aov.current // gunakan KPI MTD bulan ini
+            ? aov.current // bisa pakai KPI MTD bulan ini
             : data.orders.size > 0
               ? data.totalSales / data.orders.size
               : 0,
@@ -442,8 +442,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
           include: {
             sales_person: true,
           },
-        },
-        returs: true
+        }
       },
     })
 
@@ -616,7 +615,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { lt: monthStart },
         ...salesFilter
       },
-      select: { CardCode: true, returs: true },
+      select: { CardCode: true },
     })
 
     const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))
