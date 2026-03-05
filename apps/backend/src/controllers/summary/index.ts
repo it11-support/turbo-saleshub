@@ -192,7 +192,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     const aov = calcMTD(
       ordersCurrent.length
-        ?  (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
+        ? (Number(revenueCurrent._sum.TotalSales || 0) + Number(returCurrent._sum.TotalSales || 0)) / ordersCurrent.length
         : 0,
       ordersLast.length
         ? (Number(revenueLast._sum.TotalSales || 0) + Number(returLast._sum.TotalSales || 0)) / ordersLast.length
@@ -377,14 +377,23 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: mtdStart, lte: mtdEnd },
         ...salesFilter,
       },
-      include: {
+      select: {
+        TotalSales: true,
         customer: {
-          include: {
-            sales_person: true,
-          },
+          select: {
+            sales_person: {
+              select: {
+                SlpName: true
+              }
+            }
+          }
         },
-        returs: true
-      },
+        returs: {
+          select: {
+            TotalSales: true
+          }
+        }
+      }
     })
     const revenueBySales: Record<string, number> = {}
 
@@ -469,7 +478,13 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { gte: monthStart, lte: monthEnd },
         ...salesFilter
       },
-      select: { CardCode: true, returs: true },
+      select: {
+        CardCode: true, returs: {
+          select: {
+            CardCode: true
+          }
+        }
+      },
     })
 
     const invoicesBefore = await prisma.sales_invoices.findMany({
@@ -477,7 +492,13 @@ export const mtdSummary = async (req: Request, res: Response) => {
         DocDate: { lt: monthStart },
         ...salesFilter
       },
-      select: { CardCode: true, returs: true },
+      select: {
+        CardCode: true, returs: {
+          select: {
+            CardCode: true
+          }
+        }
+      },
     })
 
     const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))
