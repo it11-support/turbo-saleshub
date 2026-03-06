@@ -6,7 +6,7 @@ import ProductImage from './ProductImage'
 import PurchaseHistory from './PurchaseHistory'
 import { faIdBadge } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { ICustomer, ISalesInvoices, ProductWithFrequency } from '@saleshub-tsm/types'
+import { ICustomer, ProductWithFrequency } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Card } from 'primereact/card'
 import { Column } from 'primereact/column'
@@ -18,12 +18,13 @@ import useIsMobile from '@/layout/mobile/useIsMobile'
 import { getActiveItems } from '@/lib/customers'
 import { formatCurrency } from '@/lib/formatter'
 import { parsePhone } from '@/lib/phoneParser'
+import { ILastPurchase } from '@/types/customer'
 
 export interface Props {
   customer: ICustomer | null
   suggestedItems: ProductWithFrequency[]
   purchaseHistory?: {
-    lastPurchase: ISalesInvoices[]
+    lastPurchase: ILastPurchase[]
     ordersByRange: { current: number; last3Months: number; last6Months: number }
     invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
     purchaseValue: { current: number; last3Months: number; last6Months: number }
