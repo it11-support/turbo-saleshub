@@ -1,15 +1,15 @@
 'use client'
 
 import SummaryChart from './SummaryChart'
-import { ISalesInvoices } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Card } from 'primereact/card'
 
 import { formatCurrency } from '@/lib/formatter'
+import { ILastPurchase } from '@/types/customer'
 
 export type PurchaseHistoryProps = {
   purchaseHistory?: {
-    lastPurchase: ISalesInvoices[]
+    lastPurchase: ILastPurchase[]
     ordersByRange: { current: number; last3Months: number; last6Months: number }
     invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
     purchaseValue: { current: number; last3Months: number; last6Months: number }
@@ -60,7 +60,7 @@ const PurchaseHistory = (props: PurchaseHistoryProps) => {
 
                 <div className="w-full">
                   <div className="grid">
-                    {purchaseHistory.lastPurchase.map((item: ISalesInvoices, idx) => (
+                    {purchaseHistory.lastPurchase.map((item: ILastPurchase, idx) => (
                       <div key={idx} className="col-12 md:col-6 lg:col-4">
                         <Card
                           className="mb-3 p-3 h-[180px] shadow-2 px-0"
@@ -73,6 +73,12 @@ const PurchaseHistory = (props: PurchaseHistoryProps) => {
                           }}
                         >
                           <h5 className="text-gray-500 font-semibold">{item.Dscription}</h5>
+                          {item.hasRetur && (
+                            <div className="flex items-center gap-1 text-red-500 text-xs font-semibold mb-2">
+                              <i className="pi pi-tag text-xs"></i>
+                              <span className="uppercase tracking-wider">Retur</span>
+                            </div>
+                          )}
                           <div className="flex flex-column justify-content-between gap-2 text-sm">
                             <div className="flex flex-row justify-content-start gap-3 font-semibold">
                               <p>Qty</p>

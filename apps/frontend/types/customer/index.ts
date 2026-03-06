@@ -1,4 +1,8 @@
 import { ICustomer, ISalesInvoices, ProductWithFrequency } from '@saleshub-tsm/types'
+
+export interface ILastPurchase extends ISalesInvoices {
+  hasRetur: boolean
+}
 export interface ICustomerState {
   customer: ICustomer | null
   itemCount: number
@@ -39,8 +43,8 @@ export interface ICustomerState {
   fetchSuggestedItems: (id: string) => Promise<any | null>
   fetchPurchaseHistory: (id: string) => Promise<any | null>
   fetchSubgroupOptions: () => Promise<void>
-  lastPurchase: ISalesInvoices[]
-  setLastPurchase: (lastPurchase: ISalesInvoices[]) => void
+  lastPurchase: ILastPurchase[]
+  setLastPurchase: (lastPurchase: ILastPurchase[]) => void
   invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
   setInvoiceCountByRange: (invoiceCountByRange: {
     current: number

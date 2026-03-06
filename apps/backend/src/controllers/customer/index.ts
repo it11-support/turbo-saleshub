@@ -267,12 +267,34 @@ export const customerSummary = async (req: Request<{ id: string }>, res: Respons
         sales_invoices: {
           include: {
             product: true,
+            returs: {
+              select: {
+                TotalSales: true,
+              },
+            },
           },
         },
         subgroup: true,
       },
     });
-    return res.status(200).json({ message: 'Success', data: { customer } });
+    const customerWithNetSales = customer
+      ? {
+        ...customer,
+        sales_invoices: customer.sales_invoices.map(({ returs, ...invoice }) => {
+          const totalRetur = returs.reduce(
+            (sum, retur) => sum + Number(retur.TotalSales ?? 0),
+            0
+          );
+
+          return {
+            ...invoice,
+            TotalSales: Number(invoice.TotalSales ?? 0) + totalRetur,
+          };
+        }),
+      }
+      : null;
+
+    return res.status(200).json({ message: 'Success', data: { customer: customerWithNetSales } });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -305,6 +327,7 @@ export const purchaseHistory = async (req: Request, res: Response) => {
         sales_invoices: {
           include: {
             product: true,
+            returs: true,
           },
           orderBy: {
             DocDate: 'desc',
@@ -379,13 +402,16 @@ export const purchaseHistory = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
 
-    const grouped: Record<number, typeof customer.sales_invoices> = {};
+    const grouped: Record<number, any[]> = {};
 
     customer.sales_invoices.forEach((inv) => {
       if (!grouped[inv.DocNum]) {
         grouped[inv.DocNum] = [];
       }
-      grouped[inv.DocNum].push(inv);
+      grouped[inv.DocNum].push({
+        ...inv,
+        hasRetur: (inv.returs?.length ?? 0) > 0,
+      });
     });
 
     const docNums = Object.keys(grouped).map(Number);

@@ -1,10 +1,10 @@
 'use client'
 import { CustomerDetail } from '../components/CustomerDetail'
 import { calculateCustomerSpent } from '../components/functions'
-import { ISalesInvoices } from '@saleshub-tsm/types'
 import { use, useEffect } from 'react'
 
 import { useCustomerStore } from '@/stores/customers'
+import { ILastPurchase } from '@/types/customer'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -40,7 +40,7 @@ const CustomerDetailPage = ({ params }: Props) => {
     : 0
 
   type History = {
-    lastPurchase: ISalesInvoices[]
+    lastPurchase: ILastPurchase[]
     ordersByRange: { current: number; last3Months: number; last6Months: number }
     invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
     purchaseValue: { current: number; last3Months: number; last6Months: number }
