@@ -1,17 +1,120 @@
 'use client'
 
+import { IConcernCategory } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
-import { useEffect } from 'react'
+import { Dialog } from 'primereact/dialog'
+import { InputText } from 'primereact/inputtext'
+import { InputTextarea } from 'primereact/inputtextarea'
+import { useEffect, useState } from 'react'
 
 import { useConcernStore } from '@/stores'
 
 const SettingsPage = () => {
   const concernStore = useConcernStore()
-  const { fetchConcernCategories, concernCategories } = concernStore
+  const {
+    fetchConcernCategories,
+    concernCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  } = concernStore
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [data, setData] = useState<Pick<IConcernCategory, 'name' | 'description'>>({
+    name: '',
+    description: '',
+  })
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deletingCategoryId, setDeletingCategoryId] = useState<number | null>(null)
 
+  const closeAddDialog = () => {
+    setData({ name: '', description: '' })
+    setEditingCategoryId(null)
+    setShowAddDialog(false)
+  }
+
+  const openCreateDialog = () => {
+    setEditingCategoryId(null)
+    setData({ name: '', description: '' })
+    setShowAddDialog(true)
+  }
+
+  const openEditDialog = (category: IConcernCategory) => {
+    setEditingCategoryId(Number(category.id))
+    setData({
+      name: category.name ?? '',
+      description: category.description ?? '',
+    })
+    setShowAddDialog(true)
+  }
+
+  const openDeleteDialog = (category: IConcernCategory) => {
+    setDeletingCategoryId(Number(category.id))
+    setShowDeleteDialog(true)
+  }
+
+  const closeDeleteDialog = () => {
+    setDeletingCategoryId(null)
+    setShowDeleteDialog(false)
+  }
   useEffect(() => {
     fetchConcernCategories()
   }, [])
+
+  const handleSaveCategory = async () => {
+    if (editingCategoryId !== null) {
+      await updateCategory(editingCategoryId, data)
+    } else {
+      await createCategory(data)
+    }
+    closeAddDialog()
+  }
+
+  const handleDeleteCategory = async () => {
+    if (deletingCategoryId === null) return
+    await deleteCategory(deletingCategoryId)
+    closeDeleteDialog()
+  }
+
+  const footerContent = (
+    <div>
+      <Button
+        label="Cancel"
+        severity="danger"
+        outlined
+        icon="pi pi-times"
+        onClick={closeAddDialog}
+      />
+      <Button
+        severity="success"
+        outlined
+        label="Save"
+        icon="pi pi-save"
+        onClick={handleSaveCategory}
+        autoFocus
+      />
+    </div>
+  )
+
+  const deleteFooterContent = (
+    <div>
+      <Button
+        label="No"
+        severity="danger"
+        outlined
+        icon="pi pi-times"
+        onClick={closeDeleteDialog}
+      />
+      <Button
+        severity="success"
+        outlined
+        label="Yes"
+        icon="pi pi-trash"
+        onClick={handleDeleteCategory}
+        autoFocus
+      />
+    </div>
+  )
 
   return (
     <>
@@ -36,12 +139,12 @@ const SettingsPage = () => {
               icon="pi pi-plus"
               severity="success"
               size="small"
-              onClick={() => {}}
+              onClick={openCreateDialog}
             />
           </div>
           <div className="col-12 lg:col-6">
             {/* Card */}
-            {concernCategories.map((category) => (
+            {concernCategories.filter(Boolean).map((category) => (
               <div
                 className="border-1 surface-border border-round p-2 mb-3 surface-50"
                 key={Number(category.id)}
@@ -57,7 +160,7 @@ const SettingsPage = () => {
                       icon="pi pi-pencil"
                       size="small"
                       outlined
-                      onClick={() => {}}
+                      onClick={() => openEditDialog(category)}
                     />
                     <Button
                       label="Delete"
@@ -65,7 +168,7 @@ const SettingsPage = () => {
                       size="small"
                       severity="danger"
                       outlined
-                      onClick={() => {}}
+                      onClick={() => openDeleteDialog(category)}
                     />
                   </div>
                 </div>
@@ -74,6 +177,53 @@ const SettingsPage = () => {
           </div>
         </div>
       </div>
+      <Dialog
+        header={editingCategoryId !== null ? 'Edit Category' : 'Add New Category'}
+        visible={showAddDialog}
+        style={{ width: '25vw' }}
+        onHide={closeAddDialog}
+        footer={footerContent}
+      >
+        <div className="inline-flex flex-column gap-2 w-full my-2">
+          <label htmlFor="name" className="text-primary-50 font-semibold">
+            Category Name
+          </label>
+          <InputText
+            id="name"
+            value={data.name}
+            onChange={(e) => setData({ ...data, name: e.target.value })}
+            placeholder="Category name"
+            aria-label="Category Name"
+            className="bg-white-alpha-20 border-none p-3 text-primary-50"
+          />
+        </div>
+
+        <div className="inline-flex flex-column gap-2 w-full my-2">
+          <label htmlFor="description" className="text-primary-50 font-semibold">
+            Description
+          </label>
+          <InputTextarea
+            id="description"
+            value={data.description}
+            aria-label="Description"
+            placeholder="Description"
+            onChange={(e) => setData({ ...data, description: e.target.value })}
+            className="bg-white-alpha-20 border-none p-3 text-primary-50"
+          />
+        </div>
+      </Dialog>
+
+      <Dialog
+        header="Delete Category"
+        visible={showDeleteDialog}
+        style={{ width: '25vw' }}
+        onHide={closeDeleteDialog}
+        footer={deleteFooterContent}
+      >
+        <div className="inline-flex flex-column gap-2 w-full my-2">
+          <p>Are you sure you want to delete this category?</p>
+        </div>
+      </Dialog>
     </>
   )
 }

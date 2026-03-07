@@ -10,4 +10,7 @@ export interface IConcernState {
   concernCategory: IConcernCategory | null
   concernCategories: IConcernCategory[]
   fetchConcernCategories: () => Promise<IConcernCategory[]>
+  createCategory: (data: Partial<IConcernCategory>) => Promise<IConcernCategory | null>
+  updateCategory: (id: number, data: Partial<IConcernCategory>) => Promise<IConcernCategory | null>
+  deleteCategory: (id: number) => Promise<boolean>
 }
