@@ -30,6 +30,7 @@ export interface ISalesPerson {
   updated_at?:string | Date | null;
   customers?: ICustomer[]
   visits?: IVisit[]
+  user?: IUser
 }
 
 

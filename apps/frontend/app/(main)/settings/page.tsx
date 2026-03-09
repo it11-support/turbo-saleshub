@@ -183,6 +183,7 @@ const SettingsPage = () => {
         style={{ width: '25vw' }}
         onHide={closeAddDialog}
         footer={footerContent}
+        dismissableMask
       >
         <div className="inline-flex flex-column gap-2 w-full my-2">
           <label htmlFor="name" className="text-primary-50 font-semibold">
@@ -219,6 +220,7 @@ const SettingsPage = () => {
         style={{ width: '25vw' }}
         onHide={closeDeleteDialog}
         footer={deleteFooterContent}
+        dismissableMask
       >
         <div className="inline-flex flex-column gap-2 w-full my-2">
           <p>Are you sure you want to delete this category?</p>

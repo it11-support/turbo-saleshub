@@ -103,10 +103,12 @@ const VisitSchedules = () => {
           <div className="col-12 md:col-3">
             <Dropdown
               value={selectedSalesPerson}
-              options={salesPersons.map((sp: ISalesPerson) => ({
-                label: sp.SlpName,
-                value: Number(sp.id),
-              }))}
+              options={salesPersons
+                .filter((s: ISalesPerson) => s.user !== null)
+                .map((sp: ISalesPerson) => ({
+                  label: sp.SlpName,
+                  value: Number(sp.id),
+                }))}
               onChange={(e) => {
                 setSelectedSalesPerson(e.value)
               }}
