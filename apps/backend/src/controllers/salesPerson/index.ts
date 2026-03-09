@@ -34,9 +34,14 @@ export const salesPersons = async (req: Request, res: Response<SalsePersonRespon
       distinct: ['SlpCode'],
     });
 
+    const formattedSalesPersons = salesPersons.map(sp => ({
+      ...sp,
+      user: sp.user ?? undefined,
+    }));
+
     return res
       .status(200)
-      .json({ message: 'Sales person data fetched successfully', data: { salesPersons } });
+      .json({ message: 'Sales person data fetched successfully', data: { salesPersons: formattedSalesPersons } });
 
   } catch (error) {
     console.error(error);
