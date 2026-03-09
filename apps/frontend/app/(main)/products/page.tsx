@@ -19,6 +19,7 @@ import { formatCurrency } from '@/lib/formatter'
 import { useCustomerStore } from '@/stores/customers'
 import { useProductDevelopmentStore } from '@/stores/product-development'
 import { useProductsStore } from '@/stores/products'
+import { Chip } from 'primereact/chip'
 
 interface PaginatorChangeEvent {
   first: number
@@ -45,6 +46,8 @@ const ProductList = () => {
     setLimit,
     isProductFocused,
     setIsProductFocused,
+    isDistributor,
+    setIsDistributor,
   } = useProductsStore()
 
   const [visible, setVisible] = useState(false)
@@ -73,7 +76,7 @@ const ProductList = () => {
   // Fetch products saat mount & saat page, limit, filter, search berubah
   useEffect(() => {
     fetchProducts()
-  }, [page, limit, selectedCategory, searchDebounced, isProductFocused])
+  }, [page, limit, selectedCategory, searchDebounced, isProductFocused, isDistributor])
 
   // Reset page ke 1 saat filter atau search berubah
   useEffect(() => {
@@ -220,7 +223,21 @@ const ProductList = () => {
               checked={isProductFocused}
             />
             <label htmlFor="productFocused" className="ml-2">
-              Product Developmnent Only
+              Show Product Focus
+            </label>
+          </div>
+        </div>
+        <div className="col-12 md:col-3 flex align-items-center">
+          <div className="flex align-items-center gap-2">
+            <Checkbox
+              inputId="distributor"
+              name="distributor"
+              value={isDistributor}
+              onChange={(e) => setIsDistributor(e.checked as boolean)}
+              checked={isDistributor}
+            />
+            <label htmlFor="productFocused" className="ml-2">
+              Show Distributor Product
             </label>
           </div>
         </div>
@@ -234,55 +251,128 @@ const ProductList = () => {
 
         {products.map((item: IProduct) => (
           <div className="col-12 lg:col-6 xl:col-6" key={item.ItemCode}>
-            <Card
-              footer={() => footer(item)}
-              className="mb-3 p-3 h-[180px]"
-              pt={{
-                root: {
-                  style: {
-                    minHeight: '100%',
-                  },
-                },
-              }}
-            >
-              <div className="flex items-start gap-4 h-full">
+            <Card footer={() => footer(item)} className="mb-3 p-3">
+              <div className="flex flex-column md:flex-row gap-3">
                 {/* IMAGE */}
-                <div className="w-[150px] h-[150px] flex-shrink-0 flex items-center justify-center ">
-                  <ProductImageUploader
-                    code={item.ItemCode}
-                    alt={item.ItemName || ''}
-                    width={150}
-                    height={150}
-                  />
+                <div className="flex justify-content-center md:justify-content-start">
+                  <div
+                    className="flex align-items-center justify-content-center"
+                    style={{ width: 140, height: 140 }}
+                  >
+                    <ProductImageUploader
+                      code={item.ItemCode}
+                      alt={item.ItemName || ''}
+                      width={140}
+                      height={140}
+                    />
+                  </div>
                 </div>
 
-                {/* TEXT */}
-                <div className="flex flex-col items-start justify-start">
-                  <div className="text-base leading-tight line-clamp-2">
-                    <p className="font-semibold">{item.ItemName}</p>
-                    <div className="mt-1 text-sm text-gray-500 mt-3">
-                      <i className="pi pi-tags"></i> {item.ItmsGrpNam}
-                    </div>
-                    <div className="mt-1 text-sm font-semibold mt-3">
-                      {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
-                      {formatCurrency(Number(item.MaxPrice), true, true)}
-                    </div>
-                    <Divider />
-                    <p className="font-semibold">Monthly Summary</p>
-                    {item.unitsSold! > 0 ? (
-                      <div className="mt-1 text-sm font-semibold mt-3">
-                        Unit Sold: {item.unitsSold} {item.SalUnitMsr}
-                      </div>
-                    ) : (
-                      <div className="mt-1 text-sm font-semibold mt-3">Unit Sold: -</div>
+                {/* CONTENT */}
+                <div className="flex flex-column flex-1">
+                  {/* TITLE */}
+                  <div className="font-semibold text-base line-clamp-2">{item.ItemName}</div>
+
+                  {/* TAGS */}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    <Chip
+                      pt={{
+                        root: {
+                          style: {
+                            fontSize: '10px',
+                            padding: '0.2rem 0.5rem',
+                            height: '1.5rem',
+                          },
+                        },
+                        icon: {
+                          style: {
+                            fontSize: '0.75rem',
+                            marginRight: '0.25rem',
+                          },
+                        },
+                        label: {
+                          className: 'p-0',
+                        },
+                      }}
+                      label={item.ItmsGrpNam || ''}
+                      icon="pi pi-tags"
+                    />
+
+                    {item.product_developments?.length ? (
+                      <Chip
+                        pt={{
+                          root: {
+                            style: {
+                              fontSize: '10px',
+                              padding: '0.2rem 0.5rem',
+                              height: '1.5rem',
+                              backgroundColor: 'var(--blue-500)',
+                            },
+                          },
+                          icon: {
+                            style: {
+                              fontSize: '0.75rem',
+                              marginRight: '0.25rem',
+                            },
+                          },
+                          label: {
+                            className: 'p-0',
+                          },
+                        }}
+                        label="Product Focus"
+                        icon="pi pi-tags"
+                        removable
+                        onRemove={() => setIsProductFocused(false)}
+                      />
+                    ) : null}
+
+                    {item.Distributor === 'Y' && (
+                      <Chip
+                        pt={{
+                          root: {
+                            style: {
+                              fontSize: '10px',
+                              padding: '0.2rem 0.5rem',
+                              height: '1.5rem',
+                              backgroundColor: 'var(--green-500)',
+                            },
+                          },
+                          icon: {
+                            style: {
+                              fontSize: '0.75rem',
+                              marginRight: '0.25rem',
+                            },
+                          },
+                          label: {
+                            className: 'p-0',
+                          },
+                        }}
+                        label="Distributor"
+                        icon="pi pi-tags"
+                        removable
+                        onRemove={() => setIsDistributor(false)}
+                      />
                     )}
-                    {item.revenue! > 0 ? (
-                      <div className="mt-1 text-sm font-semibold mt-3">
-                        Revenue: {formatCurrency(Number(item.revenue), true, true)}
-                      </div>
-                    ) : (
-                      <div className="mt-1 text-sm font-semibold mt-3">Revenue: -</div>
-                    )}
+                  </div>
+
+                  {/* PRICE */}
+                  <div className="mt-3 font-semibold text-sm">
+                    {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
+                    {formatCurrency(Number(item.MaxPrice), true, true)}
+                  </div>
+
+                  <Divider className="my-2" />
+
+                  {/* SUMMARY */}
+                  <div className="font-semibold">Monthly Summary</div>
+
+                  <div className="text-sm mt-2">
+                    Unit Sold: {item.unitsSold! > 0 ? `${item.unitsSold} ${item.SalUnitMsr}` : '-'}
+                  </div>
+
+                  <div className="text-sm">
+                    Revenue:{' '}
+                    {item.revenue! > 0 ? formatCurrency(Number(item.revenue), true, true) : '-'}
                   </div>
                 </div>
               </div>

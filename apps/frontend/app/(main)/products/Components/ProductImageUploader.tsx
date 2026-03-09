@@ -133,7 +133,7 @@ export default function ProductImageUploader({
                 ? `(max-width: ${width}px) ${width}px, (max-height: ${height}px) ${height}px, ${width}px`
                 : '100vw'
             }
-            priority
+            fetchPriority="high"
             alt={alt}
             fill
             className="object-contain"

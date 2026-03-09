@@ -9,7 +9,7 @@ export interface IProduct {
   ItemName?: string | null;
   ItmsGrpNam?: string | null;
   frozenFor?: string | null;
-
+  Distributor?: string | null;
   LaunchDate?: Date | null;
   SalUnitMsr?: string | null;
 

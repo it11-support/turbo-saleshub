@@ -172,6 +172,7 @@ model products {
   ItmsGrpNam      String?          @db.VarChar(20)
   frozenFor       String?          @db.Char(1)
   validFor        String?          @db.Char(1)
+  Distributor     String?          @db.Char(1)
   LaunchDate      DateTime?        @db.DateTime(0)
   SalUnitMsr      String?          @db.VarChar(20)
   AvgPrice        Decimal?         @db.Decimal(19, 6)

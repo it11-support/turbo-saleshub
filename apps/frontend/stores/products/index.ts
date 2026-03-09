@@ -10,6 +10,7 @@ interface ProductStoreState {
   limit: number
   search: string
   isProductFocused: boolean
+  isDistributor: boolean
   categories: { value: number; label: string }[]
   selectedCategory?: number
   setSelectedCategory: (selectedCategory?: number) => void
@@ -18,6 +19,7 @@ interface ProductStoreState {
   setLimit: (limit: number) => void
   setSearch: (search: string) => void
   setIsProductFocused: (isProductFocused: boolean) => void
+  setIsDistributor: (isDistributor: boolean) => void
   fetchProducts: () => Promise<void>
   reset: () => void
 }
@@ -32,7 +34,8 @@ const initialState = {
   search: '',
   categories: [] as { value: number; label: string }[],
   selectedCategory: undefined,
-  isProductFocused: false
+  isProductFocused: false,
+  isDistributor: false
 }
 
 export const useProductsStore = create<ProductStoreState>((set, get) => ({
@@ -43,6 +46,9 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
   },
   setIsProductFocused(isProductFocused) {
     set({ isProductFocused })
+  },
+  setIsDistributor(isDistributor) {
+    set({ isDistributor })
   },
 
   setSelectedCategory(selectedCategory) {
@@ -63,7 +69,7 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
 
   fetchProducts: async () => {
     set({ loading: true })
-    const { page, limit, search, selectedCategory, isProductFocused } = get()
+    const { page, limit, search, selectedCategory, isProductFocused, isDistributor } = get()
 
     try {
       const url = createUrl('product', {
@@ -71,7 +77,8 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
         limit,
         search,
         category: selectedCategory,
-        productFocused: isProductFocused
+        productFocused: isProductFocused,
+        distributor: isDistributor
       })
       const res = await $api<any>(url)
 
