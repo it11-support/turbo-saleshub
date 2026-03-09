@@ -1,12 +1,10 @@
 import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
-import { CustomerSegment } from '@/generated/prisma/enums.js'
-import { ISalesInvoices } from '@saleshub-tsm/types'
-
+import { calcMTD, getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
-
+    const { mtdStart, mtdEnd, prevMtdStart, prevMtdEnd } = getMtdDates()
 
     const now = dayjs()
 
@@ -24,8 +22,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // DATE RANGE
     // =====================
-    const mtdStart = now.startOf('month').toDate()
-    const mtdEnd = now.toDate()
 
     const trendStart = now
       .subtract(11, 'month')
@@ -46,38 +42,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       }
       : {}
 
-    // const calcMTD = (current: number, last: number) => {
-    //   const diff = current - last
-    //   const growthPercent = last === 0 ? null : (diff / last) * 100
-    //   return { current, last, diff, growthPercent }
-    // }
-
-    const calcMTD = (current: number, last: number) => {
-      const today = new Date();
-
-      // 1. Ambil jumlah hari yang sudah berjalan di bulan ini (misal: tanggal 4)
-      const currentDayCount = today.getDate();
-
-      // 2. Ambil total hari di bulan sebelumnya (misal: Februari = 28)
-      const prevDayCount = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
-
-      // 3. Hitung rata-rata harian
-      const currentAvg = current / currentDayCount;
-      const lastAvg = last / prevDayCount;
-
-      // 4. Hitung selisih dan persentase pertumbuhan rata-rata
-      const diff = currentAvg - lastAvg;
-
-      // Hindari pembagian dengan nol jika data bulan lalu kosong
-      const growthPercent = lastAvg === 0 ? 0 : (diff / lastAvg) * 100;
-
-      return {
-        current,
-        last,
-        diff,
-        growthPercent: parseFloat(growthPercent.toFixed(2)) // Dibulatkan agar rapi
-      };
-    }
 
     // =====================
     // REVENUE
@@ -106,8 +70,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         _sum: { TotalSales: true },
         where: {
           DocDate: {
-            gte: now.subtract(1, 'month').startOf('month').toDate(),
-            lte: now.subtract(1, 'month').date(now.date()).toDate(),
+            gte: prevMtdStart,
+            lte: prevMtdEnd,
           },
           ...salesFilter,
         },
@@ -119,8 +83,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         where: {
           sales: {
             DocDate: {
-              gte: now.subtract(1, 'month').startOf('month').toDate(),
-              lte: now.subtract(1, 'month').date(now.date()).toDate(),
+              gte: prevMtdStart,
+              lte: prevMtdEnd,
             },
           },
           ...salesFilter
@@ -181,8 +145,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         by: ['DocNum'],
         where: {
           DocDate: {
-            gte: now.subtract(1, 'month').startOf('month').toDate(),
-            lte: now.subtract(1, 'month').date(now.date()).toDate(),
+            gte: prevMtdStart,
+            lte: prevMtdEnd,
           },
           ...salesFilter,
         },
@@ -206,8 +170,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         by: ['CardCode'],
         where: {
           DocDate: {
-            gte: now.subtract(1, 'month').startOf('month').toDate(),
-            lte: now.subtract(1, 'month').date(now.date()).toDate(),
+            gte: prevMtdStart,
+            lte: prevMtdEnd,
           },
           ...salesFilter,
         },
@@ -635,110 +599,11 @@ export const mtdSummary = async (req: Request, res: Response) => {
     }
 
     // ========== CRR ==========
-    const baseStart = dayjs().subtract(3, 'month').startOf('month').toDate();
-    const baseEnd = dayjs().subtract(3, 'month').endOf('month').toDate();
+    const CRR = await getCRR(salesFilter)
 
-    const currentStart = dayjs().startOf('month').toDate();
-    const currentEnd = dayjs().endOf('month').toDate();
+    const RPR = await getRPR(salesFilter)
 
-    const baseCustomers = await prisma.orders.findMany({
-      where: {
-        DocDate: { gte: baseStart, lte: baseEnd },
-        ...salesFilter,
-      },
-      distinct: ['CardCode'],
-      select: { CardCode: true },
-    });
-
-    const currentCustomersCRR = await prisma.orders.findMany({
-      where: {
-        DocDate: { gte: currentStart, lte: currentEnd },
-        ...salesFilter,
-      },
-      distinct: ['CardCode'],
-      select: { CardCode: true },
-    });
-
-    const baseSet = new Set(baseCustomers.map(c => c.CardCode));
-
-    const retained = currentCustomersCRR.filter(c =>
-      baseSet.has(c.CardCode)
-    );
-
-    const CRR =
-      baseCustomers.length === 0
-        ? 0
-        : (retained.length / baseCustomers.length) * 100;
-
-
-    // ========== RPR ==========
-    const threeMonthStart = dayjs()
-      .subtract(2, 'month')
-      .startOf('month')
-      .toDate();
-
-    const threeMonthEnd = dayjs()
-      .endOf('month')
-      .toDate();
-
-    const rawRepeatCustomer = await prisma.orders.groupBy({
-      by: ['CardCode'],
-      where: {
-        DocDate: { gte: threeMonthStart, lte: threeMonthEnd },
-        ...salesFilter,
-      },
-      _count: { CardCode: true },
-    });
-
-    const totalCustomers = rawRepeatCustomer.length;
-
-    const repeatCustomers = rawRepeatCustomer.filter(
-      r => r._count.CardCode >= 2
-    ).length;
-
-    const RPR =
-      totalCustomers === 0
-        ? 0
-        : (repeatCustomers / totalCustomers) * 100;
-
-    // RFM
-    const fromDate = dayjs()
-      .subtract(3, "month")
-      .startOf("month")
-      .toDate()
-
-    const frmRaw = await prisma.customer_rfm.findMany({
-      where: {
-        lastCalculated: {
-          gte: fromDate
-        },
-        ...salesFilter
-      },
-      select: {
-        segment: true
-      }
-    })
-
-    const counts: Record<CustomerSegment, number> = {
-      VIP: 0,
-      LOYAL: 0,
-      POTENTIAL: 0,
-      AT_RISK: 0,
-      LOST: 0
-    }
-
-    // Hitung
-    for (const r of frmRaw) {
-      if (r.segment && counts[r.segment] !== undefined) {
-        counts[r.segment]++
-      }
-    }
-
-    // Format return (konsisten)
-    const RFM = Object.keys(counts).map((key) => ({
-      segment: key as CustomerSegment,
-      count: counts[key as CustomerSegment]
-    }))
+    const RFM = await getRFM(salesFilter)
 
 
 
