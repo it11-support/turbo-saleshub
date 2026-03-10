@@ -36,7 +36,6 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       const payload = res?.data ?? res
       const concernStatuses = payload?.concernStatuses ?? payload?.data?.concernStatuses ?? []
 
-      console.log('concernStatuses', concernStatuses)
       set({ concernStatuses })
       return concernStatuses
     } catch (error) {
@@ -85,7 +84,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
 
       const payload = res?.data ?? res
       const newStatus = payload
-      console.log('newStatus', payload)
+
       if (!newStatus) return null
 
       set((state) => ({
@@ -113,7 +112,6 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       const payload = res?.data ?? res
       const updatedStatus = payload
 
-      console.log('updatedStatus', updatedStatus)
       if (!updatedStatus) return null
 
       set({

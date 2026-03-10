@@ -73,10 +73,6 @@ const SettingsPage = () => {
     fetchConcernStatuses()
   }, [])
 
-  useEffect(() => {
-    console.log(concernStatuses)
-  }, [concernStatuses])
-
   const handleSave = async () => {
     if (modalType === 'category') {
       if (editingCategoryId) {
@@ -114,7 +110,6 @@ const SettingsPage = () => {
 
   const handleDelete = async () => {
     if (!modalType) return
-    console.log('modalType', modalType, deletingId)
     if (modalType === 'category') {
       if (deletingId === null) return
       await deleteCategory(deletingId)
