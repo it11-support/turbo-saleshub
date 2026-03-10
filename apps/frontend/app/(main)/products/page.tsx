@@ -2,7 +2,7 @@
 
 import ProductImageUploader from './Components/ProductImageUploader'
 import { DialogFooter, DialogHeader } from '../components/ui/dialog'
-import { IProduct } from '@saleshub-tsm/types'
+import { EProductCategory, IProduct } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Checkbox } from 'primereact/checkbox'
@@ -28,6 +28,51 @@ interface PaginatorChangeEvent {
   pageCount: number
 }
 
+type CustomChipProps = {
+  label?: string | null
+  color?: string
+  removable?: boolean
+  onRemove?: () => void
+}
+const CustomChip = (props: CustomChipProps) => {
+  const { label, color, removable, onRemove } = props
+
+  const labelValue = label ? label : ''
+
+  const onRemoveClick = () => {
+    if (onRemove) {
+      onRemove()
+    }
+  }
+
+  return (
+    <Chip
+      pt={{
+        root: {
+          style: {
+            fontSize: '10px',
+            padding: '0.2rem 0.5rem',
+            height: '1.5rem',
+            ...(color && { backgroundColor: color }),
+          },
+        },
+        icon: {
+          style: {
+            fontSize: '0.75rem',
+            marginRight: '0.25rem',
+          },
+        },
+        label: {
+          className: 'p-0',
+        },
+      }}
+      label={labelValue}
+      icon="pi pi-tags"
+      removable={removable}
+      onRemove={onRemoveClick}
+    />
+  )
+}
 const ProductList = () => {
   const {
     data: products,
@@ -48,6 +93,8 @@ const ProductList = () => {
     setIsProductFocused,
     isDistributor,
     setIsDistributor,
+    selectedGroup,
+    setSelectedGroup,
   } = useProductsStore()
 
   const [visible, setVisible] = useState(false)
@@ -76,13 +123,28 @@ const ProductList = () => {
   // Fetch products saat mount & saat page, limit, filter, search berubah
   useEffect(() => {
     fetchProducts()
-  }, [page, limit, selectedCategory, searchDebounced, isProductFocused, isDistributor])
+  }, [
+    page,
+    limit,
+    selectedCategory,
+    searchDebounced,
+    isProductFocused,
+    isDistributor,
+    selectedGroup,
+  ])
 
   // Reset page ke 1 saat filter atau search berubah
   useEffect(() => {
     setPage(1)
   }, [selectedCategory, searchDebounced])
 
+  // Group Options
+  const groupOptions = [
+    { label: 'Chemical', value: EProductCategory.CHEMICAL },
+    { label: 'Butter', value: EProductCategory.BUTTER },
+    { label: 'Tissue', value: EProductCategory.TISSUE },
+    { label: 'Groceries', value: EProductCategory.GROCERIES },
+  ]
   // Handler paginator
   const onPageChange = (e: PaginatorChangeEvent) => {
     setLimit(e.rows)
@@ -205,6 +267,17 @@ const ProductList = () => {
             showClear
           />
         </div>
+        <div className="col-12 md:col-3">
+          <Dropdown
+            value={selectedGroup}
+            options={groupOptions}
+            onChange={(e) => setSelectedGroup(e.value)}
+            placeholder="Select Product Group"
+            className="w-full md:w-48"
+            clearIcon="pi pi-times"
+            showClear
+          />
+        </div>
         <div className="col-12 md:col-3 flex align-items-center">
           <InputText
             value={search}
@@ -213,6 +286,8 @@ const ProductList = () => {
             className="w-full md:w-48"
           />
         </div>
+      </div>
+      <div className="grid mb-4">
         <div className="col-12 md:col-3 flex align-items-center">
           <div className="flex align-items-center gap-2">
             <Checkbox
@@ -275,82 +350,35 @@ const ProductList = () => {
 
                   {/* TAGS */}
                   <div className="flex flex-wrap gap-1 mt-2">
-                    <Chip
-                      pt={{
-                        root: {
-                          style: {
-                            fontSize: '10px',
-                            padding: '0.2rem 0.5rem',
-                            height: '1.5rem',
-                          },
-                        },
-                        icon: {
-                          style: {
-                            fontSize: '0.75rem',
-                            marginRight: '0.25rem',
-                          },
-                        },
-                        label: {
-                          className: 'p-0',
-                        },
-                      }}
-                      label={item.ItmsGrpNam || ''}
-                      icon="pi pi-tags"
-                    />
+                    <CustomChip label={item.ItmsGrpNam} />
 
                     {item.product_developments?.length ? (
-                      <Chip
-                        pt={{
-                          root: {
-                            style: {
-                              fontSize: '10px',
-                              padding: '0.2rem 0.5rem',
-                              height: '1.5rem',
-                              backgroundColor: 'var(--blue-500)',
-                            },
-                          },
-                          icon: {
-                            style: {
-                              fontSize: '0.75rem',
-                              marginRight: '0.25rem',
-                            },
-                          },
-                          label: {
-                            className: 'p-0',
-                          },
-                        }}
+                      <CustomChip
                         label="Product Focus"
-                        icon="pi pi-tags"
+                        color="var(--blue-500)"
                         removable
                         onRemove={() => setIsProductFocused(false)}
                       />
                     ) : null}
 
                     {item.Distributor === 'Y' && (
-                      <Chip
-                        pt={{
-                          root: {
-                            style: {
-                              fontSize: '10px',
-                              padding: '0.2rem 0.5rem',
-                              height: '1.5rem',
-                              backgroundColor: 'var(--green-500)',
-                            },
-                          },
-                          icon: {
-                            style: {
-                              fontSize: '0.75rem',
-                              marginRight: '0.25rem',
-                            },
-                          },
-                          label: {
-                            className: 'p-0',
-                          },
-                        }}
-                        label="Distributor"
-                        icon="pi pi-tags"
+                      <CustomChip
+                        label="Distributor Product"
+                        color="var(--green-500)"
                         removable
                         onRemove={() => setIsDistributor(false)}
+                      />
+                    )}
+
+                    {item.ProductCategory && (
+                      <CustomChip
+                        label={
+                          item.ProductCategory.charAt(0).toUpperCase() +
+                          item.ProductCategory.slice(1).toLowerCase()
+                        }
+                        color="var(--orange-500)"
+                        removable
+                        onRemove={() => setSelectedGroup(undefined)}
                       />
                     )}
                   </div>

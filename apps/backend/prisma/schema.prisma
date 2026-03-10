@@ -173,6 +173,7 @@ model products {
   frozenFor       String?          @db.Char(1)
   validFor        String?          @db.Char(1)
   Distributor     String?          @db.Char(1)
+  ProductCategory ProductCategory? 
   LaunchDate      DateTime?        @db.DateTime(0)
   SalUnitMsr      String?          @db.VarChar(20)
   AvgPrice        Decimal?         @db.Decimal(19, 6)
@@ -532,4 +533,11 @@ enum CustomerSegment {
   POTENTIAL
   AT_RISK
   LOST
+}
+
+enum ProductCategory {
+  GROCERIES
+  BUTTER
+  TISSUE
+  CHEMICAL
 }

@@ -1,6 +1,12 @@
 import { ISalesInvoices } from "../sales"
 import { ISubGroup } from "../subgroups"
 
+export enum EProductCategory {
+  "GROCERIES" = "GROCERIES",
+  "BUTTER" = "BUTTER",
+  "TISSUE" = "TISSUE",
+  "CHEMICAL" = "CHEMICAL",
+}
 export interface IProduct {
   id: bigint | number; // ✅
 
@@ -10,6 +16,7 @@ export interface IProduct {
   ItmsGrpNam?: string | null;
   frozenFor?: string | null;
   Distributor?: string | null;
+  ProductCategory?: EProductCategory | null;
   LaunchDate?: Date | null;
   SalUnitMsr?: string | null;
 

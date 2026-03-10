@@ -1,4 +1,5 @@
 import { $api, createUrl } from "@/lib/api"
+import { EProductCategory } from "@saleshub-tsm/types"
 import { create } from "zustand"
 
 interface ProductStoreState {
@@ -13,6 +14,8 @@ interface ProductStoreState {
   isDistributor: boolean
   categories: { value: number; label: string }[]
   selectedCategory?: number
+  selectedGroup?: EProductCategory
+  setSelectedGroup: (selectedGroup?: EProductCategory) => void
   setSelectedCategory: (selectedCategory?: number) => void
   setPage: (page: number) => void
   setCategories: (categories: { value: number; label: string }[]) => void
@@ -35,7 +38,8 @@ const initialState = {
   categories: [] as { value: number; label: string }[],
   selectedCategory: undefined,
   isProductFocused: false,
-  isDistributor: false
+  isDistributor: false,
+  selectedGroup: undefined
 }
 
 export const useProductsStore = create<ProductStoreState>((set, get) => ({
@@ -43,6 +47,9 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
 
   setSearch(search) {
     set({ search, page: 1 }) // reset page saat search berubah
+  },
+  setSelectedGroup(selectedGroup) {
+    set({ selectedGroup })
   },
   setIsProductFocused(isProductFocused) {
     set({ isProductFocused })
@@ -69,7 +76,7 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
 
   fetchProducts: async () => {
     set({ loading: true })
-    const { page, limit, search, selectedCategory, isProductFocused, isDistributor } = get()
+    const { page, limit, search, selectedCategory, isProductFocused, isDistributor, selectedGroup } = get()
 
     try {
       const url = createUrl('product', {
@@ -78,7 +85,8 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
         search,
         category: selectedCategory,
         productFocused: isProductFocused,
-        distributor: isDistributor
+        distributor: isDistributor,
+        group: selectedGroup
       })
       const res = await $api<any>(url)
 
