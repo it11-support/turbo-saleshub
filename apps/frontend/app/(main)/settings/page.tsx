@@ -1,6 +1,6 @@
 'use client'
 
-import { IConcernCategory } from '@saleshub-tsm/types'
+import { IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
@@ -13,108 +13,121 @@ const SettingsPage = () => {
   const concernStore = useConcernStore()
   const {
     fetchConcernCategories,
+    fetchConcernStatuses,
     concernCategories,
     createCategory,
     updateCategory,
     deleteCategory,
+    concernStatuses,
+    createStatus,
+    updateStatus,
+    deleteStatus,
   } = concernStore
-  const [showAddDialog, setShowAddDialog] = useState(false)
+
+  const [modalType, setModalType] = useState<'category' | 'status' | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [showFormDialog, setShowFormDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
   const [data, setData] = useState<Pick<IConcernCategory, 'name' | 'description'>>({
     name: '',
     description: '',
   })
+  const [statusData, setStatusData] = useState<Pick<IConcernStatus, 'status'>>({
+    status: '',
+  })
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [deletingCategoryId, setDeletingCategoryId] = useState<number | null>(null)
-
-  const closeAddDialog = () => {
-    setData({ name: '', description: '' })
-    setEditingCategoryId(null)
-    setShowAddDialog(false)
-  }
-
-  const openCreateDialog = () => {
-    setEditingCategoryId(null)
-    setData({ name: '', description: '' })
-    setShowAddDialog(true)
-  }
+  const [editingStatusId, setEditingStatusId] = useState<number | null>(null)
 
   const openEditDialog = (category: IConcernCategory) => {
+    setModalType('category')
     setEditingCategoryId(Number(category.id))
+
     setData({
       name: category.name ?? '',
       description: category.description ?? '',
     })
-    setShowAddDialog(true)
+
+    setShowFormDialog(true)
   }
 
-  const openDeleteDialog = (category: IConcernCategory) => {
-    setDeletingCategoryId(Number(category.id))
+  const openEditStatusDialog = (status: IConcernStatus) => {
+    setModalType('status')
+    setEditingStatusId(Number(status.id))
+
+    setStatusData({
+      status: status.status ?? '',
+    })
+
+    setShowFormDialog(true)
+  }
+
+  const openDeleteDialog = (type: 'category' | 'status', id: number) => {
+    setModalType(type)
+    setDeletingId(id)
     setShowDeleteDialog(true)
   }
 
-  const closeDeleteDialog = () => {
-    setDeletingCategoryId(null)
-    setShowDeleteDialog(false)
-  }
   useEffect(() => {
     fetchConcernCategories()
+    fetchConcernStatuses()
   }, [])
 
-  const handleSaveCategory = async () => {
-    if (editingCategoryId !== null) {
-      await updateCategory(editingCategoryId, data)
-    } else {
-      await createCategory(data)
+  useEffect(() => {
+    console.log(concernStatuses)
+  }, [concernStatuses])
+
+  const handleSave = async () => {
+    if (modalType === 'category') {
+      if (editingCategoryId) {
+        await updateCategory(editingCategoryId, data)
+      } else {
+        await createCategory(data)
+      }
     }
-    closeAddDialog()
+
+    if (modalType === 'status') {
+      if (editingStatusId) {
+        await updateStatus(editingStatusId, statusData)
+      } else {
+        if (!statusData.status) return
+        await createStatus(statusData)
+      }
+    }
+
+    setShowFormDialog(false)
   }
 
-  const handleDeleteCategory = async () => {
-    if (deletingCategoryId === null) return
-    await deleteCategory(deletingCategoryId)
-    closeDeleteDialog()
+  const openAddDialog = (type: 'category' | 'status') => {
+    setModalType(type)
+
+    if (type === 'category') {
+      setEditingCategoryId(null)
+      setData({ name: '', description: '' })
+    } else if (type === 'status') {
+      setEditingStatusId(null)
+      setStatusData({ status: '' })
+    }
+
+    setShowFormDialog(true)
   }
 
-  const footerContent = (
-    <div>
-      <Button
-        label="Cancel"
-        severity="danger"
-        outlined
-        icon="pi pi-times"
-        onClick={closeAddDialog}
-      />
-      <Button
-        severity="success"
-        outlined
-        label="Save"
-        icon="pi pi-save"
-        onClick={handleSaveCategory}
-        autoFocus
-      />
-    </div>
-  )
+  const handleDelete = async () => {
+    if (!modalType) return
+    console.log('modalType', modalType, deletingId)
+    if (modalType === 'category') {
+      if (deletingId === null) return
+      await deleteCategory(deletingId)
+    }
 
-  const deleteFooterContent = (
-    <div>
-      <Button
-        label="No"
-        severity="danger"
-        outlined
-        icon="pi pi-times"
-        onClick={closeDeleteDialog}
-      />
-      <Button
-        severity="success"
-        outlined
-        label="Yes"
-        icon="pi pi-trash"
-        onClick={handleDeleteCategory}
-        autoFocus
-      />
-    </div>
-  )
+    if (modalType === 'status') {
+      if (deletingId === null) return
+      await deleteStatus(deletingId)
+    }
+
+    setDeletingId(null)
+    setShowDeleteDialog(false)
+  }
 
   return (
     <>
@@ -131,7 +144,7 @@ const SettingsPage = () => {
         </div>
         <h5>Settings</h5>
         <div className="grid p-2">
-          <h6>Customer Concerns / Blocking Issue</h6>
+          <h6>Concerns / Blocking Issue</h6>
           <div className="col-12">
             {/* Button add */}
             <Button
@@ -139,7 +152,7 @@ const SettingsPage = () => {
               icon="pi pi-plus"
               severity="success"
               size="small"
-              onClick={openCreateDialog}
+              onClick={() => openAddDialog('category')}
             />
           </div>
           <div className="col-12 lg:col-6">
@@ -156,19 +169,63 @@ const SettingsPage = () => {
                   </div>
                   <div className="flex align-items-center gap-2 ml-auto">
                     <Button
-                      label="Edit"
+                      // label="Edit"
                       icon="pi pi-pencil"
                       size="small"
                       outlined
                       onClick={() => openEditDialog(category)}
                     />
                     <Button
-                      label="Delete"
+                      // label="Delete"
                       icon="pi pi-trash"
                       size="small"
                       severity="danger"
                       outlined
-                      onClick={() => openDeleteDialog(category)}
+                      onClick={() => openDeleteDialog('category', Number(category.id))}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid p-2">
+          <h6>Status</h6>
+          <div className="col-12">
+            {/* Button add */}
+            <Button
+              label="Add New"
+              icon="pi pi-plus"
+              severity="success"
+              size="small"
+              onClick={() => openAddDialog('status')}
+            />
+          </div>
+          <div className="col-12 lg:col-6">
+            {/* Card */}
+            {concernStatuses.filter(Boolean).map((status) => (
+              <div
+                className="border-1 surface-border border-round p-2 mb-3 surface-50"
+                key={Number(status.id)}
+              >
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex flex-column gap-1">
+                    <p className="m-0 font-semibold">{status.status}</p>
+                  </div>
+                  <div className="flex align-items-center gap-2 ml-auto">
+                    <Button
+                      icon="pi pi-pencil"
+                      size="small"
+                      outlined
+                      onClick={() => openEditStatusDialog(status)}
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      size="small"
+                      severity="danger"
+                      outlined
+                      onClick={() => openDeleteDialog('status', Number(status.id))}
                     />
                   </div>
                 </div>
@@ -178,53 +235,85 @@ const SettingsPage = () => {
         </div>
       </div>
       <Dialog
-        header={editingCategoryId !== null ? 'Edit Category' : 'Add New Category'}
-        visible={showAddDialog}
-        style={{ width: '25vw' }}
-        onHide={closeAddDialog}
-        footer={footerContent}
-        dismissableMask
+        header={
+          modalType === 'category'
+            ? editingCategoryId
+              ? 'Edit Category'
+              : 'Add Category'
+            : editingStatusId
+            ? 'Edit Status'
+            : 'Add Status'
+        }
+        visible={showFormDialog}
+        onHide={() => {
+          setShowFormDialog(false)
+          setModalType(null)
+        }}
+        footer={
+          <>
+            <Button label="Cancel" outlined onClick={() => setShowFormDialog(false)} />
+            <Button label="Save" icon="pi pi-save" onClick={handleSave} />
+          </>
+        }
       >
-        <div className="inline-flex flex-column gap-2 w-full my-2">
-          <label htmlFor="name" className="text-primary-50 font-semibold">
-            Category Name
-          </label>
-          <InputText
-            id="name"
-            value={data.name}
-            onChange={(e) => setData({ ...data, name: e.target.value })}
-            placeholder="Category name"
-            aria-label="Category Name"
-            className="bg-white-alpha-20 border-none p-3 text-primary-50"
-          />
-        </div>
+        {modalType === 'category' && (
+          <>
+            <div className="inline-flex flex-column gap-2 w-full my-2">
+              <label htmlFor="name" className="text-primary-50 font-semibold">
+                Category Name
+              </label>
+              <InputText
+                id="name"
+                value={data.name}
+                onChange={(e) => setData({ ...data, name: e.target.value })}
+                className="bg-white-alpha-20 border-none p-3 text-primary-50"
+              />
+            </div>
 
-        <div className="inline-flex flex-column gap-2 w-full my-2">
-          <label htmlFor="description" className="text-primary-50 font-semibold">
-            Description
-          </label>
-          <InputTextarea
-            id="description"
-            value={data.description}
-            aria-label="Description"
-            placeholder="Description"
-            onChange={(e) => setData({ ...data, description: e.target.value })}
-            className="bg-white-alpha-20 border-none p-3 text-primary-50"
-          />
-        </div>
+            <div className="inline-flex flex-column gap-2 w-full my-2">
+              <label htmlFor="decription" className="text-primary-50 font-semibold">
+                Description
+              </label>
+              <InputTextarea
+                id="decription"
+                value={data.description}
+                onChange={(e) => setData({ ...data, description: e.target.value })}
+                className="bg-white-alpha-20 border-none p-3 text-primary-50"
+              />
+            </div>
+          </>
+        )}
+
+        {modalType === 'status' && (
+          <div className="inline-flex flex-column gap-2 w-full my-2">
+            <label htmlFor="status" className="text-primary-50 font-semibold">
+              Status
+            </label>
+            <InputText
+              id="status"
+              value={statusData.status}
+              onChange={(e) => setStatusData({ ...statusData, status: e.target.value })}
+              className="bg-white-alpha-20 border-none p-3 text-primary-50"
+            />
+          </div>
+        )}
       </Dialog>
 
       <Dialog
-        header="Delete Category"
+        header={`Delete ${modalType}`}
         visible={showDeleteDialog}
-        style={{ width: '25vw' }}
-        onHide={closeDeleteDialog}
-        footer={deleteFooterContent}
-        dismissableMask
+        onHide={() => {
+          setShowDeleteDialog(false)
+          setModalType(null)
+        }}
+        footer={
+          <>
+            <Button label="No" outlined onClick={() => setShowDeleteDialog(false)} />
+            <Button label="Yes" severity="danger" onClick={handleDelete} />
+          </>
+        }
       >
-        <div className="inline-flex flex-column gap-2 w-full my-2">
-          <p>Are you sure you want to delete this category?</p>
-        </div>
+        <p>Are you sure you want to delete this {modalType}?</p>
       </Dialog>
     </>
   )

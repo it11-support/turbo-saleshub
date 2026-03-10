@@ -57,3 +57,62 @@ export const deleteCategory = async (id: number) => {
     throw error;
   }
 };
+
+export const getConcernStatuses = async () => {
+  try {
+    return await prisma.concern_status.findMany();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+
+export const createStatus = async (data: {status: string}) => {
+  try {
+    const {status} = data
+    const statusData = await prisma.concern_status.create({
+      data: {
+        status
+      }
+    })
+    return statusData
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+
+export const updateStatus = async (
+  id: number,
+  data: { status?: string }
+) => {
+  try {
+    return await prisma.concern_status.update({
+      where: {
+        id: BigInt(id),
+      },
+      data: {
+        ...(data.status !== undefined ? { status: data.status } : {}),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+
+export const deleteStatus = async (id: number) => {
+  try {
+    return await prisma.concern_status.delete({
+      where: {
+        id: BigInt(id),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};

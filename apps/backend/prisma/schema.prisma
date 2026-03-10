@@ -173,7 +173,7 @@ model products {
   frozenFor       String?          @db.Char(1)
   validFor        String?          @db.Char(1)
   Distributor     String?          @db.Char(1)
-  ProductCategory ProductCategory? 
+  ProductCategory ProductCategory?
   LaunchDate      DateTime?        @db.DateTime(0)
   SalUnitMsr      String?          @db.VarChar(20)
   AvgPrice        Decimal?         @db.Decimal(19, 6)
@@ -405,13 +405,32 @@ model visit_items {
 
   visit   visits   @relation(fields: [visit_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   product products @relation(fields: [product_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  visit_item_concerns visit_item_concerns[]
 
   @@index([visit_id])
   @@index([product_id])
   @@map("visit_items")
 }
 
+model visit_item_concerns {
+  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  visit_item_id       BigInt   @db.UnsignedBigInt
+  concern_category_id BigInt   @db.UnsignedBigInt
+  notes               String?  @db.Text
+  status_id           BigInt   @db.UnsignedBigInt
+  created_at          DateTime @default(now()) @db.DateTime(0)
+  updated_at          DateTime @updatedAt @db.DateTime(0)
 
+
+  visit_items         visit_items @relation(fields: [visit_item_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  status              concern_status @relation(fields: [status_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model concern_status {
+  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  status              String? @db.VarChar(50)
+  visit_item_concerns visit_item_concerns[]
+}
 model sessions {
   id            String  @id @db.VarChar(255)
   user_id       BigInt? @db.UnsignedBigInt

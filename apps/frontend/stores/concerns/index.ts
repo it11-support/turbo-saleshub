@@ -4,8 +4,10 @@ import { create } from "zustand";
 
 export const useConcernStore = create<IConcernState>()((set, get) => ({
   concernCategory: null,
+  concernStatus: null,
   loading: false,
   concernCategories: [],
+  concernStatuses: [],
   name: '',
   description: '',
   fetchConcernCategories: async () => {
@@ -25,6 +27,24 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
     }
   },
 
+  fetchConcernStatuses: async () => {
+    try {
+      set({ loading: true })
+      const url = createUrl('concern-categories/statuses')
+      const res = await $api<any>(url)
+      set({ loading: false })
+      const payload = res?.data ?? res
+      const concernStatuses = payload?.concernStatuses ?? payload?.data?.concernStatuses ?? []
+
+      console.log('concernStatuses', concernStatuses)
+      set({ concernStatuses })
+      return concernStatuses
+    } catch (error) {
+      console.error(error)
+      set({ loading: false })
+      return []
+    }
+  },
   createCategory: async (data) => {
     try {
       const { concernCategories } = get()
@@ -47,6 +67,84 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       console.error(error)
       set({ loading: false })
       return null
+    }
+  },
+  createStatus: async (data) => {
+    try {
+      set({ loading: true })
+
+      const url = createUrl('concern-categories/statuses')
+
+      const res = await $api<any>(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      set({ loading: false })
+
+      const payload = res?.data ?? res
+      const newStatus = payload
+      console.log('newStatus', payload)
+      if (!newStatus) return null
+
+      set((state) => ({
+        concernStatuses: [...state.concernStatuses, newStatus],
+      }))
+
+      return newStatus
+    } catch (error) {
+      console.error(error)
+      set({ loading: false })
+      return null
+    }
+  },
+  updateStatus: async (id, data) => {
+    try {
+      set({ loading: true })
+      const url = createUrl(`concern-categories/statuses/${id}`)
+      const res = await $api<any>(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      set({ loading: false })
+
+      const payload = res?.data ?? res
+      const updatedStatus = payload
+
+      console.log('updatedStatus', updatedStatus)
+      if (!updatedStatus) return null
+
+      set({
+        concernStatuses: get().concernStatuses.map((status) =>
+          Number(status?.id) === id ? updatedStatus : status
+        ),
+      })
+
+      return updatedStatus
+    } catch (error) {
+      console.error(error)
+      set({ loading: false })
+      return null
+    }
+  },
+  deleteStatus: async (id) => {
+    try {
+      set({ loading: true })
+      const url = createUrl(`concern-categories/statuses/${id}`)
+      $api<any>(url, {
+        method: 'DELETE',
+      })
+      set({ loading: false })
+      set({
+        concernStatuses: get().concernStatuses.filter((status) => Number(status?.id) !== id),
+      })
+      return true
+    } catch (error) {
+      console.error(error)
+      set({ loading: false })
+      return false
     }
   },
 

@@ -1,6 +1,5 @@
 'use client'
 
-import ProductImage from '../../customers/components/ProductImage'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
@@ -175,9 +174,9 @@ const VisitsPage = () => {
                   </div>
                   <div className="flex items-start gap-4 h-full">
                     {/* IMAGE */}
-                    <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
+                    {/* <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
                       <ProductImage code={item.ItemCode} alt={item.ItemName || ''} />
-                    </div>
+                    </div> */}
 
                     {/* TEXT */}
                     <div className="flex flex-col items-start justify-start">

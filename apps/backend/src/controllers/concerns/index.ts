@@ -1,4 +1,4 @@
-import { createCategory, deleteCategory, getConcerns, updateCategory } from "@/services/index.js";
+import { createCategory, createStatus, deleteCategory, deleteStatus, getConcerns, getConcernStatuses, updateCategory, updateStatus } from "@/services/index.js";
 import { Request, Response } from "express";
 
 export const fetchConcernCategories = async (req: Request, res: Response) => {
@@ -52,3 +52,55 @@ export const deleteConcernCategory = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const fetchConcernStatuses = async (req: Request, res: Response) => {
+  try {
+    const concernStatuses = await getConcernStatuses();
+    return res.status(200).json({ message: "Concern statuses fetched successfully", data: { concernStatuses } });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const createNewStatus = async (req: Request, res: Response) => {
+  try {
+    const { status } = req.body;
+    const statusData = await createStatus({ status });
+    return res.status(200).json({ message: "Success", data: statusData });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const updateConcernStatus = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({ message: "Invalid concern status id" });
+    }
+
+    const { status: value } = req.body;
+    const  status = await updateStatus(id, { status: value });
+    return res.status(200).json({ message: "Success", data: status });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteConcernStatus = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) {
+      return res.status(400).json({ message: "Invalid concern status id" });
+    }
+    const status = await deleteStatus(id);
+    return res.status(200).json({ message: "Success", data: status });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
