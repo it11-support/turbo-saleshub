@@ -6,6 +6,7 @@ import { EProductCategory, IProduct } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Checkbox } from 'primereact/checkbox'
+import { Chip } from 'primereact/chip'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
@@ -19,7 +20,6 @@ import { formatCurrency } from '@/lib/formatter'
 import { useCustomerStore } from '@/stores/customers'
 import { useProductDevelopmentStore } from '@/stores/product-development'
 import { useProductsStore } from '@/stores/products'
-import { Chip } from 'primereact/chip'
 
 interface PaginatorChangeEvent {
   first: number
