@@ -1,5 +1,5 @@
 import { $api, createUrl } from "@/lib/api";
-import { IConcernState } from "@saleshub-tsm/types";
+import { IConcernState, IConcernStatus } from "@saleshub-tsm/types";
 import { create } from "zustand";
 
 export const useConcernStore = create<IConcernState>()((set, get) => ({
@@ -10,6 +10,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
   concernStatuses: [],
   name: '',
   description: '',
+  setConcernStatus: (status: IConcernStatus) => set({ concernStatus: status }),
   fetchConcernCategories: async () => {
     try {
       set({ loading: true })

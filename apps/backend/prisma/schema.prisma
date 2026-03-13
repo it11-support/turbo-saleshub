@@ -213,6 +213,8 @@ model concern_categories {
   description String?   @db.VarChar(255)
   created_at  DateTime   @default(now())
   updated_at  DateTime   @updatedAt
+
+  visit_item_concerns visit_item_concerns[]
 }
 model roles {
   id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
@@ -373,9 +375,9 @@ model visits {
   id              BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
   customer_id     BigInt                    @db.UnsignedBigInt
   sales_person_id BigInt                    @db.UnsignedBigInt
-  rule_id         BigInt                    @db.UnsignedBigInt
+  rule_id         BigInt?                   @db.UnsignedBigInt
   visit_date      String?
-  start_at        DateTime
+  start_at        DateTime?
   end_at          DateTime?
   status          VisitStatus
   created_at      DateTime?                 @db.Timestamp(0)
@@ -383,11 +385,11 @@ model visits {
   notes           String?                   @db.Text
 
   @@unique([customer_id, sales_person_id, rule_id, visit_date], name: "unique_daily_visit")
-
+  @@unique([customer_id, visit_date], name: "customer_id_visit_date")
 
   salesPerson    sales_persons      @relation(fields: [sales_person_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   customer       customers          @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  rule           sales_visit_rules  @relation(fields: [rule_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rule           sales_visit_rules?  @relation(fields: [rule_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   visit_items    visit_items[]
 }
 
@@ -424,6 +426,7 @@ model visit_item_concerns {
 
   visit_items         visit_items @relation(fields: [visit_item_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   status              concern_status @relation(fields: [status_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category            concern_categories @relation(fields: [concern_category_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model concern_status {

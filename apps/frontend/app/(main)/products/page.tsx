@@ -1,12 +1,12 @@
 'use client'
 
 import ProductImageUploader from './Components/ProductImageUploader'
+import CustomChip from '../components/custom/chip'
 import { DialogFooter, DialogHeader } from '../components/ui/dialog'
 import { EProductCategory, IProduct } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Checkbox } from 'primereact/checkbox'
-import { Chip } from 'primereact/chip'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
@@ -28,51 +28,6 @@ interface PaginatorChangeEvent {
   pageCount: number
 }
 
-type CustomChipProps = {
-  label?: string | null
-  color?: string
-  removable?: boolean
-  onRemove?: () => void
-}
-const CustomChip = (props: CustomChipProps) => {
-  const { label, color, removable, onRemove } = props
-
-  const labelValue = label ? label : ''
-
-  const onRemoveClick = () => {
-    if (onRemove) {
-      onRemove()
-    }
-  }
-
-  return (
-    <Chip
-      pt={{
-        root: {
-          style: {
-            fontSize: '10px',
-            padding: '0.2rem 0.5rem',
-            height: '1.5rem',
-            ...(color && { backgroundColor: color }),
-          },
-        },
-        icon: {
-          style: {
-            fontSize: '0.75rem',
-            marginRight: '0.25rem',
-          },
-        },
-        label: {
-          className: 'p-0',
-        },
-      }}
-      label={labelValue}
-      icon="pi pi-tags"
-      removable={removable}
-      onRemove={onRemoveClick}
-    />
-  )
-}
 const ProductList = () => {
   const {
     data: products,
@@ -311,7 +266,7 @@ const ProductList = () => {
               onChange={(e) => setIsDistributor(e.checked as boolean)}
               checked={isDistributor}
             />
-            <label htmlFor="productFocused" className="ml-2">
+            <label htmlFor="distributor" className="ml-2">
               Show Distributor Product
             </label>
           </div>

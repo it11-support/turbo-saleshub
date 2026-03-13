@@ -8,6 +8,7 @@ import { Card } from 'primereact/card'
 import { Divider } from 'primereact/divider'
 
 import { formatPhoneNumber } from '@/lib/phoneParser'
+import { useScheduleStore } from '@/stores'
 
 interface ScheduleCardProps {
   schedule: VisitSchedule
@@ -20,16 +21,35 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
   const router = useRouter()
   const todayKey = new Date().toISOString().slice(0, 10)
   const scheduleDateKey = new Date(schedule.visit_date).toISOString().slice(0, 10)
+  const { createVisitSchedule } = useScheduleStore()
 
   const previousDate = scheduleDateKey < todayKey
-  const getVisitRoute = (schedule: VisitSchedule) => {
-    const status = schedule.status.toLowerCase().trim()
+  const handleVisitNavigation = async (schedule: VisitSchedule) => {
+    const status = schedule.status?.toLowerCase().trim()
 
-    if (status === 'completed') return `/visit/details/${schedule.id}`
-    if (status === 'pending' || status === 'planned' || status === 'ongoing')
-      return `/visit/${schedule.rule.id}`
+    if (schedule.id === null) {
+      try {
+        const newVisit = await createVisitSchedule({
+          sales_person_id: Number(schedule.sales_person_id),
+          customer_id: Number(schedule.customer_id),
+          visit_date: schedule.visit_date,
+        })
 
-    return null
+        if (newVisit?.id) {
+          router.push(`/visit/${newVisit.id}`)
+        }
+        return
+      } catch (error) {
+        console.error('Gagal membuat visit:', error)
+        return
+      }
+    }
+
+    if (status === 'completed') {
+      router.push(`/visit/details/${schedule.id}`)
+    } else {
+      router.push(`/visit/${schedule.id}`)
+    }
   }
 
   const status = schedule.status.toLowerCase()
@@ -146,10 +166,7 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
             className="w-full py-2 rounded mt-3 text-sm"
             severity="secondary"
             outlined
-            onClick={() => {
-              const route = getVisitRoute(schedule)
-              if (route) router.push(route)
-            }}
+            onClick={() => handleVisitNavigation(schedule)}
             label={
               schedule.status.toLowerCase() === 'completed'
                 ? 'View Details'

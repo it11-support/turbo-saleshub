@@ -19,7 +19,6 @@ const AppMenuitem = (props: AppMenuItemProps) => {
   const isActiveRoute = item!.to && pathname === item!.to
   const active = activeMenu === key || activeMenu.startsWith(key + '-')
   const onRouteChange = (url: string) => {
-
     if (item!.to && item!.to === url) {
       setActiveMenu(key)
     }
@@ -31,13 +30,18 @@ const AppMenuitem = (props: AppMenuItemProps) => {
   }, [pathname])
 
   const itemClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    //avoid processing disabled items
+    // avoid processing disabled items
     if (item!.disabled) {
       event.preventDefault()
       return
     }
 
-    //execute command
+    // jika tidak ada route, cegah reload
+    if (!item!.to) {
+      event.preventDefault()
+    }
+
+    // execute command
     if (item!.command) {
       item!.command({ originalEvent: event, item: item })
     }

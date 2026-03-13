@@ -56,3 +56,8 @@ export type ProductWithFrequency = IProduct & {
   boughtFrequency: number
 }
 
+export type SuggestedItemsGrouped = {
+  distributor: ProductWithFrequency[];
+  groceries: ProductWithFrequency[];
+}
+

@@ -1,4 +1,4 @@
-import { ICustomer, IProduct, ISalesPerson } from '@saleshub-tsm/types'
+import { ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 export type OfferedItem = {
   product_id: number
   offered: boolean
@@ -7,19 +7,29 @@ export type OfferedItem = {
   created_at?: Date
 }
 export interface IVisit {
-  id: number
-  sales_person_id: number
-  salesPerson: ISalesPerson
-  suggestedItems?: IProduct[]
-  customer_id: number
+  id: bigint | number;
+  sales_person_id: bigint | number;
+  salesPerson: ISalesPerson;
+  suggestedItems?: SuggestedItemsGrouped;
+  customer_id: bigint | number;
   customer: ICustomer
-  start_at: Date
-  end_at?: Date
-  status: 'planned' | 'ongoing' | 'completed' | 'cancelled' | 'pending'
-  notes?: string
-  visit_items?: OfferedItem[]
-  created_at: string
-  updated_at: string
+  start_at: Date;
+  end_at?: Date | null;
+  status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' | 'Pending' | 'Missed';
+  notes?: string | null;
+  created_at: string | Date | null;
+  updated_at: string | Date | null;
+  visit_date: string | Date | null
+  visit_items?: IVisitItem[]
+}
+
+export interface IVisitDetails {
+  [key: number]: {
+    [key: number]: {
+      notes: string;
+      statusId: number | null;
+    };
+  };
 }
 
 export interface IVisitState {
@@ -30,8 +40,8 @@ export interface IVisitState {
   loading: boolean
   visitNote: string
   error: string | null
-  fetchSalesVisit: (rule_id: number) => Promise<void>
-  syncOfferedItems: () => Promise<void>
+  fetchSalesVisit: (rule_id: number, type?: string) => Promise<void>
+  syncOfferedItems: (data: IVisitDetails) => Promise<void>
   endVisit: () => Promise<void>
   fetchVisitDetails: (id: number) => Promise<void>
   setVisitNote: (note: string) => void

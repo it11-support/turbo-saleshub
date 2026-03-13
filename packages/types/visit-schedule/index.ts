@@ -1,5 +1,5 @@
 import { ICustomer } from "../customer";
-import { ProductWithFrequency } from "../product";
+import { ProductWithFrequency, SuggestedItemsGrouped } from "../product";
 import { IVisit } from "../visit";
 import { ISalesVisitRule } from "../visit-rules";
 
@@ -22,7 +22,7 @@ export type VisitScheduleStatus =
     planned_items: any[] | null; // array of items
     created_at: string;
     updated_at: string;
-    suggestedItems?: ProductWithFrequency[];
+    suggestedItems?: SuggestedItemsGrouped;
     visit?: IVisit
 }
 

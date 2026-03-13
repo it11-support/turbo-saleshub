@@ -10,6 +10,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   itemCount: 0,
   customers: [],
   loading: false,
+  slpCode: null,
   page: 1,
   loyaltyLevel: [],
   limit: 20,
@@ -38,7 +39,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setSearch: (value: string) => set({ search: value }),
   setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
   setItemCount: (itemCount: number) => set({ itemCount }),
-  suggestedItems: [],
+  suggestedItems: { distributor: [], groceries: [] },
   totalRecords: 0,
   lastPurchase: [],
   ordersByRange: { current: 0, last3Months: 0, last6Months: 0 },
@@ -48,14 +49,19 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setOrdersByRange(ordersByRange) {
     set({ ordersByRange })
   },
+  setSlpCode(slpCode) {
+    set({ slpCode })
+  },
   setLoyaltyLevel: (loyaltyLevel: string[]) => set({ loyaltyLevel }),
   fetchCustomers: async () => {
     try {
       const userCookie = getCookie('userData')
       const userData = userCookie ? JSON.parse(String(userCookie)) : null
-      const slpCode = userData?.sales_person?.SlpCode
+      const loginSlpCode = userData?.sales_person?.SlpCode
 
-      const { page, limit, search, multiSortMeta, groups, salesPersons, subgroups, itemCount, loyaltyLevel } = get()
+      const { page, limit, search, multiSortMeta, groups, salesPersons, subgroups, itemCount, loyaltyLevel, slpCode } = get()
+
+      const finalSlpCode = slpCode ?? loginSlpCode
 
       set({ loading: true })
 
@@ -72,7 +78,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         ...(groups && groups.length > 0 ? { groups } : {}),
         ...(subgroups && subgroups.length > 0 ? { subgroups } : {}),
         ...(salesPersons && salesPersons.length > 0 ? { salesPersons } : {}),
-        ...(slpCode ? { slpCode } : {}),
+        ...(finalSlpCode ? { slpCode: finalSlpCode } : {}),
         ...(itemCount ? { itemCount } : {}),
         ...(loyaltyLevel ? { loyaltyLevel } : {}),
       }
@@ -110,7 +116,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       const url = createUrl(`customers/${id}/suggestions`)
       const res = await $api<any>(url)
       set({ loading: false })
-      set({ suggestedItems: res.data.suggestions })
+      set({ suggestedItems: res.data.suggestions ?? { distributor: [], groceries: [] } })
       return res.data
     } catch (error) {
       console.error(error)

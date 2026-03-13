@@ -432,9 +432,9 @@ export const purchaseHistory = async (req: Request, res: Response) => {
 
 export const getSuggestedItems = async (
   id: number,
-  limit: number | undefined = undefined,
+  limit: number | undefined = 15,
   includeRecentOffered: boolean = false
-): Promise<any[]> => {
+): Promise<{ distributor: any[]; groceries: any[] }> => {
   try {
     // 1. Ambil customer + subgroup
     const customer = await prisma.customers.findUnique({
@@ -443,7 +443,7 @@ export const getSuggestedItems = async (
     });
 
     if (!customer || !customer.subgroup) {
-      return [];
+      return { distributor: [], groceries: [] };
     }
 
     const subgroupCode = customer.subgroup.IndCode;
@@ -457,7 +457,7 @@ export const getSuggestedItems = async (
     const subgroupCustomerIds = subgroupCustomers.map((c) => c.id);
 
     if (subgroupCustomerIds.length === 0) {
-      return [];
+      return { distributor: [], groceries: [] };
     }
 
     // 3. Group top-selling items di subgroup
@@ -481,7 +481,7 @@ export const getSuggestedItems = async (
       .filter((code): code is string => code !== null);
 
     if (topItemCodes.length === 0) {
-      return [];
+      return { distributor: [], groceries: [] };
     }
 
     // 4. Ambil semua item yg pernah dibeli customer ini
@@ -524,22 +524,6 @@ export const getSuggestedItems = async (
 
     const recentProductIds = new Set(recentVisitItems.map((item) => item.product_id));
 
-    // 8. Filter item yg belum pernah dibeli dan tambahkan frequency
-    let suggestions = products
-      .filter((p) => !boughtSet.has(p.ItemCode))
-      .map((p) => ({
-        ...p,
-        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
-      }))
-      .sort((a, b) => b.boughtFrequency - a.boughtFrequency);
-
-    if (limit !== undefined) {
-      suggestions = suggestions.slice(0, limit);
-    }
-    if (!includeRecentOffered) {
-      suggestions = suggestions.filter((p) => !recentProductIds.has(p.id));
-    }
-
     const productDevelopments = await prisma.products.findMany({
       where: {
         product_developments: {
@@ -555,23 +539,101 @@ export const getSuggestedItems = async (
       },
     });
 
-    const devIds = new Set(productDevelopments.map((p) => p.id));
-    const filteredDevProducts = includeRecentOffered
-      ? productDevelopments
-      : productDevelopments.filter((p) => !recentProductIds.has(p.id));
+    const distributorProducts = await prisma.products.findMany({
+      where: { Distributor: 'Y' },
+      include: { product_developments: true },
+    });
 
-    suggestions = [
-      ...filteredDevProducts.map((p) => ({
+    const sortByPriority = <
+      T extends { boughtFrequency?: number; ItemCode?: string | null; isDevelopment?: boolean }
+    >(
+      items: T[]
+    ) =>
+      items.sort((a, b) => {
+        const aDev = a.isDevelopment ? 1 : 0;
+        const bDev = b.isDevelopment ? 1 : 0;
+        if (aDev !== bDev) return bDev - aDev;
+
+        const aFreq = a.boughtFrequency ?? 0;
+        const bFreq = b.boughtFrequency ?? 0;
+        if (aFreq !== bFreq) return bFreq - aFreq;
+
+        const aCode = a.ItemCode ?? '';
+        const bCode = b.ItemCode ?? '';
+        return aCode.localeCompare(bCode);
+      });
+
+    // Distributor group: ambil semua distributor, exclude jika sudah pernah dibeli
+    let distributorItems = distributorProducts
+      .map((p) => ({
         ...p,
         boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
-      })),
-      ...suggestions.filter((p) => !devIds.has(p.id)),
-    ];
+        isDevelopment: (p.product_developments?.length ?? 0) > 0,
+      }))
+      .filter((p) => !boughtSet.has(p.ItemCode));
 
-    return suggestions;
+    if (!includeRecentOffered) {
+      distributorItems = distributorItems.filter((p) => !recentProductIds.has(p.id));
+    }
+
+    distributorItems = sortByPriority(distributorItems);
+
+    // Groceries group: hanya dari topSelling dalam subgroup, exclude jika sudah pernah dibeli
+    const devGroceries = productDevelopments
+      .filter((p) => p.Distributor !== 'Y')
+      .map((p) => ({
+        ...p,
+        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
+        isDevelopment: true,
+      }));
+
+    let nonDistributorItems = products
+      .filter((p) => p.Distributor !== 'Y')
+      .map((p) => ({
+        ...p,
+        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
+        isDevelopment: (p.product_developments?.length ?? 0) > 0,
+      }))
+      .filter((p) => !boughtSet.has(p.ItemCode));
+
+    if (!includeRecentOffered) {
+      nonDistributorItems = nonDistributorItems.filter((p) => !recentProductIds.has(p.id));
+    }
+
+    // Merge dev groceries + topSelling groceries, dedupe by id
+    const nonDistributorMap = new Map<string, (typeof nonDistributorItems)[number]>();
+    for (const item of [...devGroceries, ...nonDistributorItems]) {
+      nonDistributorMap.set(String(item.id), item);
+    }
+    nonDistributorItems = Array.from(nonDistributorMap.values());
+
+    // Jika ada distributor di group yang sama, buang non-distributor
+    const distributorGroups = new Set(
+      distributorItems
+        .filter((i) => i.ItmsGrpNam)
+        .map((i) => i.ItmsGrpNam as string)
+    );
+    if (distributorGroups.size > 0) {
+      nonDistributorItems = nonDistributorItems.filter((i) => {
+        if (!i.ItmsGrpNam) return true;
+        return !distributorGroups.has(i.ItmsGrpNam);
+      });
+    }
+
+    // Non-distributor hanya yang pernah dibeli oleh subgroup (freq > 0)
+    nonDistributorItems = nonDistributorItems.filter((p) => (p.boughtFrequency ?? 0) > 0);
+    nonDistributorItems = sortByPriority(nonDistributorItems);
+
+    const limitPerGroup = limit ?? 15;
+    const result = {
+      distributor: distributorItems.slice(0, limitPerGroup),
+      groceries: nonDistributorItems.slice(0, limitPerGroup),
+    };
+
+    return result;
   } catch (err) {
     console.error('getSuggestedItems error:', err);
-    return [];
+    return { distributor: [], groceries: [] };
   }
 };
 

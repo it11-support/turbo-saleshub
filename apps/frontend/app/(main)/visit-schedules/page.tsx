@@ -104,7 +104,7 @@ const VisitSchedules = () => {
             <Dropdown
               value={selectedSalesPerson}
               options={salesPersons
-                .filter((s: ISalesPerson) => s.user !== null)
+                .filter((s: ISalesPerson) => s.user)
                 .map((sp: ISalesPerson) => ({
                   label: sp.SlpName,
                   value: Number(sp.id),
@@ -159,7 +159,7 @@ const VisitSchedules = () => {
           />
         </div>
       </div>
-
+      <></>
       <Accordion activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index as number)}>
         {scheduledVisits.length > 0 && (
           <AccordionTab header={`Scheduled Visits (${scheduledVisits.length})`}>

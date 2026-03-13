@@ -1,4 +1,4 @@
-import { GenerateResult, VisitSchedule, VisitScheduleStatus } from '@saleshub-tsm/types'
+import { GenerateResult, IVisit, VisitSchedule, VisitScheduleStatus } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -22,6 +22,7 @@ interface ScheduleState {
   generateByRules: (sales_person_id: number, year: number, month: number) => Promise<GenerateResult>
   updateStatus: (id: number, status: string) => Promise<void>
   deleteSchedule: (id: number) => Promise<void>
+  createVisitSchedule: (payload: Partial<IVisit>) => Promise<IVisit>
 }
 
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
@@ -50,6 +51,26 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
       set({ total: res.total, totalPages: res.totalPages })
     } catch (err: any) {
       set({ error: err.message, loading: false })
+    }
+  },
+  createVisitSchedule: async (data: Partial<IVisit>) => {
+    try {
+      set({ loading: true })
+      const url = createUrl('schedule/create')
+      const res = await $api<any>(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+
+      const date = new Date(data.visit_date as string)
+      await get().fetchScheduleByDate(Number(data.sales_person_id), date.toISOString().slice(0, 10))
+
+      set({ loading: false })
+      return res.data
+    } catch (error) {
+      console.error(error)
+      set({ loading: false })
     }
   },
   generateByRules: async (sales_person_id: number, year: number, month: number) => {
@@ -123,12 +144,14 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     const selectedDate = date ?? currentDate
 
     try {
-      const url = createUrl('schedule', {
+
+      const payload:  Record<string, any> = {
         salesPersonId: sales_person_id,
         date: selectedDate,
         page,
         pageSize,
-      })
+      }
+      const url = createUrl('schedule', payload)
 
       const res = await $api<any>(url)
 
@@ -139,7 +162,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
         totalPages: res.totalPages,
       })
     } catch (err: any) {
-      set({ error: err.message, loading: false })
+      set({ error: err, loading: false })
     }
   },
 }))

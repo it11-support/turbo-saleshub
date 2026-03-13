@@ -1,4 +1,4 @@
-import { ICustomer, ISalesInvoices, ProductWithFrequency } from '@saleshub-tsm/types'
+import { ICustomer, ISalesInvoices, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 
 export interface ILastPurchase extends ISalesInvoices {
   hasRetur: boolean
@@ -17,6 +17,8 @@ export interface ICustomerState {
   loyaltyLevel: string[] | []
   subGroupNames: string[] | []
   subgroupOptions: { value: number; label: string }[]
+  slpCode: number | null
+  setSlpCode: (slpCode: number | null) => void
   setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) => void
   setSubGroupNames: (subGroupNames: string[]) => void
   setItemCount: (itemCount: number) => void
@@ -37,7 +39,7 @@ export interface ICustomerState {
   setSearch: (value: string) => void
   setMultiSortMeta: (meta: any[]) => void
   totalRecords: number
-  suggestedItems: ProductWithFrequency[]
+  suggestedItems: SuggestedItemsGrouped
   fetchCustomers: () => Promise<void>
   fetchCustomerSummary: (id: string) => Promise<ICustomer | null>
   fetchSuggestedItems: (id: string) => Promise<any | null>

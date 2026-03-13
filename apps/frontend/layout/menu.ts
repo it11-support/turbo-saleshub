@@ -1,4 +1,9 @@
+import { useScheduleDialog } from '@/stores'
 import { AppMenuItem } from '@/types'
+
+const showAddScheduleDialog = () => {
+  useScheduleDialog.getState().show()
+}
 
 export const getMenus = (isAdmin: boolean): AppMenuItem[] => {
   const adminMenus = isAdmin
@@ -40,6 +45,12 @@ export const getMenus = (isAdmin: boolean): AppMenuItem[] => {
     {
       label: 'Visits',
       items: [
+         {
+          label: 'Add Schedule',
+          icon: 'pi pi-fw pi-calendar-plus',
+          // to: '/visit-schedules/add',
+          command: showAddScheduleDialog,
+        },
         {
           label: 'Visit Rules',
           icon: 'pi pi-fw pi-sitemap',

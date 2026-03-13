@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { IVisit, IVisitState, OfferedItem } from '@/types'
+import { IVisitDetails, IVisitState, OfferedItem } from '@/types'
+import { IVisit } from '@saleshub-tsm/types'
 
 export const useSalesVisit = create<IVisitState>()((set, get) => ({
   visitNote: '',
@@ -35,17 +36,26 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       return null
     }
   },
-  syncOfferedItems: async () => {
+  syncOfferedItems: async (data: IVisitDetails) => {
     try {
       set({ loading: true })
+      const payload = {
+        visit_items: Object.entries(data).flatMap(([productId, categories]) => ({
+          product_id: Number(productId),
+          visitNote: get().visitNote,
+          concerns: Object.entries(categories as Record<string, { notes: string; statusId: number }>).map(([categoryId, detail]) => ({
+            concern_id: Number(categoryId),
+            note: detail.notes,
+            status_id: detail.statusId
+          }))
+        }))
+      };
+
       const url = createUrl(`visit/${get().salesVisit.id}`)
       const res = await $api<any>(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          visit_items: get().offeredItems,
-          visit_note: get().visitNote,
-        }),
+        body: JSON.stringify(payload),
       })
       const offeredItems =
         res.data.visit_items?.map((item: any) => ({
@@ -63,10 +73,12 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
   endVisit: async () => {
     try {
       set({ loading: true })
+
       const url = createUrl(`visit/${get().salesVisit.id}/complete`)
       await $api<any>(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: get().visitNote }),
       })
       set({ loading: false })
     } catch (error) {
