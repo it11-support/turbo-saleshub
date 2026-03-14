@@ -100,7 +100,7 @@ export default function AddScheduleDialog() {
           <Button
             outlined
             icon="pi pi-times"
-            size="small"
+            // size="small"
             severity="danger"
             className="btn btn-primary mr-2"
             onClick={hide}
@@ -109,7 +109,7 @@ export default function AddScheduleDialog() {
           <Button
             outlined
             icon="pi pi-save"
-            size="small"
+            // size="small"
             severity="success"
             className="btn btn-primary mr-2"
             onClick={handleCreateSchedule}
@@ -125,7 +125,7 @@ export default function AddScheduleDialog() {
               Sales Person
             </label>
             <Dropdown
-              id="slpCode"
+              inputId="slpCode"
               value={formData.salesPersonId}
               options={salesPersons
                 .filter((sp) => sp.user)
@@ -149,7 +149,7 @@ export default function AddScheduleDialog() {
           </label>
           <AutoComplete
             disabled={!formData.salesPersonId}
-            id="customer"
+            inputId="customer"
             value={formData.customer}
             suggestions={customers}
             completeMethod={(e) => setLocalSearch(e.query ?? '')}
@@ -171,7 +171,7 @@ export default function AddScheduleDialog() {
             Set Visit Date
           </label>
           <Calendar
-            id="scheduledDate"
+            inputId="scheduledDate"
             value={formData.scheduleDate}
             minDate={minDate}
             onChange={(e) => setFormData({ ...formData, scheduleDate: e.value as Date })}

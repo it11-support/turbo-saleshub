@@ -230,6 +230,7 @@ const SettingsPage = () => {
         </div>
       </div>
       <Dialog
+        dismissableMask
         header={
           modalType === 'category'
             ? editingCategoryId
@@ -254,26 +255,26 @@ const SettingsPage = () => {
         {modalType === 'category' && (
           <>
             <div className="inline-flex flex-column gap-2 w-full my-2">
-              <label htmlFor="name" className="text-primary-50 font-semibold">
+              <label htmlFor="name" className="text-primary-400 font-semibold">
                 Category Name
               </label>
               <InputText
                 id="name"
                 value={data.name}
                 onChange={(e) => setData({ ...data, name: e.target.value })}
-                className="bg-white-alpha-20 border-none p-3 text-primary-50"
+                className="border p-3 text-primary-400"
               />
             </div>
 
             <div className="inline-flex flex-column gap-2 w-full my-2">
-              <label htmlFor="decription" className="text-primary-50 font-semibold">
+              <label htmlFor="decription" className="text-primary-400 font-semibold">
                 Description
               </label>
               <InputTextarea
                 id="decription"
                 value={data.description}
                 onChange={(e) => setData({ ...data, description: e.target.value })}
-                className="bg-white-alpha-20 border-none p-3 text-primary-50"
+                className="border p-3 text-primary-400"
               />
             </div>
           </>
@@ -288,7 +289,7 @@ const SettingsPage = () => {
               id="status"
               value={statusData.status}
               onChange={(e) => setStatusData({ ...statusData, status: e.target.value })}
-              className="bg-white-alpha-20 border-none p-3 text-primary-50"
+              className="border p-3 text-primary-400"
             />
           </div>
         )}

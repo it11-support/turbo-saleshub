@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
-import { calcMTD, getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
+import { calcMTD, calcNetRevenue, getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
     const { mtdStart, mtdEnd, prevMtdStart, prevMtdEnd } = getMtdDates()
@@ -46,87 +46,44 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // REVENUE
     // =====================
-    const [revenueCurrent, returCurrent, revenueLast, returLast] = await Promise.all([
+    const [revenueCurrent, revenueLast] = await Promise.all([
 
-      prisma.sales_invoices.groupBy({
-        by: ['DocNum'],
-        _sum: { TotalSales: true },
+      prisma.sales_invoices.findMany({
         where: {
           DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...salesFilter,
-        }
-      }),
-
-      prisma.retur_invoices.groupBy({
-        by: ['DocNum'],
-        _sum: { TotalSales: true },
-        where: {
-          DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...salesFilter,
-        }
-      }),
-      prisma.sales_invoices.groupBy({
-        by: ['DocNum'],
-        _sum: { TotalSales: true },
-        where: {
-          DocDate: {
-            gte: prevMtdStart,
-            lte: prevMtdEnd,
-          },
-          ...salesFilter,
-        },
-      }),
-
-      prisma.retur_invoices.groupBy({
-        by: ['DocNum'],
-        _sum: { TotalSales: true },
-        where: {
-          sales: {
-            DocDate: {
-              gte: prevMtdStart,
-              lte: prevMtdEnd,
-            },
-          },
           ...salesFilter
         },
+        select: {
+          DocNum: true,
+          TotalSales: true,
+          returs: {
+            select: {
+              TotalSales: true
+            }
+          }
+        }
       }),
+
+      prisma.sales_invoices.findMany({
+        where: {
+          DocDate: { gte: prevMtdStart, lte: prevMtdEnd },
+          ...salesFilter
+        },
+        select: {
+          DocNum: true,
+          TotalSales: true,
+          returs: {
+            select: {
+              TotalSales: true
+            }
+          }
+        }
+      })
 
     ])
 
-    const revenueMapCurrent = new Map()
-    const revenueMapLast = new Map()
-
-    revenueCurrent.forEach((item) => {
-      revenueMapCurrent.set(item.DocNum, {
-        sales: Number(item._sum.TotalSales || 0),
-        retur: 0,
-      })
-    })
-
-    returCurrent.forEach(r => {
-      const existing = revenueMapCurrent.get(r.DocNum) || { sales: 0, retur: 0 }
-      existing.retur += Number(r._sum.TotalSales || 0)
-      revenueMapCurrent.set(r.DocNum, existing)
-    })
-
-    revenueLast.forEach((item) => {
-      revenueMapLast.set(item.DocNum, {
-        sales: Number(item._sum.TotalSales || 0),
-        retur: 0,
-      })
-    })
-
-    returLast.forEach(r => {
-      const existing = revenueMapLast.get(r.DocNum) || { sales: 0, retur: 0 }
-      existing.retur += Number(r._sum.TotalSales || 0)
-      revenueMapLast.set(r.DocNum, existing)
-    })
-
-    const totalRevCurrent = [...revenueMapCurrent.values()]
-      .reduce((sum, v) => sum + (v.sales + v.retur), 0)
-
-    const totalRevLast = [...revenueMapLast.values()]
-      .reduce((sum, v) => sum + (v.sales + v.retur), 0)
+    const totalRevCurrent = calcNetRevenue(revenueCurrent)
+    const totalRevLast = calcNetRevenue(revenueLast)
 
     const revenue = calcMTD(totalRevCurrent, totalRevLast)
 
@@ -210,9 +167,11 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
+    const docNums = revenueTrendRaw.map(s => s.DocNum)
+
     const returTrendRaw = await prisma.retur_invoices.findMany({
       where: {
-        DocDate: { gte: trendStart, lte: trendEnd },
+        DocNum: { in: docNums },
         ...salesFilter,
       },
       select: {
@@ -349,49 +308,75 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
+    const aovDocNums = [...new Set(aovSalesRaw.map(s => s.DocNum))]
+
     const aovReturRaw = await prisma.retur_invoices.findMany({
       where: {
-        DocDate: { gte: trendStart, lte: trendEnd },
+        DocNum: { in: aovDocNums },
         ...salesFilter,
       },
       select: {
-        DocDate: true,
         TotalSales: true,
         DocNum: true,
       },
     })
 
-    const aovMap: Record<string, { totalSales: number; orders: Set<number> }> = {}
+    /* -------------------------
+       1️⃣ Map Invoice
+    ------------------------- */
 
-    // Tambahkan sales
-    aovSalesRaw.forEach((cur) => {
-      if (!cur.DocDate || !cur.DocNum) return
-      const period = dayjs(cur.DocDate).format('YYYY-MM')
-      aovMap[period] ??= { totalSales: 0, orders: new Set() }
-      aovMap[period].totalSales += Number(cur.TotalSales ?? 0)
-      aovMap[period].orders.add(cur.DocNum)
+    const invoiceMap = new Map<number, { date: Date; netSales: number }>()
+
+    aovSalesRaw.forEach((s) => {
+      if (!s.DocNum || !s.DocDate) return
+
+      invoiceMap.set(s.DocNum, {
+        date: s.DocDate,
+        netSales: Number(s.TotalSales ?? 0),
+      })
     })
 
-    // Tambahkan retur (dipisah tapi dijumlah ke totalSales untuk net)
-    aovReturRaw.forEach((cur) => {
-      if (!cur.DocDate || !cur.DocNum) return
-      const period = dayjs(cur.DocDate).format('YYYY-MM')
-      aovMap[period] ??= { totalSales: 0, orders: new Set() }
-      aovMap[period].totalSales += Number(cur.TotalSales ?? 0)
-      aovMap[period].orders.add(cur.DocNum)
+    /* -------------------------
+       2️⃣ Tambahkan Retur
+    ------------------------- */
+
+    aovReturRaw.forEach((r) => {
+      const inv = invoiceMap.get(r.DocNum)
+
+      if (!inv) return
+
+      // retur sudah negatif
+      inv.netSales += Number(r.TotalSales ?? 0)
     })
 
+    /* -------------------------
+       3️⃣ Group by Month
+    ------------------------- */
 
-    // 2️⃣ Buat array tren AOV
+    const aovMap: Record<string, { totalSales: number; orders: number }> = {}
+
+    invoiceMap.forEach((inv) => {
+
+      const period = dayjs(inv.date).format('YYYY-MM')
+
+      if (!aovMap[period]) {
+        aovMap[period] = { totalSales: 0, orders: 0 }
+      }
+
+      aovMap[period].totalSales += inv.netSales
+      aovMap[period].orders += 1
+    })
+
+    /* -------------------------
+       4️⃣ Build Trend
+    ------------------------- */
+
     const aovTrend = Object.entries(aovMap)
       .map(([period, data]) => ({
         period,
-        aov:
-          period === currentPeriod
-            ? aov.current // bisa pakai KPI MTD bulan ini
-            : data.orders.size > 0
-              ? data.totalSales / data.orders.size
-              : 0,
+        aov: data.orders > 0
+          ? data.totalSales / data.orders
+          : 0,
       }))
       .sort((a, b) => a.period.localeCompare(b.period))
 
@@ -410,75 +395,86 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
 
+    const invDocNums = [...new Set(invoices.map(inv => inv.DocNum))]
+
     const returTotals = await prisma.retur_invoices.groupBy({
       by: ['DocNum'],
       _sum: {
         TotalSales: true,
       },
       where: {
-        DocDate: { gte: mtdStart, lte: mtdEnd },
+        DocNum: { in: invDocNums },
         ...salesFilter,
       },
     })
 
-    const returMap = new Map(returTotals.map(r => [r.DocNum, Number(r._sum.TotalSales ?? 0)]))
+    const returMap = new Map<number, number>(
+      returTotals.map(r => [r.DocNum, Number(r._sum.TotalSales ?? 0)])
+    )
 
 
     const revenueBySales: Record<string, number> = {}
 
     invoices.forEach(inv => {
+
       const slp = inv.customer?.sales_person?.SlpName ?? 'Unknown'
+
       const totalInvoice = Number(inv.TotalSales ?? 0)
+
       const totalRetur = returMap.get(inv.DocNum) ?? 0
-      revenueBySales[slp] = (revenueBySales[slp] ?? 0) + totalInvoice + totalRetur
+
+      const netRevenue = totalInvoice + totalRetur // retur sudah negatif
+
+      revenueBySales[slp] = (revenueBySales[slp] ?? 0) + netRevenue
     })
 
     const slpRevenue = Object.entries(revenueBySales)
       .map(([slp, revenue]) => ({ slp, revenue }))
-      .sort((a, b) => b.revenue - a.revenue).slice(0, 5)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
 
-    const topItemsSales = await prisma.sales_invoices.groupBy({
+    const topItemsSalesDistributor = await prisma.sales_invoices.groupBy({
       by: ['ItemCode'],
       _sum: { TotalSales: true },
       _count: { DocNum: true },
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: { ItemName: { contains: 'LIVI' } },
+        product: { Distributor: 'Y' },
         ...salesFilter,
       },
     })
 
-    const topItemsRetur = await prisma.retur_invoices.groupBy({
+    const topItemsReturDistributor = await prisma.retur_invoices.groupBy({
       by: ['ItemCode'],
       _sum: { TotalSales: true },
       _count: { DocNum: true },
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: { ItemName: { contains: 'LIVI' } },
+        product: { Distributor: 'Y' },
         ...salesFilter,
       },
     })
 
-    const topItemsMap = new Map<string, { sales: number; count: number }>()
+    const topItemsMapDistributor = new Map<string, { sales: number; count: number }>()
 
-    topItemsSales.forEach(item => {
-      topItemsMap.set(item.ItemCode, {
+    topItemsSalesDistributor.forEach(item => {
+      topItemsMapDistributor.set(item.ItemCode, {
         sales: Number(item._sum.TotalSales ?? 0),
         count: item._count.DocNum,
       })
     })
 
-    const topItemsDistributor = Array.from(topItemsMap.entries())
+    const topItemsDistributor = Array.from(topItemsMapDistributor.entries())
       .map(([ItemCode, data]) => ({ ItemCode, ...data }))
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 10)
 
 
-    topItemsRetur.forEach(item => {
-      const existing = topItemsMap.get(item.ItemCode) || { sales: 0, count: 0 }
+    topItemsReturDistributor.forEach(item => {
+      const existing = topItemsMapDistributor.get(item.ItemCode) || { sales: 0, count: 0 }
       existing.sales += Number(item._sum.TotalSales ?? 0)
       existing.count += item._count.DocNum
-      topItemsMap.set(item.ItemCode, existing)
+      topItemsMapDistributor.set(item.ItemCode, existing)
     })
 
     const topItemsSalesGrocery = await prisma.sales_invoices.groupBy({
@@ -488,9 +484,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
         product: {
-          ItemName: {
-            not: { contains: 'LIVI' },
-          }
+          Distributor: 'N'
         },
         ...salesFilter,
       },
@@ -502,7 +496,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       _count: { DocNum: true },
       where: {
         DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: { ItemName: { not: { contains: 'LIVI' } } },
+        product: { Distributor: 'N' },
         ...salesFilter,
       },
     })
@@ -525,7 +519,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     })
 
 
-    const topItemsGrocery = Array.from(topItemsMap.entries())
+    const topItemsGrocery = Array.from(topItemsMapGrocery.entries())
       .map(([ItemCode, data]) => ({ ItemCode, ...data }))
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 10)
@@ -545,7 +539,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     })
 
     const productRevenueDistributor = topItemsDistributor.map(i => {
-      const retur = topItemsRetur.find(r => r.ItemCode === i.ItemCode)?._sum.TotalSales ?? 0;
+      const retur = topItemsReturDistributor.find(r => r.ItemCode === i.ItemCode)?._sum.TotalSales ?? 0;
       const totalRevenue = Number(i.sales ?? 0) + Number(retur);
 
       return {

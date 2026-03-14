@@ -201,6 +201,12 @@ export const visitDetails = async (req: Request, res: Response) => {
         visit_items: {
           include: {
             product: true,
+            visit_item_concerns: {
+              include: {
+                category: true,
+                status: true,
+              },
+            }
           },
         },
       },

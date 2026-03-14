@@ -1,30 +1,22 @@
 import dayjs from "dayjs";
 import prisma from '@/libs/prisma.js'
+import { Decimal } from "@prisma/client/runtime/client";
 
+interface ICalcNetRevParams {
+  DocNum: number
+  TotalSales: Decimal | null
+  returs?: {
+    TotalSales: Decimal | null
+  }[]
+}
 export const calcMTD = (current: number, last: number) => {
-  const today = new Date();
-
-  // 1. Ambil jumlah hari yang sudah berjalan di bulan ini (misal: tanggal 4)
-  const currentDayCount = today.getDate();
-
-  // 2. Ambil total hari di bulan sebelumnya (misal: Februari = 28)
-  const prevDayCount = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
-
-  // 3. Hitung rata-rata harian
-  const currentAvg = current / currentDayCount;
-  const lastAvg = last / prevDayCount;
-
-  // 4. Hitung selisih dan persentase pertumbuhan rata-rata
-  const diff = currentAvg - lastAvg;
-
-  // Hindari pembagian dengan nol jika data bulan lalu kosong
-  const growthPercent = lastAvg === 0 ? 0 : (diff / lastAvg) * 100;
-
+  const growth = ((current - last) / last) * 100
+  const diff = current - last
   return {
     current,
     last,
     diff,
-    growthPercent: parseFloat(growthPercent.toFixed(2)) // Dibulatkan agar rapi
+    growthPercent: parseFloat(growth.toFixed(2)) // Dibulatkan agar rapi
   };
 }
 
@@ -152,3 +144,19 @@ export const getRFM = async (salesFilter: any) => {
 
   return RFM;
 };
+
+
+export const calcNetRevenue = (invoices: ICalcNetRevParams[]) => {
+  return invoices.reduce((sum, inv) => {
+
+    const sales = Number(inv.TotalSales ?? 0)
+
+    const retur = inv.returs?.reduce(
+      (r, x) => r + Number(x.TotalSales ?? 0),
+      0
+    ) ?? 0
+
+    return sum + (sales - retur)
+
+  }, 0)
+}

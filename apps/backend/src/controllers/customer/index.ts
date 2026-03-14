@@ -219,6 +219,13 @@ export const customerList = async (
 
     const salesPersonsData = await prisma.customers.findMany({
       distinct: ['SalesName'],
+      where:{
+        sales_person:{
+          user: {
+             isNot: null
+          }
+        }
+      },
       select: {
         SalesName: true,
       },

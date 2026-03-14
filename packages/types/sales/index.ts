@@ -1,5 +1,6 @@
 import { ICustomer } from '../customer'
 import { IProduct } from '../product'
+import { IReturInvoices } from '../retur'
 export interface ISalesInvoices {
   id: BigInt | number
   DocNum: number
@@ -18,6 +19,7 @@ export interface ISalesInvoices {
   updated_at?: string | null
   customer?: ICustomer | null
   product: IProduct
+  returs?: IReturInvoices[]
 }
 
 export interface ISalesSummary {
