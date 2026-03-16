@@ -85,10 +85,10 @@ const VisitDetailsPage = () => {
           {salesVisit.visit_items?.map((item) => {
             const visitItemConcern = item.visit_item_concerns || []
             return (
-              <div className="col-12 lg:col-6 xl:col-6" key={item.product?.ItemCode}>
-                <Card className="mb-3 p-3 h-[180px]">
+              <div className="col-12 md:col-6 lg:col-6 flex" key={item.product?.ItemCode}>
+                <Card className="w-full h-full p-2">
                   <div className="flex flex-column w-full gap-3">
-                    <div className="flex flex-column w-full gap-3">
+
                       {/* ROW ATAS: Judul & Tanggal */}
                       <div className="flex w-full align-items-start gap-3">
                         {/* TANGGAL (1/3 Lebar) */}
@@ -100,7 +100,6 @@ const VisitDetailsPage = () => {
 
                         {/* JUDUL / NAMA PRODUK (2/3 Lebar) */}
                         <div className="w-3 flex flex-column text-right">
-                          <span className="opacity-70 text-xs">Recorded on</span>
                           <span className="font-bold text-xs opacity-70">
                             {formatDate(item?.created_at, { withTime: true })}
                           </span>
@@ -134,7 +133,6 @@ const VisitDetailsPage = () => {
                         </div>
                       )}
                     </div>
-                  </div>
                 </Card>
               </div>
             )

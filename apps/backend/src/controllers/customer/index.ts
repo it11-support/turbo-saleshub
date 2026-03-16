@@ -3,6 +3,7 @@ import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsPa
 import { ICommonRequestType, ICustomer, PaginationResult } from '@saleshub-tsm/types';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
+import { getParetoProducts } from './functions.js';
 
 export type CustomerRequestType = {
   active?: string[];
@@ -441,8 +442,10 @@ export const getSuggestedItems = async (
   id: number,
   limit: number | undefined = 15,
   includeRecentOffered: boolean = false
-): Promise<{ distributor: any[]; groceries: any[] }> => {
+): Promise<{ groceries: any[], distributor: any[] }> => {
   try {
+
+    const pareto = await getParetoProducts(id);
     // 1. Ambil customer + subgroup
     const customer = await prisma.customers.findUnique({
       where: { id },
@@ -450,7 +453,7 @@ export const getSuggestedItems = async (
     });
 
     if (!customer || !customer.subgroup) {
-      return { distributor: [], groceries: [] };
+      return { groceries: [], distributor: [] };
     }
 
     const subgroupCode = customer.subgroup.IndCode;
@@ -464,31 +467,7 @@ export const getSuggestedItems = async (
     const subgroupCustomerIds = subgroupCustomers.map((c) => c.id);
 
     if (subgroupCustomerIds.length === 0) {
-      return { distributor: [], groceries: [] };
-    }
-
-    // 3. Group top-selling items di subgroup
-    const topSelling = await prisma.sales_invoices.groupBy({
-      by: ['ItemCode', 'Dscription'],
-      where: {
-        customer: {
-          id: { in: subgroupCustomerIds },
-        },
-      },
-      _count: { ItemCode: true },
-      orderBy: {
-        _count: { ItemCode: 'desc' },
-      },
-      take: 50,
-    });
-
-    // Filter null itemcodes
-    const topItemCodes = topSelling
-      .map((i) => i.ItemCode)
-      .filter((code): code is string => code !== null);
-
-    if (topItemCodes.length === 0) {
-      return { distributor: [], groceries: [] };
+      return { groceries: [], distributor: [] };
     }
 
     // 4. Ambil semua item yg pernah dibeli customer ini
@@ -502,26 +481,21 @@ export const getSuggestedItems = async (
       customerItems.map((i) => i.ItemCode).filter((code): code is string => code !== null)
     );
 
-    // 5. Ambil detail produk dari item top-selling
-    const products = await prisma.products.findMany({
-      where: { ItemCode: { in: topItemCodes } },
-      include: {
-        product_developments: true,
-      },
-    });
-
-    // 6. Buat map frekuensi pembelian
-    const frequencyMap = new Map(topSelling.map((item) => [item.ItemCode, item._count.ItemCode]));
-
     // 7. Filter item yang telah ditawarkan dalam 30 hari
     const recentVisitItems = await prisma.visit_items.findMany({
       where: {
         offered: true,
+        visit_item_concerns: {
+          some: {
+            status: {
+              status: {
+                in: ['Done', 'Closed'],
+              },
+            },
+          },
+        },
         visit: {
           customer_id: id,
-          start_at: {
-            gte: oneMonthAgo,
-          },
         },
       },
       select: {
@@ -531,116 +505,36 @@ export const getSuggestedItems = async (
 
     const recentProductIds = new Set(recentVisitItems.map((item) => item.product_id));
 
-    const productDevelopments = await prisma.products.findMany({
-      where: {
-        product_developments: {
-          some: {
-            subgroup: {
-              IndCode: subgroupCode,
-            },
-          },
-        },
-      },
-      include: {
-        product_developments: true,
-      },
-    });
-
     const distributorProducts = await prisma.products.findMany({
       where: { Distributor: 'Y' },
       include: { product_developments: true },
     });
 
-    const sortByPriority = <
-      T extends { boughtFrequency?: number; ItemCode?: string | null; isDevelopment?: boolean }
-    >(
-      items: T[]
-    ) =>
-      items.sort((a, b) => {
-        const aDev = a.isDevelopment ? 1 : 0;
-        const bDev = b.isDevelopment ? 1 : 0;
-        if (aDev !== bDev) return bDev - aDev;
-
-        const aFreq = a.boughtFrequency ?? 0;
-        const bFreq = b.boughtFrequency ?? 0;
-        if (aFreq !== bFreq) return bFreq - aFreq;
-
-        const aCode = a.ItemCode ?? '';
-        const bCode = b.ItemCode ?? '';
-        return aCode.localeCompare(bCode);
-      });
-
     // Distributor group: ambil semua distributor, exclude jika sudah pernah dibeli
     let distributorItems = distributorProducts
       .map((p) => ({
         ...p,
-        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
         isDevelopment: (p.product_developments?.length ?? 0) > 0,
       }))
-      .filter((p) => !boughtSet.has(p.ItemCode));
+      .filter((p) => !boughtSet.has(p.ItemCode))
+      .sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
+
+    let paretoProduct = pareto.sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
 
     if (!includeRecentOffered) {
       distributorItems = distributorItems.filter((p) => !recentProductIds.has(p.id));
+      paretoProduct = pareto.filter((p) => !recentProductIds.has(p.id));
     }
 
-    distributorItems = sortByPriority(distributorItems);
-
-    // Groceries group: hanya dari topSelling dalam subgroup, exclude jika sudah pernah dibeli
-    const devGroceries = productDevelopments
-      .filter((p) => p.Distributor !== 'Y')
-      .map((p) => ({
-        ...p,
-        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
-        isDevelopment: true,
-      }));
-
-    let nonDistributorItems = products
-      .filter((p) => p.Distributor !== 'Y')
-      .map((p) => ({
-        ...p,
-        boughtFrequency: frequencyMap.get(p.ItemCode) ?? 0,
-        isDevelopment: (p.product_developments?.length ?? 0) > 0,
-      }))
-      .filter((p) => !boughtSet.has(p.ItemCode));
-
-    if (!includeRecentOffered) {
-      nonDistributorItems = nonDistributorItems.filter((p) => !recentProductIds.has(p.id));
-    }
-
-    // Merge dev groceries + topSelling groceries, dedupe by id
-    const nonDistributorMap = new Map<string, (typeof nonDistributorItems)[number]>();
-    for (const item of [...devGroceries, ...nonDistributorItems]) {
-      nonDistributorMap.set(String(item.id), item);
-    }
-    nonDistributorItems = Array.from(nonDistributorMap.values());
-
-    // Jika ada distributor di group yang sama, buang non-distributor
-    const distributorGroups = new Set(
-      distributorItems
-        .filter((i) => i.ItmsGrpNam)
-        .map((i) => i.ItmsGrpNam as string)
-    );
-    if (distributorGroups.size > 0) {
-      nonDistributorItems = nonDistributorItems.filter((i) => {
-        if (!i.ItmsGrpNam) return true;
-        return !distributorGroups.has(i.ItmsGrpNam);
-      });
-    }
-
-    // Non-distributor hanya yang pernah dibeli oleh subgroup (freq > 0)
-    nonDistributorItems = nonDistributorItems.filter((p) => (p.boughtFrequency ?? 0) > 0);
-    nonDistributorItems = sortByPriority(nonDistributorItems);
-
-    const limitPerGroup = limit ?? 15;
     const result = {
-      distributor: distributorItems.slice(0, limitPerGroup),
-      groceries: nonDistributorItems.slice(0, limitPerGroup),
+      distributor: distributorItems,
+      groceries: paretoProduct,
     };
 
     return result;
   } catch (err) {
     console.error('getSuggestedItems error:', err);
-    return { distributor: [], groceries: [] };
+    return { groceries: [], distributor: [] };
   }
 };
 

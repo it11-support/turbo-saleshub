@@ -547,6 +547,7 @@ enum VisitStatus {
   Cancelled
   Pending
   Missed
+  Closed
 }
 
 enum CustomerSegment {

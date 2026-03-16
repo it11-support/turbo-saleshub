@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { useUserStore, useVisitsStore } from '@/stores'
+import { Checkbox } from 'primereact/checkbox'
 
 type VisitRow = {
   'Visit Date': string
@@ -44,6 +45,10 @@ const VisitList = () => {
     fetchVisits,
     multiSortMeta,
     salesPersonId,
+    needFollowUp,
+    setNeedFollowUp,
+    status,
+    setStatus,
     setSalesPersonId,
     exportDates,
     exportData,
@@ -79,7 +84,7 @@ const VisitList = () => {
     if (isAdmin) {
       fetchVisits()
     }
-  }, [isAdmin, salesPersonId, user, dates, page, limit, multiSortMeta])
+  }, [isAdmin, salesPersonId, user, dates, page, limit, multiSortMeta, status, needFollowUp])
 
   useEffect(() => {
     if (exportDates || salesPersonFilter) {
@@ -144,23 +149,35 @@ const VisitList = () => {
         <h5>Visits</h5>
 
         <div className="grid my-4">
-          {isAdmin && (
-            <div className="col-12 md:col-3">
+           <div className="col-12 md:col-3">
               <Dropdown
-                value={salesPersonId}
-                options={salesPersons.map((sp: ISalesPerson) => ({
-                  label: sp.SlpName,
-                  value: Number(sp.id),
+                value={status}
+                options={['Completed', 'Ongoing', 'Missed'].map((status) => ({
+                  label: status,
+                  value: status,
                 }))}
                 onChange={(e) => {
-                  setSalesPersonId(e.value === null ? undefined : e.value)
+                  setStatus(e.value === null ? undefined : e.value)
                 }}
-                placeholder="Select Sales Person"
+                placeholder="Select Status"
                 className="w-full"
                 showClear
               />
             </div>
-          )}
+            <div className="col-12 md:col-3 flex justify-center align-items-center">
+
+            <Checkbox
+              inputId="productFocused"
+              name="productFocused"
+              value={needFollowUp}
+              onChange={(e) => setNeedFollowUp(e.checked as boolean)}
+              checked={needFollowUp}
+            />
+            <label htmlFor="productFocused" className="ml-2">
+              Visit with Follow Ups
+            </label>
+            </div>
+
           <div className="col-12 md:col-3">
             <Calendar
               value={dates}
@@ -182,6 +199,24 @@ const VisitList = () => {
             />
           </div>
         </div>
+
+         {isAdmin && (
+            <div className="col-12 md:col-3">
+              <Dropdown
+                value={salesPersonId}
+                options={salesPersons.map((sp: ISalesPerson) => ({
+                  label: sp.SlpName,
+                  value: Number(sp.id),
+                }))}
+                onChange={(e) => {
+                  setSalesPersonId(e.value === null ? undefined : e.value)
+                }}
+                placeholder="Select Sales Person"
+                className="w-full"
+                showClear
+              />
+            </div>
+          )}
         {data && <VisitListTable />}
       </div>
       <Dialog

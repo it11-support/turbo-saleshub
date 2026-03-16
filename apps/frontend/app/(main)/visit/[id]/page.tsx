@@ -1,13 +1,12 @@
 'use client'
 
 import CustomChip from '../../components/custom/chip'
-import { ProductWithFrequency } from '@saleshub-tsm/types'
+import { IVisitItemConcern, ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
-import { Checkbox } from 'primereact/checkbox'
+import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
@@ -36,7 +35,11 @@ const VisitsPage = () => {
   const [concernSelections, setConcernSelections] = useState<
     Record<number, Record<number, { notes: string; statusId: number | null }>>
   >({})
-  const [activeTab, setActiveTab] = useState(0)
+
+  const [suggestedGroup, setSuggestedGroup] = useState('')
+
+  const [activeProductGroup, setActiveProductGroup] = useState<ProductWithFrequency[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
   useEffect(() => {
     fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
@@ -69,6 +72,124 @@ const VisitsPage = () => {
     { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
     { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
   ] as const
+
+  useEffect(() => {
+    if (!suggestedGroup) {
+      setActiveProductGroup([])
+    }
+    setActiveProductGroup(
+      suggestedGroups.find((group) => group.key === suggestedGroup)?.items ?? []
+    )
+  }, [suggestedGroup])
+
+  const handleChangeSuggestedGroup = (value: string) => {
+    setSuggestedGroup(value)
+    setSelectedCategories([])
+
+    const activeGroup = suggestedGroups.find((group) => group.key === value)
+    setActiveProductGroup(activeGroup?.items ?? [])
+  }
+
+  const isDistributor = suggestedGroup === 'distributor'
+
+  const distributorCategories = isDistributor
+    ? activeProductGroup.reduce((acc, item) => {
+        const categoryName = item.ProductCategory ?? ''
+
+        const exists = acc.find((option) => option.value === categoryName)
+
+        if (categoryName && !exists) {
+          acc.push({
+            value: categoryName,
+            label: categoryName,
+          })
+        }
+        return acc
+      }, [] as { value: string; label: string }[])
+    : []
+  const onCategoryChange = (e: CheckboxChangeEvent) => {
+    let _selected = [...selectedCategories]
+
+    if (e.checked) {
+      _selected.push(e.value)
+    } else {
+      _selected = _selected.filter((category) => category !== e.value)
+    }
+
+    setSelectedCategories(_selected)
+  }
+
+  const filteredProducts =
+    selectedCategories.length > 0
+      ? activeProductGroup.filter((item) => selectedCategories.includes(item.ProductCategory ?? ''))
+      : activeProductGroup
+
+  const ProductCard = ({
+    item,
+    category,
+    visitItemConcerns,
+  }: {
+    item: ProductWithFrequency
+    category?: string
+    visitItemConcerns?: IVisitItemConcern[]
+  }) => {
+    return (
+      <Card className="mb-3 min-h-[180px]" pt={{ root: { style: { minHeight: '100%' } } }}>
+        <div className="flex items-start gap-4 h-full">
+          <div className="flex flex-col items-start justify-start">
+            <div className="font-bold text-base leading-tight line-clamp-2 text-color-secondary">
+              {item.ItemName}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {item.product_developments?.length ? (
+                  <CustomChip
+                    label="Product Focus"
+                    removable={false}
+                    color="var(--purple-300)"
+                    icon="pi pi-star"
+                  />
+                ) : null}
+                <CustomChip label={item.ItmsGrpNam} removable={false} />
+                {item.Distributor === 'Y' && (
+                  <CustomChip label="Distributor" removable={false} color="var(--green-500)" />
+                )}
+                {item.ProductCategory && (
+                  <CustomChip label={category} removable={false} color="var(--orange-500)" />
+                )}
+              </div>
+              <div className="mt-3 text-sm font-semibold text-primary">
+                {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
+                {formatCurrency(Number(item.MaxPrice), true, true)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center mt-3 border-top-1 surface-border pt-3">
+          <Button
+            size="small"
+            outlined
+            label="Offer"
+            icon="pi pi-arrow-circle-up"
+            severity="success"
+            onClick={() => handleProductOffer(item)}
+          />
+        </div>
+
+        {visitItemConcerns?.map((c) => (
+          <div
+            key={`category-${item.ItemCode}-${c.id}`}
+            className="mt-2 p-2 surface-50 border-round"
+          >
+            <div className="flex justify-content-between align-items-center">
+              <div className="font-semibold text-sm">{c.category.name}</div>
+              <Badge value={c.status.status} severity="info" />
+            </div>
+            <div className="text-xs text-secondary mt-1">{c.notes}</div>
+          </div>
+        ))}
+      </Card>
+    )
+  }
 
   return (
     <>
@@ -157,118 +278,99 @@ const VisitsPage = () => {
             </div>
           </div>
         </div>
+        <div className="col-12 xl:col-6 md:col-6">
+          <div className="p-2">
+            <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
+              Item Group
+            </label>
+            <Dropdown
+              id={`itemGroup-${salesVisit.id}`}
+              options={suggestedGroups.map((group) => {
+                return { label: group.key.toUpperCase(), value: group.key }
+              })}
+              value={suggestedGroup}
+              onChange={(e) => handleChangeSuggestedGroup(e.value)}
+              placeholder="Item Group"
+              className="w-full"
+            />
+          </div>
+        </div>
 
-        {suggestedGroups.length > 0 && (
-          <Accordion activeIndex={activeTab} onTabChange={(e) => setActiveTab(e.index as number)}>
-            {suggestedGroups.map((group) => {
-              if (group.items.length === 0) return null
-              return (
-                <AccordionTab
-                  header={
-                    <div className="flex items-center font-bold">
-                      {`SUGGESTED ITEMS ${group.key.toLocaleUpperCase()}`}
+        {activeProductGroup.length > 0 && (
+          <>
+            <Card className="mx-3 mt-3" header={`SUGGESTED ITEMS ${suggestedGroup?.toUpperCase()}`}>
+              {isDistributor && distributorCategories.length > 0 ? (
+                <div className="flex flex-column gap-3">
+                  <p className="m-0">Pick Categories</p>
+                  {distributorCategories.map((cat) => (
+                    <div key={cat.value}>
+                      <div className="flex align-items-center">
+                        <Checkbox
+                          inputId={`cat-${cat.value}`}
+                          name="category"
+                          value={cat.value}
+                          onChange={onCategoryChange}
+                          checked={selectedCategories.includes(cat.value)}
+                        />
+                        <label htmlFor={`cat-${cat.value}`} className="ml-2">
+                          {cat.label}
+                        </label>
+                      </div>
+                      <div className="grid">
+                        {selectedCategories.length > 0
+                          ? filteredProducts
+                              .filter((item) => item.ProductCategory === cat.value)
+                              .map((item) => {
+                                const category = item.ProductCategory
+                                  ? item.ProductCategory.charAt(0) +
+                                    item.ProductCategory.slice(1).toLocaleLowerCase()
+                                  : ''
+                                const visitItems = visit_items?.find(
+                                  (i) => i.product_id === item.id
+                                )
+                                const visitItemConcerns = visitItems?.visit_item_concerns
+
+                                return (
+                                  <div
+                                    key={`distributor-${item.ItemCode}`}
+                                    className="col-12 lg:col-6 xl:col-4"
+                                  >
+                                    <ProductCard
+                                      item={item}
+                                      category={category}
+                                      visitItemConcerns={visitItemConcerns}
+                                    />
+                                  </div>
+                                )
+                              })
+                          : null}
+                      </div>
                     </div>
-                  }
-                  key={group.key}
-                >
-                  <div className="grid">
-                    {group.items.map((item) => {
-                      const category = item.ProductCategory
-                        ? item.ProductCategory?.charAt(0) +
-                          item.ProductCategory?.slice(1).toLocaleLowerCase()
-                        : ''
-                      const visitItems = visit_items?.find((i) => i.product_id === item.id)
-                      const visitItemConcerns = visitItems?.visit_item_concerns
-                      return (
-                        <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
-                          <Card
-                            className="mb-3 min-h-[180px]"
-                            pt={{
-                              root: {
-                                style: {
-                                  minHeight: '100%',
-                                },
-                              },
-                            }}
-                          >
-                            <div className="flex items-start gap-4 h-full">
-                              {/* IMAGE */}
-                              {/* <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
-                            <ProductImage code={item.ItemCode} alt={item.ItemName || ''} />
-                          </div> */}
-
-                              {/* TEXT */}
-                              <div className="flex flex-col items-start justify-start">
-                                <div className="font-bold text-base leading-tight line-clamp-2 text-color-secondary">
-                                  {item.ItemName}
-                                  <div className="mt-1 text-sm font-semibold mt-3 flex flex-wrap gap-2">
-                                    {item.product_developments?.length ? (
-                                      <CustomChip
-                                        label="Product Focus"
-                                        removable={false}
-                                        color="var(--purple-500)"
-                                        icon="pi pi-star"
-                                      />
-                                    ) : null}
-                                    <CustomChip label={item.ItmsGrpNam} removable={false} />
-                                    {item.Distributor === 'Y' && (
-                                      <CustomChip
-                                        label="Distributor"
-                                        removable={false}
-                                        color="var(--green-500)"
-                                      />
-                                    )}
-                                    {item.ProductCategory && (
-                                      <CustomChip
-                                        label={category}
-                                        removable={false}
-                                        color="var(--orange-500)"
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="mt-1 text-sm font-semibold mt-3">
-                                    {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
-                                    {formatCurrency(Number(item.MaxPrice), true, true)}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-start">
-                              <div className="grid py-2">
-                                <div className="col-12 md:col-4 my-2">
-                                  <Button
-                                    size="small"
-                                    outlined
-                                    label="Offer"
-                                    icon="pi pi-arrow-circle-up"
-                                    severity="success"
-                                    onClick={() => handleProductOffer(item)}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            {visitItemConcerns?.map((c) => (
-                              <div key={`category-${item.ItemCode}-${c.id}`}>
-                                <div className="flex justify-content-between align-items-center">
-                                  <div className="font-semibold">{c.category.name}</div>
-                                  <Badge value={c.status.status} />
-                                </div>
-                                <div className="col-12">
-                                  <div className="font-muted text-sm line-clamp-2 text-secondary">
-                                    {c.notes}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </Card>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </AccordionTab>
-              )
-            })}
-          </Accordion>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid">
+                  {filteredProducts.map((item) => {
+                    const category = item.ProductCategory
+                      ? item.ProductCategory.charAt(0) +
+                        item.ProductCategory.slice(1).toLocaleLowerCase()
+                      : ''
+                    const visitItems = visit_items?.find((i) => i.product_id === item.id)
+                    const visitItemConcerns = visitItems?.visit_item_concerns
+                    return (
+                      <div key={`groceries-${item.ItemCode}`} className="col-12 lg:col-6 xl:col-4">
+                        <ProductCard
+                          item={item}
+                          category={category}
+                          visitItemConcerns={visitItemConcerns}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+          </>
         )}
       </div>
 

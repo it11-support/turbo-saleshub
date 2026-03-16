@@ -8,6 +8,7 @@ import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useState } from 'react'
 
 import { useConcernStore } from '@/stores'
+import { ColorPicker } from 'primereact/colorpicker'
 
 const SettingsPage = () => {
   const concernStore = useConcernStore()
@@ -33,8 +34,9 @@ const SettingsPage = () => {
     name: '',
     description: '',
   })
-  const [statusData, setStatusData] = useState<Pick<IConcernStatus, 'status'>>({
+  const [statusData, setStatusData] = useState<Pick<IConcernStatus, 'status' | 'labelColor'>>({
     status: '',
+    labelColor: 'ffffff',
   })
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null)
@@ -51,12 +53,31 @@ const SettingsPage = () => {
     setShowFormDialog(true)
   }
 
+  const colorGroups = [
+    'blue',
+    'green',
+    'yellow',
+    'purple',
+    'pink',
+    'cyan',
+    'teal',
+    'orange',
+    'indigo',
+  ]
+
+  const shades = [200, 300, 500]
+  const cssVarToHex = (variable: string) => {
+    const color = getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
+    return color.replace('#', '')
+  }
+
   const openEditStatusDialog = (status: IConcernStatus) => {
     setModalType('status')
     setEditingStatusId(Number(status.id))
 
     setStatusData({
       status: status.status ?? '',
+      labelColor: status.labelColor ?? '',
     })
 
     setShowFormDialog(true)
@@ -102,7 +123,7 @@ const SettingsPage = () => {
       setData({ name: '', description: '' })
     } else if (type === 'status') {
       setEditingStatusId(null)
-      setStatusData({ status: '' })
+      setStatusData({ status: '', labelColor: '' })
     }
 
     setShowFormDialog(true)
@@ -231,6 +252,7 @@ const SettingsPage = () => {
       </div>
       <Dialog
         dismissableMask
+        style={{ maxWidth: '480px' }}
         header={
           modalType === 'category'
             ? editingCategoryId
@@ -281,17 +303,62 @@ const SettingsPage = () => {
         )}
 
         {modalType === 'status' && (
-          <div className="inline-flex flex-column gap-2 w-full my-2">
-            <label htmlFor="status" className="text-primary-50 font-semibold">
-              Status
-            </label>
-            <InputText
-              id="status"
-              value={statusData.status}
-              onChange={(e) => setStatusData({ ...statusData, status: e.target.value })}
-              className="border p-3 text-primary-400"
-            />
-          </div>
+          <>
+            <div className="inline-flex flex-column gap-2 w-full my-2">
+              <label htmlFor="status" className="text-primary-50 font-semibold">
+                Status
+              </label>
+              <InputText
+                id="status"
+                value={statusData.status}
+                onChange={(e) => setStatusData({ ...statusData, status: e.target.value })}
+                className="border p-3 text-primary-400"
+              />
+            </div>
+            <div className="flex align-items-center gap-3">
+              <label htmlFor="colorPicker">Color Label</label>
+
+              <ColorPicker
+                inputId="colorPicker"
+                value={statusData.labelColor}
+                onChange={(e) => setStatusData({ ...statusData, labelColor: e.value as string })}
+              />
+            </div>
+            {/* Palette shade 500 */}
+            <div
+  className="grid gap-2 w-full my-2"
+  style={{
+    gridTemplateRows: "repeat(3, auto)",
+    gridAutoFlow: "column",
+  }}
+>
+  {colorGroups.map((group) =>
+    shades.map((shade) => {
+      const hex = cssVarToHex(`--${group}-${shade}`)
+      return (
+        <div
+          key={`${group}-${shade}`}
+          title={`${group}-${shade}`}
+          onClick={() =>
+            setStatusData({
+              ...statusData,
+              labelColor: hex,
+            })
+          }
+          style={{
+            width: 24,
+            height: 24,
+            background: `var(--${group}-${shade})`,
+            borderRadius: 4,
+            cursor: 'pointer',
+            border: '1px solid var(--surface-border)',
+          }}
+        />
+      )
+    })
+  )}
+</div>
+          </>
         )}
       </Dialog>
 

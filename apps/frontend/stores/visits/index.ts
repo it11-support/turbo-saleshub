@@ -1,11 +1,11 @@
 import { $api, createUrl } from '@/lib/api'
-import { IVisitItem } from '@saleshub-tsm/types'
+import { IVisit, IVisitItem } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
 
 interface VisitListState {
-  data: any[]
+  data: IVisit[],
   loading: boolean
   loadingExport: boolean
   page: number
@@ -19,6 +19,10 @@ interface VisitListState {
   setExportData: (data: IVisitItem[]) => void
   fetchVisits: () => Promise<void>
   salesPersonId?: number
+  needFollowUp: boolean
+  setNeedFollowUp: (needFollowUp: boolean) => void
+  status?: string | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled' | 'Missed'
+  setStatus: (status?: string | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled' | 'Missed') => void
   salesPersonFilter?: number | null
   setSalesPersonId: (salesPersonId?: number) => void
   setSalesPersonFilter: (salesPersonFilter?: number | null) => void
@@ -44,13 +48,21 @@ const initialState = {
   exportDates: null,
   multiSortMeta: [{ field: 'visit_date', order: -1 }],
   exportData: [],
-  salesPersonFilter: null
+  salesPersonFilter: null,
+  status: undefined,
+  needFollowUp: false,
 }
 
 export const useVisitsStore = create<VisitListState>((set, get) => ({
   ...initialState,
   setPage(page) {
     set({ page })
+  },
+  setNeedFollowUp(needFollowUp) {
+    set({ needFollowUp })
+  },
+  setStatus(status) {
+    set({ status })
   },
   setSalesPersonFilter(salesPersonFilter) {
     set({ salesPersonFilter })
@@ -93,7 +105,7 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
   setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
   fetchVisits: async () => {
     set({ loading: true })
-    const { page, limit, dates, multiSortMeta, salesPersonId } = get()
+    const { page, limit, dates, multiSortMeta, salesPersonId, status, needFollowUp } = get()
 
     try {
       const sort_options = JSON.stringify(
@@ -105,6 +117,8 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
       const url = createUrl('visits', {
         salesPersonId,
         page,
+        needFollowUp,
+        status,
         limit,
         dates: dates
           ?.map((date) => (date ? formatDate(date, 'yyyy-MM-dd') : null))

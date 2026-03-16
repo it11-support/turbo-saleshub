@@ -7,6 +7,7 @@ export interface IConcernCategory {
 export interface IConcernStatus {
   id?: BigInt | number | null
   status: string
+  labelColor: string
 }
 export interface IConcernState {
   loading: boolean

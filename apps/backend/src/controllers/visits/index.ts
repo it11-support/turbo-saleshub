@@ -8,8 +8,10 @@ import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsPa
 export const getScheduleList = async (req: Request, res: Response) => {
   try {
     const salesPersonId = Number(req.query.salesPersonId);
+    const status = req.query.status as undefined | VisitStatus;
     const dates = req.query.dates as string[] | undefined;
     const page = Number(req.query.page || 1);
+    const needFollowUp = req.query.needFollowUp === 'true';
     const limit = Number(req.query.limit || 20);
     const sort_options = req.query.sort_options as
       | { key: string; order: 'asc' | 'desc' }[]
@@ -18,11 +20,33 @@ export const getScheduleList = async (req: Request, res: Response) => {
     const parsedSalesPersonId = Number(salesPersonId);
 
     const where: visitsWhereInput = {
-      status: { in: [VisitStatus.Ongoing, VisitStatus.Completed, VisitStatus.Missed] },
       visit_date: { not: null },
       ...(!Number.isNaN(parsedSalesPersonId)
         ? { sales_person_id: BigInt(parsedSalesPersonId) }
         : {}),
+      ...(status ? { status } : {
+        status: {
+          in: [VisitStatus.Ongoing, VisitStatus.Completed, VisitStatus.Missed]
+        }
+      }),
+      ...(needFollowUp ? {
+        status: {
+          in: [VisitStatus.Completed]
+        },
+        visit_items: {
+          some: {
+            visit_item_concerns: {
+              some: {
+                status: {
+                  status: {
+                    in: ['Pending', 'Follow Up']
+                  }
+                }
+              }
+            }
+          }
+        }
+      } : {})
     };
 
     if (Array.isArray(dates)) {
