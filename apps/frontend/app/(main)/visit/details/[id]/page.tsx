@@ -88,51 +88,50 @@ const VisitDetailsPage = () => {
               <div className="col-12 md:col-6 lg:col-6 flex" key={item.product?.ItemCode}>
                 <Card className="w-full h-full p-2">
                   <div className="flex flex-column w-full gap-3">
-
-                      {/* ROW ATAS: Judul & Tanggal */}
-                      <div className="flex w-full align-items-start gap-3">
-                        {/* TANGGAL (1/3 Lebar) */}
-                        <div className="w-9 flex flex-column text-xs text-color-secondary font-medium pt-1">
-                          <div className="text-lg font-bold text-color line-height-2">
-                            {item.product?.ItemName}
-                          </div>
-                        </div>
-
-                        {/* JUDUL / NAMA PRODUK (2/3 Lebar) */}
-                        <div className="w-3 flex flex-column text-right">
-                          <span className="font-bold text-xs opacity-70">
-                            {formatDate(item?.created_at, { withTime: true })}
-                          </span>
+                    {/* ROW ATAS: Judul & Tanggal */}
+                    <div className="flex w-full align-items-start gap-3">
+                      {/* TANGGAL (1/3 Lebar) */}
+                      <div className="w-9 flex flex-column text-xs text-color-secondary font-medium pt-1">
+                        <div className="text-lg font-bold text-color line-height-2">
+                          {item.product?.ItemName}
                         </div>
                       </div>
 
-                      {/* ROW BAWAH: List Concern (Full Width) */}
-                      {visitItemConcern.length > 0 && (
-                        <div className="flex flex-column gap-3 w-full mt-2">
-                          {visitItemConcern.map((concern) => (
-                            <div
-                              key={`visit-concern-${concern.id}`}
-                              className="w-full p-3 surface-card surface-border shadow-1 border-left-2"
-                            >
-                              {/* Header Concern: Nama (Kiri) & Status (Kanan) */}
-                              <div className="flex justify-content-between align-items-center mb-2">
-                                <span className="font-semibold text-lg text-color">
-                                  {concern?.category?.name}
-                                </span>
-                                <Badge severity="success" value={concern?.status?.status} />
-                              </div>
-
-                              {/* Notes */}
-                              {concern?.notes && (
-                                <div className="text-sm p-2 text-color-secondary line-height-3">
-                                  {concern.notes}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {/* JUDUL / NAMA PRODUK (2/3 Lebar) */}
+                      <div className="w-3 flex flex-column text-right">
+                        <span className="font-bold text-xs opacity-70">
+                          {formatDate(item?.created_at, { withTime: true })}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* ROW BAWAH: List Concern (Full Width) */}
+                    {visitItemConcern.length > 0 && (
+                      <div className="flex flex-column gap-3 w-full mt-2">
+                        {visitItemConcern.map((concern) => (
+                          <div
+                            key={`visit-concern-${concern.id}`}
+                            className="w-full p-3 surface-card surface-border shadow-1 border-left-2"
+                          >
+                            {/* Header Concern: Nama (Kiri) & Status (Kanan) */}
+                            <div className="flex justify-content-between align-items-center mb-2">
+                              <span className="font-semibold text-lg text-color">
+                                {concern?.category?.name}
+                              </span>
+                              <Badge severity="success" value={concern?.status?.status} />
+                            </div>
+
+                            {/* Notes */}
+                            {concern?.notes && (
+                              <div className="text-sm p-2 text-color-secondary line-height-3">
+                                {concern.notes}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Card>
               </div>
             )

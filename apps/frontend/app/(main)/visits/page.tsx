@@ -4,6 +4,7 @@ import { ISalesPerson } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
+import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useState } from 'react'
@@ -11,7 +12,6 @@ import * as XLSX from 'xlsx'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { useUserStore, useVisitsStore } from '@/stores'
-import { Checkbox } from 'primereact/checkbox'
 
 type VisitRow = {
   'Visit Date': string
@@ -149,23 +149,22 @@ const VisitList = () => {
         <h5>Visits</h5>
 
         <div className="grid my-4">
-           <div className="col-12 md:col-3">
-              <Dropdown
-                value={status}
-                options={['Completed', 'Ongoing', 'Missed'].map((status) => ({
-                  label: status,
-                  value: status,
-                }))}
-                onChange={(e) => {
-                  setStatus(e.value === null ? undefined : e.value)
-                }}
-                placeholder="Select Status"
-                className="w-full"
-                showClear
-              />
-            </div>
-            <div className="col-12 md:col-3 flex justify-center align-items-center">
-
+          <div className="col-12 md:col-3">
+            <Dropdown
+              value={status}
+              options={['Completed', 'Ongoing', 'Missed'].map((status) => ({
+                label: status,
+                value: status,
+              }))}
+              onChange={(e) => {
+                setStatus(e.value === null ? undefined : e.value)
+              }}
+              placeholder="Select Status"
+              className="w-full"
+              showClear
+            />
+          </div>
+          <div className="col-12 md:col-3 flex justify-center align-items-center">
             <Checkbox
               inputId="productFocused"
               name="productFocused"
@@ -176,7 +175,7 @@ const VisitList = () => {
             <label htmlFor="productFocused" className="ml-2">
               Visit with Follow Ups
             </label>
-            </div>
+          </div>
 
           <div className="col-12 md:col-3">
             <Calendar
@@ -200,23 +199,23 @@ const VisitList = () => {
           </div>
         </div>
 
-         {isAdmin && (
-            <div className="col-12 md:col-3">
-              <Dropdown
-                value={salesPersonId}
-                options={salesPersons.map((sp: ISalesPerson) => ({
-                  label: sp.SlpName,
-                  value: Number(sp.id),
-                }))}
-                onChange={(e) => {
-                  setSalesPersonId(e.value === null ? undefined : e.value)
-                }}
-                placeholder="Select Sales Person"
-                className="w-full"
-                showClear
-              />
-            </div>
-          )}
+        {isAdmin && (
+          <div className="col-12 md:col-3">
+            <Dropdown
+              value={salesPersonId}
+              options={salesPersons.map((sp: ISalesPerson) => ({
+                label: sp.SlpName,
+                value: Number(sp.id),
+              }))}
+              onChange={(e) => {
+                setSalesPersonId(e.value === null ? undefined : e.value)
+              }}
+              placeholder="Select Sales Person"
+              className="w-full"
+              showClear
+            />
+          </div>
+        )}
         {data && <VisitListTable />}
       </div>
       <Dialog

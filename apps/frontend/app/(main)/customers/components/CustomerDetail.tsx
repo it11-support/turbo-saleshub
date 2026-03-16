@@ -2,7 +2,6 @@
 
 import CustomerRangeMeter from './CustomerRangeMeter'
 import { getMonthlySummary } from './functions'
-import ProductImage from './ProductImage'
 import PurchaseHistory from './PurchaseHistory'
 import { faIdBadge } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -13,14 +12,13 @@ import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Divider } from 'primereact/divider'
 import { TabPanel, TabView } from 'primereact/tabview'
+import { useState } from 'react'
 
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { getActiveItems } from '@/lib/customers'
 import { formatCurrency } from '@/lib/formatter'
 import { parsePhone } from '@/lib/phoneParser'
 import { ILastPurchase } from '@/types/customer'
-import { useState } from 'react'
-import { Dropdown } from 'primereact/dropdown'
 
 export interface Props {
   customer: ICustomer | null
@@ -49,7 +47,7 @@ export const CustomerDetail = (props: Props) => {
   const threeMonthActiveItems = getActiveItems(customer!, 3)
   const summary = getMonthlySummary(customer?.sales_invoices || [])
   const isMobile = useIsMobile(768)
-  const [active, setActive] = useState<number | null>( null)
+  const [active, setActive] = useState<number | null>(null)
 
   const formatDate = (value?: Date | string | null) => {
     if (!value) return ''
@@ -286,7 +284,7 @@ export const CustomerDetail = (props: Props) => {
                         opts.map((opt) => (
                           <div className="col-12" key={opt.label}>
                             <div className="mb-3 p-3">
-                              <div className='px-4'>
+                              <div className="px-4">
                                 <span className="font-bold text-lg">{opt.label}</span>
                               </div>
                               <div className="grid">
@@ -343,53 +341,55 @@ export const CustomerDetail = (props: Props) => {
                             </div>
                           </div>
                         ))}
-                      {items.filter((item) => item.Distributor !== 'Y').map((item) => (
-                        <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
-                          <Card
-                            className="mb-3 p-3 h-[180px]"
-                            pt={{
-                              root: {
-                                style: {
-                                  minHeight: '100%',
+                      {items
+                        .filter((item) => item.Distributor !== 'Y')
+                        .map((item) => (
+                          <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
+                            <Card
+                              className="mb-3 p-3 h-[180px]"
+                              pt={{
+                                root: {
+                                  style: {
+                                    minHeight: '100%',
+                                  },
                                 },
-                              },
-                            }}
-                          >
-                            <div className="flex items-start gap-2 h-[28px] mb-2">
-                              <i
-                                className={`pi pi-star-fill text-xl text-yellow-500 transition-opacity ${
-                                  item.product_developments?.length ? 'opacity-100' : 'opacity-0'
-                                }`}
-                              ></i>
-                              <p
-                                className={`font-italic transition-opacity text-gray-500 font-semibold ${
-                                  item.product_developments?.length ? 'opacity-100' : 'opacity-0'
-                                }`}
-                              >
-                                Product Focus
-                              </p>
-                            </div>
+                              }}
+                            >
+                              <div className="flex items-start gap-2 h-[28px] mb-2">
+                                <i
+                                  className={`pi pi-star-fill text-xl text-yellow-500 transition-opacity ${
+                                    item.product_developments?.length ? 'opacity-100' : 'opacity-0'
+                                  }`}
+                                ></i>
+                                <p
+                                  className={`font-italic transition-opacity text-gray-500 font-semibold ${
+                                    item.product_developments?.length ? 'opacity-100' : 'opacity-0'
+                                  }`}
+                                >
+                                  Product Focus
+                                </p>
+                              </div>
 
-                            <div className="flex items-start gap-4 h-full">
-                              {/* IMAGE */}
-                              {/* <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
+                              <div className="flex items-start gap-4 h-full">
+                                {/* IMAGE */}
+                                {/* <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
                             <ProductImage code={item.ItemCode} alt={item.ItemName || ''} />
                           </div> */}
 
-                              {/* TEXT */}
-                              <div className="flex flex-col items-start justify-start">
-                                <div className="font-bold text-base leading-tight line-clamp-2">
-                                  {item.ItemName}
-                                  <div className="mt-1 text-sm font-semibold mt-3">
-                                    {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
-                                    {formatCurrency(Number(item.MaxPrice), true, true)}
+                                {/* TEXT */}
+                                <div className="flex flex-col items-start justify-start">
+                                  <div className="font-bold text-base leading-tight line-clamp-2">
+                                    {item.ItemName}
+                                    <div className="mt-1 text-sm font-semibold mt-3">
+                                      {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
+                                      {formatCurrency(Number(item.MaxPrice), true, true)}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          </Card>
-                        </div>
-                      ))}
+                            </Card>
+                          </div>
+                        ))}
                     </div>
                   </div>
                 </AccordionTab>

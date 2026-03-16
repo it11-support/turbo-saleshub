@@ -1,5 +1,5 @@
 'use client'
-import { ISalesVisitRule, IVisit, IVisitItem } from '@saleshub-tsm/types'
+import { ISalesVisitRule, IVisit } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'

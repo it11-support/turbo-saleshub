@@ -2,13 +2,13 @@
 
 import { IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
+import { ColorPicker } from 'primereact/colorpicker'
 import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useState } from 'react'
 
 import { useConcernStore } from '@/stores'
-import { ColorPicker } from 'primereact/colorpicker'
 
 const SettingsPage = () => {
   const concernStore = useConcernStore()
@@ -326,38 +326,38 @@ const SettingsPage = () => {
             </div>
             {/* Palette shade 500 */}
             <div
-  className="grid gap-2 w-full my-2"
-  style={{
-    gridTemplateRows: "repeat(3, auto)",
-    gridAutoFlow: "column",
-  }}
->
-  {colorGroups.map((group) =>
-    shades.map((shade) => {
-      const hex = cssVarToHex(`--${group}-${shade}`)
-      return (
-        <div
-          key={`${group}-${shade}`}
-          title={`${group}-${shade}`}
-          onClick={() =>
-            setStatusData({
-              ...statusData,
-              labelColor: hex,
-            })
-          }
-          style={{
-            width: 24,
-            height: 24,
-            background: `var(--${group}-${shade})`,
-            borderRadius: 4,
-            cursor: 'pointer',
-            border: '1px solid var(--surface-border)',
-          }}
-        />
-      )
-    })
-  )}
-</div>
+              className="grid gap-2 w-full my-2"
+              style={{
+                gridTemplateRows: 'repeat(3, auto)',
+                gridAutoFlow: 'column',
+              }}
+            >
+              {colorGroups.map((group) =>
+                shades.map((shade) => {
+                  const hex = cssVarToHex(`--${group}-${shade}`)
+                  return (
+                    <div
+                      key={`${group}-${shade}`}
+                      title={`${group}-${shade}`}
+                      onClick={() =>
+                        setStatusData({
+                          ...statusData,
+                          labelColor: hex,
+                        })
+                      }
+                      style={{
+                        width: 24,
+                        height: 24,
+                        background: `var(--${group}-${shade})`,
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        border: '1px solid var(--surface-border)',
+                      }}
+                    />
+                  )
+                })
+              )}
+            </div>
           </>
         )}
       </Dialog>
