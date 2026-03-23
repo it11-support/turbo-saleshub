@@ -143,17 +143,15 @@ export default function ProductImageUploader({
             <div className="absolute top-1 right-1 flex gap-2 my-2 ml-2 ">
               <Button
                 onClick={() => inputRef.current?.click()}
-                outlined
                 text
-                className="rounded-full p-1 shadow text-green-500 hover:bg-green-100 "
+                className="!h-7 !w-7 !p-0 rounded-full shadow text-green-500 hover:bg-green-100"
               >
                 <i className="pi pi-pencil"></i>
               </Button>
               <Button
                 onClick={() => setShowDeleteDialog(true)}
-                outlined
                 text
-                className="rounded-full p-1 shadow text-red-500 hover:bg-red-100"
+                className="!h-7 !w-7 !p-0 rounded-full shadow text-red-500 hover:bg-red-100"
               >
                 <i className="pi pi-trash"></i>
               </Button>
