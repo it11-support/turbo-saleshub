@@ -427,6 +427,20 @@ model visit_item_concerns {
   visit_items         visit_items @relation(fields: [visit_item_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   status              concern_status @relation(fields: [status_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   category            concern_categories @relation(fields: [concern_category_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  follow_ups          follow_ups[]
+}
+
+model follow_ups {
+  id                      BigInt      @id @default(autoincrement())
+  visit_item_concern_id   BigInt
+  status                  FollowUpStatus
+  type                    FollowUpType?
+  notes                   String?
+  next_follow_up_date     DateTime?
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  visit_item_concerns     visit_item_concerns @relation(fields: [visit_item_concern_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model concern_status {
@@ -548,6 +562,20 @@ enum VisitStatus {
   Pending
   Missed
   Closed
+}
+
+enum FollowUpStatus {
+  Pending
+  Progress
+  Done
+  Closed
+}
+
+enum FollowUpType {
+  Call
+  Visit
+  WhatsApp
+  Email
 }
 
 enum CustomerSegment {

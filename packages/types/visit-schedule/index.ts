@@ -1,6 +1,6 @@
 import { ICustomer } from "../customer";
 import { ProductWithFrequency, SuggestedItemsGrouped } from "../product";
-import { IVisit } from "../visit";
+import { IVisit, IVisitItem } from "../visit";
 import { ISalesVisitRule } from "../visit-rules";
 
 export type VisitScheduleStatus =
@@ -24,6 +24,7 @@ export type VisitScheduleStatus =
     updated_at: string;
     suggestedItems?: SuggestedItemsGrouped;
     visit?: IVisit
+    open_issues?: IVisitItem[]
 }
 
 export interface CreateVisitScheduleDto {

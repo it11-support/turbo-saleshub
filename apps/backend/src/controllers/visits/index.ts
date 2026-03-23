@@ -39,7 +39,7 @@ export const getScheduleList = async (req: Request, res: Response) => {
               some: {
                 status: {
                   status: {
-                    in: ['Pending', 'Follow Up']
+                    notIn: ['Done', 'Closed']
                   }
                 }
               }
@@ -80,6 +80,12 @@ export const getScheduleList = async (req: Request, res: Response) => {
         include: {
           visit_items: {
             include: {
+              visit_item_concerns: {
+                include: {
+                  category: true,
+                  status: true,
+                },
+              },
               product: true,
             },
           },

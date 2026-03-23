@@ -70,7 +70,7 @@ export const syncSalesVisit = async (req: Request, res: Response) => {
     const visit = await prisma.visits.findUnique({
       where: { id: visitId },
     });
-    if(!visit?.start_at){
+    if (!visit?.start_at) {
       await prisma.visits.update({
         where: { id: visitId },
         data: {
@@ -137,7 +137,7 @@ export const syncSalesVisit = async (req: Request, res: Response) => {
               connect: { id: concern.concern_id ? BigInt(concern.concern_id) : 1n }
             },
             notes: concern.note,
-            status:  {
+            status: {
               connect: { id: concern.status_id ? BigInt(concern.status_id) : 1n }
             }
           }
@@ -205,6 +205,11 @@ export const visitDetails = async (req: Request, res: Response) => {
               include: {
                 category: true,
                 status: true,
+                follow_ups: {
+                  orderBy: {
+                    created_at: 'asc',
+                  }
+                }
               },
             }
           },
@@ -218,3 +223,49 @@ export const visitDetails = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const followUpVisit = async (req: Request, res: Response) => {
+  try {
+    const { visit_item_concern_id, notes, status, type, next_follow_up_date } = req.body;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const follow_up = await tx.follow_ups.create({
+        data: {
+          visit_item_concern_id: BigInt(visit_item_concern_id),
+          notes,
+          status,
+          type,
+          next_follow_up_date: next_follow_up_date ? new Date(next_follow_up_date) : null,
+        },
+        include: {
+          visit_item_concerns: {
+            include: { status: true }
+          }
+        }
+      });
+
+      const fwStatus = await prisma.concern_status.findFirst({
+        where: { status: status },
+        select: { id: true }
+      });
+
+      if (fwStatus) {
+        await tx.visit_item_concerns.update({
+          where: { id: BigInt(visit_item_concern_id) },
+          data: {
+            status: { connect: { id: fwStatus.id } }
+          }
+        });
+      }
+      return follow_up;
+    })
+
+    return res.status(200).json({ message: 'Success', data: result });
+
+  } catch (error) {
+    console.error("Error in followUpVisit:", error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+

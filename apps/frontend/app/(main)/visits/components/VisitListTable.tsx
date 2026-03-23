@@ -1,6 +1,7 @@
 'use client'
 import { ISalesVisitRule, IVisit } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
@@ -26,13 +27,34 @@ const VisitListTable = () => {
   const router = useRouter()
 
   const visitDateTemplate = (rowData: SalesVisit) => {
-    return formatDate(rowData.visit_date, 'EEE MMM do, yyyy')
+    return (
+      <div className="flex flex-column justify-content-center align-items-start font-semibold">
+        <p className="text-muted">{formatDate(rowData.visit_date, 'MMM do, yyyy')}</p>
+        <p className="text-muted">
+          {formatDate(rowData.visits.start_at, 'HH:mm')}{' '}
+          {rowData.visits.end_at && ` - ${formatDate(rowData.visits.end_at, 'HH:mm')}`}
+        </p>
+      </div>
+    )
   }
 
-  const dateTimeTemplate = (rowData: SalesVisit, type: 'start_at' | 'end_at') => {
-    const dateValue = rowData.visits[type]
-    if (!dateValue) return
-    return formatDate(dateValue, 'hh:mm a')
+  const followUpsBodyTemplate = (rowData: SalesVisit) => {
+    const visitItems = rowData.visits.visit_items
+    if (!visitItems?.length) return
+    const openConcerns = visitItems
+      ?.flatMap((item) => item.visit_item_concerns || [])
+      .filter((concern) => !['Done', 'Closed'].includes(concern.status?.status))
+
+    if (!openConcerns.length) return
+
+    return (
+      <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
+        <div className="flex align-items-center gap-2 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
+          <i className="pi pi-exclamation-triangle text-yellow-500"></i>
+          <span className="font-medium">{openConcerns.length} Open Issues</span>
+        </div>
+      </Link>
+    )
   }
 
   const handleClickEdit = (data: IVisit) => {
@@ -40,28 +62,25 @@ const VisitListTable = () => {
   }
 
   const statusBodyTemplate = (rowData: SalesVisit) => {
+    const statusColor =
+      rowData.status === 'Completed'
+        ? 'text-green-500'
+        : rowData.status === 'Missed'
+        ? 'text-red-500'
+        : 'text-orange-500'
+
+    const statusIcon =
+      rowData.status === 'Completed'
+        ? 'pi pi-check'
+        : rowData.status === 'Missed'
+        ? 'pi pi-times'
+        : 'pi pi-clock'
+
     return (
-      <>
-        <Button
-          severity={`${
-            rowData.status === 'Completed'
-              ? 'success'
-              : rowData.status === 'Missed'
-              ? 'danger'
-              : 'warning'
-          }`}
-          label={rowData.status}
-          className={`p-button-outlined p-button-sm p-2`}
-          size="small"
-          icon={`${
-            rowData.status === 'Completed'
-              ? 'pi pi-check'
-              : rowData.status === 'Missed'
-              ? 'pi pi-times'
-              : 'pi pi-clock'
-          }`}
-        />
-      </>
+      <span className={`flex align-items-center gap-2 ${statusColor}`}>
+        <i className={statusIcon}></i>
+        {rowData.status}
+      </span>
     )
   }
 
@@ -83,6 +102,7 @@ const VisitListTable = () => {
         }}
         onSort={(e) => setMultiSortMeta((e.multiSortMeta || []).filter((m) => m.order !== 0))}
         dataKey="id"
+        className="text-sm"
         loading={loading}
         emptyMessage="No visit found"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -96,24 +116,12 @@ const VisitListTable = () => {
           sortField="customer.CardName"
           sortable
         />
-        <Column
-          field="visits.start_at"
-          sortField="start_at"
-          header="Start Time"
-          sortable
-          body={(rowData) => dateTimeTemplate(rowData, 'start_at')}
-        />
-        <Column
-          field="visits.end_at"
-          header="End Time"
-          sortField="end_at"
-          sortable
-          body={(rowData) => dateTimeTemplate(rowData, 'end_at')}
-        />
+
         <Column field="visits.notes" header="Visit Notes" sortField="notes" sortable />
+        <Column header="Follow Ups" body={(rowData) => followUpsBodyTemplate(rowData)} />
         <Column
           field="visits.status"
-          header="Status"
+          header="Visit Status"
           sortField="status"
           body={statusBodyTemplate}
           sortable

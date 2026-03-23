@@ -414,9 +414,81 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       return !existingCustomerIds.has(data.customer_id);
     });
 
+    const allVisits = await prisma.visits.findMany({
+      where: {
+        customer_id: {
+          in: [dataManual.map(item => item.customer_id), filteredData.map(item => item.customer_id)].flat()
+        },
+        visit_items: {
+          some: {
+            visit_item_concerns: {
+              some: {
+                status: {
+                  status: {
+                    notIn: ['Done', 'Closed']
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      include: {
+        visit_items: {
+          include: {
+            visit_item_concerns: {
+              include: {
+                category: true,
+                status: true,
+                follow_ups: {
+                  orderBy: {
+                    created_at: 'asc'
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+
+    const finalData = [...dataManual, ...filteredData]
+
+    const allVisitMaps = new Map()
+
+    allVisits.forEach(visit => {
+      const customerId = visit.customer_id
+
+      if (!allVisitMaps.has(customerId)) {
+        allVisitMaps.set(customerId, [])
+      }
+
+      const openItems = visit.visit_items.map(item => ({
+        ...item,
+        visit_date: visit.visit_date,
+        visit_item_concerns: item.visit_item_concerns.filter(c =>
+          !['Done', 'Closed'].includes(c.status?.status ?? '')
+        )
+      }))
+
+      allVisitMaps.get(customerId).push(...openItems)
+    })
+
+    const mergeData = finalData.map(item => {
+      const visitItems = allVisitMaps.get(item.customer_id) || []
+
+      console.log(visitItems)
+
+      return {
+        ...item,
+        open_issues: visitItems
+      }
+    })
+
     return res.status(200).json({
       message: 'Success',
-      data: { data: [...dataManual, ...filteredData], total: data.length, weekOfMonth },
+      data: { data: mergeData, total: data.length, weekOfMonth },
     });
   } catch (error) {
     console.error('Error generating schedules:', error);

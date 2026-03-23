@@ -25,3 +25,20 @@
     transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s, background-size 0.2s cubic-bezier(0.64, 0.09, 0.08, 1);
     font-size: 1rem;
   }
+
+
+
+@media screen and (max-width: 991px) {
+    .customized-timeline .p-timeline-event:nth-child(even) {
+        flex-direction: row !important;
+    }
+    .customized-timeline .p-timeline-event:nth-child(even) .p-timeline-event-content {
+        text-align: left !important;
+    }
+    .customized-timeline .p-timeline-event-opposite {
+        flex: 0;
+    }
+    .customized-timeline .p-card {
+        margin-top: 1rem;
+    }
+}

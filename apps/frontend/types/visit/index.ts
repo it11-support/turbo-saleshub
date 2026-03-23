@@ -1,4 +1,4 @@
-import { ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped } from '@saleshub-tsm/types'
+import { EFollowUpStatus, EFollowUpType, ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 export type OfferedItem = {
   product_id: number
   offered: boolean
@@ -32,7 +32,17 @@ export interface IVisitDetails {
   };
 }
 
+export interface FollowUpForm {
+  visit_item_concern_id: BigInt | number
+  status: EFollowUpStatus
+  type: EFollowUpType | null
+  notes: string
+  next_follow_up_date: Date | null
+}
+
 export interface IVisitState {
+  followUpForm: FollowUpForm
+  setFollowUpForm: (folloUpForm: FollowUpForm) => void
   offeredItems: OfferedItem[]
   setOfferedItems: (items: OfferedItem[]) => void
   salesVisit: IVisit
@@ -45,4 +55,5 @@ export interface IVisitState {
   endVisit: () => Promise<void>
   fetchVisitDetails: (id: number) => Promise<void>
   setVisitNote: (note: string) => void
+  addFollowUp: () => Promise<void>
 }

@@ -298,7 +298,8 @@ const VisitsPage = () => {
 
         {activeProductGroup.length > 0 && (
           <>
-            <Card className="mx-3 mt-3" header={`SUGGESTED ITEMS ${suggestedGroup?.toUpperCase()}`}>
+            <Card className="mx-3 mt-3">
+              <h5>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h5>
               {isDistributor && distributorCategories.length > 0 ? (
                 <div className="flex flex-column gap-3">
                   <p className="m-0">Pick Categories</p>

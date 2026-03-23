@@ -12,6 +12,7 @@ import { getMenus } from '../menu'
 
 import { useLayout } from '@/layout/context/layoutcontext'
 import Image from 'next/image'
+import { Badge } from 'primereact/badge'
 
 type Props = {
   visible: boolean
@@ -22,6 +23,7 @@ const MobileSidebar = (props: Props) => {
   const { logout } = useAuth()
   const { visible, onHide } = props
   const [isAdmin, setIsAdmin] = useState(false)
+  const auth = useAuth()
   const { layoutConfig } = useLayout()
 
   useEffect(() => {
@@ -74,6 +76,9 @@ const MobileSidebar = (props: Props) => {
               <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} />
               <span className="font-semibold text-lg text-gray-500">{process.env.NEXT_PUBLIC_APP_TITLE}</span>
             </Link>
+          </div>
+          <div className="flex item-center justify-center px-4 ">
+            <Badge value={auth.user?.name} severity="info" />
           </div>
 
           <div className="layout-menu-container overflow-y-auto">

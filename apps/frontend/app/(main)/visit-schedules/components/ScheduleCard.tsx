@@ -2,11 +2,13 @@
 
 import { VisitSchedule } from '@saleshub-tsm/types'
 import { isToday } from 'date-fns'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Divider } from 'primereact/divider'
 
+import { formatDate } from '@/lib/dateUtils'
 import { formatPhoneNumber } from '@/lib/phoneParser'
 import { useScheduleStore } from '@/stores'
 
@@ -14,6 +16,13 @@ interface ScheduleCardProps {
   schedule: VisitSchedule
 }
 
+type VisitConcernItem = {
+  visitDate: string | Date | undefined
+  category: string | undefined
+  status: string | undefined
+  notes: string | null
+  due_date?: string | Date
+}
 export default function ScheduleCard({ schedule }: ScheduleCardProps) {
   const s = schedule
   const c = schedule.rule.customer
@@ -51,6 +60,24 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
       router.push(`/visit/${schedule.id}`)
     }
   }
+
+  const groupedByVisit = schedule.open_issues?.reduce((acc, item) => {
+    const visitId = Number(item.visit_id)
+    if (!acc[visitId]) {
+      acc[visitId] = []
+    }
+
+    item.visit_item_concerns?.forEach((c) => {
+      acc[visitId].push({
+        visitDate: item?.visit_date,
+        category: c.category?.name,
+        status: c.status?.status,
+        notes: c.notes,
+      })
+    })
+
+    return acc
+  }, {} as Record<number, VisitConcernItem[]>)
 
   const status = schedule.status.toLowerCase()
 
@@ -123,6 +150,19 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
       >
         {/* Header */}
 
+        {Object.entries(groupedByVisit || {}).map(
+          ([visitId, concerns]) =>
+            concerns.length > 0 && (
+              <Link key={visitId} href={`/visits/issues/${visitId}`} className="no-underline">
+                <div className="flex align-items-center gap-2 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
+                  <i className="pi pi-exclamation-triangle text-yellow-500"></i>
+                  <span className="font-medium">
+                    {concerns.length} Open Issues ({formatDate(concerns[0].visitDate)})
+                  </span>
+                </div>
+              </Link>
+            )
+        )}
         <Divider />
 
         <div className="flex-1">
@@ -164,7 +204,7 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
         {showButton && (
           <Button
             className="w-full py-2 rounded mt-3 text-sm"
-            severity="secondary"
+            severity="success"
             outlined
             onClick={() => handleVisitNavigation(schedule)}
             label={

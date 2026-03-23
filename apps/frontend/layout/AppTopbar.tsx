@@ -7,6 +7,7 @@ import { LayoutContext } from './context/layoutcontext'
 
 import { AppTopbarRef, LayoutState } from '@/types'
 import Image from 'next/image'
+import { Badge } from 'primereact/badge'
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const { layoutConfig, layoutState, onMenuToggle, showProfileSidebar, setLayoutState } =
@@ -31,7 +32,9 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     <div className="layout-topbar">
       <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} />
 
-      <p className='mb-0 ml-2 text-xl font-bold'>{process.env.NEXT_PUBLIC_APP_TITLE || 'TSM SalesHub'}</p>
+      <p className="mb-0 ml-2 text-xl font-bold">
+        {process.env.NEXT_PUBLIC_APP_TITLE || 'TSM SalesHub'}
+      </p>
       <button
         ref={topbarmenubuttonRef}
         type="button"
@@ -41,13 +44,17 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         <i className="pi pi-ellipsis-v" />
       </button>
 
-
       <div
         ref={topbarmenuRef}
         className={classNames('layout-topbar-menu', {
           'layout-topbar-menu-mobile-active': layoutState.profileSidebarVisible,
         })}
       >
+        {auth.user?.name && (
+          <div className="flex align-items-center justify-content-center">
+            <Badge value={auth.user?.name} severity="info" />
+          </div>
+        )}
         <Link href={'/visit-schedules'}>
           <button type="button" className="p-link layout-topbar-button">
             <i className="pi pi-calendar"></i>

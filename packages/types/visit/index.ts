@@ -18,6 +18,7 @@ export interface IVisit {
   updated_at: string | Date | null;
   visit_date: string | Date | null
   visit_items?: IVisitItem[]
+  open_issues?: IVisitItem[]
 }
 
 export interface IVisitItemConcern {
@@ -26,7 +27,8 @@ export interface IVisitItemConcern {
   id: bigint | number
   notes: string | null
   status_id: bigint | number
-  visit_item_id: bigint | number
+  visit_item_id: bigint | number,
+  follow_ups?: IVisitConcernFollowUp[]
 }
 
 export interface IVisitItem {
@@ -40,5 +42,33 @@ export interface IVisitItem {
   visit?: IVisit;
   created_at: Date;
   updated_at: Date;
-  visit_item_concerns?: IVisitItemConcern[]
+  visit_item_concerns?: IVisitItemConcern[],
+  visit_date?: Date
+  follow_ups?: IVisitConcernFollowUp[]
+}
+
+export interface IVisitConcernFollowUp {
+  id: bigint | number;
+  visit_item_concern_id: bigint | number;
+  status: EFollowUpStatus
+  type: EFollowUpType
+  notes: string | null;
+  next_follow_up_date: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  visit_item_concern: IVisitItemConcern
+}
+
+export enum EFollowUpStatus {
+  Pending = 'Pending',
+  Progress = 'Progress',
+  Done = 'Done',
+  Closed = 'Closed'
+}
+
+export enum EFollowUpType {
+  Call = 'Call',
+  Visit = 'Visit',
+  WhatsApp = 'WhatsApp',
+  Email = 'Email',
 }

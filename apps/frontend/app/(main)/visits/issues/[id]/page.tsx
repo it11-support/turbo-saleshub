@@ -1,34 +1,85 @@
 'use client'
 
+import VisitTimeLine from '../../components/VisitTimeLine'
+import { EFollowUpStatus, EFollowUpType, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Badge } from 'primereact/badge'
+import { Button } from 'primereact/button'
+import { Calendar } from 'primereact/calendar'
 import { Card } from 'primereact/card'
-import { useEffect } from 'react'
+import { Dialog } from 'primereact/dialog'
+import { Dropdown } from 'primereact/dropdown'
+import { InputTextarea } from 'primereact/inputtextarea'
+import { useEffect, useState } from 'react'
 
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
-import VisitTimeLine from '@/app/(main)/visits/components/VisitTimeLine'
 import { formatDate } from '@/lib/dateUtils'
 import { useSalesVisit } from '@/stores'
 
-const VisitDetailsPage = () => {
+const VisitIssuesPage = () => {
   const { id } = useParams()
-  const salesVisirStore = useSalesVisit()
 
-  const { salesVisit, fetchVisitDetails } = salesVisirStore
+  const salesVisitStore = useSalesVisit()
+
+  const { salesVisit, fetchVisitDetails, followUpForm, setFollowUpForm, addFollowUp } =
+    salesVisitStore
+  const [visible, setIsVisible] = useState(false)
+  const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
+
+  const customer = salesVisit?.customer
 
   useEffect(() => {
     fetchVisitDetails(Number(id))
   }, [])
 
-  const customer = salesVisit?.customer
+  const handleClickFollowUp = (concern: IVisitItemConcern) => {
+    setSelectedConcern(concern)
+    setIsVisible(true)
+  }
+
+  const onHide = () => {
+    setSelectedConcern(null)
+    setIsVisible(false)
+  }
+
+  const handleSubmit = async () => {
+    await addFollowUp().then(() => {
+      fetchVisitDetails(Number(id))
+    })
+    setIsVisible(false)
+    setSelectedConcern(null)
+  }
+
+  useEffect(() => {
+    if (selectedConcern && visible) {
+      setFollowUpForm({
+        visit_item_concern_id: selectedConcern.id,
+        status:
+          (selectedConcern.status.status as EFollowUpStatus.Pending) || EFollowUpStatus.Pending,
+        type: null,
+        notes: '',
+        next_follow_up_date: null,
+      })
+    }
+  }, [selectedConcern, visible])
+
+  const statusOptions = Object.values(EFollowUpStatus).map((s) => ({
+    label: s,
+    value: s,
+  }))
+
+  const typeOptions = Object.values(EFollowUpType).map((t) => ({
+    label: t,
+    value: t,
+  }))
 
   return (
     <>
       <VisitDetailHeader customer={customer} salesVisit={salesVisit} />
       <div className="card">
-        <h5 className="ml-2">Offered Items</h5>
+        <h5 className="ml-2">Status</h5>
 
-        <div className="grid">
+        <div className="">
           {salesVisit.visit_items?.map((item) => {
             const visitItemConcern = item.visit_item_concerns || []
             return (
@@ -108,6 +159,17 @@ const VisitDetailsPage = () => {
                                 />
                               </div>
                             ) : null}
+
+                            {!['Done', 'Closed'].includes(concern?.status?.status) && (
+                              <Button
+                                size="small"
+                                label="Follow Up"
+                                severity="success"
+                                className="mt-2"
+                                outlined
+                                onClick={() => handleClickFollowUp(concern)}
+                              />
+                            )}
                           </div>
                         ))}
                       </div>
@@ -119,8 +181,74 @@ const VisitDetailsPage = () => {
           })}
         </div>
       </div>
+
+      <Dialog
+        header="Follow Up"
+        visible={visible}
+        style={{ width: '400px' }}
+        modal
+        onHide={onHide}
+        dismissableMask
+      >
+        <div className="flex flex-column gap-3">
+          {/* Info Concern */}
+          <div className="text-sm">
+            <b>{selectedConcern?.category?.name}</b>
+            <p>{selectedConcern?.notes}</p>
+          </div>
+
+          {/* Status */}
+          <Dropdown
+            value={followUpForm.status}
+            options={statusOptions}
+            onChange={(e) => setFollowUpForm({ ...followUpForm, status: e.value })}
+            placeholder="Select Status"
+            className="w-full"
+          />
+
+          {/* Type */}
+          <Dropdown
+            value={followUpForm.type}
+            options={typeOptions}
+            onChange={(e) => setFollowUpForm({ ...followUpForm, type: e.value })}
+            placeholder="Follow Up Type"
+            className="w-full"
+          />
+
+          {/* Notes */}
+          <InputTextarea
+            value={followUpForm.notes}
+            onChange={(e) => setFollowUpForm({ ...followUpForm, notes: e.target.value })}
+            rows={3}
+            placeholder="Write follow up notes..."
+          />
+
+          {/* Next Date */}
+          {followUpForm.status !== 'Done' && followUpForm.status !== 'Closed' && (
+            <Calendar
+              value={followUpForm.next_follow_up_date}
+              minDate={new Date()}
+              onChange={(e) =>
+                setFollowUpForm({ ...followUpForm, next_follow_up_date: e.value as Date })
+              }
+              placeholder="Next follow up date"
+              className="w-full"
+              showIcon
+            />
+          )}
+
+          {/* Action */}
+          <Button
+            label="Save"
+            severity="success"
+            icon="pi pi-check"
+            onClick={handleSubmit}
+            disabled={!followUpForm.status || !followUpForm.type}
+          />
+        </div>
+      </Dialog>
     </>
   )
 }
 
-export default VisitDetailsPage
+export default VisitIssuesPage

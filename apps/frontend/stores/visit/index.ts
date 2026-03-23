@@ -1,11 +1,13 @@
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { IVisitDetails, IVisitState, OfferedItem } from '@/types'
+import { FollowUpForm, IVisitDetails, IVisitState, OfferedItem } from '@/types'
 import { IVisit } from '@saleshub-tsm/types'
 
 export const useSalesVisit = create<IVisitState>()((set, get) => ({
   visitNote: '',
+  followUpForm: {} as FollowUpForm,
+  setFollowUpForm: (followUpForm: FollowUpForm) => set({ followUpForm }),
   setVisitNote: (note: string) => set({ visitNote: note }),
   offeredItems: [],
   setOfferedItems: (offeredItems: OfferedItem[]) => set({ offeredItems }),
@@ -97,6 +99,21 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       console.error(error)
       set({ loading: false })
       return null
+    }
+  },
+  addFollowUp: async() => {
+    try {
+      set({ loading: true })
+      const url = createUrl('visit/follow-up')
+      await $api<any>(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(get().followUpForm),
+      })
+      set({ loading: false })
+    } catch (error) {
+      set({ loading: false })
+      console.error(error)
     }
   },
 }))
