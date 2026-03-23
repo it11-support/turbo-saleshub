@@ -144,6 +144,7 @@ export default function ProductImageUploader({
               <Button
                 onClick={() => inputRef.current?.click()}
                 outlined
+                text
                 className="rounded-full p-1 shadow text-green-500 hover:bg-green-100 "
               >
                 <i className="pi pi-pencil"></i>
@@ -151,6 +152,7 @@ export default function ProductImageUploader({
               <Button
                 onClick={() => setShowDeleteDialog(true)}
                 outlined
+                text
                 className="rounded-full p-1 shadow text-red-500 hover:bg-red-100"
               >
                 <i className="pi pi-trash"></i>
