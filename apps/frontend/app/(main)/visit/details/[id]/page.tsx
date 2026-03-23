@@ -1,8 +1,10 @@
 'use client'
 
+import { EFollowUpStatus } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
-import { Badge } from 'primereact/badge'
 import { Card } from 'primereact/card'
+import { Divider } from 'primereact/divider'
+import { Tag } from 'primereact/tag'
 import { useEffect } from 'react'
 
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
@@ -21,6 +23,25 @@ const VisitDetailsPage = () => {
   }, [])
 
   const customer = salesVisit?.customer
+
+  const statusConfig: Record<
+    EFollowUpStatus,
+    { severity: 'warning' | 'info' | 'success' | 'danger'; icon: string }
+  > = {
+    [EFollowUpStatus.Pending]: { severity: 'warning', icon: 'pi pi-pause' },
+    [EFollowUpStatus.Progress]: { severity: 'info', icon: 'pi pi-clock' },
+    [EFollowUpStatus.Done]: { severity: 'success', icon: 'pi pi-check' },
+    [EFollowUpStatus.Closed]: { severity: 'danger', icon: 'pi pi-times' },
+  }
+
+  const GetTag = ({ status }: { status: EFollowUpStatus }) => {
+    const config = statusConfig[status] || {
+      severity: 'warning',
+      icon: 'pi pi-exclamation-triangle',
+    }
+
+    return <Tag className="mr-2" icon={config.icon} severity={config.severity} value={status} />
+  }
 
   return (
     <>
@@ -64,24 +85,19 @@ const VisitDetailsPage = () => {
                     {/* ROW BAWAH: List Concern (Full Width) */}
                     {visitItemConcern.length > 0 && (
                       <div className="flex flex-column gap-3 w-full mt-2">
-                        {visitItemConcern.map((concern) => (
+                        {visitItemConcern.map((concern, index) => (
                           <div
                             key={`visit-concern-${concern.id}`}
                             className="w-full p-3 surface-card"
                           >
                             {/* Header Concern: Nama (Kiri) & Status (Kanan) */}
-                            <div className="flex justify-content-between align-items-center mb-2">
+                            <div className="flex justify-content-start gap-2 align-items-center mb-2">
                               <span className="font-semibold text-lg text-color">
                                 {concern?.category?.name}
                               </span>
-                              <Badge
-                                severity={
-                                  ['Done', 'Closed'].includes(concern?.status?.status)
-                                    ? 'success'
-                                    : 'warning'
-                                }
-                                value={concern?.status?.status}
-                              />
+                              <div>
+                                <GetTag status={concern?.status?.status as EFollowUpStatus} />
+                              </div>
                             </div>
 
                             {/* Notes */}
@@ -108,6 +124,8 @@ const VisitDetailsPage = () => {
                                 />
                               </div>
                             ) : null}
+
+                            {visitItemConcern.length - 1 !== index && <Divider />}
                           </div>
                         ))}
                       </div>

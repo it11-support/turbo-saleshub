@@ -20,10 +20,34 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
 
   const getStatusColor = (status: string) => {
     const s = status?.toLowerCase()
-    if (s === 'progress' || s === 'pending') return 'var(--orange-500)' // Orange
-    if (s === 'done') return 'var(--green-500)' // Hijau
-    if (s === 'closed') return 'var(--red-500)' // Merah
-    return 'var(--gray-500)' // Default Abu-abu
+    switch (s) {
+      case 'pending':
+        return 'var(--orange-500)'
+      case 'progress':
+        return 'var(--orange-500)'
+      case 'done':
+        return 'var(--green-500)'
+      case 'closed':
+        return 'var(--red-500)'
+      default:
+        return 'var(--gray-500)'
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    const s = status?.toLowerCase()
+    switch (s) {
+      case 'pending':
+        return 'pi pi-pause'
+      case 'progress':
+        return 'pi pi-clock'
+      case 'done':
+        return 'pi pi-check'
+      case 'closed':
+        return 'pi pi-times'
+      default:
+        return 'pi pi-clock'
+    }
   }
 
   const customizedMarker = (item: VisitTimeLineProps) => {
@@ -32,7 +56,7 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
         className="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
         style={{ backgroundColor: getStatusColor(item.status) }}
       >
-        <i className={item.icon}></i>
+        <i className={getStatusIcon(item.status)}></i>
       </span>
     )
   }

@@ -3,13 +3,14 @@
 import VisitTimeLine from '../../components/VisitTimeLine'
 import { EFollowUpStatus, EFollowUpType, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
-import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Card } from 'primereact/card'
 import { Dialog } from 'primereact/dialog'
+import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
+import { Tag } from 'primereact/tag'
 import { useEffect, useState } from 'react'
 
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
@@ -73,6 +74,25 @@ const VisitIssuesPage = () => {
     value: t,
   }))
 
+  const statusConfig: Record<
+    EFollowUpStatus,
+    { severity: 'warning' | 'info' | 'success' | 'danger'; icon: string }
+  > = {
+    [EFollowUpStatus.Pending]: { severity: 'warning', icon: 'pi pi-pause' },
+    [EFollowUpStatus.Progress]: { severity: 'info', icon: 'pi pi-clock' },
+    [EFollowUpStatus.Done]: { severity: 'success', icon: 'pi pi-check' },
+    [EFollowUpStatus.Closed]: { severity: 'danger', icon: 'pi pi-times' },
+  }
+
+  const GetTag = ({ status }: { status: EFollowUpStatus }) => {
+    const config = statusConfig[status] || {
+      severity: 'warning',
+      icon: 'pi pi-exclamation-triangle',
+    }
+
+    return <Tag className="mr-2" icon={config.icon} severity={config.severity} value={status} />
+  }
+
   return (
     <>
       <VisitDetailHeader customer={customer} salesVisit={salesVisit} />
@@ -114,25 +134,20 @@ const VisitIssuesPage = () => {
                     )}
                     {/* ROW BAWAH: List Concern (Full Width) */}
                     {visitItemConcern.length > 0 && (
-                      <div className="flex flex-column gap-3 w-full mt-2">
-                        {visitItemConcern.map((concern) => (
+                      <div className="flex flex-column gap-2 w-full mt-2">
+                        {visitItemConcern.map((concern, index) => (
                           <div
                             key={`visit-concern-${concern.id}`}
                             className="w-full p-3 surface-card"
                           >
                             {/* Header Concern: Nama (Kiri) & Status (Kanan) */}
-                            <div className="flex justify-content-between align-items-center mb-2">
+                            <div className="flex justify-content-start gap-3 align-items-center mb-2">
                               <span className="font-semibold text-lg text-color">
                                 {concern?.category?.name}
                               </span>
-                              <Badge
-                                severity={
-                                  ['Done', 'Closed'].includes(concern?.status?.status)
-                                    ? 'success'
-                                    : 'warning'
-                                }
-                                value={concern?.status?.status}
-                              />
+                              <div>
+                                <GetTag status={concern?.status?.status as EFollowUpStatus} />
+                              </div>
                             </div>
 
                             {/* Notes */}
@@ -170,6 +185,7 @@ const VisitIssuesPage = () => {
                                 onClick={() => handleClickFollowUp(concern)}
                               />
                             )}
+                            {visitItemConcern.length - 1 !== index && <Divider />}
                           </div>
                         ))}
                       </div>

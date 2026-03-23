@@ -81,9 +81,9 @@ export const updateConcernStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid concern status id" });
     }
 
-    const { status: value } = req.body;
-    const  status = await updateStatus(id, { status: value });
-    return res.status(200).json({ message: "Success", data: status });
+    const { status } = req.body;
+    const  newStatus = await updateStatus(id, { status });
+    return res.status(200).json({ message: "Success", data: newStatus });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });

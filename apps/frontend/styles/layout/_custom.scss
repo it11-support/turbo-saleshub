@@ -37,6 +37,8 @@
     }
     .customized-timeline .p-timeline-event-opposite {
         flex: 0;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
     .customized-timeline .p-card {
         margin-top: 1rem;
