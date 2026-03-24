@@ -41,6 +41,7 @@ export interface IProduct {
   // Report fields
   unitsSold?: number;
   revenue?: number;
+  ProductInfo?: string | null;
 }
 export interface IProductDevelopment {
   subgroup_id: number

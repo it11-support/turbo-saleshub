@@ -341,7 +341,7 @@ const ProductList = () => {
                   {/* PRICE */}
                   <div className="mt-3 font-semibold text-sm">
                     {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
-                    {formatCurrency(Number(item.MaxPrice), true, true)}
+                    {formatCurrency(Number(item.MaxPrice), true, true)} / {item.SalUnitMsr}
                   </div>
 
                   <Divider className="my-2" />

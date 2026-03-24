@@ -185,6 +185,7 @@ model products {
   RevenuesAc      String?          @db.VarChar(15)
   AcctName        String?          @db.VarChar(100)
   image           String?          @db.VarChar(100)
+  ProductInfo     String?          @db.Text
   created_at      DateTime?        @db.Timestamp(0)
   updated_at      DateTime?        @db.Timestamp(0)
   sales_invoices  sales_invoices[]
