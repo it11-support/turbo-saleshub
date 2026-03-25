@@ -153,8 +153,6 @@ const ProductList = () => {
       setCurrentProductInfo(null)
     }
     setShowInfoDialog(true)
-
-    console.log(currentProductInfo)
   }
 
   const onTextChange = () => {

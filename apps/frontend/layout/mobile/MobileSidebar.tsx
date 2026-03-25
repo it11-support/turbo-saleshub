@@ -1,18 +1,18 @@
 'use client'
 
-import { getCookie } from 'cookies-next'
 import Link from 'next/link'
 import { Sidebar } from 'primereact/sidebar'
-import React, { useEffect, useState } from 'react'
+import React, { useMemo } from 'react'
 
 import AppMenuitem from '../AppMenuitem'
 import { useAuth } from '../context/AuthContext'
 import { MenuProvider } from '../context/menucontext'
 import { getMenus } from '../menu'
 
-import { useLayout } from '@/layout/context/layoutcontext'
 import Image from 'next/image'
 import { Badge } from 'primereact/badge'
+import { Role } from '@saleshub-tsm/types'
+import { useScheduleDialog } from '@/stores'
 
 type Props = {
   visible: boolean
@@ -22,20 +22,23 @@ type Props = {
 const MobileSidebar = (props: Props) => {
   const { logout } = useAuth()
   const { visible, onHide } = props
-  const [isAdmin, setIsAdmin] = useState(false)
   const auth = useAuth()
-  const { layoutConfig } = useLayout()
 
-  useEffect(() => {
-    const admin = getCookie('isAdmin') === 'true'
-    setIsAdmin(admin)
-  }, [])
+ const showAddScheduleDialog = () => {
+    useScheduleDialog.getState().show()
+  }
 
   const commandMap: Record<string, () => void> = {
+    addSchedule: showAddScheduleDialog,
     logout: logout,
   }
 
-  const baseMenus = getMenus(isAdmin)
+const baseMenus = useMemo(() => {
+  const userRole = auth.user?.roles?.role;
+  if (!userRole) return [];
+  return getMenus(userRole as Role);
+}, [auth.user]);
+
 
   const attachCommands = (items: any[]): any[] => {
     return items.map((item) => {

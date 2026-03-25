@@ -24,11 +24,7 @@ const NotFoundPage = () => {
   return (
     <div className="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
       <div className="flex flex-column align-items-center justify-content-center">
-        <img
-          src="/demo/images/notfound/logo-blue.svg"
-          alt="Sakai logo"
-          className="mb-5 w-6rem flex-shrink-0"
-        />
+        <img src="/images/logo/logo.png" alt="logo" className="mb-5 w-6rem flex-shrink-0" />
         <div
           style={{
             borderRadius: '53px',
@@ -43,7 +39,7 @@ const NotFoundPage = () => {
           >
             <span className="text-blue-500 font-bold text-3xl">404</span>
             <h1 className="text-900 font-bold text-5xl mb-2">Not Found</h1>
-            <div className="text-600 mb-5">Halaman Tidak Ditemukan</div>
+            <div className="text-600 mb-5">The page you are looking for is not found.</div>
 
             <Link
               href="/"
@@ -56,8 +52,7 @@ const NotFoundPage = () => {
                 <i className="pi pi-fw pi-home text-50 text-xl"></i>
               </span>
               <span className="ml-2 flex flex-column">
-                <span className="text-900 lg:text-xl font-medium mb-1">Home</span>
-                <span className="text-600 lg:text-lg">Kembali ke halaman utama</span>
+                <span className="text-900 lg:text-xl font-medium mb-1">Back to Home</span>
               </span>
             </Link>
           </div>

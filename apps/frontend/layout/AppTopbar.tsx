@@ -27,6 +27,12 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const openSettings = () => {
     setLayoutState((prevState: LayoutState) => ({ ...prevState, configSidebarVisible: true }))
   }
+  const onProfileButtonClick = () => {
+    setLayoutState((prev) => ({
+      ...prev,
+      profileSidebarVisible: !prev.profileSidebarVisible
+    }));
+  };
 
   return (
     <div className="layout-topbar">
@@ -39,7 +45,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         ref={topbarmenubuttonRef}
         type="button"
         className="p-link layout-topbar-menu-button layout-topbar-button"
-        onClick={showProfileSidebar}
+        onClick={onProfileButtonClick}
       >
         <i className="pi pi-ellipsis-v" />
       </button>

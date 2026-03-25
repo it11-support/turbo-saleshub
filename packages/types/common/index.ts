@@ -15,3 +15,34 @@ export type PaginationResult<T> = {
     totalPages: number
   }
 }
+
+
+export type Role = 'admin' | 'sales'
+
+type BaseMenuItem = {
+  label: string
+  icon?: string
+  badge?: string
+  roles?: Role[]
+}
+
+// 🔥 Route item
+export type RouteMenuItem = BaseMenuItem & {
+  to: string
+  type?: 'route'
+}
+
+// 🔥 Action item (dialog, dll)
+export type ActionMenuItem = BaseMenuItem & {
+  type: 'action'
+  commandKey: string
+}
+
+// 🔥 Union
+export type MenuItem = RouteMenuItem | ActionMenuItem
+
+export type MenuSection = {
+  label: string
+  roles?: Role[]
+  items: MenuItem[]
+}

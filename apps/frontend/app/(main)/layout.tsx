@@ -1,6 +1,8 @@
 import Layout from '../../layout/layout'
 import { Metadata, Viewport } from 'next'
 
+import ViewportLayoutSwitcher from '@/layout/mobile/ViewportLayoutSwitcher'
+
 interface AppLayoutProps {
   children: React.ReactNode
 }
@@ -49,5 +51,9 @@ export const viewport: Viewport = {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  return <Layout>{children}</Layout>
+  return (
+    <Layout>
+      <ViewportLayoutSwitcher>{children}</ViewportLayoutSwitcher>
+    </Layout>
+  )
 }

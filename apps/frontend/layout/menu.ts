@@ -1,82 +1,25 @@
 import { useScheduleDialog } from '@/stores'
-import { AppMenuItem } from '@/types'
+import { menuConfig } from '@/lib/menuConfig'
+import { Role } from '@saleshub-tsm/types'
 
 const showAddScheduleDialog = () => {
   useScheduleDialog.getState().show()
 }
 
-export const getMenus = (isAdmin: boolean): AppMenuItem[] => {
-  const adminMenus = isAdmin
-    ? [
-        {
-          label: 'Users',
-          items: [{ label: 'User List', icon: 'pi pi-fw pi-users', to: '/users' }],
-        },
-        {
-          label: 'Products',
-          items: [
-            {
-              label: 'Product List',
-              icon: 'pi pi-fw pi-tags',
-              to: '/products',
-            },
-            {
-              label: 'Bulk Upload',
-              icon: 'pi pi-fw pi-upload',
-              to: '/products/bulk-upload',
-            },
-          ],
-        },
-      ]
-    : []
-
-  return [
-    {
-      label: 'Home',
-      items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }],
-    },
-    ...adminMenus,
-    {
-      label: 'Customers',
-      items: [
-        { label: 'Customer List', icon: 'pi pi-fw pi-users', to: '/customers', badge: 'NEW' },
-      ],
-    },
-    {
-      label: 'Visits',
-      items: [
-         {
-          label: 'Add Schedule',
-          icon: 'pi pi-fw pi-calendar-plus',
-          // to: '/visit-schedules/add',
-          command: showAddScheduleDialog,
-        },
-        {
-          label: 'Visit Rules',
-          icon: 'pi pi-fw pi-sitemap',
-          to: '/visit-rules',
-        },
-        {
-          label: 'Visit Schedules',
-          icon: 'pi pi-fw pi-calendar',
-          to: '/visit-schedules',
-        },
-        {
-          label: 'Visits',
-          icon: 'pi pi-fw pi-briefcase',
-          to: '/visits',
-        },
-      ],
-    },
-    {
-      label: 'Settings',
-      items: [
-        {
-          label: 'Settings',
-          icon: 'pi pi-fw pi-cog',
-          to: '/settings',
-        },
-      ],
-    }
-  ]
-}
+export const getMenus = (role: Role) => {
+  return menuConfig
+    .filter((section) => {
+      if (section.roles && !section.roles.includes(role)) return false;
+      return true;
+    })
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (item.roles) {
+          return item.roles.includes(role);
+        }
+        return true;
+      }),
+    }))
+    .filter((section) => section.items.length > 0);
+};

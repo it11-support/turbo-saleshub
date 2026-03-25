@@ -93,7 +93,8 @@ export default function AddScheduleDialog() {
       blockScroll
       header="Add Visit Schedule"
       visible={open}
-      style={{ width: '500px' }}
+      style={{ width: '100%', maxWidth: '500px' }}
+      className="mx-auto md:w-30rem"
       onHide={hide}
       footer={
         <div className="flex justify-end">

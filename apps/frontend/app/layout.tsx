@@ -3,7 +3,6 @@ import { LayoutProvider } from '../layout/context/layoutcontext'
 import { PrimeReactProvider } from 'primereact/api'
 
 import AuthProvider from '@/layout/context/AuthContext'
-import ViewportLayoutSwitcher from '@/layout/mobile/ViewportLayoutSwitcher'
 
 import 'primeflex/primeflex.css'
 import 'primeicons/primeicons.css'
@@ -27,9 +26,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <PrimeReactProvider>
           <AuthProvider>
-            <LayoutProvider>
-              <ViewportLayoutSwitcher>{children}</ViewportLayoutSwitcher>
-            </LayoutProvider>
+            <LayoutProvider>{children}</LayoutProvider>
           </AuthProvider>
         </PrimeReactProvider>
       </body>

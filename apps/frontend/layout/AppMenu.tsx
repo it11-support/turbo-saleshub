@@ -1,35 +1,43 @@
-/* eslint-disable @next/next/no-img-element */
-''
-import { getCookie } from 'cookies-next'
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+'use client'
 
+import React, { useContext, useMemo } from 'react'
+import { useScheduleDialog } from '@/stores'
 import AppMenuitem from './AppMenuitem'
 import { useAuth } from './context/AuthContext'
 import { MenuProvider } from './context/menucontext'
 import { getMenus } from './menu'
 import { LayoutState } from '@/types'
 import { LayoutContext } from './context/layoutcontext'
+import { Role } from '@saleshub-tsm/types'
 
 const AppMenu = () => {
-  const { logout } = useAuth()
-  const [isAdmin, setIsAdmin] = useState(false)
-  const { layoutConfig, setLayoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
+  const { logout, user, loading } = useAuth()
+  const { setLayoutState } = useContext(LayoutContext)
 
-  useEffect(() => {
-    const admin = getCookie('isAdmin') === 'true'
+  const isAdmin = user?.roles?.role === 'admin'
 
-    setIsAdmin(admin)
-  }, [])
-
-   const openSettings = () => {
-      setLayoutState((prevState: LayoutState) => ({ ...prevState, configSidebarVisible: true }))
-    }
-  const commandMap: Record<string, () => void> = {
-    logout: logout,
-    openSettings: openSettings
+  const showAddScheduleDialog = () => {
+    useScheduleDialog.getState().show()
   }
 
-  const baseMenus = useMemo(() => getMenus(isAdmin), [isAdmin])
+  const openSettings = () => {
+    setLayoutState((prevState: LayoutState) => ({
+      ...prevState,
+      configSidebarVisible: true,
+    }))
+  }
+
+  const commandMap: Record<string, () => void> = {
+    addSchedule: showAddScheduleDialog,
+    logout,
+    openSettings,
+  }
+
+const baseMenus = useMemo(() => {
+  const userRole = user?.roles?.role;
+  if (!userRole) return [];
+  return getMenus(userRole as Role);
+}, [user?.roles?.role]);
 
   const attachCommands = (items: any[]): any[] => {
     return items.map((item) => {
@@ -40,9 +48,7 @@ const AppMenu = () => {
       }
 
       if (item.commandKey && commandMap[item.commandKey]) {
-        newItem.command = () => {
-          commandMap[item.commandKey]()
-        }
+        newItem.command = commandMap[item.commandKey]
       }
 
       return newItem
@@ -51,16 +57,20 @@ const AppMenu = () => {
 
   const menus = attachCommands(baseMenus)
 
+  if (loading) {
+    return null
+  }
+
   return (
     <MenuProvider>
       <ul className="layout-menu">
-        {menus.map((item, i) => {
-          return !item?.seperator ? (
-            <AppMenuitem item={item} root={true} index={i} key={item.label} />
+        {menus.map((item, i) =>
+          !item?.seperator ? (
+            <AppMenuitem item={item} root index={i} key={item.label} />
           ) : (
-            <li className="menu-separator"></li>
+            <li className="menu-separator" key={i}></li>
           )
-        })}
+        )}
       </ul>
     </MenuProvider>
   )
