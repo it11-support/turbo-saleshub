@@ -43,7 +43,10 @@ const VisitListTable = () => {
     if (!visitItems?.length) return
     const openConcerns = visitItems
       ?.flatMap((item) => item.visit_item_concerns || [])
-      .filter((concern) => ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(concern.status?.status))
+      .filter(
+        (concern) =>
+          ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(concern.status?.status)
+      )
 
     if (!openConcerns.length) return
 
@@ -85,7 +88,7 @@ const VisitListTable = () => {
   }
 
   return (
-    <div className='mt-3'>
+    <div className="mt-3">
       <DataTable
         value={data}
         paginator

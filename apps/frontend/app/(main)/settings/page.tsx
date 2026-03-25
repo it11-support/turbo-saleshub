@@ -272,7 +272,9 @@ const SettingsPage = () => {
               <InputText
                 id="status"
                 value={statusData.status}
-                onChange={(e) => setStatusData({ ...statusData, status: e.target.value as EFollowUpStatus })}
+                onChange={(e) =>
+                  setStatusData({ ...statusData, status: e.target.value as EFollowUpStatus })
+                }
                 className="border p-3 text-primary-400"
               />
             </div>

@@ -175,7 +175,9 @@ const VisitIssuesPage = () => {
                               </div>
                             ) : null}
 
-                            {![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(concern?.status?.status) && (
+                            {![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
+                              concern?.status?.status
+                            ) && (
                               <Button
                                 size="small"
                                 label="Follow Up"
@@ -240,18 +242,19 @@ const VisitIssuesPage = () => {
           />
 
           {/* Next Date */}
-          {followUpForm.status !== EFollowUpStatus.Done && followUpForm.status !== EFollowUpStatus.Closed && (
-            <Calendar
-              value={followUpForm.next_follow_up_date}
-              minDate={new Date()}
-              onChange={(e) =>
-                setFollowUpForm({ ...followUpForm, next_follow_up_date: e.value as Date })
-              }
-              placeholder="Next follow up date"
-              className="w-full"
-              showIcon
-            />
-          )}
+          {followUpForm.status !== EFollowUpStatus.Done &&
+            followUpForm.status !== EFollowUpStatus.Closed && (
+              <Calendar
+                value={followUpForm.next_follow_up_date}
+                minDate={new Date()}
+                onChange={(e) =>
+                  setFollowUpForm({ ...followUpForm, next_follow_up_date: e.value as Date })
+                }
+                placeholder="Next follow up date"
+                className="w-full"
+                showIcon
+              />
+            )}
 
           {/* Action */}
           <Button
