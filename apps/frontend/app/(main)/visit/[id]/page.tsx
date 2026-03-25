@@ -11,6 +11,7 @@ import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
+import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { useEffect, useRef, useState } from 'react'
@@ -42,8 +43,18 @@ const VisitsPage = () => {
 
   const [activeProductGroup, setActiveProductGroup] = useState<ProductWithFrequency[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [search])
 
   useEffect(() => {
     fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
@@ -92,6 +103,7 @@ const VisitsPage = () => {
 
     const activeGroup = suggestedGroups.find((group) => group.key === value)
     setActiveProductGroup(activeGroup?.items ?? [])
+    setSearch('')
   }
 
   const isDistributor = suggestedGroup === 'distributor'
@@ -123,10 +135,38 @@ const VisitsPage = () => {
     setSelectedCategories(_selected)
   }
 
-  const filteredProducts =
-    selectedCategories.length > 0
-      ? activeProductGroup.filter((item) => selectedCategories.includes(item.ProductCategory ?? ''))
-      : activeProductGroup
+  const filteredProducts = activeProductGroup.filter((item) => {
+    const matchCategory =
+      selectedCategories.length === 0 || selectedCategories.includes(item.ProductCategory ?? '')
+
+    const keyword = debouncedSearch.trim().toLowerCase()
+
+    const matchSearch = !keyword || item.ItemName?.toLowerCase().includes(keyword)
+
+    return matchCategory && matchSearch
+  })
+
+  useEffect(() => {
+    if (!isDistributor) return
+
+    const keyword = debouncedSearch.trim().toLowerCase()
+
+    if (!keyword) {
+      setSelectedCategories([])
+      return
+    }
+
+    const matchedCategories = Array.from(
+      new Set(
+        activeProductGroup
+          .filter((item) => item.ItemName?.toLowerCase().includes(keyword))
+          .map((item) => item.ProductCategory ?? '')
+          .filter(Boolean)
+      )
+    )
+
+    setSelectedCategories(matchedCategories)
+  }, [debouncedSearch, isDistributor, activeProductGroup])
 
   const ProductCard = ({
     item,
@@ -138,7 +178,14 @@ const VisitsPage = () => {
     visitItemConcerns?: IVisitItemConcern[]
   }) => {
     return (
-      <Card className="mb-3 min-h-[180px]" pt={{ root: { style: { minHeight: '100%' } } }}>
+      <Card
+        className="mb-3 min-h-[180px]"
+        pt={{
+          root: { style: { minHeight: '100%' } },
+          body: { style: { padding: '0.5rem' } },
+          content: { style: { padding: '0.5rem' } },
+        }}
+      >
         <div className="flex items-start gap-4 h-full">
           <div className="flex flex-col items-start justify-start">
             <div className="font-bold text-base leading-tight line-clamp-2 text-color-secondary">
@@ -295,7 +342,7 @@ const VisitsPage = () => {
           </div>
         </div>
         <div className="col-12 xl:col-6 md:col-6">
-          <div className="p-2">
+          <div className="">
             <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
               Item Group
             </label>
@@ -311,11 +358,31 @@ const VisitsPage = () => {
             />
           </div>
         </div>
+        {suggestedGroup && (
+          <div className="col-12 xl:col-6 md:col-6 mb-2">
+            <label htmlFor={`search-${salesVisit.id}`} className="block mb-2">
+              Search
+            </label>
+            <InputText
+              id={`search-${salesVisit.id}`}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search Items"
+              className="w-full"
+            />
+          </div>
+        )}
 
         {activeProductGroup.length > 0 && (
           <>
-            <Card className="mx-3 mt-3">
-              <h5>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h5>
+            <Card
+              className="mx-3 mt-3"
+              pt={{
+                body: { style: { padding: '0.5rem' } },
+                content: { style: { padding: '0.5rem' } },
+              }}
+            >
+              <h6>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h6>
               {isDistributor && distributorCategories.length > 0 ? (
                 <div className="flex flex-column gap-3">
                   <p className="m-0">Pick Categories</p>
@@ -364,6 +431,14 @@ const VisitsPage = () => {
                       </div>
                     </div>
                   ))}
+                  {filteredProducts.length === 0 && search && (
+                    <div className="col-12">
+                      <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
+                        <i className="mr-2 pi pi-exclamation-triangle"></i>
+                        <p className="m-0">No Items Found</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid">
@@ -384,6 +459,14 @@ const VisitsPage = () => {
                       </div>
                     )
                   })}
+                  {filteredProducts.length === 0 && (
+                    <div className="col-12">
+                      <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
+                        <i className="mr-2 pi pi-exclamation-triangle"></i>
+                        <p className="m-0">No Items Found</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </Card>
