@@ -1,6 +1,7 @@
 'use client'
 
 import CustomChip from '../../components/custom/chip'
+import ProductOverlayPanel from '../../customers/components/OverlayPanel'
 import { IVisitItemConcern, ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Badge } from 'primereact/badge'
@@ -11,7 +12,8 @@ import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { useEffect, useState } from 'react'
+import { OverlayPanel } from 'primereact/overlaypanel'
+import { useEffect, useRef, useState } from 'react'
 
 import { formatCurrency } from '@/lib/formatter'
 import { parsePhone } from '@/lib/phoneParser'
@@ -40,6 +42,8 @@ const VisitsPage = () => {
 
   const [activeProductGroup, setActiveProductGroup] = useState<ProductWithFrequency[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+
+  const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   useEffect(() => {
     fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
@@ -160,6 +164,17 @@ const VisitsPage = () => {
                 {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
                 {formatCurrency(Number(item.MaxPrice), true, true)}
               </div>
+              {item.ProductInfo && (
+                <div className="mt-3 text-sm">
+                  <span
+                    onClick={(e) => overlayRefs.current[item.ItemCode]?.toggle(e)}
+                    className="cursor-pointer flex items-center gap-1 text-sm no-underline hover:opacity-80 transition-opacity"
+                  >
+                    <i className="pi pi-info-circle text-green-500"></i>
+                    <span className="text-green-500 text-sm ">Info</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -187,6 +202,7 @@ const VisitsPage = () => {
             <div className="text-xs text-secondary mt-1">{c.notes}</div>
           </div>
         ))}
+        {item.ProductInfo && <ProductOverlayPanel item={item} overlayRefs={overlayRefs} />}
       </Card>
     )
   }

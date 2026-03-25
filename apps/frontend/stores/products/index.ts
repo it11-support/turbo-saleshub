@@ -25,6 +25,7 @@ interface ProductStoreState {
   setIsDistributor: (isDistributor: boolean) => void
   fetchProducts: () => Promise<void>
   reset: () => void
+  updateProductInfo: (product_id: number, productInfo: string) => Promise<void>
 }
 
 const initialState = {
@@ -72,6 +73,25 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
 
   setLimit(limit) {
     set({ limit, page: 1 }) // reset page saat limit berubah
+  },
+
+  updateProductInfo: async(product_id, productInfo) => {
+    try {
+      const url = createUrl('product/info')
+      await $api<any>(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {
+          product_id,
+          productInfo
+        },
+      })
+    } catch (error) {
+      console.error(error)
+      console.error('Error updating product:', error)
+    } finally {
+      await get().fetchProducts()
+    }
   },
 
   fetchProducts: async () => {

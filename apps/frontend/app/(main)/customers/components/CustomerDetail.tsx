@@ -2,12 +2,12 @@
 
 import CustomerRangeMeter from './CustomerRangeMeter'
 import { getMonthlySummary } from './functions'
+import ProductCard from './ProductCard'
 import PurchaseHistory from './PurchaseHistory'
 import { faIdBadge } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ICustomer, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
-import { Card } from 'primereact/card'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Divider } from 'primereact/divider'
@@ -291,51 +291,7 @@ export const CustomerDetail = (props: Props) => {
                                 {items
                                   .filter((item) => item.ProductCategory === opt.value)
                                   .map((item) => (
-                                    <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
-                                      <Card
-                                        className="mb-3 p-1 h-[180px]"
-                                        pt={{
-                                          root: {
-                                            style: {
-                                              minHeight: '100%',
-                                            },
-                                          },
-                                        }}
-                                      >
-                                        <div className="flex items-start gap-2 h-[28px] mb-2">
-                                          <i
-                                            className={`pi pi-star-fill text-xl text-yellow-500 transition-opacity ${
-                                              item.product_developments?.length
-                                                ? 'opacity-100'
-                                                : 'opacity-0'
-                                            }`}
-                                          ></i>
-                                          <p
-                                            className={`font-italic transition-opacity text-gray-500 font-semibold ${
-                                              item.product_developments?.length
-                                                ? 'opacity-100'
-                                                : 'opacity-0'
-                                            }`}
-                                          >
-                                            Product Focus
-                                          </p>
-                                        </div>
-
-                                        <div className="flex items-start gap-4 h-full">
-                                          <div className="flex flex-col items-start justify-start">
-                                            <div className="font-bold text-base leading-tight line-clamp-2">
-                                              {item.ItemName}
-
-                                              <div className="mt-1 text-sm font-semibold mt-3">
-                                                {formatCurrency(Number(item.MinPrice), true, true)}{' '}
-                                                -{' '}
-                                                {formatCurrency(Number(item.MaxPrice), true, true)}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </Card>
-                                    </div>
+                                    <ProductCard key={item.ItemCode} item={item} />
                                   ))}
                               </div>
                             </div>
@@ -344,51 +300,7 @@ export const CustomerDetail = (props: Props) => {
                       {items
                         .filter((item) => item.Distributor !== 'Y')
                         .map((item) => (
-                          <div className="col-12 lg:col-6 xl:col-4" key={item.ItemCode}>
-                            <Card
-                              className="mb-3 p-3 h-[180px]"
-                              pt={{
-                                root: {
-                                  style: {
-                                    minHeight: '100%',
-                                  },
-                                },
-                              }}
-                            >
-                              <div className="flex items-start gap-2 h-[28px] mb-2">
-                                <i
-                                  className={`pi pi-star-fill text-xl text-yellow-500 transition-opacity ${
-                                    item.product_developments?.length ? 'opacity-100' : 'opacity-0'
-                                  }`}
-                                ></i>
-                                <p
-                                  className={`font-italic transition-opacity text-gray-500 font-semibold ${
-                                    item.product_developments?.length ? 'opacity-100' : 'opacity-0'
-                                  }`}
-                                >
-                                  Product Focus
-                                </p>
-                              </div>
-
-                              <div className="flex items-start gap-4 h-full">
-                                {/* IMAGE */}
-                                {/* <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center">
-                            <ProductImage code={item.ItemCode} alt={item.ItemName || ''} />
-                          </div> */}
-
-                                {/* TEXT */}
-                                <div className="flex flex-col items-start justify-start">
-                                  <div className="font-bold text-base leading-tight line-clamp-2">
-                                    {item.ItemName}
-                                    <div className="mt-1 text-sm font-semibold mt-3">
-                                      {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
-                                      {formatCurrency(Number(item.MaxPrice), true, true)}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </Card>
-                          </div>
+                          <ProductCard key={item.ItemCode} item={item} />
                         ))}
                     </div>
                   </div>

@@ -353,3 +353,19 @@ export const removeProductDevelopment = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const updateInfo = async (req: Request, res: Response) => {
+  try {
+    const { product_id, productInfo } = req.body;
+    const product = await prisma.products.update({
+      where: { id: BigInt(product_id) },
+      data: {
+        ProductInfo: productInfo,
+      },
+    });
+    return res.json(product);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};

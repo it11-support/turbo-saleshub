@@ -7,6 +7,7 @@ import {
   imageUpload,
   productDevelopment,
   removeProductDevelopment,
+  updateInfo,
 } from '../controllers/index.js';
 import { authMiddleware } from '../middlewares/index.js';
 
@@ -18,6 +19,7 @@ router.post('/images', bulkUploadProducts);
 router.delete('/image/:itemCode', deleteImage);
 router.get('/', fetchProducts);
 router.post('/product-development', productDevelopment);
+router.post('/info', updateInfo);
 router.post('/development/remove', removeProductDevelopment);
 
 router.use(authMiddleware);

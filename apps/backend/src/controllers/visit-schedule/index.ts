@@ -478,7 +478,6 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     const mergeData = finalData.map(item => {
       const visitItems = allVisitMaps.get(item.customer_id) || []
 
-      console.log(visitItems)
 
       return {
         ...item,

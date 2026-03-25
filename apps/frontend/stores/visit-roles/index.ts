@@ -16,7 +16,6 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
 
   setSalesVisitRule: (salesVisitRule: ISalesVisitRule | null) => set({ salesVisitRule }),
 
-  // 🔵 Fetch list visit rules
   fetchSalesVisitRules: async (sales_person_id?: number) => {
     try {
       set({ loading: true })
@@ -33,7 +32,6 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
     }
   },
 
-  // 🟢 Create rule
   createSalesVisitRule: async (data: Partial<ISalesVisitRule>) => {
     try {
       set({ loading: true })

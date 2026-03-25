@@ -10,12 +10,15 @@ import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
+import { Editor } from 'primereact/editor'
 import { InputText } from 'primereact/inputtext'
 import { Paginator } from 'primereact/paginator'
 import { Toast } from 'primereact/toast'
+import Quill from 'quill'
 import { useEffect, useRef, useState } from 'react'
 
 import { useDebounce } from '@/hooks/useDebounce'
+import { useAuth } from '@/layout/context/AuthContext'
 import { formatCurrency } from '@/lib/formatter'
 import { useCustomerStore } from '@/stores/customers'
 import { useProductDevelopmentStore } from '@/stores/product-development'
@@ -50,11 +53,19 @@ const ProductList = () => {
     setIsDistributor,
     selectedGroup,
     setSelectedGroup,
+    updateProductInfo,
   } = useProductsStore()
 
   const [visible, setVisible] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showInfoDialog, setShowInfoDialog] = useState(false)
+  const [currentProductInfo, setCurrentProductInfo] = useState<string | null>('')
+
+  const auth = useAuth()
+
   const toast = useRef<Toast>(null)
+  const quillRef = useRef<Editor>(null)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const { fetchSubgroupOptions, subgroupOptions } = useCustomerStore()
 
@@ -132,10 +143,51 @@ const ProductList = () => {
     fetchProducts()
     setVisible(false)
   }
+
+  const handleShowProductInfo = (item: IProduct) => {
+    setActiveProduct(item)
+
+    if (item.ProductInfo) {
+      setCurrentProductInfo(item.ProductInfo)
+    } else {
+      setCurrentProductInfo(null)
+    }
+    setShowInfoDialog(true)
+
+    console.log(currentProductInfo)
+  }
+
+  const onTextChange = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+    }
+
+    timerRef.current = setTimeout(() => {
+      const quill = quillRef.current ? quillRef.current.getQuill() : null
+
+      if (quill) {
+        const delta = quill.getContents()
+        const deltaString = JSON.stringify(delta)
+
+        setCurrentProductInfo(deltaString)
+      }
+    }, 500)
+  }
+  const onLoad = (quill: Quill) => {
+    if (currentProductInfo) {
+      try {
+        const delta = JSON.parse(currentProductInfo)
+        quill.setContents(delta)
+      } catch (err) {
+        console.error('Invalid JSON string:', err)
+      }
+    }
+  }
+
   const footer = (item: IProduct) => {
     if (item.product_developments?.length) {
       return (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 mt-2">
           <Button
             label="Update Priority"
             rounded
@@ -144,6 +196,15 @@ const ProductList = () => {
             outlined
             onClick={() => onSetPriority(item)}
             icon="pi pi-star"
+          />
+          <Button
+            label="Info"
+            rounded
+            severity="success"
+            size="small"
+            outlined
+            onClick={() => handleShowProductInfo(item)}
+            icon="pi pi-info-circle"
           />
           <Button
             label="Remove Priority"
@@ -162,7 +223,7 @@ const ProductList = () => {
     }
 
     return (
-      <>
+      <div className="flex flex-wrap gap-2 mt-2">
         <Button
           label="Set Priority"
           rounded
@@ -172,7 +233,16 @@ const ProductList = () => {
           onClick={() => onSetPriority(item)}
           icon="pi pi-star"
         />
-      </>
+        <Button
+          label="Info"
+          rounded
+          severity="success"
+          size="small"
+          outlined
+          onClick={() => handleShowProductInfo(item)}
+          icon="pi pi-info-circle"
+        />
+      </div>
     )
   }
 
@@ -196,6 +266,40 @@ const ProductList = () => {
     </div>
   )
 
+  const renderHeader = () => {
+    return (
+      <span className="ql-formats">
+        <select className="ql-size"></select>
+        <select className="ql-font"></select>
+        {/* 1. Grup List & Checklist */}
+        <button className="ql-list" value="ordered" type="button" title="Nomor"></button>
+        <button className="ql-list" value="bullet" type="button" title="Poin"></button>
+        <button className="ql-list" value="check" type="button" title="Checklist"></button>
+
+        {/* 2. Grup Warna (Teks & Highlight) */}
+        <select className="ql-color" title="Warna Teks"></select>
+        <select className="ql-background" title="Warna Latar"></select>
+
+        {/* 3. Grup Formatting Dasar */}
+        <button className="ql-bold" aria-label="Bold"></button>
+        <button className="ql-italic" aria-label="Italic"></button>
+        <button className="ql-underline" aria-label="Underline"></button>
+
+        {/* 4. Bersihkan Format */}
+        <button className="ql-clean" type="button" title="Hapus Format"></button>
+
+        {/* JANGAN MASUKKAN <button className="ql-image"></button> DI SINI */}
+      </span>
+    )
+  }
+
+  const handleSaveInfo = async () => {
+    const productId = activeProduct?.id
+    const productInfo = currentProductInfo
+    await updateProductInfo(Number(productId), productInfo as string)
+    setShowInfoDialog(false)
+  }
+  const header = renderHeader()
   return (
     <div className="card p-4">
       <div className="flex justify-between mb-4 items-center">
@@ -452,6 +556,42 @@ const ProductList = () => {
         }
       >
         <p>Remove this product from product development?</p>
+      </Dialog>
+      <Dialog
+        header="Product Information"
+        visible={showInfoDialog}
+        onHide={() => setShowInfoDialog(false)}
+        modal
+        style={{ width: '50vw' }}
+        dismissableMask
+        blockScroll
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button
+              label="Cancel"
+              severity="danger"
+              icon="pi pi-times"
+              outlined
+              onClick={() => setShowInfoDialog(false)}
+            />
+            <Button
+              icon="pi pi-save"
+              severity="success"
+              label="Save"
+              outlined
+              onClick={() => handleSaveInfo()}
+            />
+          </div>
+        }
+      >
+        <Editor
+          readOnly={auth.user?.roles?.role !== 'admin'}
+          ref={quillRef}
+          onTextChange={onTextChange}
+          headerTemplate={header}
+          onLoad={onLoad}
+          style={{ height: '320px' }}
+        />
       </Dialog>
     </div>
   )
