@@ -29,7 +29,7 @@ const VisitDetailsPage = () => {
     { severity: 'warning' | 'info' | 'success' | 'danger'; icon: string }
   > = {
     [EFollowUpStatus.Pending]: { severity: 'warning', icon: 'pi pi-pause' },
-    [EFollowUpStatus.Progress]: { severity: 'info', icon: 'pi pi-clock' },
+    [EFollowUpStatus.FollowUp]: { severity: 'info', icon: 'pi pi-clock' },
     [EFollowUpStatus.Done]: { severity: 'success', icon: 'pi pi-check' },
     [EFollowUpStatus.Closed]: { severity: 'danger', icon: 'pi pi-times' },
   }

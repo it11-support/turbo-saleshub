@@ -79,7 +79,7 @@ const VisitIssuesPage = () => {
     { severity: 'warning' | 'info' | 'success' | 'danger'; icon: string }
   > = {
     [EFollowUpStatus.Pending]: { severity: 'warning', icon: 'pi pi-pause' },
-    [EFollowUpStatus.Progress]: { severity: 'info', icon: 'pi pi-clock' },
+    [EFollowUpStatus.FollowUp]: { severity: 'info', icon: 'pi pi-clock' },
     [EFollowUpStatus.Done]: { severity: 'success', icon: 'pi pi-check' },
     [EFollowUpStatus.Closed]: { severity: 'danger', icon: 'pi pi-times' },
   }
@@ -175,7 +175,7 @@ const VisitIssuesPage = () => {
                               </div>
                             ) : null}
 
-                            {!['Done', 'Closed'].includes(concern?.status?.status) && (
+                            {![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(concern?.status?.status) && (
                               <Button
                                 size="small"
                                 label="Follow Up"
@@ -240,7 +240,7 @@ const VisitIssuesPage = () => {
           />
 
           {/* Next Date */}
-          {followUpForm.status !== 'Done' && followUpForm.status !== 'Closed' && (
+          {followUpForm.status !== EFollowUpStatus.Done && followUpForm.status !== EFollowUpStatus.Closed && (
             <Calendar
               value={followUpForm.next_follow_up_date}
               minDate={new Date()}

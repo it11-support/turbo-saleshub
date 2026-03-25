@@ -1,6 +1,6 @@
 'use client'
 
-import { IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
+import { EFollowUpStatus, IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
@@ -33,9 +33,7 @@ const SettingsPage = () => {
     name: '',
     description: '',
   })
-  const [statusData, setStatusData] = useState<Pick<IConcernStatus, 'status'>>({
-    status: '',
-  })
+  const [statusData, setStatusData] = useState<Partial<Pick<IConcernStatus, 'status'>>>({})
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null)
 
@@ -102,7 +100,7 @@ const SettingsPage = () => {
       setData({ name: '', description: '' })
     } else if (type === 'status') {
       setEditingStatusId(null)
-      setStatusData({ status: '' })
+      setStatusData({ status: undefined })
     }
 
     setShowFormDialog(true)
@@ -187,16 +185,7 @@ const SettingsPage = () => {
 
         <div className="grid p-2">
           <h6>Status</h6>
-          <div className="col-12">
-            {/* Button add */}
-            <Button
-              label="Add New"
-              icon="pi pi-plus"
-              severity="success"
-              size="small"
-              onClick={() => openAddDialog('status')}
-            />
-          </div>
+          <div className="col-12">{/* Button add */}</div>
           <div className="col-12 lg:col-6">
             {/* Card */}
             {concernStatuses.filter(Boolean).map((status) => (
@@ -214,13 +203,6 @@ const SettingsPage = () => {
                       size="small"
                       outlined
                       onClick={() => openEditStatusDialog(status)}
-                    />
-                    <Button
-                      icon="pi pi-trash"
-                      size="small"
-                      severity="danger"
-                      outlined
-                      onClick={() => openDeleteDialog('status', Number(status.id))}
                     />
                   </div>
                 </div>
@@ -290,7 +272,7 @@ const SettingsPage = () => {
               <InputText
                 id="status"
                 value={statusData.status}
-                onChange={(e) => setStatusData({ ...statusData, status: e.target.value })}
+                onChange={(e) => setStatusData({ ...statusData, status: e.target.value as EFollowUpStatus })}
                 className="border p-3 text-primary-400"
               />
             </div>

@@ -1,5 +1,5 @@
 'use client'
-import { ISalesVisitRule, IVisit } from '@saleshub-tsm/types'
+import { EFollowUpStatus, ISalesVisitRule, IVisit } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -43,7 +43,7 @@ const VisitListTable = () => {
     if (!visitItems?.length) return
     const openConcerns = visitItems
       ?.flatMap((item) => item.visit_item_concerns || [])
-      .filter((concern) => !['Done', 'Closed'].includes(concern.status?.status))
+      .filter((concern) => ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(concern.status?.status))
 
     if (!openConcerns.length) return
 
@@ -85,7 +85,7 @@ const VisitListTable = () => {
   }
 
   return (
-    <>
+    <div className='mt-3'>
       <DataTable
         value={data}
         paginator
@@ -147,7 +147,7 @@ const VisitListTable = () => {
           }}
         />
       </DataTable>
-    </>
+    </div>
   )
 }
 

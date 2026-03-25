@@ -61,10 +61,13 @@ export interface IVisitConcernFollowUp {
 
 export enum EFollowUpStatus {
   Pending = 'Pending',
-  Progress = 'Progress',
+  FollowUp = 'Follow Up',
   Done = 'Done',
   Closed = 'Closed'
 }
+
+export type TFollowUpStatus =
+  (typeof EFollowUpStatus)[keyof typeof EFollowUpStatus]
 
 export enum EFollowUpType {
   Call = 'Call',

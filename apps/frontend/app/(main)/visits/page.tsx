@@ -147,75 +147,84 @@ const VisitList = () => {
           />
         </div>
         <h5>Visits</h5>
+        <div className="col-12">
+          <h5 className="mb-3">Filter</h5>
 
-        <div className="grid my-4">
-          <div className="col-12 md:col-3">
-            <Dropdown
-              value={status}
-              options={['Completed', 'Ongoing', 'Missed'].map((status) => ({
-                label: status,
-                value: status,
-              }))}
-              onChange={(e) => {
-                setStatus(e.value === null ? undefined : e.value)
-              }}
-              placeholder="Select Status"
-              className="w-full"
-              showClear
-            />
-          </div>
-          <div className="col-12 md:col-3 flex justify-center align-items-center">
-            <Checkbox
-              inputId="productFocused"
-              name="productFocused"
-              value={needFollowUp}
-              onChange={(e) => setNeedFollowUp(e.checked as boolean)}
-              checked={needFollowUp}
-            />
-            <label htmlFor="productFocused" className="ml-2">
-              Visit with Follow Ups
-            </label>
+          <div className="grid">
+            {/* Status */}
+            <div className="col-12 md:col-3">
+              <Dropdown
+                value={status}
+                options={['Completed', 'Ongoing', 'Missed'].map((status) => ({
+                  label: status,
+                  value: status,
+                }))}
+                onChange={(e) => setStatus(e.value ?? undefined)}
+                placeholder="Select Status"
+                className="w-full"
+                showClear
+              />
+            </div>
+
+            {/* Follow Up */}
+            <div className="col-12 md:col-3 flex align-items-center">
+              <Checkbox
+                inputId="productFocused"
+                onChange={(e) => setNeedFollowUp(e.checked as boolean)}
+                checked={needFollowUp}
+              />
+              <label htmlFor="productFocused" className="ml-2">
+                Visit with Follow Ups
+              </label>
+            </div>
+
+            {/* Sales Person */}
+            {isAdmin && (
+              <div className="col-12 md:col-3">
+                <Dropdown
+                  value={salesPersonId}
+                  options={salesPersons.map((sp: ISalesPerson) => ({
+                    label: sp.SlpName,
+                    value: Number(sp.id),
+                  }))}
+                  onChange={(e) => setSalesPersonId(e.value ?? undefined)}
+                  placeholder="Select Sales Person"
+                  className="w-full"
+                  showClear
+                />
+              </div>
+            )}
           </div>
 
-          <div className="col-12 md:col-3">
-            <Calendar
-              value={dates}
-              onChange={(e) => setDates(e.value!)}
-              selectionMode="range"
-              readOnlyInput
-              className="w-full"
-              showButtonBar
-              placeholder="Select Visit Date Range"
-            />
-          </div>
-          <div className="col-12 md:col-3">
-            <Button
-              label="Export"
-              icon="pi pi-download"
-              severity="success"
-              size="small"
-              onClick={() => setDialogVisible(true)}
-            />
+          {/* EXPORT */}
+          <h5 className="mt-4 mb-3">Export</h5>
+
+          <div className="grid">
+            <div className="col-12 md:col-3">
+              <Calendar
+                value={dates}
+                onChange={(e) => setDates(e.value!)}
+                selectionMode="range"
+                readOnlyInput
+                className="w-full"
+                showButtonBar
+                placeholder="Select Visit Date Range"
+              />
+            </div>
+
+            <div className="col-12 md:col-3 flex align-items-end">
+              <Button
+                label="Export"
+                icon="pi pi-download"
+                severity="success"
+                size="small"
+                className="w-full md:w-auto"
+                onClick={() => setDialogVisible(true)}
+              />
+            </div>
           </div>
         </div>
 
-        {isAdmin && (
-          <div className="col-12 md:col-3">
-            <Dropdown
-              value={salesPersonId}
-              options={salesPersons.map((sp: ISalesPerson) => ({
-                label: sp.SlpName,
-                value: Number(sp.id),
-              }))}
-              onChange={(e) => {
-                setSalesPersonId(e.value === null ? undefined : e.value)
-              }}
-              placeholder="Select Sales Person"
-              className="w-full"
-              showClear
-            />
-          </div>
-        )}
         {data && <VisitListTable />}
       </div>
       <Dialog

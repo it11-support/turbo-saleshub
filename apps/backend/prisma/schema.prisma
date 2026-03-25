@@ -567,7 +567,7 @@ enum VisitStatus {
 
 enum FollowUpStatus {
   Pending
-  Progress
+  FollowUp @map("Follow Up")
   Done
   Closed
 }

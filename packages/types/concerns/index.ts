@@ -1,3 +1,5 @@
+import { EFollowUpStatus } from "../visit"
+
 export interface IConcernCategory {
   id?: BigInt | number | null
   name: string
@@ -6,7 +8,7 @@ export interface IConcernCategory {
 
 export interface IConcernStatus {
   id?: BigInt | number | null
-  status: string
+  status: EFollowUpStatus
 }
 export interface IConcernState {
   loading: boolean
