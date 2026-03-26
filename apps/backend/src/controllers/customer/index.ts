@@ -485,15 +485,29 @@ export const getSuggestedItems = async (
     const recentVisitItems = await prisma.visit_items.findMany({
       where: {
         offered: true,
-        visit_item_concerns: {
-          some: {
-            status: {
-              status: {
-                in: ['Done', 'Closed'],
-              },
-            },
+        OR: [
+          // Exclude done item
+          {
+            visit_item_concerns:{
+              some:{
+                status: {
+                  status: 'Done'
+                }
+              }
+            }
           },
-        },
+          {
+          // KONDISI 2: Status 'Closed' - exclude jika < 30 hari
+            created_at: {
+              gte: dayjs().subtract(30, 'days').toDate(),
+            },
+            visit_item_concerns: {
+              some: {
+                status: { status: 'Closed' }
+              }
+            }
+          }
+        ],
         visit: {
           customer_id: id,
         },
@@ -503,7 +517,7 @@ export const getSuggestedItems = async (
       },
     });
 
-    const recentProductIds = new Set(recentVisitItems.map((item) => item.product_id));
+    const recentProductIds = new Set(recentVisitItems.map((item) => Number(item.product_id)));
 
     const distributorProducts = await prisma.products.findMany({
       where: { Distributor: 'Y' },
@@ -522,8 +536,8 @@ export const getSuggestedItems = async (
     let paretoProduct = pareto.sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
 
     if (!includeRecentOffered) {
-      distributorItems = distributorItems.filter((p) => !recentProductIds.has(p.id));
-      paretoProduct = pareto.filter((p) => !recentProductIds.has(p.id));
+      distributorItems = distributorItems.filter((p) => !recentProductIds.has(Number(p.id)));
+      paretoProduct = pareto.filter((p) => !recentProductIds.has(Number(p.id)));
     }
 
     const result = {

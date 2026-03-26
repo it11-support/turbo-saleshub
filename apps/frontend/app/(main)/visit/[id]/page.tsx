@@ -1,10 +1,8 @@
 'use client'
 
-import CustomChip from '../../components/custom/chip'
-import ProductOverlayPanel from '../../customers/components/OverlayPanel'
-import { IVisitItemConcern, ProductWithFrequency } from '@saleshub-tsm/types'
+import ProductOfferCard from '../../components/product/ProductOfferCard'
+import { ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
@@ -16,7 +14,6 @@ import { InputTextarea } from 'primereact/inputtextarea'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { useEffect, useRef, useState } from 'react'
 
-import { formatCurrency } from '@/lib/formatter'
 import { parsePhone } from '@/lib/phoneParser'
 import { useConcernStore, useSalesVisit, useScheduleStore } from '@/stores'
 
@@ -75,11 +72,6 @@ const VisitsPage = () => {
       fetchScheduleByDate(Number(salesVisit.sales_person_id), currentDate)
       router.back()
     })
-  }
-
-  const handleProductOffer = (item: ProductWithFrequency) => {
-    setSelectedProduct(item)
-    setShowOfferDialog(true)
   }
 
   const { suggestedItems, customer, visit_items } = salesVisit
@@ -168,92 +160,6 @@ const VisitsPage = () => {
     setSelectedCategories(matchedCategories)
   }, [debouncedSearch, isDistributor, activeProductGroup])
 
-  const ProductCard = ({
-    item,
-    category,
-    visitItemConcerns,
-  }: {
-    item: ProductWithFrequency
-    category?: string
-    visitItemConcerns?: IVisitItemConcern[]
-  }) => {
-    return (
-      <Card
-        className="mb-3 min-h-[180px]"
-        pt={{
-          root: { style: { minHeight: '100%' } },
-          body: { style: { padding: '0.5rem' } },
-          content: { style: { padding: '0.5rem' } },
-        }}
-      >
-        <div className="flex items-start gap-4 h-full">
-          <div className="flex flex-col items-start justify-start">
-            <div className="font-bold text-base leading-tight line-clamp-2 text-color-secondary">
-              {item.ItemName}
-              <div className="mt-3 flex flex-wrap gap-2">
-                {item.product_developments?.length ? (
-                  <CustomChip
-                    label="Product Focus"
-                    removable={false}
-                    color="var(--purple-300)"
-                    icon="pi pi-star"
-                  />
-                ) : null}
-                <CustomChip label={item.ItmsGrpNam} removable={false} />
-                {item.Distributor === 'Y' && (
-                  <CustomChip label="Distributor" removable={false} color="var(--green-500)" />
-                )}
-                {item.ProductCategory && (
-                  <CustomChip label={category} removable={false} color="var(--orange-500)" />
-                )}
-              </div>
-              <div className="mt-3 text-sm font-semibold text-primary">
-                {formatCurrency(Number(item.MinPrice), true, true)} -{' '}
-                {formatCurrency(Number(item.MaxPrice), true, true)}
-              </div>
-              {item.ProductInfo && (
-                <div className="mt-3 text-sm">
-                  <span
-                    onClick={(e) => overlayRefs.current[item.ItemCode]?.toggle(e)}
-                    className="cursor-pointer flex items-center gap-1 text-sm no-underline hover:opacity-80 transition-opacity"
-                  >
-                    <i className="pi pi-info-circle text-green-500"></i>
-                    <span className="text-green-500 text-sm ">Info</span>
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center mt-3 border-top-1 surface-border pt-3">
-          <Button
-            size="small"
-            outlined
-            label="Offer"
-            icon="pi pi-arrow-circle-up"
-            severity="success"
-            onClick={() => handleProductOffer(item)}
-          />
-        </div>
-
-        {visitItemConcerns?.map((c) => (
-          <div
-            key={`category-${item.ItemCode}-${c.id}`}
-            className="mt-2 p-2 surface-50 border-round"
-          >
-            <div className="flex justify-content-between align-items-center">
-              <div className="font-semibold text-sm">{c.category.name}</div>
-              <Badge value={c.status.status} severity="info" />
-            </div>
-            <div className="text-xs text-secondary mt-1">{c.notes}</div>
-          </div>
-        ))}
-        {item.ProductInfo && <ProductOverlayPanel item={item} overlayRefs={overlayRefs} />}
-      </Card>
-    )
-  }
-
   return (
     <>
       <div className="card p-3">
@@ -322,24 +228,19 @@ const VisitsPage = () => {
           )}
         </div>
         <Divider />
-
-        <div className="grid">
-          <div className="col-12 xl:col-6 md:col-6">
-            <div className="p-2">
-              <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
-                Visit Note
-              </label>
-              <InputTextarea
-                id={`note-${salesVisit.id}`}
-                rows={2}
-                autoResize
-                value={visitNote}
-                onChange={(e) => setVisitNote(e.target.value)}
-                placeholder="Visit notes"
-                className="w-full"
-              />
-            </div>
-          </div>
+        <div className="col-12 xl:col-6 md:col-6">
+          <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
+            Visit Note
+          </label>
+          <InputTextarea
+            id={`note-${salesVisit.id}`}
+            rows={2}
+            autoResize
+            value={visitNote}
+            onChange={(e) => setVisitNote(e.target.value)}
+            placeholder="Visit notes"
+            className="w-full"
+          />
         </div>
         <div className="col-12 xl:col-6 md:col-6">
           <div className="">
@@ -376,7 +277,7 @@ const VisitsPage = () => {
         {activeProductGroup.length > 0 && (
           <>
             <Card
-              className="mx-3 mt-3"
+              className="mx-0 mt-3"
               pt={{
                 body: { style: { padding: '0.5rem' } },
                 content: { style: { padding: '0.5rem' } },
@@ -388,7 +289,7 @@ const VisitsPage = () => {
                   <p className="m-0">Pick Categories</p>
                   {distributorCategories.map((cat) => (
                     <div key={cat.value}>
-                      <div className="flex align-items-center">
+                      <div className="flex align-items-center pb-2">
                         <Checkbox
                           inputId={`cat-${cat.value}`}
                           name="category"
@@ -419,10 +320,13 @@ const VisitsPage = () => {
                                     key={`distributor-${item.ItemCode}`}
                                     className="col-12 lg:col-6 xl:col-4"
                                   >
-                                    <ProductCard
+                                    <ProductOfferCard
                                       item={item}
                                       category={category}
                                       visitItemConcerns={visitItemConcerns}
+                                      overlayRefs={overlayRefs}
+                                      setSelectedProduct={setSelectedProduct}
+                                      setShowOfferDialog={setShowOfferDialog}
                                     />
                                   </div>
                                 )
@@ -451,10 +355,13 @@ const VisitsPage = () => {
                     const visitItemConcerns = visitItems?.visit_item_concerns
                     return (
                       <div key={`groceries-${item.ItemCode}`} className="col-12 lg:col-6 xl:col-4">
-                        <ProductCard
+                        <ProductOfferCard
                           item={item}
                           category={category}
                           visitItemConcerns={visitItemConcerns}
+                          overlayRefs={overlayRefs}
+                          setSelectedProduct={setSelectedProduct}
+                          setShowOfferDialog={setShowOfferDialog}
                         />
                       </div>
                     )

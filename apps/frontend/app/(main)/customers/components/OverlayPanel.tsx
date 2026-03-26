@@ -32,7 +32,11 @@ const ProductOverlayPanel = ({ item, overlayRefs }: Props) => {
       const cleanedOps: DeltaOperation[] = parsed.ops.map((op) => {
         if (!op.attributes) return op
 
-        const { ...rest } = op.attributes
+        const { color, ...rest } = op.attributes
+
+        if (color) {
+          rest.color = 'var(--text-color-secondary)'
+        }
 
         return {
           ...op,
