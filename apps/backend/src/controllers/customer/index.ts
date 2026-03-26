@@ -313,7 +313,7 @@ export const itemSuggestions = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const suggestions = await getSuggestedItems(Number(id));
+    const suggestions = await getSuggestedItems(Number(id), undefined, false);
 
     return res.status(200).json({
       message: 'Success',

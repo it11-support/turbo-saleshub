@@ -42,7 +42,7 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
     const suggestedItems = await getSuggestedItems(
       Number(visit.customer_id),
       visit.rule?.max_items_per_visit,
-      // true
+      true
     );
 
     const data = {

@@ -126,7 +126,7 @@ const Layout = ({ children }: ChildContainerProps) => {
     'p-ripple-disabled': !layoutConfig.ripple,
   })
 
-  const isMobile = useIsMobile(900)
+  const isMobile = useIsMobile(768)
 
   return (
     <React.Fragment>

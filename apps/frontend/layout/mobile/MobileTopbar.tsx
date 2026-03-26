@@ -69,7 +69,7 @@ export default forwardRef(function MobileTopbar(
             onClick={onConfigButtonClick}
             aria-label="Seetings"
           >
-            <i className="pi pi-cog text-3xl" />
+            <i className="pi pi-cog text-2xl" />
           </button>
           <button
             type="button"
@@ -77,7 +77,7 @@ export default forwardRef(function MobileTopbar(
             onClick={logout}
             aria-label="Logout"
           >
-            <i className="pi pi-sign-out text-3xl" />
+            <i className="pi pi-sign-out text-2xl" />
           </button>
         </div>
       </div>

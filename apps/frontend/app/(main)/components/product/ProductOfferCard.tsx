@@ -14,13 +14,13 @@ import { formatCurrency } from '@/lib/formatter'
 type Props = {
   item: ProductWithFrequency
   category?: string
-  visitItemConcerns?: IVisitItemConcern[]
+  visitItemConcern?: IVisitItemConcern
   overlayRefs: RefObject<Record<string, OverlayPanel | null>>
   setSelectedProduct: (item: ProductWithFrequency | null) => void
   setShowOfferDialog: (show: boolean) => void
 }
 const ProductOfferCard = (props: Props) => {
-  const { item, category, visitItemConcerns, setSelectedProduct, setShowOfferDialog } = props
+  const { item, category, visitItemConcern, setSelectedProduct, setShowOfferDialog } = props
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   const handleProductOffer = (item: ProductWithFrequency) => {
@@ -63,7 +63,7 @@ const ProductOfferCard = (props: Props) => {
               {formatCurrency(Number(item.MaxPrice), true, true)}
             </div>
             {item.ProductInfo && (
-              <div className="mt-3 text-sm">
+              <div className="mt-3 text-sm py-2">
                 <span
                   onClick={(e) => overlayRefs.current[item.ItemCode]?.toggle(e)}
                   className="cursor-pointer flex items-center gap-1 text-sm no-underline hover:opacity-80 transition-opacity"
@@ -77,26 +77,31 @@ const ProductOfferCard = (props: Props) => {
         </div>
       </div>
 
-      <div className="flex items-center mt-3 border-top-1 surface-border pt-3">
-        <Button
-          size="small"
-          outlined
-          label="Offer"
-          icon="pi pi-arrow-circle-up"
-          severity="success"
-          onClick={() => handleProductOffer(item)}
-        />
-      </div>
-
-      {visitItemConcerns?.map((c) => (
-        <div key={`category-${item.ItemCode}-${c.id}`} className="mt-2 p-2 surface-50 border-round">
-          <div className="flex justify-content-between align-items-center">
-            <div className="font-semibold text-sm">{c.category.name}</div>
-            <CustomBadge value={c.status.status} />
-          </div>
-          <div className="text-xs text-secondary mt-1">{c.notes}</div>
+      {!visitItemConcern?.status.status && (
+        <div className="flex items-center mt-3 border-top-1 surface-border pt-3">
+          <Button
+            size="small"
+            outlined
+            label="Offer"
+            icon="pi pi-arrow-circle-up"
+            severity="success"
+            onClick={() => handleProductOffer(item)}
+          />
         </div>
-      ))}
+      )}
+
+      {visitItemConcern && (
+        <div
+          key={`category-${item.ItemCode}-${visitItemConcern.id}`}
+          className="mt-2 p-2 surface-50 border-round"
+        >
+          <div className="flex justify-content-between align-items-center">
+            <div className="font-semibold text-sm">{visitItemConcern.category.name}</div>
+            <CustomBadge value={visitItemConcern.status.status} />
+          </div>
+          <div className="text-xs text-secondary mt-1">{visitItemConcern.notes}</div>
+        </div>
+      )}
       {item.ProductInfo && <ProductOverlayPanel item={item} overlayRefs={overlayRefs} />}
     </Card>
   )

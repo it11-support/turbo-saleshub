@@ -178,15 +178,29 @@ const VisitList = () => {
               </label>
             </div>
 
+            <div className="col-12 md:col-3">
+              <Calendar
+                value={dates}
+                onChange={(e) => setDates(e.value!)}
+                selectionMode="range"
+                readOnlyInput
+                className="w-full"
+                showButtonBar
+                placeholder="Select Visit Date Range"
+              />
+            </div>
+
             {/* Sales Person */}
             {isAdmin && (
               <div className="col-12 md:col-3">
                 <Dropdown
                   value={salesPersonId}
-                  options={salesPersons.map((sp: ISalesPerson) => ({
-                    label: sp.SlpName,
-                    value: Number(sp.id),
-                  }))}
+                  options={salesPersons
+                    .filter((sp) => sp.user)
+                    .map((sp: ISalesPerson) => ({
+                      label: sp.SlpName,
+                      value: Number(sp.id),
+                    }))}
                   onChange={(e) => setSalesPersonId(e.value ?? undefined)}
                   placeholder="Select Sales Person"
                   className="w-full"
@@ -200,18 +214,6 @@ const VisitList = () => {
           <h5 className="mt-4 mb-3">Export</h5>
 
           <div className="grid">
-            <div className="col-12 md:col-3">
-              <Calendar
-                value={dates}
-                onChange={(e) => setDates(e.value!)}
-                selectionMode="range"
-                readOnlyInput
-                className="w-full"
-                showButtonBar
-                placeholder="Select Visit Date Range"
-              />
-            </div>
-
             <div className="col-12 md:col-3 flex align-items-end">
               <Button
                 label="Export"

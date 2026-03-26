@@ -14,7 +14,7 @@ import { useScheduleStore, useUserStore } from '@/stores'
 
 const VisitSchedules = () => {
   const { schedules, page, fetchScheduleByDate, currentDate, setCurrentDate } = useScheduleStore()
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState<number | number[] | null>(null)
   const [selectedSalesPerson, setSelectedSalesPerson] = useState<number | null>(null)
 
   const authStore = useAuth()
@@ -160,7 +160,7 @@ const VisitSchedules = () => {
         </div>
       </div>
       <></>
-      <Accordion activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index as number)}>
+      <Accordion activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index)}>
         {scheduledVisits.length > 0 && (
           <AccordionTab header={`Scheduled Visits (${scheduledVisits.length})`}>
             <div className="grid">

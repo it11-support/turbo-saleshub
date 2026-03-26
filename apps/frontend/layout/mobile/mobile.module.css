@@ -60,7 +60,7 @@
 }
 .icon{width:20px;height:20px}
 .label{font-size:11px;margin-top:4px}
-.active{color:#2563EB}
+.active{color: var(--primary-500)}
 
 /* hide mobile layout on large screens to avoid conflicts with desktop layout */
 @media (min-width: 900px){

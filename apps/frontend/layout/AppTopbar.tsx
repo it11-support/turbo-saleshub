@@ -57,7 +57,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         })}
       >
         {auth.user?.name && (
-          <div className="flex align-items-center justify-content-center">
+          <div className="flex align-items-center justify-content-start">
             <Badge value={auth.user?.name} severity="info" />
           </div>
         )}

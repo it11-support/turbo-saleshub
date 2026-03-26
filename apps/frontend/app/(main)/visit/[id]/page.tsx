@@ -181,7 +181,7 @@ const VisitsPage = () => {
             onClick={handleEndVisit}
           />
         </div>
-        <p className="m-0 text-2xl">{customer?.CardName}</p>
+        <p className="m-0 text-2xl ml-2">{customer?.CardName}</p>
         <div className="flex-1 px-0 py-2">
           {customer?.subgroup && (
             <div className="p-2">
@@ -323,7 +323,7 @@ const VisitsPage = () => {
                                     <ProductOfferCard
                                       item={item}
                                       category={category}
-                                      visitItemConcerns={visitItemConcerns}
+                                      visitItemConcern={visitItemConcerns?.[0]}
                                       overlayRefs={overlayRefs}
                                       setSelectedProduct={setSelectedProduct}
                                       setShowOfferDialog={setShowOfferDialog}
@@ -358,7 +358,7 @@ const VisitsPage = () => {
                         <ProductOfferCard
                           item={item}
                           category={category}
-                          visitItemConcerns={visitItemConcerns}
+                          visitItemConcern={visitItemConcerns?.[0]}
                           overlayRefs={overlayRefs}
                           setSelectedProduct={setSelectedProduct}
                           setShowOfferDialog={setShowOfferDialog}
