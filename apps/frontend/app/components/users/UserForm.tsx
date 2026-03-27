@@ -243,7 +243,7 @@ const UserForm: React.FC<Props> = ({
           label={isEdit ? 'Update' : 'Save'}
           type="submit"
           icon="pi pi-save"
-          className="w-3"
+          className="w-auto"
         />
       </div>
     </form>
