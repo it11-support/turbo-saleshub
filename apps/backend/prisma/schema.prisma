@@ -193,6 +193,7 @@ model products {
   returs          retur_invoices[]
 
   product_developments product_developments[]
+  inquiries        inquiries[]
 }
 
 model product_developments {
@@ -392,8 +393,20 @@ model visits {
   customer       customers          @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   rule           sales_visit_rules?  @relation(fields: [rule_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   visit_items    visit_items[]
+  inquiries      inquiries[]
 }
 
+model inquiries {
+  id            BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  visit_id      BigInt      @db.UnsignedBigInt
+  product_id    BigInt?     @db.UnsignedBigInt
+  product_name  String?
+  notes         String?     @db.Text
+  created_at    DateTime    @default(now()) @db.DateTime(0)
+  updated_at    DateTime    @updatedAt @db.DateTime(0)
+  visit         visits      @relation(fields: [visit_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  product       products?   @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
 model visit_items {
   id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
   visit_id   BigInt   @db.UnsignedBigInt

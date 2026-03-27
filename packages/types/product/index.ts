@@ -62,3 +62,39 @@ export type SuggestedItemsGrouped = {
   groceries: ProductWithFrequency[];
 }
 
+
+export interface IInquiry {
+  id?: BigInt | number
+  visit_id?: BigInt | number
+
+  product_id?: BigInt | number | null
+  product_name?: string | null
+
+  notes?: string
+
+  created_at?: string
+  updated_at?: string
+}
+
+
+export interface IInquiryForm {
+  product_id: BigInt | number | null
+  product_name: string
+  notes?: string
+}
+
+export interface IProductInquiryState {
+  loading: boolean
+  inquiries: IInquiry[]
+  addInquiry: () => void
+  removeInquiry: (index: number) => void
+  updateInquiry: (
+    index: number,
+    field: keyof IInquiry,
+    value: any
+  ) => void
+  setLoading: (loading: boolean) => void
+  setInquiries: (inquiries: IInquiry[]) => void
+  fetchInquiries: (id: number) => Promise<void>
+  syncInquiries: (id: number) => Promise<void>
+}

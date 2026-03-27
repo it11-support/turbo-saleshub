@@ -71,6 +71,13 @@ export default function AddScheduleDialog() {
     return () => clearTimeout(delay)
   }, [localSearch, formData.salesPersonId])
 
+  useEffect(() => {
+    if (formData.salesPersonId) {
+      const slp = salesPersons.find((sp) => sp.id === formData.salesPersonId)
+      setSlpCode(Number(slp?.SlpCode))
+    }
+  }, [formData.salesPersonId])
+
   const handleCreateSchedule = async () => {
     try {
       const paylaod: Partial<IVisit> = {
@@ -132,11 +139,10 @@ export default function AddScheduleDialog() {
                 .filter((sp) => sp.user)
                 .map((sp: ISalesPerson) => ({
                   label: sp.SlpName,
-                  value: sp.SlpCode,
+                  value: sp.id,
                 }))}
               onChange={(e) => {
                 setFormData({ ...formData, salesPersonId: e.value, customer: null })
-                setSlpCode(e.value)
               }}
               clearIcon="pi pi-times"
               showClear

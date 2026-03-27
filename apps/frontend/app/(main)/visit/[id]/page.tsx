@@ -3,8 +3,8 @@
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import { ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { AutoComplete } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
-import { Card } from 'primereact/card'
 import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
@@ -16,6 +16,8 @@ import { useEffect, useRef, useState } from 'react'
 
 import { parsePhone } from '@/lib/phoneParser'
 import { useConcernStore, useSalesVisit, useScheduleStore } from '@/stores'
+import { useInquiryStore } from '@/stores/inquiry'
+import { useProductsStore } from '@/stores/products'
 
 const VisitsPage = () => {
   const salesVisitStore = useSalesVisit()
@@ -26,6 +28,13 @@ const VisitsPage = () => {
     useConcernStore()
   const { id } = useParams()
   const searchParams = useSearchParams()
+
+  const {
+    fetchProducts,
+    data: products,
+    setSearch: setSearchStore,
+    search: searchStore,
+  } = useProductsStore()
 
   const type = searchParams.get('type')
   const router = useRouter()
@@ -44,6 +53,18 @@ const VisitsPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
+
+  const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
+    useInquiryStore()
+
+  useEffect(() => {
+    fetchProducts()
+    fetchInquiries(Number(id))
+  }, [])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [searchStore])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -228,19 +249,9 @@ const VisitsPage = () => {
           )}
         </div>
         <Divider />
+
         <div className="col-12 xl:col-6 md:col-6">
-          <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
-            Visit Note
-          </label>
-          <InputTextarea
-            id={`note-${salesVisit.id}`}
-            rows={2}
-            autoResize
-            value={visitNote}
-            onChange={(e) => setVisitNote(e.target.value)}
-            placeholder="Visit notes"
-            className="w-full"
-          />
+          <h5>Product Offer</h5>
         </div>
         <div className="col-12 xl:col-6 md:col-6">
           <div className="">
@@ -276,13 +287,7 @@ const VisitsPage = () => {
 
         {activeProductGroup.length > 0 && (
           <>
-            <Card
-              className="mx-0 mt-3"
-              pt={{
-                body: { style: { padding: '0.5rem' } },
-                content: { style: { padding: '0.5rem' } },
-              }}
-            >
+            <div className="mx-2 mt-3">
               <h6>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h6>
               {isDistributor && distributorCategories.length > 0 ? (
                 <div className="flex flex-column gap-3">
@@ -376,9 +381,106 @@ const VisitsPage = () => {
                   )}
                 </div>
               )}
-            </Card>
+            </div>
           </>
         )}
+        <Divider />
+        <div className="col-12 xl:col-6 md:col-6">
+          <h5>Notes & Inquiries</h5>
+        </div>
+        <div className="col-12 xl:col-6 md:col-6">
+          <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
+            Visit Note
+          </label>
+          <InputTextarea
+            id={`note-${salesVisit.id}`}
+            rows={2}
+            autoResize
+            value={visitNote}
+            onChange={(e) => setVisitNote(e.target.value)}
+            placeholder="Visit notes"
+            className="w-full"
+          />
+        </div>
+        <div className="col-12 xl:col-6 md:col-6">
+          {/* HEADER */}
+          <div className="flex justify-content-between align-items-center mb-2">
+            <span className="font-semibold">Product Inquiry</span>
+          </div>
+
+          {/* LIST */}
+          {inquiries.map((inq, index) => (
+            <div key={index} className="mb-3 p-3 border-1 surface-border border-round">
+              {/* HEADER ITEM */}
+              <div className="flex justify-content-between align-items-center mb-2">
+                <span className="text-sm font-semibold">Inquiry #{index + 1}</span>
+
+                <Button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  text
+                  onClick={() => {
+                    removeInquiry(index)
+                    syncInquiries(Number(id))
+                  }}
+                />
+              </div>
+
+              {/* PRODUCT SELECT (OPTIONAL) */}
+              <AutoComplete
+                value={inq.product_name || ''}
+                suggestions={products}
+                field="ItemName"
+                className="w-full my-2"
+                inputClassName="w-full"
+                placeholder="Search product..."
+                completeMethod={(e) => {
+                  setSearchStore(e.query)
+                }}
+                onChange={(e) => {
+                  updateInquiry(index, 'product_name', e.value)
+                  updateInquiry(index, 'product_id', null)
+                }}
+                onSelect={(e) => {
+                  updateInquiry(index, 'product_name', e.value.ItemName)
+                  updateInquiry(index, 'product_id', e.value.id)
+                }}
+              />
+
+              {/* NOTES */}
+              <InputTextarea
+                placeholder="Notes"
+                className="w-full my-2"
+                value={inq.notes}
+                onChange={(e) => updateInquiry(index, 'notes', e.target.value)}
+              />
+            </div>
+          ))}
+          <div className="flex align-items-center gap-2">
+            <Button
+              severity="success"
+              outlined
+              rounded
+              icon="pi pi-plus"
+              size="small"
+              onClick={addInquiry}
+            />
+            <Button
+              disabled={
+                inquiries.length === 1 &&
+                !inquiries[0].product_id &&
+                !inquiries[0].product_name &&
+                !inquiries[0].notes
+              }
+              severity="success"
+              outlined
+              rounded
+              icon="pi pi-check"
+              size="small"
+              onClick={() => syncInquiries(Number(id))}
+            />
+          </div>
+        </div>
       </div>
 
       <Dialog

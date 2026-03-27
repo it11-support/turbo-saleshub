@@ -11,15 +11,18 @@ import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHead
 import VisitTimeLine from '@/app/(main)/visits/components/VisitTimeLine'
 import { formatDate } from '@/lib/dateUtils'
 import { useSalesVisit } from '@/stores'
+import { useInquiryStore } from '@/stores/inquiry'
 
 const VisitDetailsPage = () => {
   const { id } = useParams()
   const salesVisirStore = useSalesVisit()
 
   const { salesVisit, fetchVisitDetails } = salesVisirStore
+  const { fetchInquiries, inquiries } = useInquiryStore()
 
   useEffect(() => {
     fetchVisitDetails(Number(id))
+    fetchInquiries(Number(id))
   }, [])
 
   const customer = salesVisit?.customer
@@ -46,7 +49,7 @@ const VisitDetailsPage = () => {
   return (
     <>
       <VisitDetailHeader customer={customer} salesVisit={salesVisit} />
-      <div className="card">
+      <div className="card mb-2">
         <h5 className="ml-2">Offered Items</h5>
 
         <div className="grid">
@@ -135,6 +138,29 @@ const VisitDetailsPage = () => {
               </div>
             )
           })}
+        </div>
+      </div>
+      <div className="card">
+        <h5 className="ml-2">Product Inquiries</h5>
+        <div className="grid">
+          {inquiries.map((inquiry) => (
+            <div className="col-12 md:col-12 lg:col-12 flex" key={`inquiry-${inquiry.id}`}>
+              <Card className="w-full h-full p-2">
+                <div className="flex flex-column w-full gap-3">
+                  <div className="flex w-full align-items-start gap-3">
+                    <div className="w-9 flex flex-column text-xs text-color-secondary font-medium pt-1">
+                      <div className="text-lg font-bold text-color line-height-2">
+                        {inquiry.product_name}
+                      </div>
+                      <div className="text-sm py-2 text-color-secondary line-height-3">
+                        {inquiry.notes}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ))}
         </div>
       </div>
     </>

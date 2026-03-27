@@ -528,19 +528,6 @@ export const createVisitSchedule = async (req: Request, res: Response) => {
     const { customer_id, sales_person_id, visit_date } = req.body
     const date = dayjs(visit_date).format("YYYY-MM-DD")
 
-    const salesPerson = await prisma.sales_persons.findUnique({
-      where: {
-        SlpCode: Number(sales_person_id)
-      },
-      select: {
-        id: true
-      }
-    })
-
-    if(!salesPerson) {
-      return res.status(400).json({ message: 'Sales person not found' })
-    }
-
     const visit = await prisma.visits.upsert({
       where: {
         customer_id_visit_date: {
@@ -550,7 +537,7 @@ export const createVisitSchedule = async (req: Request, res: Response) => {
       },
       update: {},
       create: {
-        sales_person_id: Number(salesPerson?.id),
+        sales_person_id: Number(sales_person_id),
         customer_id: Number(customer_id),
         visit_date: date,
         status: VisitStatus.Planned,
