@@ -464,6 +464,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ message: 'Internal server error' })
+    return res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : error })
   }
 }
