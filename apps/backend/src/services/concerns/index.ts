@@ -1,4 +1,5 @@
 import prisma from "@/libs/prisma.js";
+import { EBadgeVariant } from "@saleshub-tsm/types";
 
 export const getConcerns = async () => {
   try {
@@ -68,12 +69,14 @@ export const getConcernStatuses = async () => {
 }
 
 
-export const createStatus = async (data: {status: string}) => {
+export const createStatus = async (data: {status: string, level: EBadgeVariant, icon: string}) => {
   try {
-    const {status} = data
+    const {status, level, icon} = data
     const statusData = await prisma.concern_status.create({
       data: {
-        status
+        status,
+        level,
+        icon
       }
     })
     return statusData
@@ -86,7 +89,7 @@ export const createStatus = async (data: {status: string}) => {
 
 export const updateStatus = async (
   id: number,
-  data: { status?: string }
+  data: { status?: string, level?: EBadgeVariant, icon?: string }
 ) => {
   try {
     return await prisma.concern_status.update({
@@ -95,6 +98,8 @@ export const updateStatus = async (
       },
       data: {
         ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.level !== undefined ? { level: data.level } : {}),
+        ...(data.icon !== undefined ? { icon: data.icon } : {}),
       },
     });
   } catch (error) {

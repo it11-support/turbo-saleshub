@@ -65,8 +65,8 @@ export const fetchConcernStatuses = async (req: Request, res: Response) => {
 
 export const createNewStatus = async (req: Request, res: Response) => {
   try {
-    const { status } = req.body;
-    const statusData = await createStatus({ status });
+    const { status, level, icon } = req.body;
+    const statusData = await createStatus({ status, level, icon });
     return res.status(200).json({ message: "Success", data: statusData });
   } catch (error) {
     console.error(error);
@@ -81,8 +81,8 @@ export const updateConcernStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid concern status id" });
     }
 
-    const { status } = req.body;
-    const  newStatus = await updateStatus(id, { status });
+    const { status, level, icon } = req.body;
+    const  newStatus = await updateStatus(id, { status, level, icon });
     return res.status(200).json({ message: "Success", data: newStatus });
   } catch (error) {
     console.error(error);

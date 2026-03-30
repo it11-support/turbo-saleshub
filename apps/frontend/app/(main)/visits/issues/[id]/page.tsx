@@ -1,7 +1,13 @@
 'use client'
 
 import VisitTimeLine from '../../components/VisitTimeLine'
-import { EFollowUpStatus, EFollowUpType, IVisitItemConcern } from '@saleshub-tsm/types'
+import {
+  EBadgeVariant,
+  EFollowUpStatus,
+  EFollowUpType,
+  IConcernStatus,
+  IVisitItemConcern,
+} from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
@@ -74,23 +80,25 @@ const VisitIssuesPage = () => {
     value: t,
   }))
 
-  const statusConfig: Record<
-    EFollowUpStatus,
-    { severity: 'warning' | 'info' | 'success' | 'danger'; icon: string }
-  > = {
-    [EFollowUpStatus.Pending]: { severity: 'warning', icon: 'pi pi-pause' },
-    [EFollowUpStatus.FollowUp]: { severity: 'info', icon: 'pi pi-clock' },
-    [EFollowUpStatus.Done]: { severity: 'success', icon: 'pi pi-check' },
-    [EFollowUpStatus.Closed]: { severity: 'danger', icon: 'pi pi-times' },
+  type TagSeverity = 'info' | 'warning' | 'success' | 'danger'
+
+  const TAG_SEVERITY_MAP: Record<EBadgeVariant, TagSeverity> = {
+    info: 'info',
+    warning: 'warning',
+    success: 'success',
+    danger: 'danger',
+    secondary: 'info',
   }
 
-  const GetTag = ({ status }: { status: EFollowUpStatus }) => {
-    const config = statusConfig[status] || {
-      severity: 'warning',
-      icon: 'pi pi-exclamation-triangle',
-    }
-
-    return <Tag className="mr-2" icon={config.icon} severity={config.severity} value={status} />
+  const GetTag = ({ status }: { status: IConcernStatus }) => {
+    return (
+      <Tag
+        className="mr-2"
+        icon={status.icon}
+        severity={status.level ? TAG_SEVERITY_MAP[status.level] : undefined}
+        value={status.status}
+      />
+    )
   }
 
   return (
@@ -146,7 +154,7 @@ const VisitIssuesPage = () => {
                                 {concern?.category?.name}
                               </span>
                               <div>
-                                <GetTag status={concern?.status?.status as EFollowUpStatus} />
+                                <GetTag status={concern?.status} />
                               </div>
                             </div>
 
@@ -176,7 +184,7 @@ const VisitIssuesPage = () => {
                             ) : null}
 
                             {![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
-                              concern?.status?.status
+                              concern?.status?.status as EFollowUpStatus
                             ) && (
                               <Button
                                 size="small"

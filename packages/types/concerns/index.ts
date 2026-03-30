@@ -1,14 +1,22 @@
-import { EFollowUpStatus } from "../visit"
-
 export interface IConcernCategory {
   id?: BigInt | number | null
   name: string
   description?: string
 }
 
+export enum EBadgeVariant {
+  INFO = 'info',
+  WARNING = 'warning',
+  SUCCESS = 'success',
+  DANGER = 'danger',
+  SECONDARY = 'secondary',
+}
+
 export interface IConcernStatus {
   id?: BigInt | number | null
-  status: EFollowUpStatus
+  status: string
+  level?: EBadgeVariant | null
+  icon?: string
 }
 export interface IConcernState {
   loading: boolean
