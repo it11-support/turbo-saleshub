@@ -304,12 +304,18 @@ const SettingsPage = () => {
                   <div className="flex align-items-center gap-2 ml-auto">
                     <Button
                       icon="pi pi-pencil"
+                      disabled={[EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
+                        status.status as EFollowUpStatus
+                      )}
                       size="small"
                       outlined
                       onClick={() => openEditStatusDialog(status)}
                     />
                     <Button
                       // label="Delete"
+                      disabled={[EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
+                        status.status as EFollowUpStatus
+                      )}
                       icon="pi pi-trash"
                       size="small"
                       severity="danger"

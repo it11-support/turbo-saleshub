@@ -45,7 +45,9 @@ const VisitListTable = () => {
       ?.flatMap((item) => item.visit_item_concerns || [])
       .filter(
         (concern) =>
-          ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(concern.status?.status as EFollowUpStatus),
+          ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
+            concern.status?.status as EFollowUpStatus
+          )
       )
 
     if (!openConcerns.length) return
