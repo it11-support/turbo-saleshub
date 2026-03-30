@@ -406,7 +406,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       SELECT
         YEAR(s.date) AS year,
         MONTH(s.date) AS month,
-        sp.id AS sales_person_id,
         SUM(s.revenue) AS revenue,
         SUM(s.orders) AS orders,
         COUNT(DISTINCT s.CardCode) AS customers
@@ -429,16 +428,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
 
       GROUP BY
         YEAR(s.date),
-        MONTH(s.date),
-        sp.id
+        MONTH(s.date)
 
       ORDER BY
         YEAR(s.date),
         MONTH(s.date);
     `
-
-
-    console.log(monthlyTrendRaw)
 
     const monthlyTrend = monthlyTrendRaw.map(r => ({
       year: r.year,
