@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "saleshub-backend",
-      cwd: "/home/sysdevrco1/staging/turbo-saleshub/apps/backend", 
+      cwd: "/home/sysdevrco1/release/turbo-saleshub/apps/backend", 
       script: "dist/index.js",
       instances: 1,
       exec_mode: "fork",
@@ -16,7 +16,7 @@ module.exports = {
     },
     {
       name: "saleshub-frontend",
-      cwd: "/home/sysdevrco1/staging/turbo-saleshub/apps/frontend",
+      cwd: "/home/sysdevrco1/release/turbo-saleshub/apps/frontend",
       script: "pnpm",
       args: "start",
       env: {

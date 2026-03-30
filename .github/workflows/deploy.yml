@@ -2,7 +2,7 @@ name: Deploy Production
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "release/v1" ]
 
 jobs:
   deploy:
@@ -29,7 +29,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /home/sysdevrco1/staging/turbo-saleshub
+            cd /home/sysdevrco1/release/turbo-saleshub
             git pull origin main
 
             # Backend env
