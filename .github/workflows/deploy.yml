@@ -69,20 +69,7 @@ jobs:
             pnpm --filter ./apps/frontend lint
             pnpm --filter ./apps/frontend build
 
-            # PM2 backend
-            npx pm2 describe saleshub-backend > /dev/null
-            if [ $? -ne 0 ]; then
-              npx pm2 start ecosystem.config.js --only saleshub-backend
-            else
-              npx pm2 reload ecosystem.config.js --only saleshub-backend
-            fi
-
-            # PM2 frontend
-            npx pm2 describe saleshub-frontend > /dev/null
-            if [ $? -ne 0 ]; then
-              npx pm2 start ecosystem.config.js --only saleshub-frontend
-            else
-              npx pm2 reload ecosystem.config.js --only saleshub-frontend
-            fi
+            npx pm2 startOrReload ecosystem.config.js --only saleshub-backend
+            npx pm2 startOrReload ecosystem.config.js --only saleshub-frontend
 
             npx pm2 save
