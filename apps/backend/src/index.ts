@@ -4,6 +4,9 @@ import cors from "cors"
 import fileUpload from 'express-fileupload'
 import { startRfmScheduler } from './scheduler/index.js'
 
+(BigInt.prototype as any).toJSON = function () {
+  return Number(this);
+}
 
 const PORT = Number(process.env.PORT) || 4000
 
