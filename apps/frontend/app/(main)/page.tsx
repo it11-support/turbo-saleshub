@@ -3,6 +3,7 @@
 import { LayoutContext } from '../../layout/context/layoutcontext'
 import { TooltipItem } from 'chart.js'
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
+import dayjs from 'dayjs'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 import { Knob } from 'primereact/knob'
@@ -11,9 +12,10 @@ import { useContext, useEffect } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { formatCurrency } from '@/lib/formatter'
+import { calculateGrowth } from '@/lib/utils'
 import { useDashboardStore } from '@/stores'
-
 import 'chartjs-adapter-date-fns'
+import { TMonthTodateSummary } from '@/types'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -22,11 +24,6 @@ const Dashboard = () => {
 
   const {
     fetchSalesSummary,
-    monthToDateSummary,
-    revenueTrend,
-    orderTrend,
-    customerTrend,
-    aovTrend,
     slpRevenue,
     productRevenueDistributor,
     productRevenueGrocery,
@@ -35,6 +32,7 @@ const Dashboard = () => {
     CRR,
     RPR,
     RFM,
+    monthlyTrend,
   } = dashboard
 
   const applyLightTheme = () => {}
@@ -53,17 +51,36 @@ const Dashboard = () => {
     }
   }, [layoutConfig.colorScheme])
 
-  const revenuLabel = revenueTrend.map((item) => item.period)
-  const revenueData = revenueTrend.map((item) => item.revenue)
+  const now = dayjs()
+  const prevMonth = now.subtract(1, 'month')
 
-  const trendLabel = orderTrend.map((item) => item.period)
-  const trendData = orderTrend.map((item) => item.order)
+  const currentMonthData = monthlyTrend.find(
+    (item) => item.year === now.year() && item.month === now.month() + 1
+  )
+  const prevMonthData = monthlyTrend.find(
+    (item) => item.year === prevMonth.year() && item.month === prevMonth.month() + 1
+  )
 
-  const customerLabel = customerTrend.map((item) => item.period)
-  const customerData = customerTrend.map((item) => item.activeCustomers)
+  const trendLabel = monthlyTrend.map(
+    (item) => `${item.year}-${item.month.toString().padStart(2, '0')}`
+  )
+  const revenueData = monthlyTrend.map((item) => item.revenue)
 
-  const aovLabel = aovTrend.map((item) => item.period)
-  const aovData = aovTrend.map((item) => item.aov)
+  const trendData = monthlyTrend.map((item) => item.orders)
+
+  const customerData = monthlyTrend.map((item) => item.customers)
+
+  const aovData = monthlyTrend.map((item) => item.revenue / item.orders)
+
+  const summary: TMonthTodateSummary = {
+    revenue: calculateGrowth(currentMonthData?.revenue ?? 0, prevMonthData?.revenue ?? 0),
+    orders: calculateGrowth(currentMonthData?.orders ?? 0, prevMonthData?.orders ?? 0),
+    customers: calculateGrowth(currentMonthData?.customers ?? 0, prevMonthData?.customers ?? 0),
+    aov: calculateGrowth(
+      currentMonthData ? currentMonthData.revenue / currentMonthData.orders : 0,
+      prevMonthData ? prevMonthData.revenue / prevMonthData.orders : 0
+    ),
+  }
 
   const slpRevenueLabel = slpRevenue.map((item) => item.slp)
   const slpRevenueData = slpRevenue.map((item) => item.revenue)
@@ -99,17 +116,17 @@ const Dashboard = () => {
       ) : (
         <>
           <div className="grid">
-            {Object.keys(monthToDateSummary).map((itemKey) => {
+            {Object.keys(summary).map((itemKey) => {
               const isMoney = itemKey === 'revenue' || itemKey === 'aov'
               return (
-                monthToDateSummary[itemKey].current && (
+                summary[itemKey].current && (
                   <div className="col-12 lg:col-6 xl:col-3" key={itemKey}>
                     <Card
                       pt={{
                         root: {
                           style: {
                             border: `1px solid ${
-                              monthToDateSummary[itemKey]?.growthPercent > 0
+                              summary[itemKey]?.growthPercent > 0
                                 ? 'var(--green-500)'
                                 : 'var(--red-500)'
                             }`,
@@ -124,11 +141,7 @@ const Dashboard = () => {
                             {itemKey.toUpperCase()}
                           </span>
                           <div className="text-900 font-medium text-xl">
-                            {formatCurrency(
-                              Number(monthToDateSummary[itemKey]?.current),
-                              true,
-                              isMoney
-                            )}
+                            {formatCurrency(Number(summary[itemKey]?.current), true, isMoney)}
                           </div>
                         </div>
                         <div
@@ -141,21 +154,19 @@ const Dashboard = () => {
                       <div className="text-400 font-medium text-sm">
                         Previous Month
                         <span className="ml-2">
-                          {formatCurrency(Number(monthToDateSummary[itemKey]?.last), true, isMoney)}
+                          {formatCurrency(Number(summary[itemKey]?.last), true, isMoney)}
                         </span>
                       </div>
                       <span
                         className={`${
-                          monthToDateSummary[itemKey]?.growthPercent > 0
-                            ? 'text-green-500'
-                            : 'text-red-500'
+                          summary[itemKey]?.growthPercent > 0 ? 'text-green-500' : 'text-red-500'
                         } font-medium`}
                       >
-                        {monthToDateSummary[itemKey]?.growthPercent != null
-                          ? `${monthToDateSummary[itemKey].growthPercent.toFixed(2)} %`
+                        {summary[itemKey]?.growthPercent != null
+                          ? `${summary[itemKey].growthPercent.toFixed(2)} %`
                           : '0.00 %'}
 
-                        {monthToDateSummary[itemKey]?.diff > 0 ? (
+                        {summary[itemKey]?.diff > 0 ? (
                           <i className="ml-1 pi pi-arrow-up-right text-green-500 text-sm" />
                         ) : (
                           <i className="ml-1 pi pi-arrow-down-right text-red-500 text-sm" />
@@ -171,8 +182,13 @@ const Dashboard = () => {
           <div className="grid mt-4">
             <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
-                <h5>Customer Loyalty</h5>
-                <p className="text-sm">Last 3 Months</p>
+                <h5>Loyalty Benchmarking</h5>
+                <div className="text-xs italic">
+                  <i>
+                    Overall health score of customer relationships based on stability and recurring
+                    engagement
+                  </i>
+                </div>
                 <div
                   style={{
                     width: '200px',
@@ -240,8 +256,13 @@ const Dashboard = () => {
             {CRR > 0 && (
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
-                  <h5>Customer Retention Rate</h5>
-                  <p className="text-sm">Last 3 Months</p>
+                  <h5>Rentention Index</h5>
+                  <div className="text-xs italic">
+                    <i>
+                      Percentage of customers from the previous period who remained active in the
+                      last 3 months.
+                    </i>
+                  </div>
                   <Knob
                     value={Number(CRR.toFixed(2))}
                     readOnly
@@ -258,8 +279,13 @@ const Dashboard = () => {
             {RPR > 0 && (
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
-                  <h5>Repeat Purchase Rate</h5>
-                  <p className="text-sm">Last 3 Months</p>
+                  <h5>Purchase Frequency</h5>
+                  <div className="text-xs italic">
+                    <i>
+                      Percentage of customers who placed two or more separate orders within the last
+                      3 months
+                    </i>
+                  </div>
                   <Knob
                     value={Number(RPR.toFixed(2))}
                     readOnly
@@ -275,8 +301,10 @@ const Dashboard = () => {
 
             <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
-                <h5>New vs Returning</h5>
-                <p className="text-sm">Last 3 Months</p>
+                <h5>Acquisition vs. Loyalty</h5>
+                <div className="text-xs italic">
+                  <i>Breakdown of first-time buyers compared to returning existing customers</i>
+                </div>
                 <div
                   style={{
                     width: '200px',
@@ -334,7 +362,7 @@ const Dashboard = () => {
                 <Chart
                   type="bar"
                   data={{
-                    labels: revenuLabel,
+                    labels: trendLabel,
                     datasets: [{ data: revenueData, label: 'Revenue Trend' }],
                   }}
                   options={{
@@ -434,7 +462,7 @@ const Dashboard = () => {
                 <Chart
                   type="bar"
                   data={{
-                    labels: customerLabel,
+                    labels: trendLabel,
                     datasets: [{ data: customerData, label: 'Customer Trend' }],
                   }}
                   options={{
@@ -483,7 +511,7 @@ const Dashboard = () => {
               <Card>
                 <Chart
                   type="bar"
-                  data={{ labels: aovLabel, datasets: [{ data: aovData, label: 'AOV Trend' }] }}
+                  data={{ labels: trendLabel, datasets: [{ data: aovData, label: 'AOV Trend' }] }}
                   options={{
                     plugins: {
                       tooltip: {

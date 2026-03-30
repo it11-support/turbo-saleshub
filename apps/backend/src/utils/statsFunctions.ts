@@ -37,43 +37,43 @@ export const getMtdDates = () => {
 }
 
 export const getCRR = async (salesFilter: any) => {
-  const baseStart = dayjs().subtract(3, 'month').startOf('month').toDate();
-  const endPeriod = dayjs().endOf('month').toDate();
+  const currentStart = dayjs().subtract(2, 'month').startOf('month').toDate();
+  const currentEnd = dayjs().endOf('month').toDate();
 
-  const xbaseCustomers = await prisma.orders.groupBy({
+  const baseStart = dayjs(currentStart).subtract(3, 'month').toDate();
+  const baseEnd = dayjs(currentStart).subtract(1, 'day').endOf('day').toDate();
+
+  const baseCustomers = await prisma.orders.groupBy({
     by: ['CardCode'],
     where: {
-      DocDate: {
-        gte: dayjs(baseStart).subtract(1, 'year').toDate(),
-        lt: baseStart
-      },
+      DocDate: { gte: baseStart, lte: baseEnd },
       ...salesFilter,
     },
   });
 
-  const activeInPeriod = await prisma.orders.groupBy({
+  const baseCodes = baseCustomers.map(c => c.CardCode);
+  const S = baseCodes.length;
+
+  if (S === 0) return 0;
+
+  const retainedCount = await prisma.orders.groupBy({
     by: ['CardCode'],
     where: {
-      DocDate: { gte: baseStart, lte: endPeriod },
+      DocDate: { gte: currentStart, lte: currentEnd },
+      CardCode: { in: baseCodes },
       ...salesFilter,
     },
   });
 
+  const xretained = retainedCount.length;
+  const xCRR = (xretained / S) * 100;
 
-  const S = xbaseCustomers.length;
-
-  const xbaseSet = new Set(xbaseCustomers.map(c => c.CardCode));
-
-  const xretained = activeInPeriod.filter(c => xbaseSet.has(c.CardCode)).length;
-
-  const xCRR = S === 0 ? 0 : (xretained / S) * 100;
-
-  return xCRR
+  return Number(xCRR.toFixed(2));
 }
+
 
 export const getRPR = async (salesFilter: any) => {
   const now = dayjs();
-
   const threeMonthStart = now.subtract(2, 'month').startOf('month').toDate();
   const threeMonthEnd = now.endOf('day').toDate();
 
@@ -89,38 +89,33 @@ export const getRPR = async (salesFilter: any) => {
   });
 
   const totalCustomers = rawRepeatCustomer.length;
+  if (totalCustomers === 0) return 0;
 
   const repeatCustomersCount = rawRepeatCustomer.filter(
-    (r) => r._count.DocNum >= 2
+    (r) => Number(r._count.DocNum) >= 2
   ).length;
 
-  const RPR = totalCustomers === 0
-    ? 0
-    : parseFloat(((repeatCustomersCount / totalCustomers) * 100).toFixed(2));
+  const RPR = (repeatCustomersCount / totalCustomers) * 100;
 
-  return RPR;
-};
+  return Number(RPR.toFixed(2));
+}
 
 export const getRFM = async (salesFilter: any) => {
   const now = dayjs();
-
-  // 1. Ambil snapshot bulan berjalan saja (MTD)
-  // Ini mencegah satu user terhitung berkali-kali jika ada history di tabel RFM
   const fromDate = now.startOf('month').toDate();
 
-  // 2. Gunakan groupBy agar DB yang menghitung (Jauh lebih cepat dari .findMany + loop)
   const rfmGroups = await prisma.customer_rfm.groupBy({
     by: ['segment'],
     where: {
       lastCalculated: { gte: fromDate },
-      ...salesFilter,
+      ...salesFilter, // Pastikan salesFilter sesuai dengan kolom di customer_rfm
     },
     _count: {
       segment: true,
     },
   });
 
-  // 3. Inisialisasi struktur default (agar segmen yang 0 tetap muncul)
+  // Struktur default agar segmen tetap urut dan muncul meski 0
   const defaultCounts: Record<string, number> = {
     VIP: 0,
     LOYAL: 0,
@@ -129,20 +124,20 @@ export const getRFM = async (salesFilter: any) => {
     LOST: 0,
   };
 
-  // 4. Masukkan hasil dari DB ke dalam struktur default
   rfmGroups.forEach((group) => {
-    if (group.segment && defaultCounts[group.segment] !== undefined) {
-      defaultCounts[group.segment] = group._count.segment;
+    const segmentName = group.segment?.toUpperCase();
+
+    if (segmentName && Object.prototype.hasOwnProperty.call(defaultCounts, segmentName)) {
+      defaultCounts[segmentName] = Number(group._count.segment);
     }
   });
 
-  // 5. Format return (konsisten sesuai permintaan Anda)
-  const RFM = Object.keys(defaultCounts).map((key) => ({
-    segment: key,
-    count: defaultCounts[key],
-  }));
 
-  return RFM;
+  // Kembalikan dalam format Array agar mudah di-map di Frontend (misal untuk Chart)
+  return Object.entries(defaultCounts).map(([segment, count]) => ({
+    segment,
+    count,
+  }));
 };
 
 

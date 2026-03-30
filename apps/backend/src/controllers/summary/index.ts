@@ -1,10 +1,19 @@
 import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
-import { calcMTD, calcNetRevenue, getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
+import { getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
+
+type MonthlySummary = {
+  year: number
+  month: number
+  revenue: number
+  orders: number
+  customers: number
+}
+
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
-    const { mtdStart, mtdEnd, prevMtdStart, prevMtdEnd } = getMtdDates()
+    const { mtdStart, mtdEnd } = getMtdDates()
 
     const now = dayjs()
 
@@ -42,115 +51,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       }
       : {}
 
-
-    // =====================
-    // REVENUE
-    // =====================
-    const [revenueCurrent, revenueLast] = await Promise.all([
-
-      prisma.sales_invoices.findMany({
-        where: {
-          DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...salesFilter
-        },
-        select: {
-          DocNum: true,
-          TotalSales: true,
-          returs: {
-            select: {
-              TotalSales: true
-            }
-          }
-        }
-      }),
-
-      prisma.sales_invoices.findMany({
-        where: {
-          DocDate: { gte: prevMtdStart, lte: prevMtdEnd },
-          ...salesFilter
-        },
-        select: {
-          DocNum: true,
-          TotalSales: true,
-          returs: {
-            select: {
-              TotalSales: true
-            }
-          }
-        }
-      })
-
-    ])
-
-    const totalRevCurrent = calcNetRevenue(revenueCurrent)
-    const totalRevLast = calcNetRevenue(revenueLast)
-
-    const revenue = calcMTD(totalRevCurrent, totalRevLast)
-
-    // =====================
-    // ORDERS (CURRENT & LAST)
-    // =====================
-    const [ordersCurrent, ordersLast] = await Promise.all([
-      prisma.orders.groupBy({
-        by: ['DocNum'],
-        where: {
-          DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...salesFilter,
-        },
-      }),
-      prisma.orders.groupBy({
-        by: ['DocNum'],
-        where: {
-          DocDate: {
-            gte: prevMtdStart,
-            lte: prevMtdEnd,
-          },
-          ...salesFilter,
-        },
-      }),
-    ])
-
-    const orders = calcMTD(ordersCurrent.length, ordersLast.length)
-
-    // =====================
-    // ACTIVE CUSTOMERS
-    // =====================
-    const [customersCurrent, customersLast] = await Promise.all([
-      prisma.sales_invoices.groupBy({
-        by: ['CardCode'],
-        where: {
-          DocDate: { gte: mtdStart, lte: mtdEnd },
-          ...salesFilter,
-        },
-      }),
-      prisma.sales_invoices.groupBy({
-        by: ['CardCode'],
-        where: {
-          DocDate: {
-            gte: prevMtdStart,
-            lte: prevMtdEnd,
-          },
-          ...salesFilter,
-        },
-      }),
-    ])
-
-    const customers = calcMTD(
-      customersCurrent.length,
-      customersLast.length
-    )
-
-    // =====================
-    // AOV
-    // =====================
-    const aov = calcMTD(
-      ordersCurrent.length
-        ? totalRevCurrent / ordersCurrent.length
-        : 0,
-      ordersLast.length
-        ? totalRevLast / ordersLast.length
-        : 0
-    )
 
     // =====================
     // REVENUE TREND (12 MONTHS, MTD)
@@ -210,90 +110,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       revenueMap.set(key, existing)
     })
 
-    const revenueByMonth = Array.from(revenueMap.values()).reduce<Record<string, number>>(
-      (acc, cur) => {
-
-        if (!cur.date) return acc
-
-        const period = dayjs(cur.date).format('YYYY-MM')
-
-        const net = cur.sales + cur.retur
-
-        acc[period] = (acc[period] ?? 0) + net
-
-        return acc
-      },
-      {}
-    )
-
-    const revenueTrend = Object.entries(revenueByMonth)
-      .map(([period, revenue]) => ({ period, revenue }))
-      .sort((a, b) => a.period.localeCompare(b.period))
-
-    // =====================
-    // ORDER TREND (12 MONTHS)
-    // =====================
-    const ordersTrendRaw = await prisma.orders.findMany({
-      where: {
-        DocDate: { gte: trendStart, lte: trendEnd },
-        ...salesFilter,
-      },
-      select: {
-        DocDate: true,
-        DocNum: true,
-      },
-    })
-
-    const ordersMap = ordersTrendRaw.reduce<Record<string, Set<number>>>(
-      (acc, cur) => {
-        if (!cur.DocDate || cur.DocNum == null) return acc
-        const period = dayjs(cur.DocDate).format('YYYY-MM')
-        acc[period] ??= new Set()
-        acc[period].add(cur.DocNum)
-        return acc
-      },
-      {}
-    )
-
-    const currentPeriod = now.format('YYYY-MM')
-
-    const orderTrend = months.map((period) => ({
-      period,
-      order:
-        period === currentPeriod
-          ? ordersCurrent.length
-          : ordersMap[period]?.size ?? 0,
-    }))
-
-    const customerTrendRaw = await prisma.sales_invoices.findMany({
-      where: {
-        DocDate: { gte: trendStart, lte: trendEnd },
-        ...salesFilter,
-      },
-      distinct: ['DocNum'],
-      select: {
-        DocDate: true,
-        CardCode: true,
-      },
-    })
-
-    const customerMap = customerTrendRaw.reduce<Record<string, Set<string>>>(
-      (acc, cur) => {
-        if (!cur.DocDate || !cur.CardCode) return acc
-
-        const period = dayjs(cur.DocDate).format('YYYY-MM')
-        acc[period] ??= new Set()
-        acc[period].add(cur.CardCode)
-        return acc
-      },
-      {}
-    )
-    const customerTrend = Object.entries(customerMap)
-      .map(([period, set]) => ({
-        period,
-        activeCustomers: set.size,
-      }))
-      .sort((a, b) => a.period.localeCompare(b.period))
 
     // Ambil semua invoice dalam 12 bulan terakhir
     const aovSalesRaw = await prisma.sales_invoices.findMany({
@@ -370,15 +186,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
     /* -------------------------
        4️⃣ Build Trend
     ------------------------- */
-
-    const aovTrend = Object.entries(aovMap)
-      .map(([period, data]) => ({
-        period,
-        aov: data.orders > 0
-          ? data.totalSales / data.orders
-          : 0,
-      }))
-      .sort((a, b) => a.period.localeCompare(b.period))
 
 
     const invoices = await prisma.sales_invoices.findMany({
@@ -560,37 +367,32 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const monthEnd = dayjs().toDate()
 
 
-    const invoicesCurrent = await prisma.sales_invoices.findMany({
+    const currentInvoices = await prisma.sales_invoices.groupBy({
+      by: ['CardCode'],
       where: {
         DocDate: { gte: monthStart, lte: monthEnd },
         ...salesFilter
-      },
-      select: { CardCode: true },
-    })
+      }
+    });
+    const currentCustomerCodes = currentInvoices.map(i => i.CardCode);
 
-    const invoicesBefore = await prisma.sales_invoices.findMany({
+    const existingBefore = await prisma.sales_invoices.groupBy({
+      by: ['CardCode'],
       where: {
         DocDate: { lt: monthStart },
+        CardCode: { in: currentCustomerCodes },
         ...salesFilter
-      },
-      select: { CardCode: true },
-    })
+      }
+    });
 
-    const beforeSet = new Set(invoicesBefore.map(i => i.CardCode))
-    const currentSet = new Set(invoicesCurrent.map(i => i.CardCode))
-
-    let newCustomerCount = 0
-    let returningCustomerCount = 0
-
-    currentSet.forEach(card => {
-      if (beforeSet.has(card)) returningCustomerCount += 1
-      else newCustomerCount += 1
-    })
+    const returningSet = new Set(existingBefore.map(i => i.CardCode));
+    const returningCustomerCount = returningSet.size;
+    const newCustomerCount = currentCustomerCodes.length - returningCustomerCount;
 
     const newVsReturning = {
       newCustomer: newCustomerCount,
       returningCustomer: returningCustomerCount
-    }
+    };
 
     // ========== CRR ==========
     const CRR = await getCRR(salesFilter)
@@ -600,28 +402,64 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const RFM = await getRFM(salesFilter)
 
 
+    const monthlyTrendRaw = await prisma.$queryRaw<MonthlySummary[]>`
+      SELECT
+        YEAR(s.date) AS year,
+        MONTH(s.date) AS month,
+        sales_person_id,
+        SUM(s.revenue) AS revenue,
+        SUM(s.orders) AS orders,
+        COUNT(DISTINCT s.CardCode) AS customers
 
+      FROM daily_sales_summary_view s
+
+      JOIN customers c
+        ON c.CardCode = s.CardCode
+
+      JOIN sales_persons sp
+        ON sp.SlpCode = c.SlpCode
+
+      WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
+      AND s.date <= LAST_DAY(CURDATE())
+
+      AND (
+          ${salesPersonId} IS NULL
+          OR sp.id = ${salesPersonId}
+        )
+
+      GROUP BY
+        YEAR(s.date),
+        MONTH(s.date)
+
+      ORDER BY
+        YEAR(s.date),
+        MONTH(s.date);
+    `
+
+
+    console.log(monthlyTrendRaw)
+
+    const monthlyTrend = monthlyTrendRaw.map(r => ({
+      year: r.year,
+      month: r.month,
+      revenue: Number(r.revenue ?? 0),
+      orders: Number(r.orders ?? 0),
+      customers: Number(r.customers ?? 0),
+    }))
     // =====================
     // RESPONSE
     // =====================
     return res.status(200).json({
       message: 'Success',
       data: {
-        revenue,
-        orders,
-        customers,
-        aov,
-        revenueTrend,
-        customerTrend,
-        orderTrend,
-        aovTrend,
         slpRevenue,
         productRevenueDistributor,
         productRevenueGrocery,
         newVsReturning,
         CRR,
         RPR,
-        RFM
+        RFM,
+        monthlyTrend
       },
     })
   } catch (error) {

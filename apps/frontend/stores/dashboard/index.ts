@@ -5,9 +5,7 @@ import { $api, createUrl } from '@/lib/api'
 import { ISalesSummaryState, TMonthTodateSummary } from '@/types'
 
 export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
-  monthToDateSummary: {} as TMonthTodateSummary,
-  revenueTrend: [],
-  orderTrend: [],
+  monthlyTrend: [],
   customerTrend: [],
   productRevenueDistributor: [],
   productRevenueGrocery: [],
@@ -59,27 +57,17 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
 
       const url = createUrl('summary', payload)
       const res = await $api<any>(url)
-      set({
-        monthToDateSummary: {
-          revenue: res.data.revenue,
-          orders: res.data.orders,
-          customers: res.data.customers,
-          aov: res.data.aov,
-        },
-      })
 
       set({
-        revenueTrend: res.data.revenueTrend,
-        orderTrend: res.data.orderTrend,
         customerTrend: res.data.customerTrend,
-        aovTrend: res.data.aovTrend,
         slpRevenue: res.data.slpRevenue,
         productRevenueDistributor: res.data.productRevenueDistributor,
         productRevenueGrocery: res.data.productRevenueGrocery,
         newVsReturning: res.data.newVsReturning,
         CRR: res.data.CRR,
         RPR: res.data.RPR,
-        RFM: res.data.RFM
+        RFM: res.data.RFM,
+        monthlyTrend: res.data.monthlyTrend,
       })
     } catch (error) {
       console.error(error)

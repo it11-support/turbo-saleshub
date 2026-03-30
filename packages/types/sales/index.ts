@@ -28,3 +28,12 @@ export interface ISalesSummary {
   volume: number | null
   revenue: number | null
 }
+
+
+export interface IMonthlySummary {
+  year: number
+  month: number
+  revenue: number
+  orders: number
+  customers: number
+}
