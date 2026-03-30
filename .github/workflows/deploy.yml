@@ -69,7 +69,9 @@ jobs:
             pnpm --filter ./apps/frontend lint
             pnpm --filter ./apps/frontend build
 
-            npx pm2 startOrReload ecosystem.config.js --only saleshub-backend
-            npx pm2 startOrReload ecosystem.config.js --only saleshub-frontend
+            npx pm2 kill
+            kill -9 $(lsof -t -i:4000) 2>/dev/null
+            kill -9 $(lsof -t -i:3001) 2>/dev/null
 
+            npx pm2 start ecosystem.config.js
             npx pm2 save
