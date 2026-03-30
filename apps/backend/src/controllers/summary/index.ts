@@ -406,7 +406,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       SELECT
         YEAR(s.date) AS year,
         MONTH(s.date) AS month,
-        sales_person_id,
+        sp.id AS sales_person_id,
         SUM(s.revenue) AS revenue,
         SUM(s.orders) AS orders,
         COUNT(DISTINCT s.CardCode) AS customers
@@ -429,7 +429,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
 
       GROUP BY
         YEAR(s.date),
-        MONTH(s.date)
+        MONTH(s.date),
+        sp.id
 
       ORDER BY
         YEAR(s.date),
