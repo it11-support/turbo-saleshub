@@ -30,7 +30,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /home/sysdevrco1/release/turbo-saleshub
-            git pull origin main
+            git pull origin release/v1
 
             # Backend env
             cat > apps/backend/.env <<EOF
