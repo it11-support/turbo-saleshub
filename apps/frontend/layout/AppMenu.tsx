@@ -14,8 +14,6 @@ const AppMenu = () => {
   const { logout, user, loading } = useAuth()
   const { setLayoutState } = useContext(LayoutContext)
 
-  const isAdmin = user?.roles?.role === 'admin'
-
   const showAddScheduleDialog = () => {
     useScheduleDialog.getState().show()
   }

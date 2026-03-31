@@ -1,7 +1,7 @@
 'use client'
 
+import NavButton from './NavButton'
 import { ICustomer, IVisit } from '@saleshub-tsm/types'
-import { Button } from 'primereact/button'
 import { Divider } from 'primereact/divider'
 
 import { formatDate } from '@/lib/dateUtils'
@@ -15,16 +15,7 @@ const VisitDetailHeader = (props: Props) => {
   return (
     <>
       <div className="card mb-2">
-        <div className="col-12 flex justify-content-start align-items-center">
-          <Button
-            label="Back"
-            icon="pi pi-chevron-left"
-            severity="danger"
-            size="small"
-            outlined
-            onClick={() => history.back()}
-          />
-        </div>
+        <NavButton />
         <h5 className="ml-2">Customer</h5>
         <div className="col-12">
           <div>

@@ -41,8 +41,6 @@ const VisitIssuesPage = () => {
     fetchConcernStatuses()
   }, [])
 
-  console.log(followUpForm)
-
   const handleClickFollowUp = (concern: IVisitItemConcern) => {
     setSelectedConcern(concern)
     setIsVisible(true)

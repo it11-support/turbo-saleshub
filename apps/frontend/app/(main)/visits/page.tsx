@@ -1,6 +1,7 @@
 'use client'
 import VisitListTable from './components/VisitListTable'
-import { ISalesPerson } from '@saleshub-tsm/types'
+import NavButton from '../customers/components/NavButton'
+import { ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
@@ -136,16 +137,7 @@ const VisitList = () => {
   return (
     <>
       <div className="card p-4">
-        <div className="flex justify-between mb-4 items-center">
-          <Button
-            label="Back"
-            icon="pi pi-chevron-left"
-            severity="danger"
-            size="small"
-            outlined
-            onClick={() => history.back()}
-          />
-        </div>
+        <NavButton />
         <h5>Visits</h5>
         <div className="col-12">
           <h5 className="mb-3">Filter</h5>
@@ -155,10 +147,12 @@ const VisitList = () => {
             <div className="col-12 md:col-3">
               <Dropdown
                 value={status}
-                options={['Completed', 'Ongoing', 'Missed'].map((status) => ({
-                  label: status,
-                  value: status,
-                }))}
+                options={[VisitStatus.Completed, VisitStatus.Ongoing, VisitStatus.Missed].map(
+                  (status) => ({
+                    label: status,
+                    value: status,
+                  })
+                )}
                 onChange={(e) => setStatus(e.value ?? undefined)}
                 placeholder="Select Status"
                 className="w-full"

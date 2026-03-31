@@ -1,5 +1,6 @@
 'use client'
 
+import NavButton from '../customers/components/NavButton'
 import { ICustomer, ISalesPerson, ISalesVisitRule } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
@@ -242,16 +243,7 @@ export default function VisitsPage(): JSX.Element {
 
   return (
     <div className="card p-4">
-      <div className="flex justify-between mb-4 items-center">
-        <Button
-          label="Back"
-          icon="pi pi-chevron-left"
-          severity="danger"
-          size="small"
-          outlined
-          onClick={() => history.back()}
-        />
-      </div>
+      <NavButton />
       <h5>Sales Visit Rules</h5>
 
       {isAdmin && (

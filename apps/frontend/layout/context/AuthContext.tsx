@@ -2,11 +2,10 @@
 
 import { IUser } from '@saleshub-tsm/types'
 import { deleteCookie, getCookie, setCookie } from 'cookies-next'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
 
 import { $api } from '@/lib/api'
-import { useConfigStore } from '@/stores'
 
 interface AuthContextType {
   user: IUser | null
@@ -21,9 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { fetchConfigs } = useConfigStore()
   const router = useRouter()
-  const pathName = usePathname()
 
   const [user, setUser] = useState<IUser | null>(null)
   const [loading, setLoading] = useState(true)

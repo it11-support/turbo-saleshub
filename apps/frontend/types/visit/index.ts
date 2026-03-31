@@ -1,4 +1,4 @@
-import { EFollowUpType, ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped } from '@saleshub-tsm/types'
+import { EFollowUpType, ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped, TVisitStatus } from '@saleshub-tsm/types'
 export type OfferedItem = {
   product_id: number
   offered: boolean
@@ -15,7 +15,7 @@ export interface IVisit {
   customer: ICustomer
   start_at: Date;
   end_at?: Date | null;
-  status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' | 'Pending' | 'Missed';
+  status: TVisitStatus;
   notes?: string | null;
   created_at: string | Date | null;
   updated_at: string | Date | null;

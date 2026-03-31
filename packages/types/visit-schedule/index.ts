@@ -1,5 +1,4 @@
-import { ICustomer } from "../customer";
-import { ProductWithFrequency, SuggestedItemsGrouped } from "../product";
+import { SuggestedItemsGrouped } from "../product";
 import { IVisit, IVisitItem } from "../visit";
 import { ISalesVisitRule } from "../visit-rules";
 

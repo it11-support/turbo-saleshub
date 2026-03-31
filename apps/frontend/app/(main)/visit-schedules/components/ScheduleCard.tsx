@@ -1,6 +1,6 @@
 'use client'
 
-import { VisitSchedule } from '@saleshub-tsm/types'
+import { VisitSchedule, VisitStatus } from '@saleshub-tsm/types'
 import { isToday } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -88,26 +88,26 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
           <h2 className="text-sm font-bold">{c?.CardName}</h2>
           <span className="mx-auto text-center"></span>
 
-          {schedule.status.toLocaleLowerCase() === 'completed' && (
+          {schedule.status.toLocaleLowerCase() === VisitStatus.Completed.toLowerCase() && (
             <i
               className="pi pi-check-circle ml-2 text-xl"
               style={{ color: 'var(--green-500)' }}
             ></i>
           )}
-          {schedule.status.toLocaleLowerCase() === 'planned' && (
+          {schedule.status.toLocaleLowerCase() === VisitStatus.Planned.toLowerCase() && (
             <i className="pi pi-clock ml-2 text-xl" style={{ color: 'var(--orange-500)' }}></i>
           )}
-          {schedule.status.toLocaleLowerCase() === 'pending' && (
+          {schedule.status.toLocaleLowerCase() === VisitStatus.Pending.toLowerCase() && (
             <i className="pi pi-clock ml-2 text-xl" style={{ color: 'var(--orange-500)' }}></i>
           )}
-          {schedule.status.toLocaleLowerCase() === 'cancelled' && (
+          {schedule.status.toLocaleLowerCase() === VisitStatus.Cancelled.toLowerCase() && (
             <i className="pi pi-times-circle ml-2 text-xl" style={{ color: 'var(--red-500)' }}></i>
           )}
-          {schedule.status.toLocaleLowerCase() === 'missed' && (
+          {schedule.status.toLocaleLowerCase() === VisitStatus.Missed.toLowerCase() && (
             <i className="pi pi-info-circle ml-2 text-xl" style={{ color: 'var(--red-500)' }}></i>
           )}
 
-          {schedule.status.toLocaleLowerCase() === 'ongoing' && (
+          {schedule.status.toLocaleLowerCase() === VisitStatus.Ongoing.toLowerCase() && (
             <i
               className="pi pi-caret-right ml-2 text-xl blinking"
               style={{ color: 'var(--green-500)' }}
@@ -130,9 +130,11 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
     )
   }
   const showButton =
-    status !== 'missed' &&
+    status !== VisitStatus.Missed.toLowerCase() &&
     (isToday(schedule.visit_date) ||
-      (previousDate && (status === 'completed' || status === 'ongoing')))
+      (previousDate &&
+        (status === VisitStatus.Completed.toLowerCase() ||
+          status === VisitStatus.Ongoing.toLowerCase())))
 
   return (
     <>
@@ -179,9 +181,9 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
           </p>
         </div>
         {visit &&
-          (schedule.status.toLowerCase() === 'ongoing' ||
-            schedule.status.toLowerCase() === 'completed' ||
-            schedule.status.toLowerCase() === 'missed') && (
+          (schedule.status.toLowerCase() === VisitStatus.Ongoing.toLowerCase() ||
+            schedule.status.toLowerCase() === VisitStatus.Completed.toLowerCase() ||
+            schedule.status.toLowerCase() === VisitStatus.Missed.toLowerCase()) && (
             <p className="text-sm text-gray-500 mb-0">
               Visit Started at{' '}
               {new Date(visit?.start_at).toLocaleString('en-EN', {
@@ -208,10 +210,10 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
             outlined
             onClick={() => handleVisitNavigation(schedule)}
             label={
-              schedule.status.toLowerCase() === 'completed'
+              schedule.status.toLowerCase() === VisitStatus.Completed.toLowerCase()
                 ? 'View Details'
-                : schedule.status.toLowerCase() === 'pending' ||
-                  schedule.status.toLowerCase() === 'ongoing'
+                : schedule.status.toLowerCase() === VisitStatus.Pending.toLowerCase() ||
+                  schedule.status.toLowerCase() === VisitStatus.Ongoing.toLowerCase()
                 ? 'Continue'
                 : 'Start Visit'
             }

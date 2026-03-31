@@ -4,9 +4,6 @@ import { usePathname } from 'next/navigation'
 import React, { useContext } from 'react'
 
 import styles from './mobile.module.css'
-import { LayoutContext } from '../context/layoutcontext'
-
-import { LayoutState } from '@/types'
 
 type MenuItems = {
   href: string;
@@ -16,7 +13,6 @@ type MenuItems = {
 }[]
 export default function MobileBottomNav() {
   const pathname = usePathname?.() || '/'
-  const { layoutConfig, setLayoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
 
 
   const items : MenuItems = [

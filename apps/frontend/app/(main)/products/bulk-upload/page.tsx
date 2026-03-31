@@ -1,4 +1,5 @@
 'use client'
+import NavButton from '../../customers/components/NavButton'
 import { Button } from 'primereact/button'
 import {
   FileUpload,
@@ -203,16 +204,7 @@ const BulkUpload = () => {
   return (
     <div className="card p-4">
       {/* Header */}
-      <div className="flex justify-between mb-4 items-center">
-        <Button
-          label="Back"
-          icon="pi pi-chevron-left"
-          severity="danger"
-          size="small"
-          outlined
-          onClick={() => history.back()}
-        />
-      </div>
+      <NavButton />
       <h5 className="mb-0">Bulk Upload</h5>
       <div className="mb-3">
         <p className="text-sm text-gray-500">The filename must match the product's Item Code.</p>

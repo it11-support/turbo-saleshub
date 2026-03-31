@@ -13,7 +13,6 @@ import { AppConfigProps, LayoutConfig, LayoutState } from '@/types'
 
 const AppConfig = (props: AppConfigProps) => {
   const configStore = useConfigStore()
-  const [scales] = useState([12, 13, 14, 15, 16])
   const { layoutConfig, setLayoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
   const { setRipple, changeTheme } = useContext(PrimeReactContext)
 

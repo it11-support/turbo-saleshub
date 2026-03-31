@@ -1,18 +1,10 @@
-import { ISalesVisitRule, UpdateVisitScheduleDto } from '@saleshub-tsm/types';
+import { ISalesVisitRule, TVisitStatus, UpdateVisitScheduleDto } from '@saleshub-tsm/types';
 import { differenceInCalendarWeeks, endOfMonth, startOfMonth, startOfWeek } from 'date-fns';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import { dayOfWeeks, offeredStatus, VisitStatus } from '@/generated/prisma/client.js';
 import prisma from '@/libs/prisma.js';
 import { getSuggestedItems } from '../customer/index.js';
-
-type TodayVisit = {
-  id: bigint;
-  customer_id: bigint;
-  status: VisitStatus;
-  start_at: Date;
-  end_at: Date | null;
-};
 
 export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
   try {
@@ -239,7 +231,6 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
 
     // Gunakan dayjs untuk semua logika tanggal
     const date = dayjs(dateStr);
-    const today = dayjs();
     const limit = dayjs().subtract(1, 'day');
 
     // Skip Sunday
@@ -257,7 +248,6 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     const toDateKey = (d: dayjs.Dayjs | string | Date) => dayjs(d).format('YYYY-MM-DD');
 
     const targetDateKey = toDateKey(date);
-    const todayKey = toDateKey(today);
 
     // Ambil rules aktif sesuai sales person, hari, dan cycle
     const rules = await prisma.sales_visit_rules.findMany({
@@ -323,7 +313,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     const data = matchedRules.map((rule) => {
       const todayVisits = visitMap.get(Number(rule.customer_id)) || [];
 
-      let status = 'Planned';
+      let status: TVisitStatus = VisitStatus.Planned;
       let visit: (typeof todayVisits)[0] | null = null;
 
       if (todayVisits.length > 0) {
@@ -334,15 +324,15 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
         visit = lastVisit;
 
         // 🔥 override status kalau tanggal sudah lewat dan masih Planned
-        if (dayjs(lastVisit.start_at).isBefore(dayjs(), 'day') && lastVisit.status === 'Planned') {
-          status = 'Missed';
+        if (dayjs(lastVisit.start_at).isBefore(dayjs(), 'day') && lastVisit.status === VisitStatus.Planned) {
+          status = VisitStatus.Missed;
         } else {
           status = lastVisit.status;
         }
       } else {
         // Tidak ada visit, cek kalau tanggal sudah lewat
         if (dayjs(targetDateKey).isBefore(dayjs(), 'day')) {
-          status = 'Missed';
+          status = VisitStatus.Missed;
         }
       }
 

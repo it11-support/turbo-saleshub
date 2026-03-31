@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Ripple } from 'primereact/ripple'
 import { classNames } from 'primereact/utils'
 import React, { useEffect, useContext } from 'react'

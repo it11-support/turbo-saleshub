@@ -7,6 +7,13 @@
   ],
   "plugins": ["@typescript-eslint", "prettier", "import", "unused-imports"],
   "rules": {
+    "sort-imports": [
+      "error",
+      {
+       "ignoreCase": true,
+       "ignoreDeclarationSort": true
+      }
+    ],
     "prettier/prettier": ["error", { "semi": false }],
 
     "no-unused-vars": "off",

@@ -12,7 +12,7 @@ export interface IVisit {
   customer: ICustomer
   start_at: Date;
   end_at?: Date | null;
-  status: 'Planned' | 'Ongoing' | 'Completed' | 'Cancelled' | 'Pending' | 'Missed';
+  status: TVisitStatus;
   notes?: string | null;
   created_at: string | Date | null;
   updated_at: string | Date | null;
@@ -66,6 +66,18 @@ export enum EFollowUpStatus {
   Done = 'Done',
   Closed = 'Closed'
 }
+
+export const VisitStatus = {
+  Planned: 'Planned',
+  Ongoing: 'Ongoing',
+  Completed: 'Completed',
+  Cancelled: 'Cancelled',
+  Pending: 'Pending',
+  Missed: 'Missed',
+  Closed: 'Closed'
+} as const
+
+export type TVisitStatus = (typeof VisitStatus)[keyof typeof VisitStatus]
 
 export type TFollowUpStatus =
   (typeof EFollowUpStatus)[keyof typeof EFollowUpStatus]

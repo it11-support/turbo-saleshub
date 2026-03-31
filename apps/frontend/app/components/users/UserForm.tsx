@@ -1,7 +1,7 @@
 'use client'
 
 import { yupResolver } from '@hookform/resolvers/yup'
-import { IUser, IRole, ISalesPerson } from '@saleshub-tsm/types'
+import { IRole, ISalesPerson, IUser } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'

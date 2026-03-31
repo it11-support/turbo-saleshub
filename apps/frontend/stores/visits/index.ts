@@ -1,5 +1,5 @@
 import { $api, createUrl } from '@/lib/api'
-import { IVisit, IVisitItem } from '@saleshub-tsm/types'
+import { IVisit, IVisitItem, TVisitStatus } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
@@ -21,8 +21,8 @@ interface VisitListState {
   salesPersonId?: number
   needFollowUp: boolean
   setNeedFollowUp: (needFollowUp: boolean) => void
-  status?: string | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled' | 'Missed'
-  setStatus: (status?: string | 'Completed' | 'Planned' | 'Ongoing' | 'Cancelled' | 'Missed') => void
+  status?: string | TVisitStatus
+  setStatus: (status?: string | TVisitStatus) => void
   salesPersonFilter?: number | null
   setSalesPersonId: (salesPersonId?: number) => void
   setSalesPersonFilter: (salesPersonFilter?: number | null) => void

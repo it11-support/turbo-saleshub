@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useEventListener, useUnmountEffect } from 'primereact/hooks'
 import { classNames } from 'primereact/utils'
 import React, { useContext, useEffect, useRef } from 'react'

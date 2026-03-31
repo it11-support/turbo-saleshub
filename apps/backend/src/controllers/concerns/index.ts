@@ -1,4 +1,13 @@
-import { createCategory, createStatus, deleteCategory, deleteStatus, getConcerns, getConcernStatuses, updateCategory, updateStatus } from "@/services/index.js";
+import {
+  createCategory,
+  createStatus,
+  deleteCategory,
+  deleteStatus,
+  getConcerns,
+  getConcernStatuses,
+  updateCategory,
+  updateStatus
+} from "@/services/index.js";
 import { Request, Response } from "express";
 
 export const fetchConcernCategories = async (req: Request, res: Response) => {
@@ -82,7 +91,7 @@ export const updateConcernStatus = async (req: Request, res: Response) => {
     }
 
     const { status, level, icon, requires_action } = req.body;
-    const  newStatus = await updateStatus(id, { status, level, icon, requires_action });
+    const newStatus = await updateStatus(id, { status, level, icon, requires_action });
     return res.status(200).json({ message: "Success", data: newStatus });
   } catch (error) {
     console.error(error);

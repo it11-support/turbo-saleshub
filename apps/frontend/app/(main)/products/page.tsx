@@ -3,6 +3,7 @@
 import ProductImageUploader from './Components/ProductImageUploader'
 import CustomChip from '../components/custom/chip'
 import { DialogFooter, DialogHeader } from '../components/ui/dialog'
+import NavButton from '../customers/components/NavButton'
 import { EProductCategory, IProduct } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
@@ -297,19 +298,11 @@ const ProductList = () => {
     await updateProductInfo(Number(productId), productInfo as string)
     setShowInfoDialog(false)
   }
+
   const header = renderHeader()
   return (
     <div className="card p-4">
-      <div className="flex justify-between mb-4 items-center">
-        <Button
-          label="Back"
-          icon="pi pi-chevron-left"
-          severity="danger"
-          size="small"
-          outlined
-          onClick={() => history.back()}
-        />
-      </div>
+      <NavButton />
       <h5>Product List</h5>
 
       <div className="grid mb-4">

@@ -1,6 +1,7 @@
 'use client'
 
 import ProductOfferCard from '../../components/product/ProductOfferCard'
+import NavButton from '../../customers/components/NavButton'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
 import { EBadgeVariant, IConcernStatus, ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
@@ -209,24 +210,7 @@ const VisitsPage = () => {
   return (
     <>
       <div className="card p-3">
-        <div className="col-12 flex justify-content-start align-items-center gap-2">
-          <Button
-            label="Back"
-            icon="pi pi-chevron-left"
-            severity="danger"
-            size="small"
-            outlined
-            onClick={() => history.back()}
-          />
-          <Button
-            label="End Visit"
-            icon="pi pi-check-circle"
-            severity="success"
-            size="small"
-            outlined
-            onClick={handleEndVisit}
-          />
-        </div>
+        <NavButton handleEndVisit={handleEndVisit} />
         <p className="m-0 text-2xl ml-2">{customer?.CardName}</p>
         <div className="flex-1 px-0 py-2">
           {customer?.subgroup && (

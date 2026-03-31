@@ -10,7 +10,7 @@ import Image from 'next/image'
 import { Badge } from 'primereact/badge'
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
-  const { layoutConfig, layoutState, onMenuToggle, showProfileSidebar, setLayoutState } =
+  const { layoutState, setLayoutState } =
     useContext(LayoutContext)
   const menubuttonRef = useRef(null)
   const topbarmenuRef = useRef(null)

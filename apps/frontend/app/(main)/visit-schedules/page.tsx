@@ -1,7 +1,8 @@
 'use client'
 
 import ScheduleCard from './components/ScheduleCard'
-import { ISalesPerson } from '@saleshub-tsm/types'
+import NavButton from '../customers/components/NavButton'
+import { ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
@@ -75,25 +76,22 @@ const VisitSchedules = () => {
     fetchScheduleByDate(Number(selectedSalesPerson), x)
   }
 
-  const completedSchedule = schedules.filter((x) => x.status.toLowerCase() === 'completed')
-  const scheduledVisits = schedules.filter((x) => x.status.toLowerCase() === 'planned')
-  const missedVisits = schedules.filter((x) => x.status.toLowerCase() === 'missed')
-  const ongoingVisits = schedules.filter((x) => x.status.toLowerCase() === 'ongoing')
+  const completedSchedule = schedules.filter(
+    (x) => x.status.toLowerCase() === VisitStatus.Completed.toLowerCase()
+  )
+  const scheduledVisits = schedules.filter(
+    (x) => x.status.toLowerCase() === VisitStatus.Planned.toLowerCase()
+  )
+  const missedVisits = schedules.filter(
+    (x) => x.status.toLowerCase() === VisitStatus.Missed.toLowerCase()
+  )
+  const ongoingVisits = schedules.filter(
+    (x) => x.status.toLowerCase() === VisitStatus.Ongoing.toLowerCase()
+  )
 
   return (
     <div className="card p-4">
-      <div className="flex justify-between mb-4 items-center">
-        <Button
-          label="Back"
-          icon="pi pi-chevron-left"
-          severity="danger"
-          size="small"
-          outlined
-          onClick={() => {
-            if (typeof window !== 'undefined') window.history.back()
-          }}
-        />
-      </div>
+      <NavButton />
       <h5>Visit Schedule</h5>
       <div className=" font-bold text-md">{formatDate(currentDate, 'EEEE')}</div>
       <div className="mb-2 font-bold text-2xl">{formatDate(currentDate, 'MMM do, yyyy')}</div>

@@ -1,5 +1,5 @@
 import { ISalesInvoices } from '@saleshub-tsm/types'
-import { subMonths, parseISO, startOfMonth, isWithinInterval, format } from 'date-fns'
+import { format, isWithinInterval, parseISO, startOfMonth, subMonths } from 'date-fns'
 
 export interface CustomerSummary {
   ItemCode: string

@@ -1,8 +1,8 @@
 'use client'
 
 import { getClass, segmentToStars } from './components/functions'
+import NavButton from './components/NavButton'
 import { ICustomer } from '@saleshub-tsm/types'
-import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
@@ -125,16 +125,7 @@ export default function CustomerTable() {
 
   return (
     <div className="card p-4">
-      <div className="flex justify-between mb-4 items-center">
-        <Button
-          label="Back"
-          icon="pi pi-chevron-left"
-          severity="danger"
-          size="small"
-          outlined
-          onClick={() => history.back()}
-        />
-      </div>
+      <NavButton />
       <h5>Customer List</h5>
       <div className="grid my-4">
         {/* Kolom 1: Input Search */}

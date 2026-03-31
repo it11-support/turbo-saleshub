@@ -1,5 +1,6 @@
 'use client'
 
+import NavButton from '../customers/components/NavButton'
 import { EFollowUpStatus, IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
@@ -172,16 +173,7 @@ const SettingsPage = () => {
   return (
     <>
       <div className="card p-4">
-        <div className="flex justify-between mb-4 items-center">
-          <Button
-            label="Back"
-            icon="pi pi-chevron-left"
-            severity="danger"
-            size="small"
-            outlined
-            onClick={() => history.back()}
-          />
-        </div>
+        <NavButton />
         <h5>Settings</h5>
         <div className="grid p-2">
           <h6>Concerns / Blocking Issue</h6>
