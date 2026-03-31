@@ -271,12 +271,13 @@ const VisitList = () => {
           />
           {isAdmin && (
             <Dropdown
-
               value={salesPersonFilter}
-              options={salesPersons.filter((sp) => sp.user).map((sp) => ({
-                label: sp.SlpName,
-                value: String(sp.id),
-              }))}
+              options={salesPersons
+                .filter((sp) => sp.user)
+                .map((sp) => ({
+                  label: sp.SlpName,
+                  value: String(sp.id),
+                }))}
               onChange={(e) => {
                 setSalesPersonFilter(e.value === null ? undefined : e.value)
               }}
