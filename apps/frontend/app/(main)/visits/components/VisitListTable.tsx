@@ -50,7 +50,7 @@ const VisitListTable = () => {
           )
       )
 
-    if (!openConcerns.length) return
+    if (!openConcerns.length || rowData.status !== 'Completed') return
 
     return (
       <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
@@ -63,6 +63,10 @@ const VisitListTable = () => {
   }
 
   const handleClickEdit = (data: IVisit) => {
+    if (data.status === 'Ongoing') {
+      router.push(`/visit/${data.id}`)
+      return
+    }
     router.push(`/visit/details/${data.id}`)
   }
 
@@ -136,17 +140,30 @@ const VisitListTable = () => {
           header="Action"
           body={(rowData) => {
             const isAdmin = rowData.roles?.role === 'admin'
+            const isOnGoing = rowData.status === 'Ongoing'
             return (
               <>
-                <Button
-                  onClick={() => handleClickEdit(rowData)}
-                  disabled={isAdmin}
-                  className={`p-button-text p-button-plain p-button-sm ${
-                    isAdmin ? 'p-disabled' : ''
-                  }`}
-                >
-                  View Details <i className="pi pi-eye py-1 ml-2"></i>
-                </Button>
+                {isOnGoing ? (
+                  <Button
+                    onClick={() => handleClickEdit(rowData)}
+                    disabled={isAdmin}
+                    className={`p-button-text p-button-plain p-button-sm ${
+                      isAdmin ? 'p-disabled' : ''
+                    }`}
+                  >
+                    Continue<i className="pi pi-pencil py-1 ml-2"></i>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleClickEdit(rowData)}
+                    disabled={isAdmin}
+                    className={`p-button-text p-button-plain p-button-sm ${
+                      isAdmin ? 'p-disabled' : ''
+                    }`}
+                  >
+                    View Details <i className="pi pi-eye py-1 ml-2"></i>
+                  </Button>
+                )}
               </>
             )
           }}

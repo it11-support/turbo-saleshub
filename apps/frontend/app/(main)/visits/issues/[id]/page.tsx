@@ -3,7 +3,6 @@
 import VisitTimeLine from '../../components/VisitTimeLine'
 import {
   EBadgeVariant,
-  EFollowUpStatus,
   EFollowUpType,
   IConcernStatus,
   IVisitItemConcern,
@@ -20,8 +19,9 @@ import { Tag } from 'primereact/tag'
 import { useEffect, useState } from 'react'
 
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
+import { variantColors } from '@/lib/constants'
 import { formatDate } from '@/lib/dateUtils'
-import { useSalesVisit } from '@/stores'
+import { useConcernStore, useSalesVisit } from '@/stores'
 
 const VisitIssuesPage = () => {
   const { id } = useParams()
@@ -30,6 +30,7 @@ const VisitIssuesPage = () => {
 
   const { salesVisit, fetchVisitDetails, followUpForm, setFollowUpForm, addFollowUp } =
     salesVisitStore
+  const { fetchConcernStatuses, concernStatuses } = useConcernStore()
   const [visible, setIsVisible] = useState(false)
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
 
@@ -37,7 +38,10 @@ const VisitIssuesPage = () => {
 
   useEffect(() => {
     fetchVisitDetails(Number(id))
+    fetchConcernStatuses()
   }, [])
+
+  console.log(followUpForm)
 
   const handleClickFollowUp = (concern: IVisitItemConcern) => {
     setSelectedConcern(concern)
@@ -59,20 +63,23 @@ const VisitIssuesPage = () => {
 
   useEffect(() => {
     if (selectedConcern && visible) {
+      console.log('Selected Concern for Follow Up:', selectedConcern.status.requires_action)
       setFollowUpForm({
         visit_item_concern_id: selectedConcern.id,
-        status:
-          (selectedConcern.status.status as EFollowUpStatus.Pending) || EFollowUpStatus.Pending,
+        status: selectedConcern.status.status,
+        action_required: selectedConcern.status.requires_action || false,
         type: null,
         notes: '',
         next_follow_up_date: null,
       })
     }
+    console.log('Selected Concern:', selectedConcern)
   }, [selectedConcern, visible])
 
-  const statusOptions = Object.values(EFollowUpStatus).map((s) => ({
-    label: s,
-    value: s,
+  const statusOptions = concernStatuses.map((status) => ({
+    label: status.status,
+    value: status.id,
+    level: status.level,
   }))
 
   const typeOptions = Object.values(EFollowUpType).map((t) => ({
@@ -170,8 +177,8 @@ const VisitIssuesPage = () => {
                                 {/* Panggil komponen Timeline di sini */}
                                 <VisitTimeLine
                                   events={concern.follow_ups.map((followUp) => ({
-                                    status: followUp.status,
                                     notes: followUp.notes,
+                                    concern_status: followUp.concern_status,
                                     date: formatDate(followUp.created_at, { withTime: true }),
                                     icon: 'pi pi-check',
                                     color: 'var(--primary-color)',
@@ -183,9 +190,7 @@ const VisitIssuesPage = () => {
                               </div>
                             ) : null}
 
-                            {![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
-                              concern?.status?.status as EFollowUpStatus
-                            ) && (
+                            {concern?.status?.requires_action && (
                               <Button
                                 size="small"
                                 label="Follow Up"
@@ -227,9 +232,49 @@ const VisitIssuesPage = () => {
           <Dropdown
             value={followUpForm.status}
             options={statusOptions}
-            onChange={(e) => setFollowUpForm({ ...followUpForm, status: e.value })}
+            onChange={(e) =>
+              setFollowUpForm({
+                ...followUpForm,
+                status: e.value,
+                action_required:
+                  concernStatuses.find((s) => s.id === e.value)?.requires_action || false,
+              })
+            }
             placeholder="Select Status"
             className="w-full"
+            itemTemplate={(option) => {
+              return (
+                <div className="flex align-items-center gap-2">
+                  <span
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      backgroundColor: variantColors[option.level as EBadgeVariant],
+                      display: 'inline-block',
+                    }}
+                  />
+                  <span>{option.label}</span>
+                </div>
+              )
+            }}
+            valueTemplate={(option) => {
+              if (!option) return <span>Select Status</span>
+              return (
+                <div className="flex align-items-center gap-2">
+                  <span
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      backgroundColor: variantColors[option.level as EBadgeVariant],
+                      display: 'inline-block',
+                    }}
+                  />
+                  <span>{option.label}</span>
+                </div>
+              )
+            }}
           />
 
           {/* Type */}
@@ -250,19 +295,18 @@ const VisitIssuesPage = () => {
           />
 
           {/* Next Date */}
-          {followUpForm.status !== EFollowUpStatus.Done &&
-            followUpForm.status !== EFollowUpStatus.Closed && (
-              <Calendar
-                value={followUpForm.next_follow_up_date}
-                minDate={new Date()}
-                onChange={(e) =>
-                  setFollowUpForm({ ...followUpForm, next_follow_up_date: e.value as Date })
-                }
-                placeholder="Next follow up date"
-                className="w-full"
-                showIcon
-              />
-            )}
+          {followUpForm.action_required && (
+            <Calendar
+              value={followUpForm.next_follow_up_date}
+              minDate={new Date()}
+              onChange={(e) =>
+                setFollowUpForm({ ...followUpForm, next_follow_up_date: e.value as Date })
+              }
+              placeholder="Next follow up date"
+              className="w-full"
+              showIcon
+            />
+          )}
 
           {/* Action */}
           <Button

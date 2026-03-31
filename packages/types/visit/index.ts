@@ -50,12 +50,13 @@ export interface IVisitItem {
 export interface IVisitConcernFollowUp {
   id: bigint | number;
   visit_item_concern_id: bigint | number;
-  status: EFollowUpStatus
+  status: IConcernStatus
   type: EFollowUpType
   notes: string | null;
   next_follow_up_date: Date | null;
   created_at: Date;
   updated_at: Date;
+  concern_status: IConcernStatus
   visit_item_concern: IVisitItemConcern
 }
 

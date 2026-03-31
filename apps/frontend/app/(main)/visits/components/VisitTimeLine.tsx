@@ -1,9 +1,12 @@
+import { IConcernStatus } from '@saleshub-tsm/types'
 import { Card } from 'primereact/card'
 import { Timeline } from 'primereact/timeline'
 import React from 'react'
 
+import { variantColors } from '@/lib/constants'
+
 type VisitTimeLineProps = {
-  status: string
+  concern_status: IConcernStatus
   date: string
   icon: string
   color: string
@@ -18,51 +21,19 @@ type VisitTimeLineState = {
 const VisitTimeLine = (props: VisitTimeLineState) => {
   const { events } = props
 
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase()
-    switch (s) {
-      case 'pending':
-        return 'var(--orange-500)'
-      case 'progress':
-        return 'var(--orange-500)'
-      case 'done':
-        return 'var(--green-500)'
-      case 'closed':
-        return 'var(--red-500)'
-      default:
-        return 'var(--gray-500)'
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    const s = status?.toLowerCase()
-    switch (s) {
-      case 'pending':
-        return 'pi pi-pause'
-      case 'progress':
-        return 'pi pi-clock'
-      case 'done':
-        return 'pi pi-check'
-      case 'closed':
-        return 'pi pi-times'
-      default:
-        return 'pi pi-clock'
-    }
-  }
-
   const customizedMarker = (item: VisitTimeLineProps) => {
     return (
       <span
         className="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
-        style={{ backgroundColor: getStatusColor(item.status) }}
+        style={{ backgroundColor: variantColors[item.concern_status.level!] }}
       >
-        <i className={getStatusIcon(item.status)}></i>
+        <i className={item.concern_status.icon}></i>
       </span>
     )
   }
 
-  const cardTitle = (status: string) => (
-    <span style={{ color: getStatusColor(status), fontWeight: 'bold' }}>{status}</span>
+  const cardTitle = (status: IConcernStatus) => (
+    <span style={{ color: variantColors[status.level!], fontWeight: 'bold' }}>{status.status}</span>
   )
 
   const customizedContent = (item: VisitTimeLineProps) => {
@@ -70,7 +41,7 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
       ? new Date(item.next_follow_up_date) < new Date()
       : false
     return (
-      <Card title={cardTitle(item.status)} subTitle={item.date}>
+      <Card title={cardTitle(item.concern_status)} subTitle={item.date}>
         <p>{item.notes}</p>
         {item.next_follow_up_date && item.next_follow_up_date !== '-' && (
           <div className="mt-2">

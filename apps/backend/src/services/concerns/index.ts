@@ -69,14 +69,15 @@ export const getConcernStatuses = async () => {
 }
 
 
-export const createStatus = async (data: {status: string, level: EBadgeVariant, icon: string}) => {
+export const createStatus = async (data: {status: string, level: EBadgeVariant, icon: string, requires_action?: boolean}) => {
   try {
-    const {status, level, icon} = data
+    const {status, level, icon, requires_action} = data
     const statusData = await prisma.concern_status.create({
       data: {
         status,
         level,
-        icon
+        icon,
+        requires_action
       }
     })
     return statusData
@@ -89,7 +90,7 @@ export const createStatus = async (data: {status: string, level: EBadgeVariant, 
 
 export const updateStatus = async (
   id: number,
-  data: { status?: string, level?: EBadgeVariant, icon?: string }
+  data: { status?: string, level?: EBadgeVariant, icon?: string, requires_action?: boolean }
 ) => {
   try {
     return await prisma.concern_status.update({
@@ -100,6 +101,7 @@ export const updateStatus = async (
         ...(data.status !== undefined ? { status: data.status } : {}),
         ...(data.level !== undefined ? { level: data.level } : {}),
         ...(data.icon !== undefined ? { icon: data.icon } : {}),
+        ...(data.requires_action !== undefined ? { requires_action: data.requires_action } : {}),
       },
     });
   } catch (error) {

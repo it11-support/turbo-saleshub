@@ -17,6 +17,7 @@ export interface IConcernStatus {
   status: string
   level?: EBadgeVariant | null
   icon?: string
+  requires_action?: boolean
 }
 export interface IConcernState {
   loading: boolean

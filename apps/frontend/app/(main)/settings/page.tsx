@@ -1,18 +1,15 @@
 'use client'
 
-import {
-  EBadgeVariant,
-  EFollowUpStatus,
-  IConcernCategory,
-  IConcernStatus,
-} from '@saleshub-tsm/types'
+import { EFollowUpStatus, IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
+import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useState } from 'react'
 
+import { ICON_OPTIONS, variantColors, variantOptions } from '@/lib/constants'
 import { useConcernStore } from '@/stores'
 
 const SettingsPage = () => {
@@ -40,57 +37,15 @@ const SettingsPage = () => {
     description: '',
   })
   const [statusData, setStatusData] = useState<
-    Partial<Pick<IConcernStatus, 'status' | 'level' | 'icon'>>
-  >({})
+    Partial<Pick<IConcernStatus, 'status' | 'level' | 'icon' | 'requires_action'>>
+  >({
+    status: '',
+    level: undefined,
+    icon: '',
+    requires_action: false,
+  })
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null)
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null)
-
-  const variantOptions = [
-    { label: 'Info', value: EBadgeVariant.INFO },
-    { label: 'Warning', value: EBadgeVariant.WARNING },
-    { label: 'Success', value: EBadgeVariant.SUCCESS },
-    { label: 'Danger', value: EBadgeVariant.DANGER },
-    { label: 'Secondary', value: EBadgeVariant.SECONDARY },
-  ]
-
-  const variantColors: Record<string, string> = {
-    info: 'var(--primary-color)',
-    warning: 'var(--yellow-500)',
-    success: 'var(--green-500)',
-    danger: 'var(--red-500)',
-    secondary: 'var(--text-color-secondary)',
-  }
-
-  const ICON_OPTIONS = [
-    // basic states
-    { label: 'Pending', value: 'pi pi-clock' },
-    { label: 'In Progress', value: 'pi pi-spinner' },
-    { label: 'Completed', value: 'pi pi-check' },
-    { label: 'Closed', value: 'pi pi-times' },
-
-    // communication / waiting
-    { label: 'Waiting Response', value: 'pi pi-hourglass' },
-    { label: 'Contacted', value: 'pi pi-phone' },
-    { label: 'Message Sent', value: 'pi pi-envelope' },
-
-    // attention
-    { label: 'Warning', value: 'pi pi-exclamation-triangle' },
-    { label: 'Information', value: 'pi pi-info-circle' },
-
-    // control state
-    { label: 'Paused', value: 'pi pi-pause' },
-    { label: 'Stopped', value: 'pi pi-stop' },
-    { label: 'Locked', value: 'pi pi-lock' },
-    { label: 'Cancelled', value: 'pi pi-ban' },
-
-    // retry / process
-    { label: 'Retrying', value: 'pi pi-refresh' },
-    { label: 'Syncing', value: 'pi pi-sync' },
-
-    // business context
-    { label: 'Deal', value: 'pi pi-dollar' },
-    { label: 'Assigned', value: 'pi pi-user' },
-  ]
 
   const itemTemplate = (option: (typeof variantOptions)[number]) => (
     <div className="flex align-items-center gap-2">
@@ -146,6 +101,7 @@ const SettingsPage = () => {
       status: status.status ?? '',
       level: status.level ?? undefined,
       icon: status.icon ?? '',
+      requires_action: status.requires_action ?? false,
     })
 
     setShowFormDialog(true)
@@ -295,27 +251,29 @@ const SettingsPage = () => {
               >
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex flex-column gap-1">
-                    <p className="m-0 font-semibold">{status.status}</p>
-                    <i
-                      className={`${status.icon} ml-2`}
-                      style={{ color: status.level ? variantColors[status.level] : undefined }}
-                    ></i>
+                    <p className="m-0 font-semibold">
+                      <i
+                        className={`${status.icon} m-1`}
+                        style={{ color: status.level ? variantColors[status.level] : undefined }}
+                      />{' '}
+                      {status.status}
+                    </p>
+
+                    {status.requires_action && (
+                      <span className="m-2 text-xs text-red-500 font-semibold">
+                        Follow Up Required
+                      </span>
+                    )}
                   </div>
                   <div className="flex align-items-center gap-2 ml-auto">
                     <Button
                       icon="pi pi-pencil"
-                      disabled={[EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
-                        status.status as EFollowUpStatus
-                      )}
                       size="small"
                       outlined
                       onClick={() => openEditStatusDialog(status)}
                     />
                     <Button
                       // label="Delete"
-                      disabled={[EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
-                        status.status as EFollowUpStatus
-                      )}
                       icon="pi pi-trash"
                       size="small"
                       severity="danger"
@@ -433,7 +391,7 @@ const SettingsPage = () => {
                   }
 
                   return (
-                    <div className="flex align-items-center gap-2 h-2rem">
+                    <div className="flex align-items-center gap-2 h-1rem">
                       <i className={option.value}></i>
                       <span>{option.label}</span>
                     </div>
@@ -443,6 +401,18 @@ const SettingsPage = () => {
                 optionLabel="label"
                 placeholder="Select Icon"
                 className="w-full p-1"
+              />
+            </div>
+            <div className="inline-flex flex-column gap-2 w-full my-2">
+              <label htmlFor="requires_action" className="text-primary-400 font-semibold">
+                Requires Action
+              </label>
+              <Checkbox
+                inputId="requires_action"
+                name="requires_action"
+                value={statusData.requires_action}
+                onChange={(e) => setStatusData({ ...statusData, requires_action: e.checked })}
+                checked={!!statusData.requires_action}
               />
             </div>
           </>

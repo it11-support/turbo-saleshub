@@ -1,4 +1,4 @@
-import { EFollowUpStatus, EFollowUpType, ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped } from '@saleshub-tsm/types'
+import { EFollowUpType, ICustomer, IProduct, ISalesPerson, IVisitItem, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 export type OfferedItem = {
   product_id: number
   offered: boolean
@@ -34,9 +34,10 @@ export interface IVisitDetails {
 
 export interface FollowUpForm {
   visit_item_concern_id: BigInt | number
-  status: EFollowUpStatus
+  status: string
   type: EFollowUpType | null
   notes: string
+  action_required: boolean
   next_follow_up_date: Date | null
 }
 

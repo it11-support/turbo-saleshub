@@ -482,7 +482,7 @@ model visit_item_concerns {
 model follow_ups {
   id                      BigInt      @id @default(autoincrement())
   visit_item_concern_id   BigInt
-  status                  FollowUpStatus
+  status                  BigInt      @db.UnsignedBigInt
   type                    FollowUpType?
   notes                   String?
   next_follow_up_date     DateTime?
@@ -490,6 +490,7 @@ model follow_ups {
   updated_at              DateTime @updatedAt
 
   visit_item_concerns     visit_item_concerns @relation(fields: [visit_item_concern_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  concern_status          concern_status @relation(fields: [status], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model concern_status {
@@ -497,7 +498,9 @@ model concern_status {
   status              String? @db.VarChar(50)
   level               SeverityLevel?
   icon                String? @db.VarChar(50)
+  requires_action     Boolean  @default(false)
   visit_item_concerns visit_item_concerns[]
+  follow_ups          follow_ups[]
 }
 model sessions {
   id            String  @id @db.VarChar(255)

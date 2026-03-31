@@ -206,6 +206,9 @@ export const visitDetails = async (req: Request, res: Response) => {
                 category: true,
                 status: true,
                 follow_ups: {
+                  include: {
+                    concern_status: true,
+                  },
                   orderBy: {
                     created_at: 'asc',
                   }
@@ -233,19 +236,20 @@ export const followUpVisit = async (req: Request, res: Response) => {
         data: {
           visit_item_concern_id: BigInt(visit_item_concern_id),
           notes,
-          status,
+          status: BigInt(status),
           type,
           next_follow_up_date: next_follow_up_date ? new Date(next_follow_up_date) : null,
         },
         include: {
           visit_item_concerns: {
             include: { status: true }
-          }
+          },
+          concern_status: true
         }
       });
 
       const fwStatus = await prisma.concern_status.findFirst({
-        where: { status: status },
+        where: { id: BigInt(status) },
         select: { id: true }
       });
 

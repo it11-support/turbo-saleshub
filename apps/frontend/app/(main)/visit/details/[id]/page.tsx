@@ -115,7 +115,7 @@ const VisitDetailsPage = () => {
                                 {/* Panggil komponen Timeline di sini */}
                                 <VisitTimeLine
                                   events={concern.follow_ups.map((followUp) => ({
-                                    status: followUp.status,
+                                    concern_status: followUp.concern_status,
                                     notes: followUp.notes,
                                     date: formatDate(followUp.created_at, { withTime: true }),
                                     icon: 'pi pi-check',
