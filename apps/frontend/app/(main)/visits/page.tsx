@@ -227,6 +227,7 @@ const VisitList = () => {
         className="w-full lg:w-3 md:w-4 sm:w-6"
         header="Export Visits Report"
         visible={dialogVisible}
+        blockScroll
         onHide={() => {
           setExportDates(null)
           setDialogVisible(false)
@@ -270,8 +271,9 @@ const VisitList = () => {
           />
           {isAdmin && (
             <Dropdown
+
               value={salesPersonFilter}
-              options={salesPersons.map((sp) => ({
+              options={salesPersons.filter((sp) => sp.user).map((sp) => ({
                 label: sp.SlpName,
                 value: String(sp.id),
               }))}
