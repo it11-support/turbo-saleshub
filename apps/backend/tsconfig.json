@@ -4,7 +4,6 @@
     "strict": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": ".",
     "paths": {
       "@saleshub-tsm/types": ["../../packages/types/dist"],
       "@/*": ["./src/*"]
