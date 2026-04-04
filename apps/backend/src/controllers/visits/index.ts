@@ -180,41 +180,41 @@ export const exportVisits = async (req: Request, res: Response) => {
     };
 
     // Query
-    const visitItems = await prisma.visit_items.findMany({
-      where: {
-        visit: where,
-      },
+    const visits = await prisma.visits.findMany({
+      where,
       include: {
-        product: true,
-        visit: {
+        customer: true,
+        salesPerson: {
+          include:{
+            user: true
+          }
+        },
+        visit_items: {
           include: {
-            customer: true,
-            salesPerson: true,
+            product: true,
+            visit_item_concerns: {
+              include: {
+                category: true,
+                status: true,
+                follow_ups: {
+                  include: {
+                    concern_status: true,
+                  },
+                  orderBy: {
+                    created_at: 'asc',
+                  },
+                },
+              },
+            },
           },
         },
+        inquiries: true
       },
-    });
-
-    // Grouping by product_id
-    const data = visitItems.reduce((acc, item) => {
-      const key = Number(item.product_id);
-
-      if (!acc[key]) acc[key] = [];
-
-      acc[key].push({
-        ...item,
-
-        // convert bigint → string (biar JSON aman)
-        id: item.id.toString(),
-        visit_id: item.visit_id.toString(),
-      });
-
-      return acc;
-    }, {} as Record<number, any[]>);
+    })
 
     return res.status(200).json({
       message: 'Success',
-      data,
+      data: visits,
     });
   } catch (error) {
     console.error('EXPORT ERROR:', error);

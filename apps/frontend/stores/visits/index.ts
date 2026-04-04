@@ -1,8 +1,16 @@
 import { $api, createUrl } from '@/lib/api'
-import { IVisit, IVisitItem, TVisitStatus } from '@saleshub-tsm/types'
+import { IVisit, IVisitConcernFollowUp, IVisitItem, IVisitItemConcern, TVisitStatus } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
+
+export type ExportVisit = IVisit & {
+  visit_items: (IVisitItem & {
+    visit_item_concerns: (IVisitItemConcern & {
+      follow_ups: IVisitConcernFollowUp[]
+    })[]
+  })[]
+}
 
 interface VisitListState {
   data: IVisit[],
@@ -15,8 +23,8 @@ interface VisitListState {
   dates: Nullable<(Date | null)[]>
   exportDates: Nullable<(Date | null)[]>
   multiSortMeta: any[]
-  exportData: IVisitItem[]
-  setExportData: (data: IVisitItem[]) => void
+  exportData: ExportVisit[]
+  setExportData: (data: ExportVisit[]) => void
   fetchVisits: () => Promise<void>
   salesPersonId?: number
   needFollowUp: boolean
@@ -92,6 +100,7 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
       })
       const res = await $api(url)
       const { data } = res
+      console.log('Exported data:', data)
       setExportData(data)
       setLoadingExport(false)
     } catch (error) {

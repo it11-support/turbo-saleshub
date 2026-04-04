@@ -3,28 +3,39 @@ import VisitListTable from './components/VisitListTable'
 import NavButton from '../customers/components/NavButton'
 import { ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
+import dayjs from 'dayjs'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useState } from 'react'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { useUserStore, useVisitsStore } from '@/stores'
 
-type VisitRow = {
+type VisitMainRow = {
   'Visit Date': string
   Sales: string
   Customer: string
   'Start Time': string
   'End Time': string
+  'Visit Duration': string
   'Visit Note': string
   Status: string
   'Offered Item': string
   'Item Notes': string
+  Topic: string
+  'Follow Up Status': string
 }
+
+type InquiryRow = {
+  'Inquiry Product': string
+  'Inquiry Notes': string
+}
+
+type VisitRow = Partial<VisitMainRow> & Partial<InquiryRow>
 
 const VisitList = () => {
   const visitStore = useVisitsStore()
@@ -94,44 +105,240 @@ const VisitList = () => {
   }, [exportDates, salesPersonFilter])
 
   const handleExportData = () => {
-    const rawData = Object.values(exportData).flatMap((row) => Object.values(row))
+    if (!exportData || exportData.length === 0) {
+      console.warn('No data to export')
+      return
+    }
 
-    const data: VisitRow[] = rawData
-      .sort((a, b) => b.visit_id - a.visit_id)
-      .map((row) => ({
-        'Visit Date': row.visit?.visit_date
-          ? format(new Date(row.visit.visit_date), 'EEE MMM do, yyyy')
+    const data: VisitRow[] = []
+
+    exportData.forEach((visit) => {
+      if (!visit.visit_items || visit.visit_items.length === 0) {
+        return
+      }
+
+      const getDuration = (start?: Date, end?: Date | null) => {
+        if (!start || !end) return ''
+        const diffMs = new Date(end).getTime() - new Date(start).getTime()
+        const totalMinutes = Math.floor(diffMs / 60000)
+        const hours = Math.floor(totalMinutes / 60)
+        const minutes = totalMinutes % 60
+        return `${hours}h ${minutes}m`
+      }
+
+      const baseRow = {
+        'Visit Date': visit.visit_date
+          ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
           : '',
-        Sales: row.visit?.salesPerson?.SlpName,
-        Customer: row.visit?.customer.CardName,
-        'Start Time': row.visit?.start_at ? format(new Date(row.visit.start_at), 'HH:mm') : '',
-        'End Time': row.visit?.end_at ? format(new Date(row.visit.end_at), 'HH:mm') : '',
-        'Visit Note': row.visit?.notes,
-        Status: row.visit?.status,
+        Sales: visit.salesPerson?.SlpName ?? '',
+        Customer: visit.customer?.CardName ?? '',
+        'Start Time': visit.start_at ? format(new Date(visit.start_at), 'HH:mm') : '',
+        'End Time': visit.end_at ? format(new Date(visit.end_at), 'HH:mm') : '',
+        'Visit Duration': getDuration(visit.start_at, visit.end_at),
+        'Visit Note': visit.notes ?? '',
+        Status: visit.status ?? '',
+      }
 
-        'Offered Item': row.product.ItemName,
-        'Item Notes': row.notes,
-      }))
+      const emptyBaseRow = Object.fromEntries(
+        Object.keys(baseRow).map((k) => [k, ''])
+      ) as typeof baseRow
+
+      const visitRows: VisitRow[] = []
+
+      visit.visit_items.forEach((item) => {
+        const concerns = item.visit_item_concerns ?? []
+
+        if (concerns.length === 0) {
+          visitRows.push({
+            'Offered Item': item.product?.ItemName ?? '',
+            Topic: '',
+            'Item Notes': item.notes ?? '',
+            'Follow Up Status': '',
+          })
+        } else {
+          concerns.forEach((concern) => {
+            visitRows.push({
+              'Offered Item': item.product?.ItemName ?? '',
+              Topic: `• ${concern.category?.name ?? ''}`,
+              'Item Notes': concern.notes ?? '',
+              'Follow Up Status': concern.status?.status ?? '',
+            })
+
+            concern.follow_ups?.forEach((fu) => {
+              visitRows.push({
+                'Offered Item': '',
+                Topic: '',
+                'Item Notes': fu.notes ?? '',
+                'Follow Up Status': fu.concern_status?.status ?? '',
+              })
+            })
+          })
+        }
+      })
+
+      const inquiries = visit.inquiries ?? []
+
+      if (visitRows.length === 0 && (inquiries.length > 0 || visit)) {
+        visitRows.push({
+          'Offered Item': '',
+          Topic: '',
+          'Item Notes': '',
+          'Follow Up Status': '',
+        })
+      }
+
+      inquiries.forEach((inq, idx) => {
+        if (visitRows[idx]) {
+          // Tempel inquiry di baris item yang sudah ada (sejajar)
+          visitRows[idx]['Inquiry Product'] = inq.product_name ?? ''
+          visitRows[idx]['Inquiry Notes'] = inq.notes ?? ''
+        } else {
+          // Jika baris item sudah habis tapi inquiry masih ada, buat baris baru
+          visitRows.push({
+            'Offered Item': '',
+            Topic: '',
+            'Item Notes': '',
+            'Follow Up Status': '',
+            'Inquiry Product': inq.product_name ?? '',
+            'Inquiry Notes': inq.notes ?? '',
+          })
+        }
+      })
+
+      visitRows.forEach((row, index) => {
+        data.push({
+          ...(index === 0 ? baseRow : emptyBaseRow),
+          ...row,
+        })
+      })
+    })
+
+    // Export Logic (XLSX)
+    if (data.length === 0) {
+      console.warn('No data after processing')
+      return
+    }
 
     const ws = XLSX.utils.json_to_sheet(data)
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
 
-    const cols = (Object.keys(data[0]) as (keyof VisitRow)[]).map((key) => {
+    const lastCol = 13
+
+    for (let C = 0; C <= lastCol; C++) {
+      const ref = XLSX.utils.encode_cell({ r: 0, c: C })
+
+      if (!ws[ref]) ws[ref] = { t: 's', v: '' }
+
+      ws[ref].s = {
+        font: { bold: true },
+        alignment: {
+          horizontal: 'center',
+          vertical: 'center',
+          wrapText: true,
+        },
+        border: {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } },
+        },
+      }
+    }
+
+    let visitStartRow: number | null = null
+
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+      const firstColRef = XLSX.utils.encode_cell({ r: R, c: 0 })
+      const firstColVal = ws[firstColRef]?.v
+
+      if (firstColVal) {
+        if (visitStartRow !== null) {
+          applyOutsideBorder(ws, visitStartRow, R - 1, lastCol)
+        }
+        visitStartRow = R
+      }
+
+      if (R === range.e.r && visitStartRow !== null) {
+        applyOutsideBorder(ws, visitStartRow, R, lastCol)
+      }
+    }
+
+    const allKeys = data.reduce((keys: string[], row) => {
+      Object.keys(row).forEach((key) => {
+        if (!keys.includes(key)) keys.push(key)
+      })
+      return keys
+    }, [])
+
+    const cols = allKeys.map((key) => {
       const maxLength = Math.max(
-        key.length, // panjang header
-        ...data.map((row) => String(row[key] ?? '').length) // panjang value
+        key.length,
+        ...data.map((row) => String(row[key as keyof VisitRow] ?? '').length)
       )
       return { wch: maxLength + 2 }
     })
 
     ws['!cols'] = cols
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 }
 
+    const exportDate = dayjs().toDate()
+    const exportDateStr = `${exportDate.getFullYear()}-${
+      exportDate.getMonth() + 1
+    }-${exportDate.getDate()}-${exportDate.getHours()}${exportDate.getMinutes()}${exportDate.getSeconds()}`
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Visits')
-
-    const filename = `Sales Visit Report.xlsx`
-    XLSX.writeFile(wb, filename)
-
+    XLSX.writeFile(wb, `Sales Visit Report - ${exportDateStr}.xlsx`)
     setDialogVisible(false)
+  }
+
+  const applyOutsideBorder = (
+    ws: XLSX.WorkSheet,
+    startRow: number,
+    endRow: number,
+    lastCol: number
+  ) => {
+    // 🔥 TOP & BOTTOM (tetap)
+    for (let C = 0; C <= lastCol; C++) {
+      const topRef = XLSX.utils.encode_cell({ r: startRow, c: C })
+      const bottomRef = XLSX.utils.encode_cell({ r: endRow, c: C })
+
+      if (!ws[topRef]) ws[topRef] = { t: 's', v: '' }
+      if (!ws[bottomRef]) ws[bottomRef] = { t: 's', v: '' }
+
+      ws[topRef].s = {
+        ...(ws[topRef].s || {}),
+        border: {
+          ...(ws[topRef].s?.border || {}),
+          top: { style: 'thin', color: { rgb: '000000' } },
+        },
+      }
+
+      ws[bottomRef].s = {
+        ...(ws[bottomRef].s || {}),
+        border: {
+          ...(ws[bottomRef].s?.border || {}),
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+        },
+      }
+    }
+
+    // 🔥 FULL VERTICAL (INI YANG DIUBAH)
+    for (let R = startRow; R <= endRow; R++) {
+      for (let C = 0; C <= lastCol; C++) {
+        const ref = XLSX.utils.encode_cell({ r: R, c: C })
+
+        if (!ws[ref]) ws[ref] = { t: 's', v: '' }
+
+        ws[ref].s = {
+          ...(ws[ref].s || {}),
+          border: {
+            ...(ws[ref].s?.border || {}),
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } },
+          },
+        }
+      }
+    }
   }
 
   return (

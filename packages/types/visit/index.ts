@@ -1,6 +1,6 @@
 import { IConcernCategory, IConcernStatus } from "../concerns";
 import { ICustomer } from "../customer";
-import { IProduct, SuggestedItemsGrouped } from "../product";
+import { IInquiry, IProduct, SuggestedItemsGrouped } from "../product";
 import { ISalesPerson } from "../user";
 
 export interface IVisit {
@@ -19,6 +19,7 @@ export interface IVisit {
   visit_date: string | Date | null
   visit_items?: IVisitItem[]
   open_issues?: IVisitItem[]
+  inquiries?: IInquiry[]
 }
 
 export interface IVisitItemConcern {
@@ -58,6 +59,7 @@ export interface IVisitConcernFollowUp {
   updated_at: Date;
   concern_status: IConcernStatus
   visit_item_concern: IVisitItemConcern
+  visit_item_concerns?: IVisitItemConcern
 }
 
 export enum EFollowUpStatus {
