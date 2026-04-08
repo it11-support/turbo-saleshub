@@ -16,16 +16,24 @@ type Props = {
   category?: string
   visitItemConcern?: IVisitItemConcern
   overlayRefs: RefObject<Record<string, OverlayPanel | null>>
-  setSelectedProduct: (item: ProductWithFrequency | null) => void
-  setShowOfferDialog: (show: boolean) => void
+  setSelectedProduct?: (item: ProductWithFrequency | null) => void
+  setShowOfferDialog?: (show: boolean) => void
+  hideOfferButton?: boolean
 }
 const ProductOfferCard = (props: Props) => {
-  const { item, category, visitItemConcern, setSelectedProduct, setShowOfferDialog } = props
+  const {
+    item,
+    category,
+    visitItemConcern,
+    setSelectedProduct,
+    setShowOfferDialog,
+    hideOfferButton,
+  } = props
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   const handleProductOffer = (item: ProductWithFrequency) => {
-    setSelectedProduct(item)
-    setShowOfferDialog(true)
+    setSelectedProduct?.(item)
+    setShowOfferDialog?.(true)
   }
 
   return (
@@ -77,7 +85,7 @@ const ProductOfferCard = (props: Props) => {
         </div>
       </div>
 
-      {!visitItemConcern?.status.status && (
+      {!visitItemConcern?.status.status && !hideOfferButton && (
         <div className="flex items-center mt-3 border-top-1 surface-border pt-3">
           <Button
             size="small"

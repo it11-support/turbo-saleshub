@@ -9,13 +9,14 @@ import { formatDate } from '@/lib/dateUtils'
 type Props = {
   customer: ICustomer
   salesVisit: IVisit
+  handleEndVisit?: () => void
 }
 const VisitDetailHeader = (props: Props) => {
-  const { customer, salesVisit } = props
+  const { customer, salesVisit, handleEndVisit } = props
   return (
     <>
       <div className="card mb-2">
-        <NavButton />
+        <NavButton handleEndVisit={handleEndVisit} />
         <h5 className="ml-2">Customer</h5>
         <div className="col-12">
           <div>

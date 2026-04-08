@@ -9,17 +9,23 @@ export const getParetoProducts = async (customerId: number) => {
   if (!customer) return [];
 
   const subgroupId = customer.subgroup?.IndCode;
+  const hasValidCardCode = Boolean(customer.CardCode);
 
   const totalLimit = 20;
 
-  // Ambil semua produk Distributor 'N'
+  // =============================
+  // GET PRODUCTS (Distributor N)
+  // =============================
   const productsN = await prisma.products.findMany({
     where: { Distributor: 'N' },
   });
+
   const itemCodesN = productsN.map((p) => p.ItemCode);
   if (itemCodesN.length === 0) return [];
 
-  // Hitung total penjualan per produk (global)
+  // =============================
+  // GLOBAL PARETO
+  // =============================
   const productSalesGlobal = await prisma.sales_invoices.groupBy({
     by: ['ItemCode'],
     where: {
@@ -28,6 +34,7 @@ export const getParetoProducts = async (customerId: number) => {
     _sum: { TotalSales: true },
     orderBy: { _sum: { TotalSales: 'desc' } },
   });
+
   if (productSalesGlobal.length === 0) return [];
 
   const grandTotalGlobal = productSalesGlobal.reduce(
@@ -35,7 +42,6 @@ export const getParetoProducts = async (customerId: number) => {
     0
   );
 
-  // Hitung top Pareto (80%) - global
   let runningTotalGlobal = 0;
   const topParetoGlobalItemCodes: string[] = [];
   const totalMapGlobal = new Map<string, number>();
@@ -43,22 +49,31 @@ export const getParetoProducts = async (customerId: number) => {
   for (const p of productSalesGlobal) {
     const total = Number(p._sum.TotalSales ?? 0);
     runningTotalGlobal += total;
+
     topParetoGlobalItemCodes.push(p.ItemCode);
     totalMapGlobal.set(p.ItemCode, total);
+
     if (runningTotalGlobal / grandTotalGlobal >= 0.8) break;
   }
 
-  // Ambil semua CardCode di subgroup (jika ada)
-  const cardCodes = subgroupId
-    ? (await prisma.customers.findMany({
+  // =============================
+  // SUBGROUP PARETO (optional)
+  // =============================
+  let topParetoSubgroupItemCodes: string[] = [];
+  const totalMapSubgroup = new Map<string, number>();
+
+  if (subgroupId && hasValidCardCode) {
+    const cardCodes = (
+      await prisma.customers.findMany({
         where: { IndustryC: subgroupId },
         select: { CardCode: true },
-      })).map((c) => c.CardCode)
-    : [];
+      })
+    )
+      .map((c) => c.CardCode)
+      .filter((c): c is string => Boolean(c));
 
-  // Hitung total penjualan per produk (subgroup)
-  const productSalesSubgroup = subgroupId && cardCodes.length > 0
-    ? await prisma.sales_invoices.groupBy({
+    if (cardCodes.length > 0) {
+      const productSalesSubgroup = await prisma.sales_invoices.groupBy({
         by: ['ItemCode'],
         where: {
           CardCode: { in: cardCodes },
@@ -66,56 +81,73 @@ export const getParetoProducts = async (customerId: number) => {
         },
         _sum: { TotalSales: true },
         orderBy: { _sum: { TotalSales: 'desc' } },
-      })
-    : [];
+      });
 
-  const totalMapSubgroup = new Map<string, number>();
-  const topParetoSubgroupItemCodes: string[] = [];
+      if (productSalesSubgroup.length > 0) {
+        const grandTotalSubgroup = productSalesSubgroup.reduce(
+          (sum, p) => sum + Number(p._sum.TotalSales ?? 0),
+          0
+        );
 
-  if (productSalesSubgroup.length > 0) {
-    const grandTotalSubgroup = productSalesSubgroup.reduce(
-      (sum, p) => sum + Number(p._sum.TotalSales ?? 0),
-      0
-    );
-    let runningTotalSubgroup = 0;
-    for (const p of productSalesSubgroup) {
-      const total = Number(p._sum.TotalSales ?? 0);
-      runningTotalSubgroup += total;
-      topParetoSubgroupItemCodes.push(p.ItemCode);
-      totalMapSubgroup.set(p.ItemCode, total);
-      if (runningTotalSubgroup / grandTotalSubgroup >= 0.8) break;
+        let runningTotalSubgroup = 0;
+
+        for (const p of productSalesSubgroup) {
+          const total = Number(p._sum.TotalSales ?? 0);
+          runningTotalSubgroup += total;
+
+          topParetoSubgroupItemCodes.push(p.ItemCode);
+          totalMapSubgroup.set(p.ItemCode, total);
+
+          if (runningTotalSubgroup / grandTotalSubgroup >= 0.8) break;
+        }
+      }
     }
   }
 
-  // Produk yang sudah dibeli customer
-  const customerHistory = await prisma.sales_invoices.findMany({
-    where: { CardCode: customer.CardCode },
-    select: { ItemCode: true },
-    distinct: ['ItemCode'],
-  });
-  const boughtItemCodes = new Set(customerHistory.map((c) => c.ItemCode));
+  // =============================
+  // CUSTOMER HISTORY (optional)
+  // =============================
+  let boughtItemCodes = new Set<string>();
 
-  // Filter top Pareto yang belum dibeli
-  const productToSuggestSubgroup = topParetoSubgroupItemCodes.filter(
-    (ic) => !boughtItemCodes.has(ic)
-  );
-  const productToSuggestGlobal = topParetoGlobalItemCodes.filter(
-    (ic) => !boughtItemCodes.has(ic)
-  );
+  if (hasValidCardCode) {
+    const customerHistory = await prisma.sales_invoices.findMany({
+      where: { CardCode: customer.CardCode! },
+      select: { ItemCode: true },
+      distinct: ['ItemCode'],
+    });
+
+    boughtItemCodes = new Set(customerHistory.map((c) => c.ItemCode));
+  }
+
+  // =============================
+  // FILTER SUGGESTION
+  // =============================
+  const productToSuggestSubgroup = hasValidCardCode
+    ? topParetoSubgroupItemCodes.filter((ic) => !boughtItemCodes.has(ic))
+    : [];
+
+  const productToSuggestGlobal = hasValidCardCode
+    ? topParetoGlobalItemCodes.filter((ic) => !boughtItemCodes.has(ic))
+    : topParetoGlobalItemCodes; // fallback for customer baru
 
   const allSuggestedItemCodes = Array.from(
     new Set([...productToSuggestSubgroup, ...productToSuggestGlobal])
   );
 
-  const suggestedProducts = allSuggestedItemCodes.length > 0
-    ? await prisma.products.findMany({
-        where: { ItemCode: { in: allSuggestedItemCodes } },
-      })
-    : [];
+  const suggestedProducts =
+    allSuggestedItemCodes.length > 0
+      ? await prisma.products.findMany({
+          where: { ItemCode: { in: allSuggestedItemCodes } },
+        })
+      : [];
 
-  const productByCode = new Map(suggestedProducts.map((p) => [p.ItemCode, p]));
+  const productByCode = new Map(
+    suggestedProducts.map((p) => [p.ItemCode, p])
+  );
 
-  // Ambil produk development untuk subgroup, belum dibeli customer
+  // =============================
+  // DEVELOPMENT PRODUCTS
+  // =============================
   const productDevelopments = subgroupId
     ? await prisma.products.findMany({
         where: {
@@ -125,17 +157,21 @@ export const getParetoProducts = async (customerId: number) => {
               subgroup: { IndCode: subgroupId },
             },
           },
-          ItemCode: { notIn: Array.from(boughtItemCodes) },
+          ...(hasValidCardCode && {
+            ItemCode: { notIn: Array.from(boughtItemCodes) },
+          }),
         },
         include: { product_developments: true },
       })
     : [];
 
   const devItems = productDevelopments
-    .filter((p) => p.Distributor !== 'Y')
     .map((p) => ({
       ...p,
-      totalSales: totalMapSubgroup.get(p.ItemCode) ?? totalMapGlobal.get(p.ItemCode) ?? 0,
+      totalSales:
+        totalMapSubgroup.get(p.ItemCode) ??
+        totalMapGlobal.get(p.ItemCode) ??
+        0,
       isDevelopment: true,
     }))
     .sort((a, b) => b.totalSales - a.totalSales);
@@ -160,6 +196,9 @@ export const getParetoProducts = async (customerId: number) => {
     }))
     .sort((a, b) => b.totalSales - a.totalSales);
 
+  // =============================
+  // MERGE RESULT
+  // =============================
   const mergedProductsMap = new Map<string, any>();
   const finalSuggestedProducts: any[] = [];
 
@@ -167,17 +206,18 @@ export const getParetoProducts = async (customerId: number) => {
     let added = 0;
     for (const item of items) {
       if (mergedProductsMap.has(item.ItemCode)) continue;
+
       mergedProductsMap.set(item.ItemCode, item);
       finalSuggestedProducts.push(item);
-      added += 1;
+
+      added++;
       if (added >= limit) break;
     }
   };
 
-  // Prioritas: development -> pareto subgroup -> pareto global, total max 20
-  addToResult(devItems, Math.max(0, totalLimit - finalSuggestedProducts.length));
-  addToResult(subgroupItems, Math.max(0, totalLimit - finalSuggestedProducts.length));
-  addToResult(globalItems, Math.max(0, totalLimit - finalSuggestedProducts.length));
+  addToResult(devItems, totalLimit);
+  addToResult(subgroupItems, totalLimit - finalSuggestedProducts.length);
+  addToResult(globalItems, totalLimit - finalSuggestedProducts.length);
 
   return finalSuggestedProducts.slice(0, totalLimit);
-}
+};

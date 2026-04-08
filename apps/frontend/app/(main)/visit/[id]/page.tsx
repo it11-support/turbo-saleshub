@@ -1,9 +1,9 @@
 'use client'
 
+import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
-import VisitTimeLine from '../../visits/components/VisitTimeLine'
-import { EBadgeVariant, IConcernStatus, ProductWithFrequency } from '@saleshub-tsm/types'
+import { IVisitItem, ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { AutoComplete } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
@@ -15,10 +15,8 @@ import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { OverlayPanel } from 'primereact/overlaypanel'
-import { Tag } from 'primereact/tag'
 import { useEffect, useRef, useState } from 'react'
 
-import { formatDate } from '@/lib/dateUtils'
 import { parsePhone } from '@/lib/phoneParser'
 import { useConcernStore, useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
@@ -153,7 +151,12 @@ const VisitsPage = () => {
     setSelectedCategories(_selected)
   }
 
+  const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))
+
   const filteredProducts = activeProductGroup.filter((item) => {
+    const offered = offeredProductIds.has(item.id)
+    if (offered) return false
+
     const matchCategory =
       selectedCategories.length === 0 || selectedCategories.includes(item.ProductCategory ?? '')
 
@@ -186,26 +189,37 @@ const VisitsPage = () => {
     setSelectedCategories(matchedCategories)
   }, [debouncedSearch, isDistributor, activeProductGroup])
 
-  type TagSeverity = 'info' | 'warning' | 'success' | 'danger'
+  const groupedProduct = salesVisit.visit_items?.reduce(
+    (acc, item) => {
+      const product = item.product
+      if (!product) return acc
 
-  const TAG_SEVERITY_MAP: Record<EBadgeVariant, TagSeverity> = {
-    info: 'info',
-    warning: 'warning',
-    success: 'success',
-    danger: 'danger',
-    secondary: 'info',
-  }
+      if (product.Distributor === 'Y') {
+        const category = product.ProductCategory || 'Uncategorized'
 
-  const GetTag = ({ status }: { status: IConcernStatus }) => {
-    return (
-      <Tag
-        className="mr-2"
-        icon={status.icon}
-        severity={status.level ? TAG_SEVERITY_MAP[status.level] : undefined}
-        value={status.status}
-      />
-    )
-  }
+        // cari category
+        let group = acc.distributor.find((g) => g.category === category)
+
+        if (!group) {
+          group = { category, items: [] }
+          acc.distributor.push(group)
+        }
+
+        group.items.push(item)
+      } else {
+        acc.groceries.push(item)
+      }
+
+      return acc
+    },
+    {
+      distributor: [] as { category: string; items: IVisitItem[] }[],
+      groceries: [] as IVisitItem[],
+    }
+  )
+
+  const offeredDistributor = groupedProduct?.distributor
+  const offeredGroceries = groupedProduct?.groceries
 
   return (
     <>
@@ -301,54 +315,62 @@ const VisitsPage = () => {
               {isDistributor && distributorCategories.length > 0 ? (
                 <div className="flex flex-column gap-3">
                   <p className="m-0">Pick Categories</p>
-                  {distributorCategories.map((cat) => (
-                    <div key={cat.value}>
-                      <div className="flex align-items-center pb-2">
-                        <Checkbox
-                          inputId={`cat-${cat.value}`}
-                          name="category"
-                          value={cat.value}
-                          onChange={onCategoryChange}
-                          checked={selectedCategories.includes(cat.value)}
-                        />
-                        <label htmlFor={`cat-${cat.value}`} className="ml-2">
-                          {cat.label}
-                        </label>
-                      </div>
-                      <div className="grid">
-                        {selectedCategories.length > 0
-                          ? filteredProducts
-                              .filter((item) => item.ProductCategory === cat.value)
-                              .map((item) => {
-                                const category = item.ProductCategory
-                                  ? item.ProductCategory.charAt(0) +
-                                    item.ProductCategory.slice(1).toLocaleLowerCase()
-                                  : ''
-                                const visitItems = visit_items?.find(
-                                  (i) => i.product_id === item.id
-                                )
-                                const visitItemConcerns = visitItems?.visit_item_concerns
+                  {distributorCategories
+                    .filter((cat) => {
+                      const productsInCategory = activeProductGroup.filter(
+                        (item) => item.ProductCategory === cat.value
+                      )
 
-                                return (
-                                  <div
-                                    key={`distributor-${item.ItemCode}`}
-                                    className="col-12 lg:col-6 xl:col-4"
-                                  >
-                                    <ProductOfferCard
-                                      item={item}
-                                      category={category}
-                                      visitItemConcern={visitItemConcerns?.[0]}
-                                      overlayRefs={overlayRefs}
-                                      setSelectedProduct={setSelectedProduct}
-                                      setShowOfferDialog={setShowOfferDialog}
-                                    />
-                                  </div>
-                                )
-                              })
-                          : null}
+                      return productsInCategory.some((item) => !offeredProductIds.has(item.id))
+                    })
+                    .map((cat) => (
+                      <div key={cat.value}>
+                        <div className="flex align-items-center pb-2">
+                          <Checkbox
+                            inputId={`cat-${cat.value}`}
+                            name="category"
+                            value={cat.value}
+                            onChange={onCategoryChange}
+                            checked={selectedCategories.includes(cat.value)}
+                          />
+                          <label htmlFor={`cat-${cat.value}`} className="ml-2">
+                            {cat.label}
+                          </label>
+                        </div>
+                        <div className="grid">
+                          {selectedCategories.length > 0
+                            ? filteredProducts
+                                .filter((item) => item.ProductCategory === cat.value)
+                                .map((item) => {
+                                  const category = item.ProductCategory
+                                    ? item.ProductCategory.charAt(0) +
+                                      item.ProductCategory.slice(1).toLocaleLowerCase()
+                                    : ''
+                                  const visitItems = visit_items?.find(
+                                    (i) => i.product_id === item.id
+                                  )
+                                  const visitItemConcerns = visitItems?.visit_item_concerns
+
+                                  return (
+                                    <div
+                                      key={`distributor-${item.ItemCode}`}
+                                      className="col-12 lg:col-6 xl:col-4"
+                                    >
+                                      <ProductOfferCard
+                                        item={item}
+                                        category={category}
+                                        visitItemConcern={visitItemConcerns?.[0]}
+                                        overlayRefs={overlayRefs}
+                                        setSelectedProduct={setSelectedProduct}
+                                        setShowOfferDialog={setShowOfferDialog}
+                                      />
+                                    </div>
+                                  )
+                                })
+                            : null}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                   {filteredProducts.length === 0 && search && (
                     <div className="col-12">
                       <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
@@ -393,95 +415,44 @@ const VisitsPage = () => {
             </div>
           </>
         )}
-        <Divider />
-        <h5 className="ml-2">Offered Items</h5>
-        <div className="grid">
-          {salesVisit.visit_items?.map((item) => {
-            const visitItemConcern = item.visit_item_concerns || []
-            return (
-              <div className="col-12 md:col-12 lg:col-12 flex" key={item.product?.ItemCode}>
-                <Card className="w-full h-full p-2">
-                  <div className="flex flex-column w-full gap-3">
-                    {/* ROW ATAS: Judul & Tanggal */}
-                    <div className="flex w-full align-items-start gap-3">
-                      {/* TANGGAL (1/3 Lebar) */}
-                      <div className="w-9 flex flex-column text-xs text-color-secondary font-medium pt-1">
-                        <div className="text-lg font-bold text-color line-height-2">
-                          {item.product?.ItemName}
-                        </div>
-                      </div>
 
-                      {/* JUDUL / NAMA PRODUK (2/3 Lebar) */}
-                      <div className="w-3 flex flex-column text-right">
-                        <span className="font-bold text-xs opacity-70">
-                          {formatDate(item?.created_at, { withTime: true })}
-                        </span>
+        {(salesVisit.visit_items?.length ?? 0) > 0 && (
+          <>
+            <Divider />
+            <h5 className="ml-2">Offered Items</h5>
+            {(offeredDistributor?.length ?? 0) > 0 && (
+              <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
+                {offeredDistributor?.map((distributorItem) => {
+                  const category = distributorItem.category
+                  const visitItems = distributorItem.items
+                  return (
+                    <div key={`distributor-${category}`} className="py-3">
+                      <h5>{category}</h5>
+                      <div className="grid">
+                        {visitItems.map((visitItem) => {
+                          return (
+                            <OfferedProduct visitItem={visitItem} key={visitItem.id.toString()} />
+                          )
+                        })}
                       </div>
                     </div>
-
-                    {!visitItemConcern.length && (
-                      <div className="flex flex-column gap-3 w-full mt-2">
-                        <div className="w-full p-3 surface-card">
-                          <div className="text-sm p-2 text-color-secondary line-height-3">
-                            No issues
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {/* ROW BAWAH: List Concern (Full Width) */}
-                    {visitItemConcern.length > 0 && (
-                      <div className="flex flex-column gap-3 w-full mt-2">
-                        {visitItemConcern.map((concern, index) => (
-                          <div
-                            key={`visit-concern-${concern.id}`}
-                            className="w-full p-3 surface-card"
-                          >
-                            {/* Header Concern: Nama (Kiri) & Status (Kanan) */}
-                            <div className="flex justify-content-start gap-2 align-items-center mb-2">
-                              <span className="font-semibold text-lg text-color">
-                                {concern?.category?.name}
-                              </span>
-                              <div>
-                                <GetTag status={concern?.status} />
-                              </div>
-                            </div>
-
-                            {/* Notes */}
-                            {concern?.notes && (
-                              <div className="text-sm p-2 text-color-secondary line-height-3">
-                                {concern.notes}
-                              </div>
-                            )}
-
-                            {concern.follow_ups && concern.follow_ups.length > 0 ? (
-                              <div className="flex flex-column gap-2 mt-2">
-                                {/* Panggil komponen Timeline di sini */}
-                                <VisitTimeLine
-                                  events={concern.follow_ups.map((followUp) => ({
-                                    concern_status: followUp.concern_status,
-                                    notes: followUp.notes,
-                                    date: formatDate(followUp.created_at, { withTime: true }),
-                                    icon: 'pi pi-check',
-                                    color: 'var(--primary-color)',
-                                    next_follow_up_date: formatDate(followUp.next_follow_up_date, {
-                                      withTime: false,
-                                    }),
-                                  }))}
-                                />
-                              </div>
-                            ) : null}
-
-                            {visitItemConcern.length - 1 !== index && <Divider />}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </div>
-            )
-          })}
-        </div>
+                  )
+                })}
+              </Card>
+            )}
+            {(offeredGroceries?.length ?? 0) > 0 && (
+              <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
+                <div className="grid">
+                  {offeredGroceries?.map((groceriesItem) => {
+                    return (
+                      <OfferedProduct visitItem={groceriesItem} key={groceriesItem.id.toString()} />
+                    )
+                  })}
+                </div>
+              </Card>
+            )}
+          </>
+        )}
 
         <Divider />
         <div className="col-12 xl:col-6 md:col-6">

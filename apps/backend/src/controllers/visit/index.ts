@@ -41,8 +41,7 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
 
     const suggestedItems = await getSuggestedItems(
       Number(visit.customer_id),
-      visit.rule?.max_items_per_visit,
-      true
+      visit.rule?.max_items_per_visit
     );
 
     const data = {
@@ -198,6 +197,7 @@ export const visitDetails = async (req: Request, res: Response) => {
             subgroup: true,
           },
         },
+        rule: true,
         visit_items: {
           include: {
             product: true,
@@ -220,7 +220,12 @@ export const visitDetails = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ message: 'Success', data: salesVisit });
+    const suggestedItems = await getSuggestedItems(
+      Number(salesVisit?.customer_id),
+      salesVisit?.rule?.max_items_per_visit,
+      true
+    );
+    return res.status(200).json({ message: 'Success', data: {...salesVisit, suggestedItems} });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });

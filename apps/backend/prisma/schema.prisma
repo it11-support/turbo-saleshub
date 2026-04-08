@@ -36,7 +36,9 @@ model configs {
 
 model customers {
   id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
-  CardCode      String    @unique(map: "customers_cardcode_unique") @db.VarChar(15)
+  CardCode      String?   @unique(map: "customers_cardcode_unique") @db.VarChar(15)
+  LocalCode     String?   @unique @db.VarChar(15)
+  isLocal       Boolean   @default(false)
   CardName      String?   @db.VarChar(100)
   GroupName     String?   @db.VarChar(20)
   CntctPrsn     String?   @db.VarChar(90)
@@ -55,7 +57,7 @@ model customers {
   JoinDate      DateTime? @db.DateTime(0)
   IndustryC     Int?
   NonActive     String?   @db.Char(1)
-  visit_rule_id BigInt
+  visit_rule_id BigInt?
   created_at    DateTime? @db.Timestamp(0)
   updated_at    DateTime? @db.Timestamp(0)
 

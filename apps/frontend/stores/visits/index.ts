@@ -100,7 +100,6 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
       })
       const res = await $api(url)
       const { data } = res
-      console.log('Exported data:', data)
       setExportData(data)
       setLoadingExport(false)
     } catch (error) {

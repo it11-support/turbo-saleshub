@@ -3,7 +3,9 @@ import { ICustomer, ISalesInvoices, SuggestedItemsGrouped } from '@saleshub-tsm/
 export interface ILastPurchase extends ISalesInvoices {
   hasRetur: boolean
 }
+export type INewCustomerForm = Partial<ICustomer>
 export interface ICustomerState {
+  newCustomerForm: INewCustomerForm
   customer: ICustomer | null
   itemCount: number
   customers: ICustomer[]
@@ -17,7 +19,9 @@ export interface ICustomerState {
   loyaltyLevel: string[] | []
   subGroupNames: string[] | []
   subgroupOptions: { value: number; label: string }[]
+  // groupOptions: { value: number; label: string }[]
   slpCode: number | null
+  setNewCustomerForm: (form: INewCustomerForm) => void
   setSlpCode: (slpCode: number | null) => void
   setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) => void
   setSubGroupNames: (subGroupNames: string[]) => void
@@ -40,8 +44,10 @@ export interface ICustomerState {
   setMultiSortMeta: (meta: any[]) => void
   totalRecords: number
   suggestedItems: SuggestedItemsGrouped
+  groupOptions: { value: number; label: string }[]
   fetchCustomers: () => Promise<void>
   fetchCustomerSummary: (id: string) => Promise<ICustomer | null>
+  fetchCustomerGroupOptions: () => Promise<void>
   fetchSuggestedItems: (id: string) => Promise<any | null>
   fetchPurchaseHistory: (id: string) => Promise<any | null>
   fetchSubgroupOptions: () => Promise<void>
@@ -59,4 +65,6 @@ export interface ICustomerState {
     last3Months: number
     last6Months: number
   }) => void
+
+  createNewCustomer: () => Promise<ICustomer | null>
 }

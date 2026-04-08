@@ -5,7 +5,9 @@ import { CustomerRFM } from "../rfm";
 
 export interface ICustomer {
   id: bigint;
-  CardCode: string;
+  CardCode: string | null;
+  LocalCode: string | null;
+  isLocal?: boolean;
   CardName?: string | null;
   GroupName?: string | null;
   CntctPrsn?: string | null;

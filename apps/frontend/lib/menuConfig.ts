@@ -52,6 +52,12 @@ export const menuConfig: MenuSection[] = [
         to: '/customers',
         badge: 'NEW',
       },
+      {
+        label: 'New Customer',
+        icon: 'pi pi-fw pi-user-plus',
+        to: '/customers/new',
+        badge: 'NEW',
+      },
     ],
   },
 

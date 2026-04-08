@@ -4,6 +4,7 @@ import { ICommonRequestType, ICustomer, PaginationResult } from '@saleshub-tsm/t
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import { getParetoProducts } from './functions.js';
+import { generateLocalCode } from '@/utils/localCode.js';
 
 export type CustomerRequestType = {
   active?: string[];
@@ -220,10 +221,10 @@ export const customerList = async (
 
     const salesPersonsData = await prisma.customers.findMany({
       distinct: ['SalesName'],
-      where:{
-        sales_person:{
+      where: {
+        sales_person: {
           user: {
-             isNot: null
+            isNot: null
           }
         }
       },
@@ -488,8 +489,8 @@ export const getSuggestedItems = async (
         OR: [
           // Exclude done item
           {
-            visit_item_concerns:{
-              some:{
+            visit_item_concerns: {
+              some: {
                 status: {
                   status: 'Done'
                 }
@@ -497,7 +498,7 @@ export const getSuggestedItems = async (
             }
           },
           {
-          // KONDISI 2: Status 'Closed' - exclude jika < 30 hari
+            // KONDISI 2: Status 'Closed' - exclude jika < 30 hari
             created_at: {
               gte: dayjs().subtract(30, 'days').toDate(),
             },
@@ -567,3 +568,61 @@ export const fetchSubgroups = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const fetchGroups = async (req: Request, res: Response) => {
+  try {
+    const groups = await prisma.customers.findMany({
+      select: {
+        GroupName: true,
+      },
+      distinct: ['GroupName'],
+    });
+    return res.status(200).json({ message: 'Groups fetched successfully', data: { groups } });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const createCustomer = async (req: Request, res: Response) => {
+  try {
+    const {
+      CardCode,
+      CardName,
+      GroupName,
+      CntctPrsn,
+      SlpCode,
+      SalesName,
+      subgroup,
+      City,
+      Address,
+      Cellular,
+      Phone1
+    } = req.body;
+    const newCustomer = await prisma.customers.create({
+      data: {
+        LocalCode: await generateLocalCode(),
+        isLocal: true,
+        CardCode,
+        CardName,
+        GroupName,
+        Cellular,
+        CntctPrsn,
+        SalesName,
+        City,
+        Phone1,
+        Address,
+        sales_person: { connect: { SlpCode: Number(SlpCode) } },
+        subgroup: { connect: { IndCode: subgroup } },
+
+      },
+      include: {
+        sales_person: true,
+      }
+    });
+    return res.status(200).json({ message: 'Customer created successfully', data: { newCustomer } });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}

@@ -6,6 +6,8 @@ import { $api, createUrl } from '@/lib/api'
 import { ICustomerState } from '@/types/customer'
 
 export const useCustomerStore = create<ICustomerState>()((set, get) => ({
+  newCustomerForm: {},
+  groupOptions: [],
   customer: null,
   itemCount: 0,
   customers: [],
@@ -48,6 +50,9 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setInvoiceCountByRange: (invoiceCountByRange: any) => set({ invoiceCountByRange }),
   setOrdersByRange(ordersByRange) {
     set({ ordersByRange })
+  },
+  setNewCustomerForm(form) {
+    set({ newCustomerForm: form })
   },
   setSlpCode(slpCode) {
     set({ slpCode })
@@ -152,6 +157,35 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       })
     } catch (err) {
       console.error(err)
+    }
+  },
+  fetchCustomerGroupOptions: async () => {
+    try {
+      const url = createUrl('customers/groups')
+      const res = await $api<any>(url)
+      set({
+        groupOptions: res.data.groups.map((g: any) => ({
+          label: g.GroupName,
+          value: g.GroupName,
+        })),
+      })
+    } catch (err) {
+      console.error(err)
+    }
+  },
+  createNewCustomer: async () => {
+    try {
+      const { newCustomerForm } = get()
+      const url = createUrl('customers')
+      const res = await $api<any>(url, {
+        method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCustomerForm),
+      })
+      return res.data.newCustomer
+    } catch (err) {
+      console.error('Failed to create new customer:', err)
+      return null
     }
   },
 }))

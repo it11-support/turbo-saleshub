@@ -1,26 +1,18 @@
 'use client'
 
-import VisitTimeLine from '../../components/VisitTimeLine'
-import {
-  EBadgeVariant,
-  EFollowUpType,
-  IConcernStatus,
-  IVisitItemConcern,
-} from '@saleshub-tsm/types'
+import { EBadgeVariant, EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Card } from 'primereact/card'
 import { Dialog } from 'primereact/dialog'
-import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { Tag } from 'primereact/tag'
 import { useEffect, useState } from 'react'
 
+import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
 import { variantColors } from '@/lib/constants'
-import { formatDate } from '@/lib/dateUtils'
 import { useConcernStore, useSalesVisit } from '@/stores'
 
 const VisitIssuesPage = () => {
@@ -61,7 +53,6 @@ const VisitIssuesPage = () => {
 
   useEffect(() => {
     if (selectedConcern && visible) {
-      console.log('Selected Concern for Follow Up:', selectedConcern.status.requires_action)
       setFollowUpForm({
         visit_item_concern_id: selectedConcern.id,
         status: selectedConcern.status.status,
@@ -71,7 +62,6 @@ const VisitIssuesPage = () => {
         next_follow_up_date: null,
       })
     }
-    console.log('Selected Concern:', selectedConcern)
   }, [selectedConcern, visible])
 
   const statusOptions = concernStatuses.map((status) => ({
@@ -85,130 +75,82 @@ const VisitIssuesPage = () => {
     value: t,
   }))
 
-  type TagSeverity = 'info' | 'warning' | 'success' | 'danger'
+  const groupedProduct = salesVisit.visit_items?.reduce(
+    (acc, item) => {
+      const product = item.product
+      if (!product) return acc
 
-  const TAG_SEVERITY_MAP: Record<EBadgeVariant, TagSeverity> = {
-    info: 'info',
-    warning: 'warning',
-    success: 'success',
-    danger: 'danger',
-    secondary: 'info',
-  }
+      if (product.Distributor === 'Y') {
+        const category = product.ProductCategory || 'Uncategorized'
 
-  const GetTag = ({ status }: { status: IConcernStatus }) => {
-    return (
-      <Tag
-        className="mr-2"
-        icon={status.icon}
-        severity={status.level ? TAG_SEVERITY_MAP[status.level] : undefined}
-        value={status.status}
-      />
-    )
-  }
+        // cari category
+        let group = acc.distributor.find((g) => g.category === category)
+
+        if (!group) {
+          group = { category, items: [] }
+          acc.distributor.push(group)
+        }
+
+        group.items.push(item)
+      } else {
+        acc.groceries.push(item)
+      }
+
+      return acc
+    },
+    {
+      distributor: [] as { category: string; items: IVisitItem[] }[],
+      groceries: [] as IVisitItem[],
+    }
+  )
+
+  const offeredDistributor = groupedProduct?.distributor
+  const offeredGroceries = groupedProduct?.groceries
 
   return (
     <>
       <VisitDetailHeader customer={customer} salesVisit={salesVisit} />
       <div className="card">
         <h5 className="ml-2">Status</h5>
-
-        <div className="">
-          {salesVisit.visit_items?.map((item) => {
-            const visitItemConcern = item.visit_item_concerns || []
-            return (
-              <div className="col-12 md:col-12 lg:col-12 flex" key={item.product?.ItemCode}>
-                <Card className="w-full h-full p-2">
-                  <div className="flex flex-column w-full gap-3">
-                    {/* ROW ATAS: Judul & Tanggal */}
-                    <div className="flex w-full align-items-start gap-3">
-                      {/* TANGGAL (1/3 Lebar) */}
-                      <div className="w-9 flex flex-column text-xs text-color-secondary font-medium pt-1">
-                        <div className="text-lg font-bold text-color line-height-2">
-                          {item.product?.ItemName}
-                        </div>
-                      </div>
-
-                      {/* JUDUL / NAMA PRODUK (2/3 Lebar) */}
-                      <div className="w-3 flex flex-column text-right">
-                        <span className="font-bold text-xs opacity-70">
-                          {formatDate(item?.created_at, { withTime: true })}
-                        </span>
-                      </div>
-                    </div>
-
-                    {!visitItemConcern.length && (
-                      <div className="flex flex-column gap-3 w-full mt-2">
-                        <div className="w-full p-3 surface-card">
-                          <div className="text-sm p-2 text-color-secondary line-height-3">
-                            No issues
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {/* ROW BAWAH: List Concern (Full Width) */}
-                    {visitItemConcern.length > 0 && (
-                      <div className="flex flex-column gap-2 w-full mt-2">
-                        {visitItemConcern.map((concern, index) => (
-                          <div
-                            key={`visit-concern-${concern.id}`}
-                            className="w-full p-3 surface-card"
-                          >
-                            {/* Header Concern: Nama (Kiri) & Status (Kanan) */}
-                            <div className="flex justify-content-start gap-3 align-items-center mb-2">
-                              <span className="font-semibold text-lg text-color">
-                                {concern?.category?.name}
-                              </span>
-                              <div>
-                                <GetTag status={concern?.status} />
-                              </div>
-                            </div>
-
-                            {/* Notes */}
-                            {concern?.notes && (
-                              <div className="text-sm p-2 text-color-secondary line-height-3">
-                                {concern.notes}
-                              </div>
-                            )}
-
-                            {concern.follow_ups && concern.follow_ups.length > 0 ? (
-                              <div className="flex flex-column gap-2 mt-2">
-                                {/* Panggil komponen Timeline di sini */}
-                                <VisitTimeLine
-                                  events={concern.follow_ups.map((followUp) => ({
-                                    notes: followUp.notes,
-                                    concern_status: followUp.concern_status,
-                                    date: formatDate(followUp.created_at, { withTime: true }),
-                                    icon: 'pi pi-check',
-                                    color: 'var(--primary-color)',
-                                    next_follow_up_date: formatDate(followUp.next_follow_up_date, {
-                                      withTime: false,
-                                    }),
-                                  }))}
-                                />
-                              </div>
-                            ) : null}
-
-                            {concern?.status?.requires_action && (
-                              <Button
-                                size="small"
-                                label="Follow Up"
-                                severity="success"
-                                className="mt-2"
-                                outlined
-                                onClick={() => handleClickFollowUp(concern)}
-                              />
-                            )}
-                            {visitItemConcern.length - 1 !== index && <Divider />}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+        {(offeredDistributor?.length ?? 0) > 0 && (
+          <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
+            {offeredDistributor?.map((distributorItem) => {
+              const category = distributorItem.category
+              const visitItems = distributorItem.items
+              return (
+                <div key={`distributor-${category}`} className="py-3">
+                  <h5>{category}</h5>
+                  <div className="grid">
+                    {visitItems.map((visitItem) => {
+                      return (
+                        <OfferedProduct
+                          visitItem={visitItem}
+                          key={visitItem.id.toString()}
+                          handleFollowUp={handleClickFollowUp}
+                        />
+                      )
+                    })}
                   </div>
-                </Card>
-              </div>
-            )
-          })}
-        </div>
+                </div>
+              )
+            })}
+          </Card>
+        )}
+        {(offeredGroceries?.length ?? 0) > 0 && (
+          <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
+            <div className="grid">
+              {offeredGroceries?.map((groceriesItem) => {
+                return (
+                  <OfferedProduct
+                    visitItem={groceriesItem}
+                    key={groceriesItem.id.toString()}
+                    handleFollowUp={handleClickFollowUp}
+                  />
+                )
+              })}
+            </div>
+          </Card>
+        )}
       </div>
 
       <Dialog
