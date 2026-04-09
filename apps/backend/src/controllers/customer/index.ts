@@ -492,7 +492,7 @@ export const getSuggestedItems = async (
             visit_item_concerns: {
               some: {
                 status: {
-                  status: 'Done'
+                  requires_action: false
                 }
               }
             }
@@ -504,7 +504,7 @@ export const getSuggestedItems = async (
             },
             visit_item_concerns: {
               some: {
-                status: { status: 'Closed' }
+                status: { requires_action: false }
               }
             }
           }

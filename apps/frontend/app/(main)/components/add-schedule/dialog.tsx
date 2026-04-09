@@ -32,6 +32,41 @@ export default function AddScheduleDialog() {
     scheduleDate: null,
   })
 
+  const [errors, setErrors] = useState<Record<keyof FormData, string>>({
+    salesPersonId: '',
+    customer: '',
+    scheduleDate: '',
+  })
+
+  const validateForm = () => {
+    const newErrors: Record<keyof FormData, string> = {
+      salesPersonId: '',
+      customer: '',
+      scheduleDate: '',
+    }
+
+    if (!formData.salesPersonId) {
+      newErrors.salesPersonId = 'Sales Person is required'
+    }
+
+    if (!formData.customer) {
+      newErrors.customer = 'Customer is required'
+    } else if (typeof formData.customer === 'string' || !formData.customer.CardCode) {
+      newErrors.customer = 'Please select a valid customer'
+    }
+
+    if (!formData.scheduleDate) {
+      newErrors.scheduleDate = 'Schedule Date is required'
+    }
+
+    setErrors((prev) => ({
+      ...prev,
+      ...newErrors,
+    }))
+
+    return !Object.values(newErrors).some((err) => err !== '')
+  }
+
   const minDate = new Date()
 
   useEffect(() => {
@@ -78,19 +113,26 @@ export default function AddScheduleDialog() {
     }
   }, [formData.salesPersonId])
 
+  useEffect(() => {
+    if (customers.length === 0 && localSearch) {
+      setErrors((prev) => ({ ...prev, customer: 'Customer not found' }))
+    }
+  }, [customers, localSearch])
   const handleCreateSchedule = async () => {
-    try {
-      const paylaod: Partial<IVisit> = {
-        sales_person_id: Number(formData.salesPersonId),
-        customer_id: Number(formData.customer?.id),
-        visit_date: formData.scheduleDate,
-      }
+    if (validateForm()) {
+      try {
+        const paylaod: Partial<IVisit> = {
+          sales_person_id: Number(formData.salesPersonId),
+          customer_id: Number(formData.customer?.id),
+          visit_date: formData.scheduleDate,
+        }
 
-      await createVisitSchedule(paylaod)
-      hide()
-    } catch (error) {
-      console.error(error)
-      throw error
+        await createVisitSchedule(paylaod)
+        hide()
+      } catch (error) {
+        console.error(error)
+        throw error
+      }
     }
   }
 
@@ -143,10 +185,13 @@ export default function AddScheduleDialog() {
                 }))}
               onChange={(e) => {
                 setFormData({ ...formData, salesPersonId: e.value, customer: null })
+                if (errors.salesPersonId) setErrors({ ...errors, salesPersonId: '' })
               }}
-              clearIcon="pi pi-times"
+              clearIcon="pi pi-times "
+              className={`${errors.salesPersonId ? 'p-invalid' : ''}`}
               showClear
             />
+            {errors.salesPersonId && <small className="p-error">{errors.salesPersonId}</small>}
           </div>
         )}
 
@@ -166,11 +211,16 @@ export default function AddScheduleDialog() {
             }}
             onChange={(e) => {
               setFormData({ ...formData, customer: e.value })
+              if (e.value && typeof e.value !== 'string') {
+                setErrors((prev) => ({ ...prev, customer: '' }))
+              }
             }}
             field="CardName"
             dropdown
             virtualScrollerOptions={{ itemSize: 38 }}
+            className={`${errors.customer ? 'p-invalid' : ''}`}
           />
+          {errors.customer && <small className="p-error">{errors.customer}</small>}
         </div>
 
         <div className="inline-flex flex-column gap-2 w-full my-2">
@@ -181,10 +231,16 @@ export default function AddScheduleDialog() {
             inputId="scheduledDate"
             value={formData.scheduleDate}
             minDate={minDate}
-            onChange={(e) => setFormData({ ...formData, scheduleDate: e.value as Date })}
+            onChange={(e) => {
+              setFormData({ ...formData, scheduleDate: e.value as Date })
+              if (errors.scheduleDate) setErrors({ ...errors, scheduleDate: '' })
+            }}
             showIcon
             required
+            showButtonBar
+            className={`${errors.scheduleDate ? 'p-invalid' : ''}`}
           />
+          {errors.scheduleDate && <small className="p-error">{errors.scheduleDate}</small>}
         </div>
       </>
     </Dialog>

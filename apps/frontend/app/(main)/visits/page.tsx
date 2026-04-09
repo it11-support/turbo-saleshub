@@ -82,6 +82,7 @@ const VisitList = () => {
 
   useEffect(() => {
     fetchVisits()
+    setExportData([])
   }, [])
 
   useEffect(() => {
@@ -104,6 +105,9 @@ const VisitList = () => {
   useEffect(() => {
     if (exportDates || salesPersonFilter) {
       fetchExportedData()
+    }
+    if (!exportDates && !salesPersonFilter) {
+      setExportData([])
     }
   }, [exportDates, salesPersonFilter])
 
