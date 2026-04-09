@@ -45,7 +45,7 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
         })
 
         if (newVisit?.id) {
-          router.push(`/visit/${newVisit.id}`)
+          router.push(`/visits/${newVisit.id}`)
         }
         return
       } catch (error) {
@@ -55,9 +55,9 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
     }
 
     if (status === 'completed') {
-      router.push(`/visit/details/${schedule.id}`)
+      router.push(`/visits/details/${schedule.id}`)
     } else {
-      router.push(`/visit/${schedule.id}`)
+      router.push(`/visits/${schedule.id}`)
     }
   }
 

@@ -11,6 +11,7 @@ import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Divider } from 'primereact/divider'
+import { Panel } from 'primereact/panel'
 import { TabPanel, TabView } from 'primereact/tabview'
 import { useState } from 'react'
 
@@ -283,10 +284,7 @@ export const CustomerDetail = (props: Props) => {
                         opts.length > 0 &&
                         opts.map((opt) => (
                           <div className="col-12" key={opt.label}>
-                            <div className="mb-3 p-3">
-                              <div className="px-4">
-                                <span className="font-bold text-lg">{opt.label}</span>
-                              </div>
+                            <Panel header={opt.label} toggleable>
                               <div className="grid">
                                 {items
                                   .filter((item) => item.ProductCategory === opt.value)
@@ -294,7 +292,7 @@ export const CustomerDetail = (props: Props) => {
                                     <ProductCard key={item.ItemCode} item={item} />
                                   ))}
                               </div>
-                            </div>
+                            </Panel>
                           </div>
                         ))}
                       {items

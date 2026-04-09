@@ -64,10 +64,10 @@ const VisitListTable = () => {
 
   const handleClickEdit = (data: IVisit) => {
     if (data.status === 'Ongoing') {
-      router.push(`/visit/${data.id}`)
+      router.push(`/visits/${data.id}`)
       return
     }
-    router.push(`/visit/details/${data.id}`)
+    router.push(`/visits/details/${data.id}`)
   }
 
   const statusBodyTemplate = (rowData: SalesVisit) => {

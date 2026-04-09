@@ -148,7 +148,7 @@ const NewCustomerPage = () => {
 
       const newVisit = await createVisitSchedule(paylaod)
       if (newVisit?.id) {
-        router.push(`/visit/${newVisit.id}`)
+        router.push(`/visits/${newVisit.id}`)
       }
       setNewCustomerForm({})
     }
