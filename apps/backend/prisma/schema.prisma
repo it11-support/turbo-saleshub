@@ -632,6 +632,7 @@ enum FollowUpType {
   Visit
   WhatsApp
   Email
+  Override
 }
 
 enum CustomerSegment {

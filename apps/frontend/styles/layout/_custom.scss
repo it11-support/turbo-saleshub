@@ -27,6 +27,28 @@
   }
 
 
+.customized-timeline.p-timeline.p-timeline-vertical
+.p-timeline-event:nth-child(odd)
+.p-timeline-event-content,
+.customized-timeline.p-timeline.p-timeline-vertical
+.p-timeline-event:nth-child(odd)
+.p-timeline-event-opposite {
+  padding-right: 0;
+}
+
+.customized-timeline.p-timeline.p-timeline-vertical
+.p-timeline-event:nth-child(even)
+.p-timeline-event-content,
+.customized-timeline.p-timeline.p-timeline-vertical
+.p-timeline-event:nth-child(even)
+.p-timeline-event-opposite {
+  padding-left: 0;
+}
+
+.customized-timeline .p-timeline-event-content .p-card {
+  margin: 0;
+}
+
 
 @media screen and (max-width: 991px) {
     .customized-timeline .p-timeline-event:nth-child(even) {
@@ -42,5 +64,11 @@
     }
     .customized-timeline .p-card {
         margin-top: 1rem;
+    }
+    .customized-timeline.p-timeline.p-timeline-vertical
+    .p-timeline-event-content{
+      padding-left: 1rem !important;
+      padding-right: 0;
+      padding-bottom: 1rem !important;
     }
 }

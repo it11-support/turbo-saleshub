@@ -33,7 +33,9 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
   }
 
   const cardTitle = (status: IConcernStatus) => (
-    <span style={{ color: variantColors[status.level!], fontWeight: 'bold' }}>{status.status}</span>
+    <span style={{ color: variantColors[status.level!], fontWeight: 'bold', fontSize: '1.3rem' }}>
+      {status.status}
+    </span>
   )
 
   const customizedContent = (item: VisitTimeLineProps) => {
@@ -41,7 +43,14 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
       ? new Date(item.next_follow_up_date) < new Date()
       : false
     return (
-      <Card title={cardTitle(item.concern_status)} subTitle={item.date}>
+      <Card
+        title={cardTitle(item.concern_status)}
+        subTitle={item.date}
+        pt={{
+          body: { className: 'p-3' },
+          content: { className: 'p-0' },
+        }}
+      >
         <p>{item.notes}</p>
         {item.next_follow_up_date && item.next_follow_up_date !== '-' && (
           <div className="mt-2">

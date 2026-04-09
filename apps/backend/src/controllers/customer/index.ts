@@ -446,7 +446,6 @@ export const getSuggestedItems = async (
 ): Promise<{ groceries: any[], distributor: any[] }> => {
   try {
 
-    const pareto = await getParetoProducts(id);
     // 1. Ambil customer + subgroup
     const customer = await prisma.customers.findUnique({
       where: { id },
@@ -533,6 +532,9 @@ export const getSuggestedItems = async (
       }))
       .filter((p) => !boughtSet.has(p.ItemCode))
       .sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
+
+    const pareto = await getParetoProducts(id);
+
 
     let paretoProduct = pareto.sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
 

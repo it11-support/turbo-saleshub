@@ -1,6 +1,9 @@
 import prisma from "@/libs/prisma.js";
 
-export const getParetoProducts = async (customerId: number) => {
+export const getParetoProducts = async (
+  customerId: number,
+  excludeProductIds: Set<number> = new Set()
+) => {
   const customer = await prisma.customers.findUnique({
     where: { id: customerId },
     include: { subgroup: true },
@@ -10,7 +13,6 @@ export const getParetoProducts = async (customerId: number) => {
 
   const subgroupId = customer.subgroup?.IndCode;
   const hasValidCardCode = Boolean(customer.CardCode);
-
   const totalLimit = 20;
 
   // =============================
@@ -20,47 +22,64 @@ export const getParetoProducts = async (customerId: number) => {
     where: { Distributor: 'N' },
   });
 
+  if (!productsN.length) return [];
+
+  const productIdMap = new Map(
+    productsN.map((p) => [p.ItemCode, p.id])
+  );
+
   const itemCodesN = productsN.map((p) => p.ItemCode);
-  if (itemCodesN.length === 0) return [];
+
+  // =============================
+  // CUSTOMER HISTORY
+  // =============================
+  let boughtItemCodes = new Set<string>();
+
+  if (hasValidCardCode) {
+    const history = await prisma.sales_invoices.findMany({
+      where: { CardCode: customer.CardCode! },
+      select: { ItemCode: true },
+      distinct: ['ItemCode'],
+    });
+
+    boughtItemCodes = new Set(history.map((c) => c.ItemCode));
+  }
 
   // =============================
   // GLOBAL PARETO
   // =============================
   const productSalesGlobal = await prisma.sales_invoices.groupBy({
     by: ['ItemCode'],
-    where: {
-      ItemCode: { in: itemCodesN },
-    },
+    where: { ItemCode: { in: itemCodesN } },
     _sum: { TotalSales: true },
     orderBy: { _sum: { TotalSales: 'desc' } },
   });
 
-  if (productSalesGlobal.length === 0) return [];
-
-  const grandTotalGlobal = productSalesGlobal.reduce(
-    (sum, p) => sum + Number(p._sum.TotalSales ?? 0),
-    0
-  );
-
-  let runningTotalGlobal = 0;
-  const topParetoGlobalItemCodes: string[] = [];
   const totalMapGlobal = new Map<string, number>();
+  const topGlobal: string[] = [];
 
   for (const p of productSalesGlobal) {
     const total = Number(p._sum.TotalSales ?? 0);
-    runningTotalGlobal += total;
 
-    topParetoGlobalItemCodes.push(p.ItemCode);
-    totalMapGlobal.set(p.ItemCode, total);
+    const productId = productIdMap.get(p.ItemCode);
 
-    if (runningTotalGlobal / grandTotalGlobal >= 0.8) break;
+    const isExcluded =
+      boughtItemCodes.has(p.ItemCode) ||
+      (productId ? excludeProductIds.has(Number(productId)) : false);
+
+    if (!isExcluded) {
+      topGlobal.push(p.ItemCode);
+      totalMapGlobal.set(p.ItemCode, total);
+    }
+
+    if (topGlobal.length >= totalLimit) break;
   }
 
   // =============================
-  // SUBGROUP PARETO (optional)
+  // SUBGROUP PARETO
   // =============================
-  let topParetoSubgroupItemCodes: string[] = [];
-  const totalMapSubgroup = new Map<string, number>();
+  const totalMapSub = new Map<string, number>();
+  const topSub: string[] = [];
 
   if (subgroupId && hasValidCardCode) {
     const cardCodes = (
@@ -72,8 +91,8 @@ export const getParetoProducts = async (customerId: number) => {
       .map((c) => c.CardCode)
       .filter((c): c is string => Boolean(c));
 
-    if (cardCodes.length > 0) {
-      const productSalesSubgroup = await prisma.sales_invoices.groupBy({
+    if (cardCodes.length) {
+      const salesSub = await prisma.sales_invoices.groupBy({
         by: ['ItemCode'],
         where: {
           CardCode: { in: cardCodes },
@@ -83,141 +102,116 @@ export const getParetoProducts = async (customerId: number) => {
         orderBy: { _sum: { TotalSales: 'desc' } },
       });
 
-      if (productSalesSubgroup.length > 0) {
-        const grandTotalSubgroup = productSalesSubgroup.reduce(
-          (sum, p) => sum + Number(p._sum.TotalSales ?? 0),
-          0
-        );
+      for (const p of salesSub) {
+        const total = Number(p._sum.TotalSales ?? 0);
 
-        let runningTotalSubgroup = 0;
+        const productId = productIdMap.get(p.ItemCode);
 
-        for (const p of productSalesSubgroup) {
-          const total = Number(p._sum.TotalSales ?? 0);
-          runningTotalSubgroup += total;
+        const isExcluded =
+          boughtItemCodes.has(p.ItemCode) ||
+          (productId ? excludeProductIds.has(Number(productId)) : false);
 
-          topParetoSubgroupItemCodes.push(p.ItemCode);
-          totalMapSubgroup.set(p.ItemCode, total);
-
-          if (runningTotalSubgroup / grandTotalSubgroup >= 0.8) break;
+        if (!isExcluded) {
+          topSub.push(p.ItemCode);
+          totalMapSub.set(p.ItemCode, total);
         }
+
+        if (topSub.length >= totalLimit) break;
       }
     }
   }
 
   // =============================
-  // CUSTOMER HISTORY (optional)
+  // FETCH PRODUCTS
   // =============================
-  let boughtItemCodes = new Set<string>();
+  const allCodes = Array.from(new Set([...topSub, ...topGlobal]));
 
-  if (hasValidCardCode) {
-    const customerHistory = await prisma.sales_invoices.findMany({
-      where: { CardCode: customer.CardCode! },
-      select: { ItemCode: true },
-      distinct: ['ItemCode'],
-    });
+  const products = await prisma.products.findMany({
+    where: { ItemCode: { in: allCodes } },
+  });
 
-    boughtItemCodes = new Set(customerHistory.map((c) => c.ItemCode));
-  }
+  const productMap = new Map(products.map((p) => [p.ItemCode, p]));
 
   // =============================
-  // FILTER SUGGESTION
+  // BUILD RESULT
   // =============================
-  const productToSuggestSubgroup = hasValidCardCode
-    ? topParetoSubgroupItemCodes.filter((ic) => !boughtItemCodes.has(ic))
-    : [];
+  const final: any[] = [];
+  const used = new Set<string>();
 
-  const productToSuggestGlobal = hasValidCardCode
-    ? topParetoGlobalItemCodes.filter((ic) => !boughtItemCodes.has(ic))
-    : topParetoGlobalItemCodes; // fallback for customer baru
+  const pushItems = (codes: string[], totalMap: Map<string, number>) => {
+    for (const code of codes) {
+      if (used.has(code)) continue;
 
-  const allSuggestedItemCodes = Array.from(
-    new Set([...productToSuggestSubgroup, ...productToSuggestGlobal])
-  );
+      const p = productMap.get(code);
+      if (!p) continue;
 
-  const suggestedProducts =
-    allSuggestedItemCodes.length > 0
-      ? await prisma.products.findMany({
-          where: { ItemCode: { in: allSuggestedItemCodes } },
-        })
-      : [];
+      final.push({
+        ...p,
+        totalSales: totalMap.get(code) ?? 0,
+        isDevelopment: false,
+      });
 
-  const productByCode = new Map(
-    suggestedProducts.map((p) => [p.ItemCode, p])
-  );
+      used.add(code);
 
-  // =============================
-  // DEVELOPMENT PRODUCTS
-  // =============================
-  const productDevelopments = subgroupId
-    ? await prisma.products.findMany({
-        where: {
-          Distributor: 'N',
-          product_developments: {
-            some: {
-              subgroup: { IndCode: subgroupId },
-            },
-          },
-          ...(hasValidCardCode && {
-            ItemCode: { notIn: Array.from(boughtItemCodes) },
-          }),
-        },
-        include: { product_developments: true },
-      })
-    : [];
-
-  const devItems = productDevelopments
-    .map((p) => ({
-      ...p,
-      totalSales:
-        totalMapSubgroup.get(p.ItemCode) ??
-        totalMapGlobal.get(p.ItemCode) ??
-        0,
-      isDevelopment: true,
-    }))
-    .sort((a, b) => b.totalSales - a.totalSales);
-
-  const subgroupItems = productToSuggestSubgroup
-    .map((code) => productByCode.get(code))
-    .filter((p): p is NonNullable<typeof p> => Boolean(p))
-    .map((p) => ({
-      ...p,
-      totalSales: totalMapSubgroup.get(p.ItemCode) ?? 0,
-      isDevelopment: false,
-    }))
-    .sort((a, b) => b.totalSales - a.totalSales);
-
-  const globalItems = productToSuggestGlobal
-    .map((code) => productByCode.get(code))
-    .filter((p): p is NonNullable<typeof p> => Boolean(p))
-    .map((p) => ({
-      ...p,
-      totalSales: totalMapGlobal.get(p.ItemCode) ?? 0,
-      isDevelopment: false,
-    }))
-    .sort((a, b) => b.totalSales - a.totalSales);
-
-  // =============================
-  // MERGE RESULT
-  // =============================
-  const mergedProductsMap = new Map<string, any>();
-  const finalSuggestedProducts: any[] = [];
-
-  const addToResult = (items: any[], limit: number) => {
-    let added = 0;
-    for (const item of items) {
-      if (mergedProductsMap.has(item.ItemCode)) continue;
-
-      mergedProductsMap.set(item.ItemCode, item);
-      finalSuggestedProducts.push(item);
-
-      added++;
-      if (added >= limit) break;
+      if (final.length >= totalLimit) return;
     }
   };
 
-  addToResult(devItems, totalLimit);
-  addToResult(subgroupItems, totalLimit - finalSuggestedProducts.length);
-  addToResult(globalItems, totalLimit - finalSuggestedProducts.length);
+  pushItems(topSub, totalMapSub);
+  pushItems(topGlobal, totalMapGlobal);
 
-  return finalSuggestedProducts.slice(0, totalLimit);
+  // =============================
+  // DEVELOPMENT (PRIORITY)
+  // =============================
+  if (final.length < totalLimit && subgroupId) {
+    const dev = await prisma.products.findMany({
+      where: {
+        Distributor: 'N',
+        product_developments: {
+          some: {
+            subgroup: { IndCode: subgroupId },
+          },
+        },
+      },
+      include: { product_developments: true },
+      take: totalLimit,
+    });
+
+    for (const p of dev) {
+      if (used.has(p.ItemCode)) continue;
+
+      final.unshift({
+        ...p,
+        totalSales: 0,
+        isDevelopment: true,
+      });
+
+      used.add(p.ItemCode);
+
+      if (final.length >= totalLimit) break;
+    }
+  }
+
+  // =============================
+  // FALLBACK (FIX TOTAL)
+  // =============================
+  if (final.length < totalLimit) {
+    const fallback = await prisma.products.findMany({
+      where: {
+        Distributor: 'N',
+        ItemCode: { notIn: Array.from(used) },
+      },
+      take: totalLimit - final.length,
+    });
+
+    final.push(
+      ...fallback.map((p) => ({
+        ...p,
+        totalSales: 0,
+        isDevelopment: false,
+      }))
+    );
+  }
+
+  return final.slice(0, totalLimit);
 };

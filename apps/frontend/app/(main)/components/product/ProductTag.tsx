@@ -19,6 +19,15 @@ const ProductTag = (props: Props) => {
   return (
     <Tag
       className="mr-2"
+      pt={{
+        root: {
+          style: {
+            height: '1.25rem',
+            lineHeight: '1.25rem',
+            fontSize: '0.65rem',
+          },
+        },
+      }}
       icon={status.icon}
       severity={status.level ? TAG_SEVERITY_MAP[status.level] : undefined}
       value={status.status}

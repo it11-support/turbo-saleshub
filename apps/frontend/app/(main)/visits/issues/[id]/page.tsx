@@ -118,7 +118,7 @@ const VisitIssuesPage = () => {
               const category = distributorItem.category
               const visitItems = distributorItem.items
               return (
-                <div key={`distributor-${category}`} className="py-3">
+                <div key={`distributor-${category}`} className="pb-3">
                   <h5>{category}</h5>
                   <div className="grid">
                     {visitItems.map((visitItem) => {
