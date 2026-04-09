@@ -16,6 +16,7 @@ import { useAuth } from '@/layout/context/AuthContext'
 import { useUserStore, useVisitsStore } from '@/stores'
 
 type VisitMainRow = {
+  'Visit ID': string
   'Visit Date': string
   Sales: string
   Customer: string
@@ -28,6 +29,8 @@ type VisitMainRow = {
   'Item Notes': string
   Topic: string
   'Follow Up Status': string
+  'Follow Up Date': string
+  'Follow Up Type': string
 }
 
 type InquiryRow = {
@@ -127,6 +130,7 @@ const VisitList = () => {
       }
 
       const baseRow = {
+        'Visit ID': visit.id.toString(),
         'Visit Date': visit.visit_date
           ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
           : '',
@@ -150,26 +154,59 @@ const VisitList = () => {
 
         if (concerns.length === 0) {
           visitRows.push({
+            'Visit ID': visit.id.toString(),
+            'Visit Date': visit.visit_date
+              ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
+              : '',
+            Sales: visit.salesPerson?.SlpName ?? '',
+            Customer: visit.customer?.CardName ?? '',
+            Status: visit.status ?? '',
             'Offered Item': item.product?.ItemName ?? '',
             Topic: '',
             'Item Notes': item.notes ?? '',
             'Follow Up Status': '',
+            'Follow Up Date': '',
+            'Follow Up Type': '',
+            'Inquiry Product': '',
+            'Inquiry Notes': '',
           })
         } else {
           concerns.forEach((concern) => {
             visitRows.push({
+              'Visit ID': visit.id.toString(),
+              'Visit Date': visit.visit_date
+                ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
+                : '',
+              Sales: visit.salesPerson?.SlpName ?? '',
+              Customer: visit.customer?.CardName ?? '',
+              Status: visit.status ?? '',
               'Offered Item': item.product?.ItemName ?? '',
               Topic: `• ${concern.category?.name ?? ''}`,
               'Item Notes': concern.notes ?? '',
               'Follow Up Status': concern.status?.status ?? '',
+              'Follow Up Date': '',
+              'Follow Up Type': '',
+              'Inquiry Product': '',
+              'Inquiry Notes': '',
             })
 
             concern.follow_ups?.forEach((fu) => {
               visitRows.push({
+                'Visit ID': visit.id.toString(),
+                'Visit Date': visit.visit_date
+                  ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
+                  : '',
+                Sales: visit.salesPerson?.SlpName ?? '',
+                Customer: visit.customer?.CardName ?? '',
+                Status: visit.status ?? '',
                 'Offered Item': '',
                 Topic: '',
                 'Item Notes': fu.notes ?? '',
                 'Follow Up Status': fu.concern_status?.status ?? '',
+                'Follow Up Date': format(new Date(fu.created_at), 'EEE MMM do, yyyy HH:mm'),
+                'Follow Up Type': fu.type ?? '',
+                'Inquiry Product': '',
+                'Inquiry Notes': '',
               })
             })
           })
@@ -180,10 +217,21 @@ const VisitList = () => {
 
       if (visitRows.length === 0 && (inquiries.length > 0 || visit)) {
         visitRows.push({
+          'Visit ID': visit.id.toString(),
+          'Visit Date': visit.visit_date
+            ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
+            : '',
+          Sales: visit.salesPerson?.SlpName ?? '',
+          Customer: visit.customer?.CardName ?? '',
+          Status: visit.status ?? '',
           'Offered Item': '',
           Topic: '',
           'Item Notes': '',
           'Follow Up Status': '',
+          'Follow Up Date': '',
+          'Follow Up Type': '',
+          'Inquiry Product': '',
+          'Inquiry Notes': '',
         })
       }
 
@@ -195,10 +243,19 @@ const VisitList = () => {
         } else {
           // Jika baris item sudah habis tapi inquiry masih ada, buat baris baru
           visitRows.push({
+            'Visit ID': visit.id.toString(),
+            'Visit Date': visit.visit_date
+              ? format(new Date(visit.visit_date), 'EEE MMM do, yyyy')
+              : '',
+            Sales: visit.salesPerson?.SlpName ?? '',
+            Customer: visit.customer?.CardName ?? '',
+            Status: visit.status ?? '',
             'Offered Item': '',
             Topic: '',
             'Item Notes': '',
             'Follow Up Status': '',
+            'Follow Up Date': '',
+            'Follow Up Type': '',
             'Inquiry Product': inq.product_name ?? '',
             'Inquiry Notes': inq.notes ?? '',
           })
@@ -211,6 +268,8 @@ const VisitList = () => {
           ...row,
         })
       })
+      setExportDates(null)
+      setSalesPersonFilter(null)
     })
 
     // Export Logic (XLSX)
@@ -222,7 +281,7 @@ const VisitList = () => {
     const ws = XLSX.utils.json_to_sheet(data)
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
 
-    const lastCol = 13
+    const lastCol = 17
 
     for (let C = 0; C <= lastCol; C++) {
       const ref = XLSX.utils.encode_cell({ r: 0, c: C })
@@ -270,12 +329,40 @@ const VisitList = () => {
       return keys
     }, [])
 
+    const wrapColumns = ['Visit Note', 'Item Notes']
+    const MAX_WIDTH = 50
+
+    const colIndexMap: Record<string, number> = {}
+    allKeys.forEach((key, index) => {
+      colIndexMap[key] = index
+    })
+
+    wrapColumns.forEach((colName) => {
+      const colIndex = colIndexMap[colName]
+      if (colIndex === undefined) return
+
+      for (let R = 1; R <= range.e.r; R++) {
+        const ref = XLSX.utils.encode_cell({ r: R, c: colIndex })
+
+        if (!ws[ref]) continue
+
+        ws[ref].s = {
+          ...(ws[ref].s || {}),
+          alignment: {
+            ...(ws[ref].s?.alignment || {}),
+            wrapText: true,
+            vertical: 'top',
+          },
+        }
+      }
+    })
+
     const cols = allKeys.map((key) => {
       const maxLength = Math.max(
         key.length,
         ...data.map((row) => String(row[key as keyof VisitRow] ?? '').length)
       )
-      return { wch: maxLength + 2 }
+      return { wch: Math.min(maxLength + 2, MAX_WIDTH) }
     })
 
     ws['!cols'] = cols
