@@ -18,6 +18,10 @@ export interface ISalesSummaryState {
   productRevenueDistributor: { ItemName: string, orders: number, revenue: number}[],
   productRevenueGrocery: { ItemName: string, orders: number, revenue: number}[],
   newVsReturning: {newCustomer: number, returningCustomer: number},
+  revenueMtd: TRevenueSummary
+  ordersMtd: TRevenueSummary
+  customersMtd: TRevenueSummary
+  aovMtd: TRevenueSummary
   CRR: number,
   RPR: number,
   RFM: {segment: string, count: number}[],

@@ -3,7 +3,6 @@
 import { LayoutContext } from '../../layout/context/layoutcontext'
 import { TooltipItem } from 'chart.js'
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
-import dayjs from 'dayjs'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 import { Knob } from 'primereact/knob'
@@ -12,7 +11,6 @@ import { useContext, useEffect } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { formatCurrency } from '@/lib/formatter'
-import { calculateGrowth } from '@/lib/utils'
 import { useDashboardStore } from '@/stores'
 import 'chartjs-adapter-date-fns'
 import { TMonthTodateSummary } from '@/types'
@@ -32,6 +30,10 @@ const Dashboard = () => {
     CRR,
     RPR,
     RFM,
+    revenueMtd,
+    ordersMtd,
+    customersMtd,
+    aovMtd,
     monthlyTrend,
   } = dashboard
 
@@ -51,16 +53,6 @@ const Dashboard = () => {
     }
   }, [layoutConfig.colorScheme])
 
-  const now = dayjs()
-  const prevMonth = now.subtract(1, 'month')
-
-  const currentMonthData = monthlyTrend.find(
-    (item) => item.year === now.year() && item.month === now.month() + 1
-  )
-  const prevMonthData = monthlyTrend.find(
-    (item) => item.year === prevMonth.year() && item.month === prevMonth.month() + 1
-  )
-
   const trendLabel = monthlyTrend.map(
     (item) => `${item.year}-${item.month.toString().padStart(2, '0')}`
   )
@@ -73,13 +65,10 @@ const Dashboard = () => {
   const aovData = monthlyTrend.map((item) => item.revenue / item.orders)
 
   const summary: TMonthTodateSummary = {
-    revenue: calculateGrowth(currentMonthData?.revenue ?? 0, prevMonthData?.revenue ?? 0),
-    orders: calculateGrowth(currentMonthData?.orders ?? 0, prevMonthData?.orders ?? 0),
-    customers: calculateGrowth(currentMonthData?.customers ?? 0, prevMonthData?.customers ?? 0),
-    aov: calculateGrowth(
-      currentMonthData ? currentMonthData.revenue / currentMonthData.orders : 0,
-      prevMonthData ? prevMonthData.revenue / prevMonthData.orders : 0
-    ),
+    revenue: revenueMtd,
+    orders: ordersMtd,
+    customers: customersMtd,
+    aov: aovMtd,
   }
 
   const slpRevenueLabel = slpRevenue.map((item) => item.slp)

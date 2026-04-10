@@ -2,7 +2,7 @@ import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { ISalesSummaryState, TMonthTodateSummary } from '@/types'
+import { ISalesSummaryState, TMonthTodateSummary, TRevenueSummary } from '@/types'
 
 export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   monthlyTrend: [],
@@ -12,6 +12,10 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   aovTrend: [],
   slpRevenue:[],
   newVsReturning: {newCustomer: 0, returningCustomer: 0},
+  revenueMtd: {} as TRevenueSummary,
+  ordersMtd: {} as TRevenueSummary,
+  customersMtd: {} as TRevenueSummary,
+  aovMtd: {} as TRevenueSummary,
   CRR: 0,
   RPR: 0,
   RFM: [],
@@ -68,6 +72,10 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
         RPR: res.data.RPR,
         RFM: res.data.RFM,
         monthlyTrend: res.data.monthlyTrend,
+        revenueMtd: res.data.revenueMtd,
+        ordersMtd: res.data.ordersMtd,
+        customersMtd: res.data.customersMtd,
+        aovMtd: res.data.aovMtd,
       })
     } catch (error) {
       console.error(error)
