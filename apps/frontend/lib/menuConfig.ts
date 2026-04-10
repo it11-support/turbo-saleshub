@@ -55,8 +55,8 @@ export const menuConfig: MenuSection[] = [
       {
         label: 'New Customer',
         icon: 'pi pi-fw pi-user-plus',
-        to: '/customers/new',
-        badge: 'NEW',
+        type: 'action',
+        commandKey: 'newCustomer',
       },
     ],
   },

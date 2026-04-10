@@ -14,6 +14,7 @@ import useIsMobile from './mobile/useIsMobile'
 
 import { AppTopbarRef, ChildContainerProps, LayoutState } from '@/types'
 import AddScheduleDialog from '@/app/(main)/components/add-schedule/dialog'
+import NewCustomerDialog from '@/app/(main)/components/customer/new-customer'
 
 const Layout = ({ children }: ChildContainerProps) => {
   const { layoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
@@ -144,6 +145,7 @@ const Layout = ({ children }: ChildContainerProps) => {
         <AppConfig />
         <div className="layout-mask"></div>
         <AddScheduleDialog />
+        <NewCustomerDialog />
       </div>
     </React.Fragment>
   )

@@ -18,7 +18,7 @@ interface FormData {
 }
 
 export default function AddScheduleDialog() {
-  const { open, hide } = useScheduleDialog()
+  const { activeDialog, hide } = useScheduleDialog()
   const { isAdmin, user } = useAuth()
   const [localSearch, setLocalSearch] = useState<string>('')
   const { fetchSalesPersons, salesPersons } = useUserStore()
@@ -76,7 +76,7 @@ export default function AddScheduleDialog() {
   }, [isAdmin])
 
   useEffect(() => {
-    if (open) {
+    if (activeDialog === 'schedule') {
       const slpId = isAdmin ? null : Number(user?.sales_person?.id)
       setFormData((prev) => ({ ...prev, salesPersonId: slpId }))
 
@@ -87,16 +87,16 @@ export default function AddScheduleDialog() {
       setFormData({ salesPersonId: null, customer: null, scheduleDate: null })
       setLocalSearch('')
     }
-  }, [open, user, isAdmin])
+  }, [activeDialog, user, isAdmin])
 
   useEffect(() => {
-    if (!open && originalLimit.current !== null) {
+    if (!activeDialog && originalLimit.current !== null) {
       setLimit(originalLimit.current)
     }
-  }, [open])
+  }, [activeDialog])
 
   useEffect(() => {
-    if (!open || !formData.salesPersonId) return
+    if (!activeDialog || !formData.salesPersonId) return
 
     const delay = setTimeout(() => {
       setSearch(localSearch)
@@ -141,7 +141,7 @@ export default function AddScheduleDialog() {
       dismissableMask
       blockScroll
       header="Add Visit Schedule"
-      visible={open}
+      visible={activeDialog === 'schedule'}
       style={{ width: '100%', maxWidth: '500px' }}
       className="mx-auto md:w-30rem"
       onHide={hide}

@@ -1,10 +1,6 @@
-import { useScheduleDialog } from '@/stores'
 import { menuConfig } from '@/lib/menuConfig'
 import { Role } from '@saleshub-tsm/types'
 
-const showAddScheduleDialog = () => {
-  useScheduleDialog.getState().show()
-}
 
 export const getMenus = (role: Role) => {
   return menuConfig

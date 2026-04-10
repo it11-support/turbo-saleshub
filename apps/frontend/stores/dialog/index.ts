@@ -1,13 +1,15 @@
 import { create } from 'zustand'
 
+export type DialogType = 'schedule' | 'customer' | null
+
 interface ScheduleDialogStore {
-  open: boolean
-  show: () => void
+  activeDialog: DialogType
+  show: (dialog: DialogType) => void
   hide: () => void
 }
 
 export const useScheduleDialog = create<ScheduleDialogStore>((set) => ({
-  open: false,
-  show: () => set({ open: true }),
-  hide: () => set({ open: false }),
+  activeDialog: null,
+  show: (dialog) => set({ activeDialog: dialog }),
+  hide: () => set({ activeDialog: null }),
 }))

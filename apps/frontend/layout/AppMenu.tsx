@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useContext, useMemo } from 'react'
-import { useScheduleDialog } from '@/stores'
+import { DialogType, useScheduleDialog } from '@/stores'
 import AppMenuitem from './AppMenuitem'
 import { useAuth } from './context/AuthContext'
 import { MenuProvider } from './context/menucontext'
@@ -13,10 +13,19 @@ import { Role } from '@saleshub-tsm/types'
 const AppMenu = () => {
   const { logout, user, loading } = useAuth()
   const { setLayoutState } = useContext(LayoutContext)
-
+  const { show } = useScheduleDialog()
   const showAddScheduleDialog = () => {
-    useScheduleDialog.getState().show()
+    show('schedule')
   }
+
+  const showNewCustomerDialog = () => {
+    show('customer')
+  }
+
+  const showDialog = (key: DialogType) => {
+    show(key)
+  }
+
 
   const openSettings = () => {
     setLayoutState((prevState: LayoutState) => ({
@@ -26,16 +35,17 @@ const AppMenu = () => {
   }
 
   const commandMap: Record<string, () => void> = {
-    addSchedule: showAddScheduleDialog,
+    addSchedule: showDialog.bind(null, 'schedule'),
     logout,
     openSettings,
+    newCustomer: showDialog.bind(null, 'customer')
   }
 
-const baseMenus = useMemo(() => {
-  const userRole = user?.roles?.role;
-  if (!userRole) return [];
-  return getMenus(userRole as Role);
-}, [user?.roles?.role]);
+  const baseMenus = useMemo(() => {
+    const userRole = user?.roles?.role
+    if (!userRole) return []
+    return getMenus(userRole as Role)
+  }, [user?.roles?.role])
 
   const attachCommands = (items: any[]): any[] => {
     return items.map((item) => {

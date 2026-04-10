@@ -12,7 +12,7 @@ import { getMenus } from '../menu'
 import Image from 'next/image'
 import { Badge } from 'primereact/badge'
 import { Role } from '@saleshub-tsm/types'
-import { useScheduleDialog } from '@/stores'
+import { DialogType, useScheduleDialog } from '@/stores'
 
 type Props = {
   visible: boolean
@@ -23,14 +23,26 @@ const MobileSidebar = (props: Props) => {
   const { logout } = useAuth()
   const { visible, onHide } = props
   const auth = useAuth()
+  const { show } = useScheduleDialog()
+
+
 
  const showAddScheduleDialog = () => {
-    useScheduleDialog.getState().show()
+    show('schedule')
+  }
+
+  const showNewCustomerDialog = () => {
+    show('customer')
+  }
+
+  const showDialog = (key: DialogType) => {
+    show(key)
   }
 
   const commandMap: Record<string, () => void> = {
-    addSchedule: showAddScheduleDialog,
+    addSchedule: showDialog.bind(null, 'schedule'),
     logout: logout,
+    newCustomer: showDialog.bind(null, 'customer')
   }
 
 const baseMenus = useMemo(() => {
