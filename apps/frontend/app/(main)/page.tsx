@@ -7,12 +7,13 @@ import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 import { Knob } from 'primereact/knob'
 import { ProgressSpinner } from 'primereact/progressspinner'
-import { RadioButton } from 'primereact/radiobutton'
+import { SelectButton } from 'primereact/selectbutton'
 import { useContext, useEffect, useState } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { formatCurrency } from '@/lib/formatter'
 import { useDashboardStore } from '@/stores'
+
 import 'chartjs-adapter-date-fns'
 
 const Dashboard = () => {
@@ -128,28 +129,20 @@ const Dashboard = () => {
         <>
           <div className="flex flex-wrap gap-3 my-2">
             <div className="flex align-items-center">
-              <RadioButton
-                inputId="ytd"
-                name="period"
-                value="mtd"
+              <SelectButton
+                pt={{
+                  button: {
+                    className: 'p-button-sm p-2',
+                  },
+                }}
+                value={period}
                 onChange={(e) => setPeriod(e.value)}
-                checked={period === 'mtd'}
+                optionLabel="label"
+                options={[
+                  { label: 'MTD', value: 'mtd' },
+                  { label: 'YTD', value: 'ytd' },
+                ]}
               />
-              <label htmlFor="ytd" className="ml-2">
-                MTD
-              </label>
-            </div>
-            <div className="flex align-items-center">
-              <RadioButton
-                inputId="ytd"
-                name="period"
-                value="ytd"
-                onChange={(e) => setPeriod(e.value)}
-                checked={period === 'ytd'}
-              />
-              <label htmlFor="ytd" className="ml-2">
-                YTD
-              </label>
             </div>
           </div>
           <div className="grid">
