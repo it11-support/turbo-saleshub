@@ -72,6 +72,45 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       set({ loading: false })
     }
   },
+  closeItems: async (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => {
+    try {
+      set({ loading: true })
+
+      const payload = {
+        visit_items: [
+          {
+            product_ids: productIds,
+            visitNote: get().visitNote,
+            concerns: Object.entries(data).map(([concernId, detail]) => ({
+              concernId: Number(concernId),
+              notes: detail.notes,
+              statusId: detail.statusId,
+            })),
+          },
+        ],
+      }
+
+      const url = createUrl(`visit/${get().salesVisit.id}/close-items`)
+
+      const res = await $api<any>(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const offeredItems =
+        res.data.visit_items?.map((item: any) => ({
+          product_id: item.product_id,
+          offered: Boolean(item.offered),
+          notes: item.notes || '',
+        })) || []
+
+      set({ offeredItems, loading: false })
+    } catch (error) {
+      console.error(error)
+      set({ loading: false })
+    }
+  },
   endVisit: async () => {
     try {
       set({ loading: true })
@@ -101,7 +140,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       return null
     }
   },
-  addFollowUp: async() => {
+  addFollowUp: async () => {
     try {
       set({ loading: true })
       const url = createUrl('visit/follow-up')
@@ -116,4 +155,20 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       console.error(error)
     }
   },
+  startVisit: async (visitId: number) => {
+    try {
+      const { fetchSalesVisit } = get()
+      set({ loading: true })
+      const url = createUrl(`visit/${visitId}/start`)
+      await $api<any>(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      fetchSalesVisit(visitId)
+      set({ loading: false })
+    } catch (error) {
+      set({ loading: false })
+      console.error(error)
+    }
+  }
 }))

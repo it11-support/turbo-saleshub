@@ -8,13 +8,15 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { AutoComplete } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
-import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
+import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { OverlayPanel } from 'primereact/overlaypanel'
+import { Panel } from 'primereact/panel'
+import { ProgressSpinner } from 'primereact/progressspinner'
 import { useEffect, useRef, useState } from 'react'
 
 import { parsePhone } from '@/lib/phoneParser'
@@ -24,8 +26,16 @@ import { useProductsStore } from '@/stores/products'
 
 const VisitsPage = () => {
   const salesVisitStore = useSalesVisit()
-  const { fetchSalesVisit, salesVisit, syncOfferedItems, visitNote, setVisitNote, endVisit } =
-    salesVisitStore
+  const {
+    fetchSalesVisit,
+    salesVisit,
+    syncOfferedItems,
+    visitNote,
+    setVisitNote,
+    endVisit,
+    startVisit,
+    closeItems,
+  } = salesVisitStore
   const { fetchScheduleByDate, currentDate } = useScheduleStore()
   const { fetchConcernStatuses, fetchConcernCategories, concernCategories, concernStatuses } =
     useConcernStore()
@@ -45,7 +55,11 @@ const VisitsPage = () => {
   const [showOfferDialog, setShowOfferDialog] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductWithFrequency | null>(null)
   const [concernSelections, setConcernSelections] = useState<
-    Record<number, Record<number, { notes: string; statusId: number | null }>>
+    Record<number | string, Record<number, { notes: string; statusId: number | null }>>
+  >({})
+
+  const [concernSelctionForClose, setConcernSelctionForClose] = useState<
+    Record<number, { notes: string; statusId: number | null }>
   >({})
 
   const [suggestedGroup, setSuggestedGroup] = useState('')
@@ -54,6 +68,8 @@ const VisitsPage = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [markedAsClosed, setMarkedAsClosed] = useState<ProductWithFrequency[]>([])
+  const [showCloseDialog, setShowCloseDialog] = useState(false)
 
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
@@ -93,7 +109,7 @@ const VisitsPage = () => {
   const handleEndVisit = async () => {
     // await syncOfferedItems()
     await endVisit().then(() => {
-      fetchScheduleByDate(Number(salesVisit.sales_person_id), currentDate)
+      fetchScheduleByDate(Number(salesVisit?.sales_person_id), currentDate)
       router.back()
     })
   }
@@ -120,6 +136,7 @@ const VisitsPage = () => {
     const activeGroup = suggestedGroups.find((group) => group.key === value)
     setActiveProductGroup(activeGroup?.items ?? [])
     setSearch('')
+    setMarkedAsClosed([])
   }
 
   const isDistributor = suggestedGroup === 'distributor'
@@ -139,17 +156,6 @@ const VisitsPage = () => {
         return acc
       }, [] as { value: string; label: string }[])
     : []
-  const onCategoryChange = (e: CheckboxChangeEvent) => {
-    let _selected = [...selectedCategories]
-
-    if (e.checked) {
-      _selected.push(e.value)
-    } else {
-      _selected = _selected.filter((category) => category !== e.value)
-    }
-
-    setSelectedCategories(_selected)
-  }
 
   const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))
 
@@ -221,6 +227,36 @@ const VisitsPage = () => {
   const offeredDistributor = groupedProduct?.distributor
   const offeredGroceries = groupedProduct?.groceries
 
+  const isVisitInitated = salesVisit.start_at !== null
+
+  const handleMarkAllAsClosed = (items: ProductWithFrequency[]) => {
+    const itemIds = items.map((item) => item.id)
+    if (markedAsClosed.some((item) => itemIds.includes(item.id))) {
+      setMarkedAsClosed((prev) => prev.filter((item) => !itemIds.includes(item.id)))
+    } else {
+      const toMark = items.filter((item) => !markedAsClosed.some((i) => i.id === item.id))
+      setMarkedAsClosed((prev) => [...prev, ...toMark])
+    }
+  }
+
+  const handleMarkAsClosed = (item: ProductWithFrequency) => {
+    if (markedAsClosed.some((i) => i.id === item.id)) {
+      setMarkedAsClosed((prev) => prev.filter((i) => i.id !== item.id))
+    } else {
+      setMarkedAsClosed((prev) => [...prev, item])
+    }
+  }
+
+  if (!salesVisit.id)
+    return (
+      <div
+        className="absolute top-0 left-0 w-full h-full flex align-items-center justify-content-center bg-white-alpha-60 z-2"
+        style={{ borderRadius: '6px' }}
+      >
+        <ProgressSpinner style={{ width: '50px', height: '50px' }} strokeWidth="8" />
+      </div>
+    )
+
   return (
     <>
       <div className="card p-3">
@@ -273,82 +309,109 @@ const VisitsPage = () => {
         </div>
         <Divider />
 
-        <div className="col-12 xl:col-6 md:col-6">
-          <h5>Product Offer</h5>
-        </div>
-        <div className="col-12 xl:col-6 md:col-6">
-          <div className="">
-            <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
-              Item Group
-            </label>
-            <Dropdown
-              id={`itemGroup-${salesVisit.id}`}
-              options={suggestedGroups.map((group) => {
-                return { label: group.key.toUpperCase(), value: group.key }
-              })}
-              value={suggestedGroup}
-              onChange={(e) => handleChangeSuggestedGroup(e.value)}
-              placeholder="Item Group"
-              className="w-full"
+        {!isVisitInitated ? (
+          <div className="col-12 xl:col-6 md:col-6">
+            <Button
+              label="Start"
+              icon="pi pi-play"
+              severity="success"
+              outlined
+              size="small"
+              onClick={() => startVisit(Number(salesVisit.id))}
             />
           </div>
-        </div>
-        {suggestedGroup && (
-          <div className="col-12 xl:col-6 md:col-6 mb-2">
-            <label htmlFor={`search-${salesVisit.id}`} className="block mb-2">
-              Search
-            </label>
-            <InputText
-              id={`search-${salesVisit.id}`}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search Items"
-              className="w-full"
-            />
-          </div>
-        )}
+        ) : (
+          <div>
+            <div className="col-12 xl:col-6 md:col-6">
+              <h5>Product Offer</h5>
+            </div>
+            <div className="col-12 xl:col-6 md:col-6">
+              <div className="">
+                <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
+                  Item Group
+                </label>
+                <Dropdown
+                  id={`itemGroup-${salesVisit.id}`}
+                  options={suggestedGroups.map((group) => {
+                    return { label: group.key.toUpperCase(), value: group.key }
+                  })}
+                  value={suggestedGroup}
+                  onChange={(e) => handleChangeSuggestedGroup(e.value)}
+                  placeholder="Item Group"
+                  className="w-full"
+                />
+              </div>
+            </div>
+            {suggestedGroup && (
+              <div className="col-12 xl:col-6 md:col-6 mb-2">
+                <label htmlFor={`search-${salesVisit.id}`} className="block mb-2">
+                  Search
+                </label>
+                <InputText
+                  id={`search-${salesVisit.id}`}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search Items"
+                  className="w-full"
+                />
+              </div>
+            )}
 
-        {activeProductGroup.length > 0 && (
-          <>
-            <div className="mx-2 mt-3">
-              <h6>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h6>
-              {isDistributor && distributorCategories.length > 0 ? (
-                <div className="flex flex-column gap-3">
-                  <p className="m-0">Pick Categories</p>
-                  {distributorCategories
-                    .filter((cat) => {
-                      const productsInCategory = activeProductGroup.filter(
-                        (item) => item.ProductCategory === cat.value
-                      )
+            {activeProductGroup.length > 0 && (
+              <>
+                <div className="mx-2 mt-3">
+                  <h6>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h6>
+                  {markedAsClosed.length > 0 && (
+                    <div className="flex align-items-center gap-2 my-3">
+                      <Button
+                        size="small"
+                        outlined
+                        severity="danger"
+                        icon="pi pi-times-circle"
+                        label="Close Selected Items"
+                        onClick={() => setShowCloseDialog(true)}
+                      />
+                    </div>
+                  )}
+                  {isDistributor && distributorCategories.length > 0 ? (
+                    <div className="flex flex-column gap-3">
+                      {distributorCategories
+                        .filter((cat) =>
+                          filteredProducts.some((item) => item.ProductCategory === cat.value)
+                        )
+                        .map((cat) => {
+                          const items = filteredProducts.filter(
+                            (item) => item.ProductCategory === cat.value
+                          )
 
-                      return productsInCategory.some((item) => !offeredProductIds.has(item.id))
-                    })
-                    .map((cat) => (
-                      <div key={cat.value}>
-                        <div className="flex align-items-center pb-2">
-                          <Checkbox
-                            inputId={`cat-${cat.value}`}
-                            name="category"
-                            value={cat.value}
-                            onChange={onCategoryChange}
-                            checked={selectedCategories.includes(cat.value)}
-                          />
-                          <label htmlFor={`cat-${cat.value}`} className="ml-2">
-                            {cat.label}
-                          </label>
-                        </div>
-                        <div className="grid">
-                          {selectedCategories.length > 0
-                            ? filteredProducts
-                                .filter((item) => item.ProductCategory === cat.value)
-                                .map((item) => {
+                          return (
+                            <Panel key={cat.value} header={cat.label} toggleable>
+                              <div className="flex flex-column ">
+                                <label
+                                  htmlFor={`checkbox-closed-${cat.value}`}
+                                  className="flex align-items-center gap-2 mb-2"
+                                >
+                                  <Checkbox
+                                    inputId={`checkbox-closed-${cat.value}`}
+                                    checked={items.every((item) =>
+                                      markedAsClosed.some((i) => i.id === item.id)
+                                    )}
+                                    onChange={() => handleMarkAllAsClosed(items)}
+                                  />
+                                  <span>Mark all as Closed</span>
+                                </label>
+                              </div>
+                              <div className="grid">
+                                {items.map((item) => {
                                   const category = item.ProductCategory
                                     ? item.ProductCategory.charAt(0) +
                                       item.ProductCategory.slice(1).toLocaleLowerCase()
                                     : ''
+
                                   const visitItems = visit_items?.find(
                                     (i) => i.product_id === item.id
                                   )
+                                  const checked = markedAsClosed.map((i) => i.id).includes(item.id)
                                   const visitItemConcerns = visitItems?.visit_item_concerns
 
                                   return (
@@ -363,194 +426,209 @@ const VisitsPage = () => {
                                         overlayRefs={overlayRefs}
                                         setSelectedProduct={setSelectedProduct}
                                         setShowOfferDialog={setShowOfferDialog}
+                                        handleMarkAsClosed={handleMarkAsClosed}
+                                        markedAsClosed={checked}
                                       />
                                     </div>
                                   )
-                                })
-                            : null}
-                        </div>
-                      </div>
-                    ))}
-                  {filteredProducts.length === 0 && search && (
-                    <div className="col-12">
-                      <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
-                        <i className="mr-2 pi pi-exclamation-triangle"></i>
-                        <p className="m-0">No Items Found</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="grid">
-                  {filteredProducts.map((item) => {
-                    const category = item.ProductCategory
-                      ? item.ProductCategory.charAt(0) +
-                        item.ProductCategory.slice(1).toLocaleLowerCase()
-                      : ''
-                    const visitItems = visit_items?.find((i) => i.product_id === item.id)
-                    const visitItemConcerns = visitItems?.visit_item_concerns
-                    return (
-                      <div key={`groceries-${item.ItemCode}`} className="col-12 lg:col-6 xl:col-4">
-                        <ProductOfferCard
-                          item={item}
-                          category={category}
-                          visitItemConcern={visitItemConcerns?.[0]}
-                          overlayRefs={overlayRefs}
-                          setSelectedProduct={setSelectedProduct}
-                          setShowOfferDialog={setShowOfferDialog}
-                        />
-                      </div>
-                    )
-                  })}
-                  {filteredProducts.length === 0 && (
-                    <div className="col-12">
-                      <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
-                        <i className="mr-2 pi pi-exclamation-triangle"></i>
-                        <p className="m-0">No Items Found</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {(salesVisit.visit_items?.length ?? 0) > 0 && (
-          <>
-            <Divider />
-            <h5 className="ml-2">Offered Items</h5>
-            {(offeredDistributor?.length ?? 0) > 0 && (
-              <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
-                {offeredDistributor?.map((distributorItem) => {
-                  const category = distributorItem.category
-                  const visitItems = distributorItem.items
-                  return (
-                    <div key={`distributor-${category}`} className="py-3">
-                      <h5>{category}</h5>
-                      <div className="grid">
-                        {visitItems.map((visitItem) => {
-                          return (
-                            <OfferedProduct visitItem={visitItem} key={visitItem.id.toString()} />
+                                })}
+                              </div>
+                            </Panel>
                           )
                         })}
-                      </div>
+                      {filteredProducts.length === 0 && search && (
+                        <div className="col-12">
+                          <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
+                            <i className="mr-2 pi pi-exclamation-triangle"></i>
+                            <p className="m-0">No Items Found</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )
-                })}
-              </Card>
-            )}
-            {(offeredGroceries?.length ?? 0) > 0 && (
-              <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
-                <div className="grid">
-                  {offeredGroceries?.map((groceriesItem) => {
-                    return (
-                      <OfferedProduct visitItem={groceriesItem} key={groceriesItem.id.toString()} />
-                    )
-                  })}
+                  ) : (
+                    <div className="grid">
+                      {filteredProducts.map((item) => {
+                        const category = item.ProductCategory
+                          ? item.ProductCategory.charAt(0) +
+                            item.ProductCategory.slice(1).toLocaleLowerCase()
+                          : ''
+                        const checked = markedAsClosed.map((i) => i.id).includes(item.id)
+                        const visitItems = visit_items?.find((i) => i.product_id === item.id)
+                        const visitItemConcerns = visitItems?.visit_item_concerns
+                        return (
+                          <div
+                            key={`groceries-${item.ItemCode}`}
+                            className="col-12 lg:col-6 xl:col-4"
+                          >
+                            <ProductOfferCard
+                              item={item}
+                              category={category}
+                              visitItemConcern={visitItemConcerns?.[0]}
+                              overlayRefs={overlayRefs}
+                              setSelectedProduct={setSelectedProduct}
+                              setShowOfferDialog={setShowOfferDialog}
+                              handleMarkAsClosed={handleMarkAsClosed}
+                              markedAsClosed={checked}
+                            />
+                          </div>
+                        )
+                      })}
+                      {filteredProducts.length === 0 && (
+                        <div className="col-12">
+                          <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
+                            <i className="mr-2 pi pi-exclamation-triangle"></i>
+                            <p className="m-0">No Items Found</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </Card>
+              </>
             )}
-          </>
-        )}
 
-        <Divider />
-        <div className="col-12 xl:col-6 md:col-6">
-          <h5>Notes & Inquiries</h5>
-        </div>
-        <div className="col-12 xl:col-6 md:col-6">
-          <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
-            Visit Note
-          </label>
-          <InputTextarea
-            id={`note-${salesVisit.id}`}
-            rows={2}
-            autoResize
-            value={visitNote}
-            onChange={(e) => setVisitNote(e.target.value)}
-            placeholder="Visit notes"
-            className="w-full"
-          />
-        </div>
-        <div className="col-12 xl:col-6 md:col-6">
-          {/* HEADER */}
-          <div className="flex justify-content-between align-items-center mb-2">
-            <span className="font-semibold">Product Inquiry</span>
-          </div>
+            {(salesVisit.visit_items?.length ?? 0) > 0 && (
+              <>
+                <Divider />
+                <h5 className="ml-2">Offered Items</h5>
+                {(offeredDistributor?.length ?? 0) > 0 && (
+                  <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
+                    {offeredDistributor?.map((distributorItem) => {
+                      const category = distributorItem.category
+                      const visitItems = distributorItem.items
+                      return (
+                        <div key={`distributor-${category}`} className="py-3">
+                          <h5>{category}</h5>
+                          <div className="grid">
+                            {visitItems.map((visitItem) => {
+                              return (
+                                <OfferedProduct
+                                  visitItem={visitItem}
+                                  key={visitItem.id.toString()}
+                                />
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </Card>
+                )}
+                {(offeredGroceries?.length ?? 0) > 0 && (
+                  <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
+                    <div className="grid">
+                      {offeredGroceries?.map((groceriesItem) => {
+                        return (
+                          <OfferedProduct
+                            visitItem={groceriesItem}
+                            key={groceriesItem.id.toString()}
+                          />
+                        )
+                      })}
+                    </div>
+                  </Card>
+                )}
+              </>
+            )}
 
-          {/* LIST */}
-          {inquiries.map((inq, index) => (
-            <div key={index} className="mb-3 p-3 border-1 surface-border border-round">
-              {/* HEADER ITEM */}
-              <div className="flex justify-content-between align-items-center mb-2">
-                <span className="text-sm font-semibold">Inquiry #{index + 1}</span>
-
-                <Button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  text
-                  onClick={() => {
-                    removeInquiry(index)
-                    syncInquiries(Number(id))
-                  }}
-                />
-              </div>
-
-              {/* PRODUCT SELECT (OPTIONAL) */}
-              <AutoComplete
-                value={inq.product_name || ''}
-                suggestions={products}
-                field="ItemName"
-                className="w-full my-2"
-                inputClassName="w-full"
-                placeholder="Search product..."
-                completeMethod={(e) => {
-                  setSearchStore(e.query)
-                }}
-                onChange={(e) => {
-                  updateInquiry(index, 'product_name', e.value)
-                  updateInquiry(index, 'product_id', null)
-                }}
-                onSelect={(e) => {
-                  updateInquiry(index, 'product_name', e.value.ItemName)
-                  updateInquiry(index, 'product_id', e.value.id)
-                }}
-              />
-
-              {/* NOTES */}
+            <div className="col-12 xl:col-6 md:col-6 mt-5">
+              <h5>Notes & Inquiries</h5>
+            </div>
+            <div className="col-12 xl:col-6 md:col-6">
+              <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
+                Visit Note
+              </label>
               <InputTextarea
-                placeholder="Notes"
-                className="w-full my-2"
-                value={inq.notes}
-                onChange={(e) => updateInquiry(index, 'notes', e.target.value)}
+                id={`note-${salesVisit.id}`}
+                rows={2}
+                autoResize
+                value={visitNote}
+                onChange={(e) => setVisitNote(e.target.value)}
+                placeholder="Visit notes"
+                className="w-full"
               />
             </div>
-          ))}
-          <div className="flex align-items-center gap-2">
-            <Button
-              severity="success"
-              outlined
-              rounded
-              icon="pi pi-plus"
-              size="small"
-              onClick={addInquiry}
-            />
-            <Button
-              disabled={
-                inquiries.length === 1 &&
-                !inquiries[0].product_id &&
-                !inquiries[0].product_name &&
-                !inquiries[0].notes
-              }
-              severity="success"
-              outlined
-              rounded
-              icon="pi pi-check"
-              size="small"
-              onClick={() => syncInquiries(Number(id))}
-            />
+            <div className="col-12 xl:col-6 md:col-6">
+              {/* HEADER */}
+              <div className="flex justify-content-between align-items-center mb-2">
+                <span className="font-semibold">Product Inquiry</span>
+              </div>
+
+              {/* LIST */}
+              {inquiries.map((inq, index) => (
+                <div key={index} className="mb-3 p-3 border-1 surface-border border-round">
+                  {/* HEADER ITEM */}
+                  <div className="flex justify-content-between align-items-center mb-2">
+                    <span className="text-sm font-semibold">Inquiry #{index + 1}</span>
+
+                    <Button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      onClick={() => {
+                        removeInquiry(index)
+                        syncInquiries(Number(id))
+                      }}
+                    />
+                  </div>
+
+                  {/* PRODUCT SELECT (OPTIONAL) */}
+                  <AutoComplete
+                    value={inq.product_name || ''}
+                    suggestions={products}
+                    field="ItemName"
+                    className="w-full my-2"
+                    inputClassName="w-full"
+                    placeholder="Search product..."
+                    completeMethod={(e) => {
+                      setSearchStore(e.query)
+                    }}
+                    onChange={(e) => {
+                      updateInquiry(index, 'product_name', e.value)
+                      updateInquiry(index, 'product_id', null)
+                    }}
+                    onSelect={(e) => {
+                      updateInquiry(index, 'product_name', e.value.ItemName)
+                      updateInquiry(index, 'product_id', e.value.id)
+                    }}
+                  />
+
+                  {/* NOTES */}
+                  <InputTextarea
+                    placeholder="Notes"
+                    className="w-full my-2"
+                    value={inq.notes}
+                    onChange={(e) => updateInquiry(index, 'notes', e.target.value)}
+                  />
+                </div>
+              ))}
+              <div className="flex align-items-center gap-2">
+                <Button
+                  severity="success"
+                  outlined
+                  rounded
+                  icon="pi pi-plus"
+                  size="small"
+                  onClick={addInquiry}
+                />
+                <Button
+                  disabled={
+                    inquiries.length === 1 &&
+                    !inquiries[0].product_id &&
+                    !inquiries[0].product_name &&
+                    !inquiries[0].notes
+                  }
+                  severity="success"
+                  outlined
+                  rounded
+                  icon="pi pi-check"
+                  size="small"
+                  onClick={() => syncInquiries(Number(id))}
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Dialog
@@ -692,6 +770,149 @@ const VisitsPage = () => {
                         placeholder="Select Status"
                         className="w-full lg:w-300"
                         clearIcon="pi pi-times"
+                        showClear
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </Dialog>
+
+      <Dialog
+        modal
+        blockScroll
+        dismissableMask
+        header="Close Items"
+        visible={showCloseDialog}
+        onHide={() => setShowCloseDialog(false)}
+        style={{ width: '90%', maxWidth: '400px' }}
+        footer={
+          <>
+            <Button
+              icon="pi pi-times"
+              label="Cancel"
+              severity="danger"
+              outlined
+              onClick={() => setShowCloseDialog(false)}
+            />
+            <Button
+              icon="pi pi-save"
+              label="Save"
+              outlined
+              onClick={() => {
+                closeItems(
+                  concernSelctionForClose,
+                  markedAsClosed.map((item) => Number(item.id))
+                ).then(() => {
+                  fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
+                  fetchConcernCategories()
+                  fetchConcernStatuses()
+                  setShowCloseDialog(false)
+                  setMarkedAsClosed([])
+                })
+              }}
+            />
+          </>
+        }
+      >
+        <div className="flex flex-column gap-3 w-full my-2">
+          <h6>Select Topic</h6>
+          {concernCategories.map((category) => {
+            const selection = concernSelctionForClose?.[Number(category.id)]
+            return (
+              <div key={Number(category.id)} className="border-bottom-1 surface-border pb-3">
+                <div className="flex align-items-center gap-2">
+                  <Checkbox
+                    inputId={`concern-${category.id}`}
+                    checked={Boolean(selection)}
+                    onChange={(e) => {
+                      const id = Number(category.id)
+
+                      setConcernSelctionForClose((prev) => {
+                        const next = { ...prev }
+
+                        if (!e.checked) {
+                          delete next[id]
+                          return next
+                        }
+
+                        return {
+                          ...next,
+                          [id]: {
+                            notes: prev[id]?.notes ?? '',
+                            statusId: prev[id]?.statusId ?? null,
+                          },
+                        }
+                      })
+                    }}
+                  />
+                  <label htmlFor={`concern-${category.id}`} className="font-semibold">
+                    {category.name}
+                  </label>
+                </div>
+
+                {selection && (
+                  <div className="flex flex-column gap-2 mt-2">
+                    <div className="flex flex-column gap-2">
+                      <label
+                        htmlFor={`concern-notes-${category.id}`}
+                        className="text-primary-400 font-semibold"
+                      >
+                        Notes
+                      </label>
+                      <InputTextarea
+                        id={`concern-notes-${category.id}`}
+                        rows={2}
+                        autoResize
+                        value={selection?.notes || ''}
+                        onChange={(e) => {
+                          const id = Number(category.id)
+
+                          setConcernSelctionForClose((prev) => ({
+                            ...prev,
+                            [id]: {
+                              ...prev[id],
+                              notes: e.target.value,
+                            },
+                          }))
+                        }}
+                        placeholder="Notes"
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="flex flex-column gap-2">
+                      <label
+                        htmlFor={`concern-status-${category.id}`}
+                        className="text-primary-400 font-semibold"
+                      >
+                        Status
+                      </label>
+                      <Dropdown
+                        inputId={`concern-status-${category.id}`}
+                        value={selection?.statusId ?? null}
+                        options={concernStatuses
+                          .filter((s) => !s.requires_action)
+                          .map((s) => ({
+                            label: s.status,
+                            value: s.id,
+                          }))}
+                        onChange={(e) => {
+                          const id = Number(category.id)
+
+                          setConcernSelctionForClose((prev) => ({
+                            ...prev,
+                            [id]: {
+                              ...prev[id],
+                              statusId: e.value,
+                            },
+                          }))
+                        }}
+                        placeholder="Select Status"
+                        className="w-full lg:w-300"
                         showClear
                       />
                     </div>

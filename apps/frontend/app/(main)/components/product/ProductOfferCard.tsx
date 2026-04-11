@@ -6,6 +6,7 @@ import CustomChip from '../custom/chip'
 import { IVisitItemConcern, ProductWithFrequency } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
+import { Checkbox } from 'primereact/checkbox'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { RefObject, useRef } from 'react'
 
@@ -19,6 +20,8 @@ type Props = {
   setSelectedProduct?: (item: ProductWithFrequency | null) => void
   setShowOfferDialog?: (show: boolean) => void
   hideOfferButton?: boolean
+  handleMarkAsClosed?: (item: ProductWithFrequency) => void
+  markedAsClosed?: boolean
 }
 const ProductOfferCard = (props: Props) => {
   const {
@@ -28,12 +31,18 @@ const ProductOfferCard = (props: Props) => {
     setSelectedProduct,
     setShowOfferDialog,
     hideOfferButton,
+    handleMarkAsClosed,
+    markedAsClosed,
   } = props
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   const handleProductOffer = (item: ProductWithFrequency) => {
     setSelectedProduct?.(item)
     setShowOfferDialog?.(true)
+  }
+
+  const clickMarkAsClosed = (item: ProductWithFrequency) => {
+    handleMarkAsClosed?.(item)
   }
 
   return (
@@ -86,7 +95,7 @@ const ProductOfferCard = (props: Props) => {
       </div>
 
       {!visitItemConcern?.status.status && !hideOfferButton && (
-        <div className="flex items-center mt-3 border-top-1 surface-border pt-3">
+        <div className="flex items-center mt-3 border-top-1 surface-border pt-3 justify-content-between">
           <Button
             size="small"
             outlined
@@ -95,6 +104,19 @@ const ProductOfferCard = (props: Props) => {
             severity="success"
             onClick={() => handleProductOffer(item)}
           />
+          <div className="flex align-items-center gap-2 mb-2">
+            <label
+              htmlFor={`checkbox-closed-${item.ItemCode}`}
+              className="flex align-items-center gap-2 mb-2"
+            >
+              Mark as Closed
+            </label>
+            <Checkbox
+              inputId={`checkbox-closed-${item.ItemCode}`}
+              checked={markedAsClosed || false}
+              onChange={() => clickMarkAsClosed(item)}
+            />
+          </div>
         </div>
       )}
 

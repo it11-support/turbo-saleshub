@@ -69,15 +69,16 @@ export const syncSalesVisit = async (req: Request, res: Response) => {
     const visit = await prisma.visits.findUnique({
       where: { id: visitId },
     });
-    if (!visit?.start_at) {
-      await prisma.visits.update({
-        where: { id: visitId },
-        data: {
-          start_at: new Date(),
-          status: VisitStatus.Ongoing
-        },
-      })
-    }
+    await prisma.visits.updateMany({
+      where: {
+        id: visitId,
+        start_at: null
+      },
+      data: {
+        start_at: new Date(),
+        status: VisitStatus.Ongoing
+      }
+    })
     if (visit_items[0].visitNote !== '') {
       await prisma.visits.update({
         where: { id: visitId },
@@ -225,7 +226,7 @@ export const visitDetails = async (req: Request, res: Response) => {
       salesVisit?.rule?.max_items_per_visit,
       true
     );
-    return res.status(200).json({ message: 'Success', data: {...salesVisit, suggestedItems} });
+    return res.status(200).json({ message: 'Success', data: { ...salesVisit, suggestedItems } });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -277,4 +278,79 @@ export const followUpVisit = async (req: Request, res: Response) => {
   }
 };
 
+export const startVisit = async (req: Request, res: Response) => {
+  try {
 
+    const { id } = req.params
+    const visitId = Number(id);
+    const visitItem = await prisma.visits.update({
+      where: { id: visitId, start_at: null },
+      data: {
+        start_at: new Date(),
+        status: VisitStatus.Ongoing
+      },
+    })
+    return res.status(200).json({ message: 'Success', data: visitItem });
+  } catch (error) {
+    console.error("Error in startVisit:", error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export const closeItems = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { visit_items } = req.body;
+
+    if (!Array.isArray(visit_items)) {
+      return res.status(400).json({ message: 'Bad request' });
+    }
+
+    const visitId = Number(id);
+
+    for (const item of visit_items) {
+      let currentVisitItemId: bigint;
+      for (const id of item.product_ids) {
+        const created = await prisma.visit_items.create({
+          data: {
+            visit_id: visitId,
+            product_id: BigInt(id),
+            offered: true,
+          },
+        });
+        currentVisitItemId = BigInt(created.id);
+
+        for (const concern of item.concerns) {
+          await prisma.visit_item_concerns.create({
+            data: {
+              visit_items: {
+                connect: { id: currentVisitItemId }
+              },
+              category: {
+                connect: { id: concern.concernId ? BigInt(concern.concernId) : 1n }
+              },
+              notes: concern.notes,
+              status: {
+                connect: { id: concern.statusId ? BigInt(concern.statusId) : 1n }
+              }
+            }
+          });
+        }
+      }
+    }
+    const updatedVisit = await prisma.visits.findUnique({
+      where: { id: visitId },
+      include: {
+        salesPerson: true,
+        customer: { include: { subgroup: true } },
+        visit_items: { include: { product: true, visit_item_concerns: true } },
+      },
+    });
+
+    return res.status(200).json({ message: 'Success', data: updatedVisit });
+
+  } catch (error) {
+    console.error("Error in closeItems:", error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}

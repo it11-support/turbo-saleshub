@@ -57,4 +57,6 @@ export interface IVisitState {
   fetchVisitDetails: (id: number) => Promise<void>
   setVisitNote: (note: string) => void
   addFollowUp: () => Promise<void>
+  startVisit: (visitId: number) => Promise<void>
+  closeItems: (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => Promise<void>
 }
