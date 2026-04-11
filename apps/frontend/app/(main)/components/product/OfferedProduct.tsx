@@ -131,7 +131,7 @@ const OfferedProduct = (props: Props) => {
                     </div>
                     {/* Notes */}
                     {concern?.notes && (
-                      <div className="text-sm p-0 text-color-secondary line-height-3">
+                      <div className="text-sm py-3 text-color-secondary line-height-3">
                         {concern.notes}
                       </div>
                     )}
@@ -143,6 +143,7 @@ const OfferedProduct = (props: Props) => {
                           events={concern.follow_ups.map((followUp) => ({
                             concern_status: followUp.concern_status,
                             notes: followUp.notes,
+                            type: followUp.type,
                             date: formatDate(followUp.created_at, {
                               withTime: true,
                             }),
@@ -155,27 +156,28 @@ const OfferedProduct = (props: Props) => {
                         />
                       </div>
                     ) : null}
-
-                    {concern?.status?.requires_action && handleFollowUp && (
-                      <Button
-                        size="small"
-                        label="Follow Up"
-                        severity="success"
-                        className="mt-2"
-                        outlined
-                        onClick={() => handleFollowUp(concern)}
-                      />
-                    )}
-                    {!concern?.status?.requires_action && isAdmin && (
-                      <Button
-                        size="small"
-                        label="Override"
-                        severity="warning"
-                        className="mt-2"
-                        outlined
-                        onClick={() => handleOverride(concern)}
-                      />
-                    )}
+                    <div className="flex justify-content-start gap-2 align-items-center mb-2">
+                      {concern?.status?.requires_action && handleFollowUp && (
+                        <Button
+                          size="small"
+                          label="Follow Up"
+                          severity="success"
+                          className="mt-2"
+                          outlined
+                          onClick={() => handleFollowUp(concern)}
+                        />
+                      )}
+                      {concern?.status && isAdmin && (
+                        <Button
+                          size="small"
+                          label="Override"
+                          severity="warning"
+                          className="mt-2"
+                          outlined
+                          onClick={() => handleOverride(concern)}
+                        />
+                      )}
+                    </div>
 
                     {index < (visitItem.visit_item_concerns?.length ?? 0) - 1 && <Divider />}
                   </div>

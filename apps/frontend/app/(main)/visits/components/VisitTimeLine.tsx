@@ -1,4 +1,4 @@
-import { IConcernStatus } from '@saleshub-tsm/types'
+import { EFollowUpType, IConcernStatus } from '@saleshub-tsm/types'
 import { Card } from 'primereact/card'
 import { Timeline } from 'primereact/timeline'
 import React from 'react'
@@ -12,6 +12,7 @@ type VisitTimeLineProps = {
   color: string
   notes: string | null
   next_follow_up_date?: string
+  type: string
 }
 
 type VisitTimeLineState = {
@@ -21,6 +22,7 @@ type VisitTimeLineState = {
 const VisitTimeLine = (props: VisitTimeLineState) => {
   const { events } = props
 
+  console.log('events', events)
   const customizedMarker = (item: VisitTimeLineProps) => {
     return (
       <span
@@ -45,7 +47,7 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
     return (
       <Card
         title={cardTitle(item.concern_status)}
-        subTitle={item.date}
+        subTitle={`${item.date}`}
         pt={{
           body: { className: 'p-3' },
           content: { className: 'p-0' },
@@ -61,6 +63,10 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
               style={{ display: 'block', fontStyle: 'italic' }}
             >
               Due Date: {item.next_follow_up_date}
+            </small>
+
+            <small className="text-color-secondary text-xs block mt-1 font-italic">
+              {item.type === EFollowUpType.Override ? 'Added by Admin' : ''}
             </small>
           </div>
         )}
