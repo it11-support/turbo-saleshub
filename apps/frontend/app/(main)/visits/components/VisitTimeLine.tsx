@@ -22,7 +22,6 @@ type VisitTimeLineState = {
 const VisitTimeLine = (props: VisitTimeLineState) => {
   const { events } = props
 
-  console.log('events', events)
   const customizedMarker = (item: VisitTimeLineProps) => {
     return (
       <span
