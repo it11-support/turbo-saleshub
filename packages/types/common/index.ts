@@ -46,3 +46,16 @@ export type MenuSection = {
   roles?: Role[]
   items: MenuItem[]
 }
+
+export type SummaryValue = {
+  revenue: number
+  orders: number
+  customers: number
+  aov: number
+}
+
+export type SummaryResult = {
+  current: SummaryValue
+  previous: SummaryValue
+  growth: SummaryValue
+}

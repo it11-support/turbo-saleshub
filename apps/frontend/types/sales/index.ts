@@ -1,4 +1,4 @@
-import { IMonthlySummary, ISalesSummary } from '@saleshub-tsm/types'
+import { IMonthlySummary, ISalesSummary, SummaryResult } from '@saleshub-tsm/types'
 
 export type TRevenueSummary = {
   current: number
@@ -11,6 +11,9 @@ export type TMonthTodateSummary = {
 }
 export type ISalesSummaryResponse = Record<string, ISalesSummary[]>
 
+export type Summary = {
+  [key: string] : SummaryResult
+}
 export interface ISalesSummaryState {
   monthlyTrend: IMonthlySummary[]
   customerTrend: {period: string, activeCustomers: number}[],
@@ -18,10 +21,7 @@ export interface ISalesSummaryState {
   productRevenueDistributor: { ItemName: string, orders: number, revenue: number}[],
   productRevenueGrocery: { ItemName: string, orders: number, revenue: number}[],
   newVsReturning: {newCustomer: number, returningCustomer: number},
-  revenueMtd: TRevenueSummary
-  ordersMtd: TRevenueSummary
-  customersMtd: TRevenueSummary
-  aovMtd: TRevenueSummary
+  summary: Summary
   CRR: number,
   RPR: number,
   RFM: {segment: string, count: number}[],

@@ -155,3 +155,8 @@ export const calcNetRevenue = (invoices: ICalcNetRevParams[]) => {
 
   }, 0)
 }
+
+export const calcGrowth = (current: number, previous: number): number => {
+  if (!previous) return current > 0 ? 100 : 0
+  return ((current - previous) / previous) * 100
+}

@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { calcMTD, getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
+import { getSalesSummary } from './functions.js'
 
 type MonthlySummary = {
   year: number
@@ -474,92 +475,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       customers: Number(r.customers ?? 0),
     }))
 
-    const mtdCalc = await prisma.$queryRaw<MtdRaw[]>`
-      SELECT
-        SUM(CASE
-              WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-              AND s.date <= CURDATE()
-              THEN s.revenue
-              ELSE 0
-            END) AS revenue_current,
-
-        SUM(CASE
-              WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-              AND s.date <= CURDATE()
-              THEN s.orders
-              ELSE 0
-            END) AS orders_current,
-
-        COUNT(DISTINCT CASE
-              WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-              AND s.date <= CURDATE()
-              THEN s.CardCode
-            END) AS customers_current,
-
-
-        -- LAST MONTH MTD (CLAMPED)
-        SUM(CASE
-              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-              AND s.date <= LEAST(
-                    DATE_ADD(
-                      DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'),
-                      INTERVAL DAY(CURDATE()) - 1 DAY
-                    ),
-                    LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-                  )
-              THEN s.revenue
-              ELSE 0
-            END) AS revenue_last_month,
-
-        SUM(CASE
-              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-              AND s.date <= LEAST(
-                    DATE_ADD(
-                      DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'),
-                      INTERVAL DAY(CURDATE()) - 1 DAY
-                    ),
-                    LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-                  )
-              THEN s.orders
-              ELSE 0
-            END) AS orders_last_month,
-
-        COUNT(DISTINCT CASE
-              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-              AND s.date <= LEAST(
-                    DATE_ADD(
-                      DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'),
-                      INTERVAL DAY(CURDATE()) - 1 DAY
-                    ),
-                    LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-                  )
-              THEN s.CardCode
-            END) AS customers_last_month
-
-      FROM daily_sales_summary_view s
-
-      WHERE (
-        ${salesPersonId} IS NULL
-        OR s.sales_person_id = ${salesPersonId}
-      );
-    `
-
-      const mtdRow = mtdCalc[0]
-      const currentRevenue = Number(mtdRow.revenue_current ?? 0)
-      const currentOrders = Number(mtdRow.orders_current ?? 0)
-      const currentCustomers = Number(mtdRow.customers_current ?? 0)
-      const currentAOV = currentOrders > 0 ? currentRevenue / currentOrders : 0
-
-      const lastMonthRevenue = Number(mtdRow.revenue_last_month ?? 0)
-      const lastMonthOrders = Number(mtdRow.orders_last_month ?? 0)
-      const lastMonthCustomers = Number(mtdRow.customers_last_month ?? 0)
-      const lastMonthAOV = lastMonthOrders > 0 ? lastMonthRevenue / lastMonthOrders : 0
-
-      const revenueMtd = calcMTD(currentRevenue, lastMonthRevenue)
-      const ordersMtd = calcMTD(currentOrders, lastMonthOrders)
-      const customersMtd = calcMTD(currentCustomers, lastMonthCustomers)
-      const aovMtd = calcMTD(currentAOV, lastMonthAOV)
-
+    const summary = await getSalesSummary(salesPersonId ? Number(salesPersonId) : null)
 
     // =====================
     // RESPONSE
@@ -575,10 +491,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         RPR,
         RFM,
         monthlyTrend,
-        revenueMtd,
-        ordersMtd,
-        customersMtd,
-        aovMtd,
+        summary
       },
     })
   } catch (error) {

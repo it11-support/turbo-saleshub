@@ -7,13 +7,13 @@ import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 import { Knob } from 'primereact/knob'
 import { ProgressSpinner } from 'primereact/progressspinner'
-import { useContext, useEffect } from 'react'
+import { RadioButton } from 'primereact/radiobutton'
+import { useContext, useEffect, useState } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { formatCurrency } from '@/lib/formatter'
 import { useDashboardStore } from '@/stores'
 import 'chartjs-adapter-date-fns'
-import { TMonthTodateSummary } from '@/types'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -30,11 +30,8 @@ const Dashboard = () => {
     CRR,
     RPR,
     RFM,
-    revenueMtd,
-    ordersMtd,
-    customersMtd,
-    aovMtd,
     monthlyTrend,
+    summary,
   } = dashboard
 
   const applyLightTheme = () => {}
@@ -64,13 +61,6 @@ const Dashboard = () => {
 
   const aovData = monthlyTrend.map((item) => item.revenue / item.orders)
 
-  const summary: TMonthTodateSummary = {
-    revenue: revenueMtd,
-    orders: ordersMtd,
-    customers: customersMtd,
-    aov: aovMtd,
-  }
-
   const slpRevenueLabel = slpRevenue.map((item) => item.slp)
   const slpRevenueData = slpRevenue.map((item) => item.revenue)
 
@@ -84,6 +74,7 @@ const Dashboard = () => {
   const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
 
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
+  const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
 
   const rfmLabels = RFM.map((item) => {
     return item.segment.replace('_', ' ')
@@ -92,6 +83,37 @@ const Dashboard = () => {
   const rfmData = RFM.map((item) => {
     return item.count
   })
+
+  const selectedSummary = summary[period]
+
+  const mappedSummary = {
+    revenue: {
+      current: selectedSummary?.current.revenue,
+      last: selectedSummary?.previous.revenue,
+      growthPercent: selectedSummary?.growth.revenue,
+      diff: selectedSummary?.current.revenue - selectedSummary?.previous.revenue,
+    },
+    orders: {
+      current: selectedSummary?.current.orders,
+      last: selectedSummary?.previous.orders,
+      growthPercent: selectedSummary?.growth.orders,
+      diff: selectedSummary?.current.orders - selectedSummary?.previous.orders,
+    },
+    customers: {
+      current: selectedSummary?.current.customers,
+      last: selectedSummary?.previous.customers,
+      growthPercent: selectedSummary?.growth.customers,
+      diff: selectedSummary?.current.customers - selectedSummary?.previous.customers,
+    },
+    aov: {
+      current: selectedSummary?.current.aov,
+      last: selectedSummary?.previous.aov,
+      growthPercent: selectedSummary?.growth.aov,
+      diff: selectedSummary?.current.aov - selectedSummary?.previous.aov,
+    },
+  }
+
+  const summaryKeys = ['revenue', 'orders', 'customers', 'aov'] as const
 
   return (
     <>
@@ -104,18 +126,44 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
+          <div className="flex flex-wrap gap-3 my-2">
+            <div className="flex align-items-center">
+              <RadioButton
+                inputId="ytd"
+                name="period"
+                value="mtd"
+                onChange={(e) => setPeriod(e.value)}
+                checked={period === 'mtd'}
+              />
+              <label htmlFor="ytd" className="ml-2">
+                MTD
+              </label>
+            </div>
+            <div className="flex align-items-center">
+              <RadioButton
+                inputId="ytd"
+                name="period"
+                value="ytd"
+                onChange={(e) => setPeriod(e.value)}
+                checked={period === 'ytd'}
+              />
+              <label htmlFor="ytd" className="ml-2">
+                YTD
+              </label>
+            </div>
+          </div>
           <div className="grid">
-            {Object.keys(summary).map((itemKey) => {
+            {summaryKeys.map((itemKey) => {
               const isMoney = itemKey === 'revenue' || itemKey === 'aov'
               return (
-                summary[itemKey].current && (
+                mappedSummary[itemKey].current && (
                   <div className="col-12 lg:col-6 xl:col-3" key={itemKey}>
                     <Card
                       pt={{
                         root: {
                           style: {
                             border: `1px solid ${
-                              summary[itemKey]?.growthPercent > 0
+                              mappedSummary[itemKey]?.growthPercent > 0
                                 ? 'var(--green-500)'
                                 : 'var(--red-500)'
                             }`,
@@ -130,7 +178,7 @@ const Dashboard = () => {
                             {itemKey.toUpperCase()}
                           </span>
                           <div className="text-900 font-medium text-xl">
-                            {formatCurrency(Number(summary[itemKey]?.current), true, isMoney)}
+                            {formatCurrency(Number(mappedSummary[itemKey]?.current), true, isMoney)}
                           </div>
                         </div>
                         <div
@@ -141,27 +189,31 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="text-400 font-medium text-sm">
-                        Previous Month
+                        Previous {period === 'mtd' ? 'Month' : 'Year'}
                         <span className="ml-2">
-                          {formatCurrency(Number(summary[itemKey]?.last), true, isMoney)}
+                          {formatCurrency(Number(mappedSummary[itemKey]?.last), true, isMoney)}
                         </span>
                       </div>
                       <span
                         className={`${
-                          summary[itemKey]?.growthPercent > 0 ? 'text-green-500' : 'text-red-500'
+                          mappedSummary[itemKey]?.growthPercent > 0
+                            ? 'text-green-500'
+                            : 'text-red-500'
                         } font-medium`}
                       >
-                        {summary[itemKey]?.growthPercent != null
-                          ? `${summary[itemKey].growthPercent.toFixed(2)} %`
+                        {mappedSummary[itemKey]?.growthPercent != null
+                          ? `${mappedSummary[itemKey].growthPercent.toFixed(2)} %`
                           : '0.00 %'}
 
-                        {summary[itemKey]?.diff > 0 ? (
+                        {mappedSummary[itemKey]?.diff > 0 ? (
                           <i className="ml-1 pi pi-arrow-up-right text-green-500 text-sm" />
                         ) : (
                           <i className="ml-1 pi pi-arrow-down-right text-red-500 text-sm" />
                         )}
                       </span>
-                      <span className="ml-2 text-500">vs last month</span>
+                      <span className="ml-2 text-500">
+                        vs last {period === 'mtd' ? 'month' : 'year'}
+                      </span>
                     </Card>
                   </div>
                 )
