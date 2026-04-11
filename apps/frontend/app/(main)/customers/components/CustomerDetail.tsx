@@ -307,7 +307,7 @@ export const CustomerDetail = (props: Props) => {
             })}
           </Accordion>
         </TabPanel>
-        <TabPanel header="Purchase History" rightIcon="pi pi-history ml-2">
+        <TabPanel header="Purchase History" rightIcon="pi pi-history ml-2 custom-tabview">
           <PurchaseHistory {...{ purchaseHistory }} summary={summary} />
         </TabPanel>
       </TabView>

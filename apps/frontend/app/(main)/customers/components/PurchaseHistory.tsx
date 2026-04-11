@@ -48,9 +48,16 @@ const PurchaseHistory = (props: PurchaseHistoryProps) => {
         {purchaseHistory && purchaseHistory.lastPurchase && (
           <div className="flex flex-column gap-2">
             {purchaseHistory.lastPurchase && (
-              <Card className="mb-3 shadow-2 px-0" title="Recent Purchases">
+              <Card
+                className="mb-3 shadow-2 px-0"
+                title="Recent Purchases"
+                pt={{
+                  body: { className: 'p-3' },
+                  content: { className: 'p-0' },
+                }}
+              >
                 <div className="card-text">
-                  <div className="flex justify-content-end gap-2 mb-2">
+                  <div className="flex justify-content-end gap-2 mb-3">
                     <span className="font-semibold">Purchase Date</span>
                     <span className="font-semibold">
                       {formatDate(purchaseHistory.lastPurchase?.[0].DocDate as Date, 'yyyy-MM-dd')}
@@ -63,7 +70,7 @@ const PurchaseHistory = (props: PurchaseHistoryProps) => {
                     {purchaseHistory.lastPurchase.map((item: ILastPurchase, idx) => (
                       <div key={idx} className="col-12 md:col-6 lg:col-4">
                         <Card
-                          className="mb-3 p-3 h-[180px] shadow-2 px-0"
+                          className="mb-3 p-3 h-[180px] shadow-1 px-0"
                           pt={{
                             root: {
                               style: {
@@ -79,8 +86,8 @@ const PurchaseHistory = (props: PurchaseHistoryProps) => {
                               <span className="uppercase tracking-wider">Retur</span>
                             </div>
                           )}
-                          <div className="flex flex-column justify-content-between gap-2 text-sm">
-                            <div className="flex flex-row justify-content-start gap-3 font-semibold">
+                          <div className="flex flex-column justify-content-between gap-1 text-sm">
+                            <div className="flex flex-row justify-content-start gap-2 font-semibold">
                               <p>Qty</p>
                               <p>
                                 {item.QtyKg} {item.unitMsr}
