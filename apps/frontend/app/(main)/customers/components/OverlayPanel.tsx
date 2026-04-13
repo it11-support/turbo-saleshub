@@ -32,7 +32,7 @@ const ProductOverlayPanel = ({ item, overlayRefs }: Props) => {
       const cleanedOps: DeltaOperation[] = parsed.ops.map((op) => {
         if (!op.attributes) return op
 
-        const { color, ...rest } = op.attributes
+        const { color, background, ...rest } = op.attributes as any
 
         if (color) {
           rest.color = 'var(--text-color-secondary)'
@@ -61,8 +61,9 @@ const ProductOverlayPanel = ({ item, overlayRefs }: Props) => {
       }}
       className={isMobile ? 'mobile-overlay' : ''}
       style={{
-        width: isMobile ? '100vw' : '400px',
+        width: isMobile ? '90vw' : '400px',
         maxWidth: '100vw',
+        marginLeft: isMobile ? '5vw' : undefined,
       }}
     >
       <div
