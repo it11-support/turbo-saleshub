@@ -165,7 +165,7 @@ export const CustomerDetail = (props: Props) => {
                 threeMonthActiveItems.length > 0 ? `(${threeMonthActiveItems.length} items)` : ''
               }`}
             >
-              <p className="m-0 text-lg mb-2">
+              <p className="mx-2 text-lg mb-2">
                 {threeMonthActiveItems.length > 0
                   ? `Total Active Items (${threeMonthActiveItems.length})`
                   : 'No Active Items'}
@@ -201,7 +201,7 @@ export const CustomerDetail = (props: Props) => {
                 sixMonthActiveItems.length > 0 ? `(${sixMonthActiveItems.length} items) ` : ''
               }`}
             >
-              <p className="m-0 text-lg mb-2">
+              <p className="mx-2 text-lg mb-2">
                 Total Active Items{' '}
                 <span className="font-bold">{sixMonthActiveItems.length} items</span>
               </p>
@@ -236,7 +236,7 @@ export const CustomerDetail = (props: Props) => {
                 allTimeActiveItems.length > 0 ? `(${allTimeActiveItems.length} items)` : ''
               }`}
             >
-              <p className="m-0 text-lg mb-2">
+              <p className="mx-2 text-lg mb-2">
                 Total Active Items{' '}
                 <span className="font-bold">{allTimeActiveItems.length} items</span>
               </p>
