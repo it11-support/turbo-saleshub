@@ -12,6 +12,7 @@ import 'primereact/resources/primereact.css'
 
 import '../styles/demo/Demos.scss'
 import '../styles/layout/layout.scss'
+import { Suspense } from 'react'
 
 interface RootLayoutProps {
   children: React.ReactNode
@@ -28,7 +29,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <PrimeReactProvider>
           <AuthProvider>
             <NuqsAdapter>
-              <LayoutProvider>{children}</LayoutProvider>
+              <Suspense fallback={null}>
+                <LayoutProvider>{children}</LayoutProvider>
+              </Suspense>
             </NuqsAdapter>
           </AuthProvider>
         </PrimeReactProvider>
