@@ -3,6 +3,7 @@ const rootPath = process.cwd()
 const path = require('path')
 
 const nextConfig = {
+  devIndicators: false,
   transpilePackages: ['@saleshub-tsm/types'],
   turbopack: {
     root: '../..',

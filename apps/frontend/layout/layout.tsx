@@ -15,6 +15,7 @@ import useIsMobile from './mobile/useIsMobile'
 import { AppTopbarRef, ChildContainerProps, LayoutState } from '@/types'
 import AddScheduleDialog from '@/app/(main)/components/add-schedule/dialog'
 import NewCustomerDialog from '@/app/(main)/components/customer/new-customer'
+import { ScrollTop } from 'primereact/scrolltop'
 
 const Layout = ({ children }: ChildContainerProps) => {
   const { layoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
@@ -146,6 +147,11 @@ const Layout = ({ children }: ChildContainerProps) => {
         <div className="layout-mask"></div>
         <AddScheduleDialog />
         <NewCustomerDialog />
+        <ScrollTop
+          threshold={300}
+          className="z-5"
+          icon="pi pi-chevron-up"
+        />
       </div>
     </React.Fragment>
   )
