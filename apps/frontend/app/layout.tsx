@@ -1,5 +1,6 @@
 'use client'
 import { LayoutProvider } from '../layout/context/layoutcontext'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { PrimeReactProvider } from 'primereact/api'
 
 import AuthProvider from '@/layout/context/AuthContext'
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <PrimeReactProvider>
           <AuthProvider>
-            <LayoutProvider>{children}</LayoutProvider>
+            <NuqsAdapter>
+              <LayoutProvider>{children}</LayoutProvider>
+            </NuqsAdapter>
           </AuthProvider>
         </PrimeReactProvider>
       </body>

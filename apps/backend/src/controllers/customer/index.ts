@@ -110,7 +110,7 @@ export const customerList = async (
       query.SlpCode = Number(slpCode);
     }
 
-    if(isNewCustomer) {
+    if (isNewCustomer) {
       query.isLocal = isNewCustomer === 'true' || isNewCustomer === true;
     }
 
@@ -260,9 +260,9 @@ export const customerList = async (
         perPage: Number(per_page),
         totalPages: meta.pageCount,
       },
-      groupNames: groupNames,
-      salesPersonNames: salesPersonNames,
-      subGroupNames: subGroupNames,
+      groupNames,
+      salesPersonNames,
+      subGroupNames,
     });
   } catch (error) {
     console.error(error);
