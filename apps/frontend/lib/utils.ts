@@ -1,7 +1,6 @@
+import { TRevenueSummary } from '@saleshub-tsm/types'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-import { TRevenueSummary } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
