@@ -1,10 +1,10 @@
 'use client'
 import { CustomerDetail } from '../components/CustomerDetail'
 import { calculateCustomerSpent } from '../components/functions'
+import { ILastPurchase } from '@saleshub-tsm/types'
 import { use, useEffect } from 'react'
 
 import { useCustomerStore } from '@/stores/customers'
-import { ILastPurchase } from '@/types/customer'
 
 interface Props {
   params: Promise<{ id: string }>
