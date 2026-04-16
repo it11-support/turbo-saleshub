@@ -42,13 +42,14 @@ export const customerList = async (
     };
 
 
-    const { groups, salesPersons, subgroups, slpCode, itemCount, loyaltyLevel } = req.query as {
+    const { groups, salesPersons, subgroups, slpCode, itemCount, loyaltyLevel, isNewCustomer } = req.query as {
       groups?: string | string[];
       salesPersons?: string | string[];
       subgroups?: string | string[];
       slpCode?: number;
       itemCount?: number;
       loyaltyLevel?: string | string[];
+      isNewCustomer?: string | boolean
     };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
@@ -107,6 +108,10 @@ export const customerList = async (
 
     if (slpCode) {
       query.SlpCode = Number(slpCode);
+    }
+
+    if(isNewCustomer) {
+      query.isLocal = isNewCustomer === 'true' || isNewCustomer === true;
     }
 
     if (selectedGroups.length > 0) {

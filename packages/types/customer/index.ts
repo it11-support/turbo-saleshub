@@ -63,6 +63,7 @@ export interface ICustomerState {
   page: number
   limit: number
   search: string
+  isNewCustomer: boolean
   multiSortMeta: any[]
   groupNames: string[]
   salesPersonNames: string[]
@@ -71,6 +72,7 @@ export interface ICustomerState {
   subgroupOptions: { value: number; label: string }[]
   // groupOptions: { value: number; label: string }[]
   slpCode: number | null
+  setIsNewCustomer: (isNewCustomer: boolean) => void
   setNewCustomerForm: (form: INewCustomerForm) => void
   setSlpCode: (slpCode: number | null) => void
   setSubgroupOptions: (subgroupOptions: { value: number; label: string }[]) => void

@@ -8,6 +8,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   newCustomerForm: {},
   groupOptions: [],
   customer: null,
+  isNewCustomer: false,
   itemCount: 0,
   customers: [],
   loading: false,
@@ -53,6 +54,9 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setNewCustomerForm(form) {
     set({ newCustomerForm: form })
   },
+  setIsNewCustomer(isNewCustomer) {
+    set({ isNewCustomer })
+  },
   setSlpCode(slpCode) {
     set({ slpCode })
   },
@@ -63,7 +67,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       const userData = userCookie ? JSON.parse(String(userCookie)) : null
       const loginSlpCode = userData?.sales_person?.SlpCode
 
-      const { page, limit, search, multiSortMeta, groups, salesPersons, subgroups, itemCount, loyaltyLevel, slpCode } = get()
+      const { page, limit, search, multiSortMeta, groups, salesPersons, subgroups, itemCount, loyaltyLevel, slpCode, isNewCustomer } = get()
 
       const finalSlpCode = slpCode ?? loginSlpCode
 
@@ -85,6 +89,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         ...(finalSlpCode ? { slpCode: finalSlpCode } : {}),
         ...(itemCount ? { itemCount } : {}),
         ...(loyaltyLevel ? { loyaltyLevel } : {}),
+        ...(isNewCustomer ? { isNewCustomer } : {})
       }
 
       const url = createUrl('customers', payload)

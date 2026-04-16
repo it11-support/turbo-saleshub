@@ -3,6 +3,7 @@
 import { getClass, segmentToStars } from './components/functions'
 import NavButton from './components/NavButton'
 import { ICustomer } from '@saleshub-tsm/types'
+import { Checkbox } from 'primereact/checkbox'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
@@ -44,6 +45,8 @@ export default function CustomerTable() {
     setItemCount,
     loyaltyLevel,
     setLoyaltyLevel,
+    isNewCustomer,
+    setIsNewCustomer,
   } = useCustomerStore()
 
   const authStore = useAuth()
@@ -79,6 +82,7 @@ export default function CustomerTable() {
     subgroups,
     debounceCountSlider,
     loyaltyLevel,
+    isNewCustomer,
   ])
 
   const clearFilter = () => {
@@ -127,18 +131,10 @@ export default function CustomerTable() {
     <div className="card p-4">
       <NavButton />
       <h5>Customer List</h5>
-      <div className="grid my-4">
+      <div className="grid my-4 gap-1">
         {/* Kolom 1: Input Search */}
-        <div className="col-12 sm:col-6 md:col-2">
-          <h6>Item Count &gt; {itemCount}</h6>
-          <Slider
-            value={itemCount}
-            onChange={(e) => setItemCount(e.value as number)}
-            step={10}
-            className="ml-2"
-          />
-        </div>
-        <div className="col-12 sm:col-6 md:col-2">
+
+        <div className="col-12 sm:col-6 md:col-3">
           <div className="p-inputgroup">
             <InputText
               id="search"
@@ -161,7 +157,7 @@ export default function CustomerTable() {
         {/* Kolom 2: SelectButton */}
 
         {/* Kolom 3: MultiSelect */}
-        <div className="col-12 sm:col-6 md:col-2">
+        <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
             value={groups}
             onChange={(e) => setGroups(e.value)}
@@ -174,7 +170,7 @@ export default function CustomerTable() {
             style={{ minWidth: 'unset' }}
           />
         </div>
-        <div className="col-12 sm:col-6 md:col-2">
+        <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
             value={subgroups}
             onChange={(e) => setSubgroups(e.value)}
@@ -188,7 +184,7 @@ export default function CustomerTable() {
           />
         </div>
         {isAdmin && (
-          <div className="col-12 sm:col-6 md:col-2">
+          <div className="col-12 sm:col-6 md:col-3">
             <MultiSelect
               value={salesPersons}
               onChange={(e) => setSalesPersons(e.value)}
@@ -202,7 +198,7 @@ export default function CustomerTable() {
             />
           </div>
         )}
-        <div className="col-12 sm:col-6 md:col-2">
+        <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
             value={loyaltyLevel}
             onChange={(e) => setLoyaltyLevel(e.value)}
@@ -214,6 +210,28 @@ export default function CustomerTable() {
             className="w-full"
             style={{ minWidth: 'unset' }}
           />
+        </div>
+        <div className="col-12 sm:col-6 md:col-3">
+          <h6>Item Count &gt; {itemCount}</h6>
+          <Slider
+            value={itemCount}
+            onChange={(e) => setItemCount(e.value as number)}
+            step={10}
+            className="ml-2"
+          />
+        </div>
+        <div className="col-12 sm:col-6 md:col-3">
+          <div className="flex align-items-center h-full">
+            <Checkbox
+              inputId="newCustomer"
+              value={isNewCustomer}
+              checked={isNewCustomer}
+              onChange={(e) => setIsNewCustomer(e.checked as boolean)}
+            />
+            <label htmlFor="newCustomer" className="ml-2 white-space-nowrap">
+              New Customer
+            </label>
+          </div>
         </div>
       </div>
       <DataTable
