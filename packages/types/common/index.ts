@@ -16,7 +16,6 @@ export type PaginationResult<T> = {
   }
 }
 
-
 export type Role = 'admin' | 'sales'
 
 type BaseMenuItem = {
@@ -58,4 +57,17 @@ export type SummaryResult = {
   current: SummaryValue
   previous: SummaryValue
   growth: SummaryValue
+}
+
+export type SortOption = {
+  key: string
+  order: 'asc' | 'desc'
+}
+
+
+export type Nullable<T = void> = T | null | undefined;
+
+export interface DataTableSortMeta {
+    field: string;
+    order: 1 | 0 | -1 | null | undefined;
 }

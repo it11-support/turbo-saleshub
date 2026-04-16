@@ -1,4 +1,4 @@
-import { IUser, PaginationResult } from '@saleshub-tsm/types';
+import { IUser, PaginationResult, ProfileResponseType, UserRequstType } from '@saleshub-tsm/types';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { PER_PAGE } from '@/constants/index.js';
@@ -6,20 +6,6 @@ import { PER_PAGE } from '@/constants/index.js';
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
 
-export type UserRequstType = {
-  search?: string;
-  per_page?: number;
-  roles?: string | string[];
-  sort_options?: { key: string; order: 'asc' | 'desc' }[];
-  page?: number;
-};
-
-export type ProfileResponseType = {
-  message: string;
-  data?: {
-    user: IUser | null;
-  };
-};
 
 export const userList = async (
   req: Request<UserRequstType>,

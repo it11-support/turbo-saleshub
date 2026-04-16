@@ -1,48 +1,10 @@
 import { $api, createUrl } from '@/lib/api'
-import { IVisit, IVisitConcernFollowUp, IVisitItem, IVisitItemConcern, TVisitStatus } from '@saleshub-tsm/types'
+import { VisitListState } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
 
-export type ExportVisit = IVisit & {
-  visit_items: (IVisitItem & {
-    visit_item_concerns: (IVisitItemConcern & {
-      follow_ups: IVisitConcernFollowUp[]
-    })[]
-  })[]
-}
 
-interface VisitListState {
-  data: IVisit[],
-  loading: boolean
-  loadingExport: boolean
-  page: number
-  total: number
-  totalPages: number
-  limit: number
-  dates: Nullable<(Date | null)[]>
-  exportDates: Nullable<(Date | null)[]>
-  multiSortMeta: any[]
-  exportData: ExportVisit[]
-  setExportData: (data: ExportVisit[]) => void
-  fetchVisits: () => Promise<void>
-  salesPersonId?: number
-  needFollowUp: boolean
-  setNeedFollowUp: (needFollowUp: boolean) => void
-  status?: string | TVisitStatus
-  setStatus: (status?: string | TVisitStatus) => void
-  salesPersonFilter?: number | null
-  setSalesPersonId: (salesPersonId?: number) => void
-  setSalesPersonFilter: (salesPersonFilter?: number | null) => void
-  setDates: (dates: Nullable<(Date | null)[]>) => void
-  setExportDates: (exportDates: Nullable<(Date | null)[]>) => void
-  setPage: (page: number) => void
-  setLimit: (limit: number) => void
-  setMultiSortMeta: (meta: any[]) => void
-  fetchExportedData: () => Promise<void>
-  reset: () => void
-  setLoadingExport: (loading: boolean) => void
-}
 
 const initialState = {
   data: [],

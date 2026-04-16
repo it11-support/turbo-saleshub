@@ -1,7 +1,4 @@
-type SortOption = {
-  key: string
-  order: 'asc' | 'desc'
-}
+import { SortOption } from "@saleshub-tsm/types"
 
 export function sortOptionsParser(sort_options: any): SortOption[] {
   let parsed: SortOption[] = []

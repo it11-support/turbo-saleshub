@@ -1,20 +1,5 @@
-import { ISalesInvoices } from '@saleshub-tsm/types'
+import { ICustomerSummary, ISalesInvoices } from '@saleshub-tsm/types'
 import { format, isWithinInterval, parseISO, startOfMonth, subMonths } from 'date-fns'
-
-export interface CustomerSummary {
-  ItemCode: string
-  ItemName: string
-  QtyKg: number
-  TotalSales: number
-  count: number
-  lastInvDate: Date | string
-}
-
-interface Summary {
-  month: string
-  totalSales: number
-  activeItems: number
-}
 
 export const calculateCustomerSpent = (salesInvoices?: ISalesInvoices[], months?: number) => {
   if (!salesInvoices) return 0
@@ -41,7 +26,7 @@ export const calculateCustomerSpent = (salesInvoices?: ISalesInvoices[], months?
 export const getMonthlySummary = (
   sales_invoices: ISalesInvoices[],
   months: number = 6
-): Summary[] => {
+): ICustomerSummary[] => {
   if (!sales_invoices || sales_invoices.length === 0) return []
 
   const now = new Date()

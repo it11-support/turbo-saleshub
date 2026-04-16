@@ -1,9 +1,11 @@
+import { DataTableSortMeta } from "../common";
 import { ICustomer } from "../customer";
 import { IVisit } from "../visit";
+import { JwtPayload } from 'jsonwebtoken'
 
 export interface SortMeta {
-    field: string;
-    order: 1 | 0 | -1 | null | undefined;
+  field: string;
+  order: 1 | 0 | -1 | null | undefined;
 }
 
 export interface IRole {
@@ -27,7 +29,7 @@ export interface ISalesPerson {
   EmpID?: number | null;
   Active?: string | null;
   created_at?: string | Date | null;
-  updated_at?:string | Date | null;
+  updated_at?: string | Date | null;
   customers?: ICustomer[]
   visits?: IVisit[]
   user?: IUser
@@ -49,21 +51,26 @@ export interface IUser {
 
 export interface IUserState {
   user: IUser | null
-  users : IUser[] | []
-
+  users: IUser[] | []
+  selectedRoles: string[] | []
+  setSelectedRoles: (roles: string[]) => void
   loading: boolean
-  page: number;
-  limit: number;
-  search: string;
-  multiSortMeta: SortMeta[];
-
-  setPage: (page: number) => void;
-  setLimit: (limit: number) => void;
-  setSearch: (value: string) => void;
-  setMultiSortMeta: (meta: SortMeta[]) => void;
+  page: number
+  limit: number
+  search: string
+  multiSortMeta: DataTableSortMeta[]
+  salesPersons: ISalesPerson[]
+  setSalesPersons: (salesPersons: ISalesPerson[]) => void
+  salesPerson: ISalesPerson | null
+  setSalesPerson: (salesPerson: ISalesPerson | null) => void
+  setPage: (page: number) => void
+  setLimit: (limit: number) => void
+  setSearch: (value: string) => void
+  setMultiSortMeta: (meta: DataTableSortMeta[]) => void
 
   setUsers: (users: IUser[]) => void
   setUser: (user: IUser | null) => void
+  setRoles: (roles: IRole[]) => void
   setLoading: (loading: boolean) => void
   totalRecords: number
   roles: IRole[] | []
@@ -72,4 +79,32 @@ export interface IUserState {
   createUser: (data: Partial<IUser>) => Promise<IUser | null>
   updateUser: (id: number, data: Partial<IUser>) => Promise<IUser | null>
   deleteUser: (id: number) => Promise<boolean>
+  fetchRoles: () => Promise<void>
+  fetchSalesPersons: (withFilterUser?: boolean) => Promise<void>
 }
+
+export type UserRequstType = {
+  search?: string;
+  per_page?: number;
+  roles?: string | string[];
+  sort_options?: { key: string; order: 'asc' | 'desc' }[];
+  page?: number;
+};
+
+export type ProfileResponseType = {
+  message: string;
+  data?: {
+    user: IUser | null;
+  };
+};
+
+export type IUserPayload = Omit<IUser, 'role'> & {
+  role: string
+} & JwtPayload
+
+export type Credentials = {
+  username: string
+  password: string
+  remember: boolean
+}
+

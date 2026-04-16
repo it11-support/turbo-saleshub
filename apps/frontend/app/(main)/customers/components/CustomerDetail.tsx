@@ -6,7 +6,7 @@ import ProductCard from './ProductCard'
 import PurchaseHistory from './PurchaseHistory'
 import { faIdBadge } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { ICustomer, SuggestedItemsGrouped } from '@saleshub-tsm/types'
+import { ICustomer, ILastPurchase, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
@@ -19,7 +19,6 @@ import useIsMobile from '@/layout/mobile/useIsMobile'
 import { getActiveItems } from '@/lib/customers'
 import { formatCurrency } from '@/lib/formatter'
 import { parsePhone } from '@/lib/phoneParser'
-import { ILastPurchase } from '@/types/customer'
 
 export interface Props {
   customer: ICustomer | null

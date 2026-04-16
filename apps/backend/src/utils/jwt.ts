@@ -1,6 +1,6 @@
+import { IUserPayload } from '@saleshub-tsm/types';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import { IUserPayload } from '../middlewares/auth.middleware.js';
 
 dotenv.config();
 

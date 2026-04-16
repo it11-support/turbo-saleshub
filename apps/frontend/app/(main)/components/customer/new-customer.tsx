@@ -1,6 +1,6 @@
 'use client'
 
-import { ICustomer, IVisit } from '@saleshub-tsm/types'
+import { FormData, IVisit } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
@@ -8,7 +8,6 @@ import { Dialog } from 'primereact/dialog'
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { Nullable } from 'primereact/ts-helpers'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
@@ -16,12 +15,6 @@ import { useScheduleDialog, useScheduleStore, useUserStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
 type CustomerPhone = 'Phone1' | 'Cellular'
-
-interface FormData {
-  salesPersonId: number | null
-  customer: ICustomer | null
-  scheduleDate: Nullable<Date> | null
-}
 
 export default function NewCustomerDialog() {
   const { activeDialog, hide } = useScheduleDialog()

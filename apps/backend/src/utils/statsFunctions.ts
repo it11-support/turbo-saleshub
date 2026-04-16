@@ -1,14 +1,7 @@
 import dayjs from "dayjs";
 import prisma from '@/libs/prisma.js'
-import { Decimal } from "@prisma/client/runtime/client";
+import { ICalcNetRevParams } from "@saleshub-tsm/types";
 
-interface ICalcNetRevParams {
-  DocNum: number
-  TotalSales: Decimal | null
-  returs?: {
-    TotalSales: Decimal | null
-  }[]
-}
 export const calcMTD = (current: number, last: number) => {
   const growth = ((current - last) / last) * 100
   const diff = current - last

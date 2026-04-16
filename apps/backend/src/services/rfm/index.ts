@@ -1,12 +1,7 @@
 import { CustomerSegment } from "@/generated/prisma/enums.js"
 import prisma from "@/libs/prisma.js"
+import { CustomerScoreMap } from "@saleshub-tsm/types"
 import dayjs from "dayjs"
-
-type CustomerScoreMap = {
-  lastOrder: Date
-  frequencySet: Set<number>
-  monetary: number
-}
 
 export const scoreByQuintile = (
   value: number,

@@ -1,21 +1,14 @@
-import { ICustomer, ISalesPerson, IVisit } from '@saleshub-tsm/types'
+import { FormData, ISalesPerson, IVisit } from '@saleshub-tsm/types'
 import { AutoComplete } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
-import { Nullable } from 'primereact/ts-helpers'
 import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { useScheduleDialog, useScheduleStore, useUserStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
-
-interface FormData {
-  salesPersonId: number | null
-  customer: ICustomer | null
-  scheduleDate: Nullable<Date> | null
-}
 
 export default function AddScheduleDialog() {
   const { activeDialog, hide } = useScheduleDialog()

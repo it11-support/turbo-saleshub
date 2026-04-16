@@ -12,3 +12,9 @@ export interface CustomerRFM {
   rfmScore: string | null;
   segment: string | null;
 }
+
+export type CustomerScoreMap = {
+  lastOrder: Date
+  frequencySet: Set<number>
+  monetary: number
+}

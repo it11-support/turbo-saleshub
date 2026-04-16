@@ -2,7 +2,7 @@ import { DataTableSortMeta } from 'primereact/datatable'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { IUserState } from '@/types/user'
+import { IUserState } from '@saleshub-tsm/types'
 
 export const useUserStore = create<IUserState>()((set, get) => ({
   user: null,

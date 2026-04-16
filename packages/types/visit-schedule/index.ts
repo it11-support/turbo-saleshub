@@ -48,3 +48,26 @@ export interface GenerateResult {
   schedules_generated: number;
   schedules_inserted: number;
 }
+
+
+export interface ScheduleState {
+  currentDate: string
+  setCurrentDate: (date: string) => void
+  fetchScheduleByDate: (sales_person_id: number, date: string) => Promise<void>
+  schedules: VisitSchedule[]
+  loading: boolean
+  error: string | null
+  pageSize: number
+  total: number
+  totalPages: number
+  page: number
+  setPage: (page: number) => void
+  setTotal: (total: number) => void
+  setTotalPages: (totalPages: number) => void
+  // actions
+  fetchBySalesPerson: (sales_person_id: number) => Promise<void>
+  generateByRules: (sales_person_id: number, year: number, month: number) => Promise<GenerateResult>
+  updateStatus: (id: number, status: string) => Promise<void>
+  deleteSchedule: (id: number) => Promise<void>
+  createVisitSchedule: (payload: Partial<IVisit>) => Promise<IVisit>
+}

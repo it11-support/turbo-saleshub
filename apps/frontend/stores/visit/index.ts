@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { FollowUpForm, IVisitDetails, IVisitState, OfferedItem } from '@/types'
-import { IVisit } from '@saleshub-tsm/types'
+import { FollowUpForm, IVisit, IVisitDetails, IVisitState, OfferedItem } from '@saleshub-tsm/types'
 
 export const useSalesVisit = create<IVisitState>()((set, get) => ({
   visitNote: '',

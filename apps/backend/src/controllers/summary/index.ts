@@ -1,47 +1,9 @@
 import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
-import { calcMTD, getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
+import { getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
 import { getSalesSummary } from './functions.js'
-
-type MonthlySummary = {
-  year: number
-  month: number
-  revenue: number
-  orders: number
-  customers: number
-}
-
-type MtdValue = {
-  revenue: number
-  orders: number
-  customers: number
-  aov: number
-}
-
-type GrowthValue = {
-  revenue: number // %
-  orders: number  // %
-  customers: number // %
-  aov: number // %
-}
-
-export type MtdResult = {
-  current: MtdValue
-  previous: MtdValue
-  growth: GrowthValue
-}
-
-type MtdRaw = {
-  revenue_current: number | null
-  orders_current: number | null
-  customers_current: number | null
-
-  revenue_last_month: number | null
-  orders_last_month: number | null
-  customers_last_month: number | null
-}
-
+import { MonthlySummary } from '@saleshub-tsm/types'
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {

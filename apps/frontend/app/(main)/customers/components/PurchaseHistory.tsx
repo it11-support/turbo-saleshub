@@ -1,11 +1,11 @@
 'use client'
 
 import SummaryChart from './SummaryChart'
+import { ILastPurchase } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Card } from 'primereact/card'
 
 import { formatCurrency } from '@/lib/formatter'
-import { ILastPurchase } from '@/types/customer'
 
 export type PurchaseHistoryProps = {
   purchaseHistory?: {

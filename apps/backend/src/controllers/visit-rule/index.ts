@@ -1,15 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
-
-type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
-
-export type VisitRuleRequestType = {
-  sales_person_id: number;
-  customer_id: number;
-  day_of_week: DayOfWeek;
-  visit_weeks: number[];
-  max_items_per_visit: number;
-};
+import { VisitRuleRequestType } from '@saleshub-tsm/types';
 
 export const createVisitRules = async (
   req: Request<{}, {}, VisitRuleRequestType>,

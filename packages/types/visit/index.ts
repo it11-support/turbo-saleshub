@@ -1,3 +1,4 @@
+import { Nullable } from "../common";
 import { IConcernCategory, IConcernStatus } from "../concerns";
 import { ICustomer } from "../customer";
 import { IInquiry, IProduct, SuggestedItemsGrouped } from "../product";
@@ -90,4 +91,91 @@ export enum EFollowUpType {
   WhatsApp = 'WhatsApp',
   Email = 'Email',
   Override = 'Override'
+}
+
+
+export type ExportVisit = IVisit & {
+  visit_items: (IVisitItem & {
+    visit_item_concerns: (IVisitItemConcern & {
+      follow_ups: IVisitConcernFollowUp[]
+    })[]
+  })[]
+}
+
+export interface VisitListState {
+  data: IVisit[],
+  loading: boolean
+  loadingExport: boolean
+  page: number
+  total: number
+  totalPages: number
+  limit: number
+  dates: Nullable<(Date | null)[]>
+  exportDates: Nullable<(Date | null)[]>
+  multiSortMeta: any[]
+  exportData: ExportVisit[]
+  setExportData: (data: ExportVisit[]) => void
+  fetchVisits: () => Promise<void>
+  salesPersonId?: number
+  needFollowUp: boolean
+  setNeedFollowUp: (needFollowUp: boolean) => void
+  status?: string | TVisitStatus
+  setStatus: (status?: string | TVisitStatus) => void
+  salesPersonFilter?: number | null
+  setSalesPersonId: (salesPersonId?: number) => void
+  setSalesPersonFilter: (salesPersonFilter?: number | null) => void
+  setDates: (dates: Nullable<(Date | null)[]>) => void
+  setExportDates: (exportDates: Nullable<(Date | null)[]>) => void
+  setPage: (page: number) => void
+  setLimit: (limit: number) => void
+  setMultiSortMeta: (meta: any[]) => void
+  fetchExportedData: () => Promise<void>
+  reset: () => void
+  setLoadingExport: (loading: boolean) => void
+}
+
+export interface FollowUpForm {
+  visit_item_concern_id: BigInt | number
+  status: string
+  type: EFollowUpType | null
+  notes: string
+  action_required: boolean
+  next_follow_up_date: Date | null
+}
+
+export type OfferedItem = {
+  product_id: number
+  offered: boolean
+  notes?: string
+  product?: IProduct
+  created_at?: Date
+}
+
+export interface IVisitDetails {
+  [key: number]: {
+    [key: number]: {
+      notes: string;
+      statusId: number | null;
+    };
+  };
+}
+
+export interface IVisitState {
+  followUpForm: FollowUpForm
+  setFollowUpForm: (folloUpForm: FollowUpForm) => void
+  offeredItems: OfferedItem[]
+  setOfferedItems: (items: OfferedItem[]) => void
+  salesVisit: IVisit
+  setSalesVisit: (salesVisit: IVisit) => void
+  loading: boolean
+  visitNote: string
+  error: string | null
+  fetchSalesVisit: (rule_id: number, type?: string) => Promise<void>
+  syncOfferedItems: (data: IVisitDetails) => Promise<void>
+  endVisit: () => Promise<void>
+  fetchVisitDetails: (id: number) => Promise<void>
+  setVisitNote: (note: string) => void
+  addFollowUp: () => Promise<void>
+  startVisit: (visitId: number) => Promise<void>
+  closeItems: (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => Promise<void>
 }

@@ -2,7 +2,7 @@ import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { ISalesSummaryState, Summary, TRevenueSummary } from '@/types'
+import { ISalesSummaryState, Summary } from '@saleshub-tsm/types'
 
 export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   monthlyTrend: [],

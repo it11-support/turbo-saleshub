@@ -1,8 +1,7 @@
-import { ISalesVisitRule } from '@saleshub-tsm/types'
+import { ISalesVisitRule, IVisitRulesState } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { IVisitRulesState } from '@/types/visit-rules'
 
 export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
   loading: false,

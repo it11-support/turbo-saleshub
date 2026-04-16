@@ -1,28 +1,8 @@
 import { create } from 'zustand'
 import { $api, createUrl } from '@/lib/api'
-import { IProduct, IProductDevelopmentList } from '@saleshub-tsm/types'
+import { IProduct, IProductDevelopmentList, ProductDevelopmentState } from '@saleshub-tsm/types'
 
-interface ProductDevelopmentStore {
-  loading: boolean
-  products: IProduct[]
-  devProducts: IProductDevelopmentList[]
-
-  activeProduct: IProduct | null
-  subgroupIds: number[]
-  // setters
-  setProducts: (products: IProduct[]) => void
-  setDevProducts: (products: IProductDevelopmentList[]) => void
-  setActiveProduct: (product: IProduct) => void
-  setSubgroups: (ids: number[]) => void
-  clearActive: () => void
-
-  // actions
-  sync: () => Promise<void>
-  removeActiveProduct: () => Promise<void>
-  reset: () => void
-}
-
-export const useProductDevelopmentStore = create<ProductDevelopmentStore>((set, get) => ({
+export const useProductDevelopmentStore = create<ProductDevelopmentState>((set, get) => ({
   loading: false,
   products: [],
   devProducts: [],

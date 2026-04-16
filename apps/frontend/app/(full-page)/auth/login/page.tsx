@@ -2,6 +2,7 @@
 
 import { LayoutContext } from '../../../../layout/context/layoutcontext'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Credentials } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { InputText } from 'primereact/inputtext'
@@ -14,12 +15,6 @@ import * as yup from 'yup'
 import { useAuth } from '@/layout/context/AuthContext'
 import { $api } from '@/lib/api'
 import { useConfigStore } from '@/stores'
-
-type Credentials = {
-  username: string
-  password: string
-  remember: boolean
-}
 
 const schema = yup.object().shape({
   username: yup

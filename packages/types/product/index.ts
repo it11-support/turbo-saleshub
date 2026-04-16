@@ -98,3 +98,49 @@ export interface IProductInquiryState {
   fetchInquiries: (id: number) => Promise<void>
   syncInquiries: (id: number) => Promise<void>
 }
+
+export interface ProductDevelopmentState {
+  loading: boolean
+  products: IProduct[]
+  devProducts: IProductDevelopmentList[]
+
+  activeProduct: IProduct | null
+  subgroupIds: number[]
+  // setters
+  setProducts: (products: IProduct[]) => void
+  setDevProducts: (products: IProductDevelopmentList[]) => void
+  setActiveProduct: (product: IProduct) => void
+  setSubgroups: (ids: number[]) => void
+  clearActive: () => void
+
+  // actions
+  sync: () => Promise<void>
+  removeActiveProduct: () => Promise<void>
+  reset: () => void
+}
+
+export interface ProductStoreState {
+  data: any[]
+  loading: boolean
+  page: number
+  total: number
+  totalPages: number
+  limit: number
+  search: string
+  isProductFocused: boolean
+  isDistributor: boolean
+  categories: { value: number; label: string }[]
+  selectedCategory?: number
+  selectedGroup?: EProductCategory
+  setSelectedGroup: (selectedGroup?: EProductCategory) => void
+  setSelectedCategory: (selectedCategory?: number) => void
+  setPage: (page: number) => void
+  setCategories: (categories: { value: number; label: string }[]) => void
+  setLimit: (limit: number) => void
+  setSearch: (search: string) => void
+  setIsProductFocused: (isProductFocused: boolean) => void
+  setIsDistributor: (isDistributor: boolean) => void
+  fetchProducts: () => Promise<void>
+  reset: () => void
+  updateProductInfo: (product_id: number, productInfo: string) => Promise<void>
+}

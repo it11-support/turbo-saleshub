@@ -1,11 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../utils/jwt.js'
-import { JwtPayload } from 'jsonwebtoken'
-import { IUser } from '@saleshub-tsm/types'
-
-export type IUserPayload = Omit<IUser, 'role'> & {
-  role: string
-} & JwtPayload
+import { IUserPayload } from '@saleshub-tsm/types'
 
 
 export interface AuthRequest extends Request {

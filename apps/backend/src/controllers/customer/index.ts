@@ -19,7 +19,6 @@ export type CustomerResponseType = PaginationResult<ICustomer> & {
   subGroupNames?: (string | null)[];
 };
 
-const oneMonthAgo = dayjs().subtract(1, 'month').startOf('day').toDate();
 
 export const customerList = async (
   req: Request<CustomerRequestType>,

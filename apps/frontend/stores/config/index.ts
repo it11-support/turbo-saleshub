@@ -2,7 +2,7 @@ import { getCookie, setCookie } from 'cookies-next'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { ConfigState } from '@/types/config'
+import { ConfigState } from '@saleshub-tsm/types'
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
   userId: null,

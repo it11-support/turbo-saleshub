@@ -1,29 +1,8 @@
-import { GenerateResult, IVisit, VisitSchedule, VisitScheduleStatus } from '@saleshub-tsm/types'
+import { GenerateResult, IVisit, ScheduleState, VisitScheduleStatus } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
 
-interface ScheduleState {
-  currentDate: string
-  setCurrentDate: (date: string) => void
-  fetchScheduleByDate: (sales_person_id: number, date: string) => Promise<void>
-  schedules: VisitSchedule[]
-  loading: boolean
-  error: string | null
-  pageSize: number
-  total: number
-  totalPages: number
-  page: number
-  setPage: (page: number) => void
-  setTotal: (total: number) => void
-  setTotalPages: (totalPages: number) => void
-  // actions
-  fetchBySalesPerson: (sales_person_id: number) => Promise<void>
-  generateByRules: (sales_person_id: number, year: number, month: number) => Promise<GenerateResult>
-  updateStatus: (id: number, status: string) => Promise<void>
-  deleteSchedule: (id: number) => Promise<void>
-  createVisitSchedule: (payload: Partial<IVisit>) => Promise<IVisit>
-}
 
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
   currentDate: new Date().toISOString().slice(0, 10),
@@ -145,7 +124,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
 
     try {
 
-      const payload:  Record<string, any> = {
+      const payload: Record<string, any> = {
         salesPersonId: sales_person_id,
         date: selectedDate,
         page,

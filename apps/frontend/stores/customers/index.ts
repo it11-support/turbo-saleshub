@@ -1,9 +1,8 @@
-import { ICustomer, ISubGroup } from '@saleshub-tsm/types'
+import { ICustomer, ICustomerState } from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { ICustomerState } from '@/types/customer'
 
 export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   newCustomerForm: {},
