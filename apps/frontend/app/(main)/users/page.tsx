@@ -1,7 +1,17 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
-import { IUser } from '@saleshub-tsm/types'
+import { fetcher } from '../lib'
+import {
+  DataTableSortMeta,
+  IPaginatedData,
+  IResPaginated,
+  IResSingle,
+  IRole,
+  ISalesPerson,
+  IUser,
+} from '@saleshub-tsm/types'
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
@@ -9,61 +19,88 @@ import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 
 import UserForm from '@/app/components/users/UserForm'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useAuth } from '@/layout/context/AuthContext'
+import { createUrl } from '@/lib/api'
 import { useUserStore } from '@/stores/user'
 
 export default function UserTable() {
-  const {
-    users,
-    totalRecords,
-    loading,
-    page,
-    limit,
-    search,
-    multiSortMeta,
-    roles,
-    setPage,
-    setLimit,
-    setSearch,
-    setMultiSortMeta,
-    fetchUsers,
-    fetchRoles,
-    fetchSalesPersons,
-    selectedRoles,
-    setSelectedRoles,
-    salesPersons,
-    updateUser,
-    createUser,
-    deleteUser,
-  } = useUserStore()
+  const { updateUser, createUser, deleteUser } = useUserStore()
+
+  const { user } = useAuth()
 
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const debouncedSearch = useDebounce(search, 300)
+
+  const [filters, setFilters] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      limit: parseAsInteger.withDefault(10),
+      search: parseAsString.withDefault(''),
+      roles: parseAsArrayOf(parseAsString).withDefault([]),
+      sort: parseAsString.withDefault(''),
+      order: parseAsInteger.withDefault(1),
+    },
+    { shallow: true, history: 'replace' }
+  )
 
   const dialogRef = useRef(null)
 
+  const [localSearch, setLocalSearch] = useState(filters.search)
+  const debouncedSearch = useDebounce(localSearch, 400)
+
   useEffect(() => {
-    fetchUsers()
+    setFilters({ search: debouncedSearch, page: 1 })
   }, [debouncedSearch])
 
-  useEffect(() => {
-    fetchUsers()
-  }, [page, limit, multiSortMeta, selectedRoles])
-
-  useEffect(() => {
-    fetchRoles()
-    fetchSalesPersons()
-  }, [])
-
-  useEffect(() => {})
-
-  const clearFilter = () => {
-    setSearch('')
+  const payload = {
+    page: filters.page,
+    per_page: filters.limit,
+    search: filters.search,
+    roles: filters.roles,
+    sort: filters.sort,
+    order: filters.order,
   }
+
+  const apiUrlUser = createUrl('user', payload)
+  const apiUrlRole = createUrl('roles')
+  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
+
+  const {
+    data: userData,
+    isValidating,
+    mutate,
+  } = useSWR<IResPaginated<IPaginatedData<IUser>>>(apiUrlUser, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const users = userData?.data?.items || []
+  const totalRecords = userData?.data?.totalRecords || 0
+
+  const { data: roleData } = useSWR<IResSingle<IRole>>(apiUrlRole, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
+    apiSalesPerson,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  console.log(salesPersonData)
+  const salesPersons = salesPersonData?.data || []
+  console.log(salesPersons)
+
+  const roles = roleData?.data || []
 
   const handleDelete = async (user: IUser) => {
     setShowDeleteModal(true)
@@ -72,7 +109,7 @@ export default function UserTable() {
 
   const handleDeleteConfirm = async () => {
     await deleteUser(Number(selectedUser?.id)).then(() => {
-      fetchUsers()
+      mutate()
       setShowDeleteModal(false)
     })
   }
@@ -85,9 +122,9 @@ export default function UserTable() {
   }
 
   const roleOptions = [
-    { label: 'Admin', value: 'admin' },
-    { label: 'Supervisor', value: 'spv' },
-    { label: 'Sales', value: 'sales' },
+    { label: 'ADMIN', value: 'admin' },
+    { label: 'SUPERVISOR', value: 'spv' },
+    { label: 'SALES', value: 'sales' },
   ]
 
   const handleClickEdit = (data: IUser) => {
@@ -103,13 +140,13 @@ export default function UserTable() {
     if (selectedUser) {
       const id = Number(selectedUser.id)
       await updateUser(id, data).then(() => {
-        fetchUsers()
-        fetchSalesPersons()
+        mutate()
+        mutateSalesPerson()
         setModalOpen(false)
       })
     } else {
       await createUser(data).then(() => {
-        fetchUsers()
+        mutate()
         setModalOpen(false)
       })
     }
@@ -133,30 +170,25 @@ export default function UserTable() {
             Add User
           </Button>
         </div>
-        <div className="col-12 sm:col-6 md:col-2">
+        <div className="col-12 sm:col-6 md:col-3">
           <div className="p-inputgroup">
-            <span className="p-input-icon-right">
+            <div className="p-inputgroup flex-1">
               <InputText
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 placeholder="Search..."
                 className="w-full"
               />
-              {search && (
-                <i
-                  className="pi pi-times"
-                  onClick={clearFilter}
-                  style={{ cursor: 'pointer' }}
-                  title="Clear"
-                />
+              {localSearch && (
+                <Button icon="pi pi-times" severity="danger" onClick={() => setLocalSearch('')} />
               )}
-            </span>
+            </div>
           </div>
         </div>
         <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
-            value={selectedRoles}
-            onChange={(e) => setSelectedRoles(e.value)}
+            value={filters.roles}
+            onChange={(e) => setFilters({ roles: e.value })}
             options={roleOptions}
             optionLabel="label"
             placeholder="Select role"
@@ -170,18 +202,30 @@ export default function UserTable() {
         value={users}
         paginator
         lazy
-        rows={limit}
-        first={(page - 1) * limit}
+        rows={filters.limit}
+        first={(filters.page - 1) * filters.limit}
         totalRecords={totalRecords}
         sortMode="multiple"
-        multiSortMeta={multiSortMeta}
+        multiSortMeta={[
+          { field: filters.sort, order: filters.order as DataTableSortMeta['order'] },
+        ]}
         onPage={(e) => {
-          setPage((e.page ?? 0) + 1)
-          setLimit(e.rows)
+          setFilters({ page: Number(e.page) + 1, limit: e.rows })
         }}
-        onSort={(e) => setMultiSortMeta(e.multiSortMeta || [])}
+        onSort={(e) => {
+          const sortMeta = e.multiSortMeta?.[0]
+          if (sortMeta) {
+            setFilters(
+              {
+                sort: sortMeta.field,
+                order: sortMeta.order,
+              },
+              { history: 'replace', shallow: true }
+            )
+          }
+        }}
         dataKey="id"
-        loading={loading}
+        loading={isValidating}
         emptyMessage="Users not found"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
@@ -195,26 +239,27 @@ export default function UserTable() {
           header="Action"
           body={(rowData) => {
             const isAdmin = rowData.roles?.role === 'admin'
+            const currentUser = user?.id === rowData.id
+
             return (
               <>
-                <Button
-                  onClick={() => handleClickEdit(rowData)}
-                  disabled={isAdmin}
-                  className={`p-button-text p-button-plain p-button-sm ${
-                    isAdmin ? 'p-disabled' : ''
-                  }`}
-                >
-                  <i className="pi pi-pencil py-1"></i>
-                </Button>
-                <Button
-                  onClick={() => handleDelete(rowData)}
-                  disabled={isAdmin}
-                  className={`p-button-text p-button-plain p-button-sm ${
-                    isAdmin ? 'p-disabled' : ''
-                  }`}
-                >
-                  <i className="pi pi-trash py-1"></i>
-                </Button>
+                <div className="flex align-items-center justify-content-center gap-2">
+                  <Button
+                    onClick={() => handleClickEdit(rowData)}
+                    disabled={isAdmin && currentUser}
+                    outlined
+                    icon="pi pi-pencil"
+                    className={`${isAdmin && currentUser ? 'p-disabled' : ''}`}
+                  />
+                  <Button
+                    onClick={() => handleDelete(rowData)}
+                    disabled={isAdmin && currentUser}
+                    className={`${isAdmin && currentUser ? 'p-disabled' : ''}`}
+                    icon="pi pi-trash"
+                    severity="danger"
+                    outlined
+                  />
+                </div>
               </>
             )
           }}

@@ -108,3 +108,27 @@ export type Credentials = {
   remember: boolean
 }
 
+export interface IUserResponse {
+  message?: string
+  data: {
+    currentPage: number
+    perPage: number
+    totalRecords: number
+    totalPages: number
+    items: IUser[]
+  }
+}
+
+export interface IRoleResponse {
+  message?: string
+  data: {
+    roles: IRole[]
+  }
+}
+
+export interface ISalesPersonResponse {
+  message?: string
+  data: {
+    salesPersons: ISalesPerson[]
+  }
+}

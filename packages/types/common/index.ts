@@ -71,3 +71,23 @@ export interface DataTableSortMeta {
     field: string;
     order: 1 | 0 | -1 | null | undefined;
 }
+
+export interface ISwrResponse {
+  message?: string
+}
+
+export interface IPaginatedData<T> {
+  items: T[]
+  currentPage?: number
+  perPage?: number
+  totalPages?: number
+  totalRecords?: number
+}
+
+export interface IResPaginated<T> extends ISwrResponse {
+  data: IPaginatedData<T>;
+}
+
+export interface IResSingle<T> extends ISwrResponse {
+  data?: T[];
+}

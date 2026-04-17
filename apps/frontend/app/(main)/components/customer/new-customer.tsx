@@ -1,6 +1,7 @@
 'use client'
 
-import { FormData, IVisit } from '@saleshub-tsm/types'
+import { fetcher } from '../../lib'
+import { FormData, IResSingle, ISalesPerson, IVisit } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
@@ -9,9 +10,11 @@ import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import useSWR from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
-import { useScheduleDialog, useScheduleStore, useUserStore } from '@/stores'
+import { createUrl } from '@/lib/api'
+import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
 type CustomerPhone = 'Phone1' | 'Cellular'
@@ -20,7 +23,6 @@ export default function NewCustomerDialog() {
   const { activeDialog, hide } = useScheduleDialog()
   const { isAdmin, user } = useAuth()
   const [localSearch, setLocalSearch] = useState<string>('')
-  const { fetchSalesPersons, salesPersons } = useUserStore()
   const { fetchCustomers, customers, setSearch, setLimit, limit, setSlpCode } = useCustomerStore()
   const originalLimit = useRef<number | null>(null)
   const { createVisitSchedule } = useScheduleStore()
@@ -86,6 +88,19 @@ export default function NewCustomerDialog() {
     return Object.keys(errors).length === 0
   }
 
+  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
+
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
+    apiSalesPerson,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  const salesPersons = salesPersonData?.data
+
   useEffect(() => {
     setNewCustomerForm({})
     fetchSubgroupOptions()
@@ -94,7 +109,7 @@ export default function NewCustomerDialog() {
 
   useEffect(() => {
     if (isAdmin) {
-      fetchSalesPersons(false)
+      mutateSalesPerson()
     } else {
       setNewCustomerForm({
         ...newCustomerForm,
@@ -156,7 +171,7 @@ export default function NewCustomerDialog() {
 
   useEffect(() => {
     if (formData.salesPersonId) {
-      const slp = salesPersons.find((sp) => sp.id === formData.salesPersonId)
+      const slp = salesPersons?.find((sp) => sp.id === formData.salesPersonId)
       setSlpCode(Number(slp?.SlpCode))
     }
   }, [formData.salesPersonId])
@@ -189,7 +204,7 @@ export default function NewCustomerDialog() {
       setErrors({ ...errors, SlpCode: '' })
     }
 
-    const selectedSalesPerson = salesPersons.find((sp) => sp.SlpCode === e.value)
+    const selectedSalesPerson = salesPersons?.find((sp) => sp.SlpCode === e.value)
 
     setNewCustomerForm({
       ...newCustomerForm,
@@ -200,7 +215,7 @@ export default function NewCustomerDialog() {
 
   const salesPersonOptions = useMemo(() => {
     return salesPersons
-      .filter((sp) => sp.user)
+      ?.filter((sp) => sp.user)
       .map((sp) => ({
         label: sp.SlpName,
         value: sp.SlpCode,
@@ -402,8 +417,8 @@ export default function NewCustomerDialog() {
                       value={newCustomerForm.SlpCode || null}
                       onChange={handleSlpChange}
                       onClick={() => {
-                        if (isAdmin && salesPersons.length === 0) {
-                          fetchSalesPersons()
+                        if (isAdmin && salesPersons?.length === 0) {
+                          mutateSalesPerson()
                         }
                       }}
                       options={salesPersonOptions}

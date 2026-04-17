@@ -2,6 +2,7 @@
 import { LayoutProvider } from '../layout/context/layoutcontext'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { PrimeReactProvider } from 'primereact/api'
+import { Suspense } from 'react'
 
 import AuthProvider from '@/layout/context/AuthContext'
 
@@ -12,7 +13,6 @@ import 'primereact/resources/primereact.css'
 
 import '../styles/demo/Demos.scss'
 import '../styles/layout/layout.scss'
-import { Suspense } from 'react'
 
 interface RootLayoutProps {
   children: React.ReactNode

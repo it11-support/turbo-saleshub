@@ -1,4 +1,4 @@
-import { IUser, PaginationResult, ProfileResponseType, UserRequstType } from '@saleshub-tsm/types';
+import { IResPaginated, IUser, ProfileResponseType, UserRequstType } from '@saleshub-tsm/types';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { PER_PAGE } from '@/constants/index.js';
@@ -9,10 +9,10 @@ import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsPa
 
 export const userList = async (
   req: Request<UserRequstType>,
-  res: Response<PaginationResult<IUser>>
+  res: Response<IResPaginated<IUser>>
 ) => {
   try {
-    const { search = '', per_page = PER_PAGE, page = 1 } = req.query;
+    const { search = '', per_page = PER_PAGE, page = 1, sort, order } = req.query;
 
     const { roles } = req.query as {
       roles?: string | string[];
@@ -31,7 +31,9 @@ export const userList = async (
       }
       : {};
 
-    const sortOptions = sortOptionsParser(req.query.sort_options);
+    const sort_options = [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }];
+
+    const sortOptions = sortOptionsParser(sort_options);
     const orderBy = convertToPrismaOrderBy(sortOptions);
 
     if (roles) {
@@ -76,7 +78,7 @@ export const userList = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error', data: {items: [], totalRecords: 0} });
   }
 };
 

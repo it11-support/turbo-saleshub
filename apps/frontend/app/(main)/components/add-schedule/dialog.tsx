@@ -1,20 +1,22 @@
-import { FormData, ISalesPerson, IVisit } from '@saleshub-tsm/types'
+import { fetcher } from '../../lib'
+import { FormData, IResSingle, ISalesPerson, IVisit } from '@saleshub-tsm/types'
 import { AutoComplete } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
-import { useScheduleDialog, useScheduleStore, useUserStore } from '@/stores'
+import { createUrl } from '@/lib/api'
+import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
 export default function AddScheduleDialog() {
   const { activeDialog, hide } = useScheduleDialog()
   const { isAdmin, user } = useAuth()
   const [localSearch, setLocalSearch] = useState<string>('')
-  const { fetchSalesPersons, salesPersons } = useUserStore()
   const { fetchCustomers, customers, setSearch, setLimit, limit, setSlpCode } = useCustomerStore()
   const originalLimit = useRef<number | null>(null)
   const { createVisitSchedule } = useScheduleStore()
@@ -30,6 +32,18 @@ export default function AddScheduleDialog() {
     customer: '',
     scheduleDate: '',
   })
+
+  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
+    apiSalesPerson,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  const salesPersons = salesPersonData?.data
 
   const validateForm = () => {
     const newErrors: Record<keyof FormData, string> = {
@@ -64,7 +78,7 @@ export default function AddScheduleDialog() {
 
   useEffect(() => {
     if (isAdmin) {
-      fetchSalesPersons(false)
+      mutateSalesPerson()
     }
   }, [isAdmin])
 
@@ -101,7 +115,8 @@ export default function AddScheduleDialog() {
 
   useEffect(() => {
     if (formData.salesPersonId) {
-      const slp = salesPersons.find((sp) => sp.id === formData.salesPersonId)
+      const slp = salesPersons?.find((sp) => sp.id === formData.salesPersonId)
+
       setSlpCode(Number(slp?.SlpCode))
     }
   }, [formData.salesPersonId])
@@ -171,7 +186,7 @@ export default function AddScheduleDialog() {
               inputId="slpCode"
               value={formData.salesPersonId}
               options={salesPersons
-                .filter((sp) => sp.user)
+                ?.filter((sp) => sp.user)
                 .map((sp: ISalesPerson) => ({
                   label: sp.SlpName,
                   value: sp.id,

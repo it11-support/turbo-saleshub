@@ -65,7 +65,7 @@ const UserForm: React.FC<Props> = ({
   })
 
   const roleOptions = roles.map((role) => ({
-    label: role.role,
+    label: role.role.toUpperCase(),
     value: role.id,
   }))
 
