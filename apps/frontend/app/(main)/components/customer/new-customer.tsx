@@ -1,7 +1,7 @@
 'use client'
 
 import { fetcher } from '../../lib'
-import { FormData, IResSingle, ISalesPerson, IVisit } from '@saleshub-tsm/types'
+import { FormData, IResSingle, ISalesPerson, ISubGroup, IVisit } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
@@ -28,15 +28,7 @@ export default function NewCustomerDialog() {
   const { createVisitSchedule } = useScheduleStore()
   const router = useRouter()
 
-  const {
-    newCustomerForm,
-    setNewCustomerForm,
-    fetchCustomerGroupOptions,
-    groupOptions,
-    fetchSubgroupOptions,
-    subgroupOptions,
-    createNewCustomer,
-  } = useCustomerStore()
+  const { newCustomerForm, setNewCustomerForm, createNewCustomer } = useCustomerStore()
 
   const [formData, setFormData] = useState<FormData>({
     salesPersonId: null as number | null,
@@ -99,12 +91,28 @@ export default function NewCustomerDialog() {
     }
   )
 
+  const subGroupsApiUrl = createUrl('customers/subgroups')
+  const { data: subgroupsData } = useSWR<IResSingle<ISubGroup>>(subGroupsApiUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const groupApiUrl = createUrl('customers/groups')
+  const { data: groupsData } = useSWR<IResSingle<{ GroupName: string }>>(groupApiUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
   const salesPersons = salesPersonData?.data
+
+  const subgroupOptions = subgroupsData?.data || []
+  const groupOptions =
+    groupsData?.data?.map((g) => ({
+      label: g.GroupName,
+      value: g.GroupName,
+    })) || []
 
   useEffect(() => {
     setNewCustomerForm({})
-    fetchSubgroupOptions()
-    fetchCustomerGroupOptions()
   }, [])
 
   useEffect(() => {
@@ -342,6 +350,8 @@ export default function NewCustomerDialog() {
                       }
                     }}
                     options={subgroupOptions}
+                    optionLabel="IndName"
+                    optionValue="IndCode"
                     placeholder="Select Subgroup"
                     className={`w-full h-11 flex items-center ${
                       errors.subgroup ? 'p-invalid' : ''

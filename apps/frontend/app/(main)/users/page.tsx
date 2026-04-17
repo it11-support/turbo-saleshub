@@ -96,9 +96,7 @@ export default function UserTable() {
     }
   )
 
-  console.log(salesPersonData)
   const salesPersons = salesPersonData?.data || []
-  console.log(salesPersons)
 
   const roles = roleData?.data || []
 

@@ -2,16 +2,19 @@
 
 import ScheduleCard from './components/ScheduleCard'
 import NavButton from '../customers/components/NavButton'
-import { ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
+import { fetcher } from '../lib'
+import { IResSingle, ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
-import { useScheduleStore, useUserStore } from '@/stores'
+import { createUrl } from '@/lib/api'
+import { useScheduleStore } from '@/stores'
 
 const VisitSchedules = () => {
   const { schedules, page, fetchScheduleByDate, currentDate, setCurrentDate } = useScheduleStore()
@@ -19,14 +22,21 @@ const VisitSchedules = () => {
   const [selectedSalesPerson, setSelectedSalesPerson] = useState<number | null>(null)
 
   const authStore = useAuth()
-  const { fetchSalesPersons, salesPersons } = useUserStore()
 
   const { isAdmin, user } = authStore
 
-  useEffect(() => {
-    if (!isAdmin) return
-    fetchSalesPersons(false)
-  }, [isAdmin])
+  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
+
+  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
+    isAdmin ? apiSalesPerson : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  const salesPersons = salesPersonData?.data || []
 
   useEffect(() => {
     if (isAdmin) return

@@ -4,7 +4,8 @@ import Image from 'next/image'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { FileUpload } from 'primereact/fileupload'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import useSWRImmutable, { useSWRConfig } from 'swr' // Gunakan mutate dari sini
 
 import { $api } from '@/lib/api'
 
@@ -15,6 +16,22 @@ type ProductImageUploaderProps = {
   height?: number
 }
 
+// Fetcher di luar komponen agar tidak dibuat ulang setiap render
+const imageCheckFetcher = async (url: string) => {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return false
+    try {
+      const data = await res.json()
+      return data.exists !== false
+    } catch {
+      return true
+    }
+  } catch {
+    return false
+  }
+}
+
 export default function ProductImageUploader({
   code,
   alt,
@@ -23,46 +40,25 @@ export default function ProductImageUploader({
 }: ProductImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [hasImage, setHasImage] = useState<boolean>(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [version, setVersion] = useState(Date.now())
 
-  // Cek image eksis
-  useEffect(() => {
-    const checkImage = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}product/image/${code}?nofallback=1`
-        )
+  const { mutate } = useSWRConfig()
 
-        if (!res.ok) {
-          setHasImage(false)
-          return
-        }
+  const swrKey = code
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}product/image/${code}?nofallback=1`
+    : null
 
-        // parse JSON, fallback jika bukan JSON
-        let exists = true
-        try {
-          const data = await res.json()
-          if (data.exists === false) exists = false
-        } catch {
-          // jika server kirim file langsung, anggap exists = true
-          exists = true
-        }
-
-        setHasImage(exists)
-      } catch {
-        setHasImage(false)
-      }
-    }
-
-    checkImage()
-  }, [code])
+  const { data: hasImage } = useSWRImmutable(swrKey, imageCheckFetcher)
 
   const handleUpload = async (file: File) => {
     const form = new FormData()
     form.append('image', file)
-    setPreview(URL.createObjectURL(file))
+
+    // Optimistic UI: tampilkan preview dulu
+    const objectUrl = URL.createObjectURL(file)
+    setPreview(objectUrl)
     setLoading(true)
 
     try {
@@ -70,13 +66,17 @@ export default function ProductImageUploader({
         method: 'POST',
         body: form,
       })
-      setHasImage(true)
+
+      // Paksa SWR cek ulang ke server bahwa gambar sekarang "exists: true"
+      setVersion(Date.now())
+      await mutate(swrKey)
       setPreview(null)
     } catch (e) {
       console.error(e)
       setPreview(null)
     } finally {
       setLoading(false)
+      URL.revokeObjectURL(objectUrl) // Bersihkan memory
     }
   }
 
@@ -86,7 +86,9 @@ export default function ProductImageUploader({
       await $api(`/product/image/${code}`, {
         method: 'DELETE',
       })
-      setHasImage(false)
+
+      // Paksa SWR cek ulang agar hasImage jadi false
+      await mutate(swrKey)
       setPreview(null)
       setShowDeleteDialog(false)
     } catch (e) {
@@ -96,11 +98,16 @@ export default function ProductImageUploader({
     }
   }
 
-  // Jika tidak ada gambar sama sekali, tampil FileUpload
+  // State loading awal SWR
+  const isInitializing = hasImage === undefined
+
+  if (isInitializing) {
+    return <div className="bg-gray-100 animate-pulse" style={{ width, height }} />
+  }
+
   if (!hasImage && !preview) {
     const chooseOptions = {
       icon: 'pi pi-fw pi-images',
-      iconOnly: false,
       className: 'custom-choose-btn p-button-rounded p-button-outlined p-button-success',
     }
 
@@ -118,66 +125,55 @@ export default function ProductImageUploader({
   }
 
   return (
-    <div className="relative border-1 border-gray-200 overflow-hidden" style={{ width, height }}>
-      {(hasImage || preview) && (
-        <>
-          <Image
-            src={
-              preview ??
-              `${
-                process.env.NEXT_PUBLIC_API_BASE_URL
-              }product/image/${code}?t=${Date.now()}&noFallback=false`
-            }
-            sizes={
-              width && height
-                ? `(max-width: ${width}px) ${width}px, (max-height: ${height}px) ${height}px, ${width}px`
-                : '100vw'
-            }
-            fetchPriority="high"
-            alt={alt}
-            fill
-            className="object-contain"
+    <div
+      className="relative border-1 border-gray-200 overflow-hidden bg-white"
+      style={{ width, height }}
+    >
+      <Image
+        src={
+          preview ??
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}product/image/${code}?t=${version}&noFallback=false`
+        }
+        alt={alt}
+        fill
+        sizes={`${width}px`}
+        className="object-contain"
+        unoptimized // Gunakan ini jika backend return gambar mentah tanpa optimasi Next.js
+      />
+
+      {!preview && hasImage && (
+        <div className="absolute top-1 right-1 flex gap-1">
+          <Button
+            icon="pi pi-pencil"
+            onClick={() => inputRef.current?.click()}
+            className="p-button-rounded p-button-text p-button-success bg-white shadow-2"
+            style={{ width: '2rem', height: '2rem' }}
           />
-
-          {!preview && hasImage && (
-            <div className="absolute top-1 right-1 flex gap-2 my-2 ml-2 ">
-              <Button
-                onClick={() => inputRef.current?.click()}
-                outlined
-                text
-                className="rounded-full p-1 shadow text-green-500 hover:bg-green-100 "
-              >
-                <i className="pi pi-pencil"></i>
-              </Button>
-              <Button
-                onClick={() => setShowDeleteDialog(true)}
-                outlined
-                text
-                className="rounded-full p-1 shadow text-red-500 hover:bg-red-100"
-              >
-                <i className="pi pi-trash"></i>
-              </Button>
-            </div>
-          )}
-
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/png,image/jpeg"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleUpload(file)
-              e.target.value = ''
-            }}
+          <Button
+            icon="pi pi-trash"
+            onClick={() => setShowDeleteDialog(true)}
+            className="p-button-rounded p-button-text p-button-danger bg-white shadow-2"
+            style={{ width: '2rem', height: '2rem' }}
           />
+        </div>
+      )}
 
-          {loading && (
-            <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center text-sm font-bold">
-              Uploading…
-            </div>
-          )}
-        </>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/png,image/jpeg"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) handleUpload(file)
+          e.target.value = ''
+        }}
+      />
+
+      {loading && (
+        <div className="absolute inset-0 bg-white-alpha-50 flex align-items-center justify-content-center">
+          <i className="pi pi-spin pi-spinner" style={{ fontSize: '1.5rem' }}></i>
+        </div>
       )}
 
       <Dialog
@@ -186,8 +182,12 @@ export default function ProductImageUploader({
         onHide={() => setShowDeleteDialog(false)}
         modal
         footer={
-          <div className="flex justify-end gap-2">
-            <Button label="Cancel" outlined onClick={() => setShowDeleteDialog(false)} />
+          <div className="flex justify-content-end gap-2">
+            <Button
+              label="Cancel"
+              className="p-button-text"
+              onClick={() => setShowDeleteDialog(false)}
+            />
             <Button label="Delete" severity="danger" onClick={handleRemove} />
           </div>
         }

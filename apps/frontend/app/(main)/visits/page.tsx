@@ -1,7 +1,8 @@
 'use client'
 import VisitListTable from './components/VisitListTable'
 import NavButton from '../customers/components/NavButton'
-import { ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
+import { fetcher } from '../lib'
+import { IResSingle, ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
 import dayjs from 'dayjs'
 import { Button } from 'primereact/button'
@@ -10,10 +11,12 @@ import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import * as XLSX from 'xlsx-js-style'
 
 import { useAuth } from '@/layout/context/AuthContext'
-import { useUserStore, useVisitsStore } from '@/stores'
+import { createUrl } from '@/lib/api'
+import { useVisitsStore } from '@/stores'
 
 type VisitMainRow = {
   'Visit ID': string
@@ -43,10 +46,6 @@ type VisitRow = Partial<VisitMainRow> & Partial<InquiryRow>
 const VisitList = () => {
   const visitStore = useVisitsStore()
   const autStore = useAuth()
-  const userStore = useUserStore()
-
-  const { fetchSalesPersons, salesPersons } = userStore
-
   const { isAdmin, user } = autStore
 
   const [dialogVisible, setDialogVisible] = useState(false)
@@ -75,10 +74,18 @@ const VisitList = () => {
     setExportData,
   } = visitStore
 
-  useEffect(() => {
-    if (!isAdmin) return
-    fetchSalesPersons(false)
-  }, [isAdmin])
+  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
+
+  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
+    isAdmin ? apiSalesPerson : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  const salesPersons = salesPersonData?.data || []
 
   useEffect(() => {
     fetchVisits()

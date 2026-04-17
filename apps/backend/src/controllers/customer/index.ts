@@ -568,7 +568,7 @@ export const fetchSubgroups = async (req: Request, res: Response) => {
       },
       distinct: ['IndCode'],
     });
-    return res.status(200).json({ message: 'Subgroups fetched successfully', data: { subgroups } });
+    return res.status(200).json({ message: 'Subgroups fetched successfully', data: subgroups });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -583,7 +583,7 @@ export const fetchGroups = async (req: Request, res: Response) => {
       },
       distinct: ['GroupName'],
     });
-    return res.status(200).json({ message: 'Groups fetched successfully', data: { groups } });
+    return res.status(200).json({ message: 'Groups fetched successfully', data: groups });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });

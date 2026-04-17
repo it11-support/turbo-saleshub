@@ -4,7 +4,15 @@ import ProductImageUploader from './Components/ProductImageUploader'
 import CustomChip from '../components/custom/chip'
 import { DialogFooter, DialogHeader } from '../components/ui/dialog'
 import NavButton from '../customers/components/NavButton'
-import { EProductCategory, IProduct } from '@saleshub-tsm/types'
+import { fetcher } from '../lib'
+import {
+  EProductCategory,
+  IProduct,
+  IResPaginated,
+  IResSingle,
+  ISubGroup,
+} from '@saleshub-tsm/types'
+import { parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Checkbox } from 'primereact/checkbox'
@@ -17,11 +25,12 @@ import { Paginator } from 'primereact/paginator'
 import { Toast } from 'primereact/toast'
 import Quill from 'quill'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
+import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
-import { useCustomerStore } from '@/stores/customers'
 import { useProductDevelopmentStore } from '@/stores/product-development'
 import { useProductsStore } from '@/stores/products'
 
@@ -33,29 +42,7 @@ interface PaginatorChangeEvent {
 }
 
 const ProductList = () => {
-  const {
-    data: products,
-    loading,
-    search,
-    setSearch,
-    fetchProducts,
-    categories,
-    setSelectedCategory,
-    selectedCategory,
-    total,
-    page,
-    totalPages,
-    limit,
-    setPage,
-    setLimit,
-    isProductFocused,
-    setIsProductFocused,
-    isDistributor,
-    setIsDistributor,
-    selectedGroup,
-    setSelectedGroup,
-    updateProductInfo,
-  } = useProductsStore()
+  const { updateProductInfo } = useProductsStore()
 
   const [visible, setVisible] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -68,8 +55,6 @@ const ProductList = () => {
   const quillRef = useRef<Editor>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const { fetchSubgroupOptions, subgroupOptions } = useCustomerStore()
-
   const {
     setActiveProduct,
     activeProduct,
@@ -80,31 +65,58 @@ const ProductList = () => {
     removeActiveProduct,
   } = useProductDevelopmentStore()
 
-  const searchDebounced = useDebounce(search, 300)
+  const [filters, setFilters] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      limit: parseAsInteger.withDefault(10),
+      search: parseAsString.withDefault(''),
+      category: parseAsInteger,
+      distributor: parseAsBoolean.withDefault(false),
+      productFocused: parseAsBoolean.withDefault(false),
+      group: parseAsString,
+    },
+    { shallow: true, history: 'replace' }
+  )
 
-  const first = (page - 1) * limit
+  const first = (filters.page - 1) * filters.limit
+  const [localSearch, setLocalSearch] = useState(filters.search)
+  const debouncedLocalSearch = useDebounce(localSearch, 400)
 
   useEffect(() => {
-    fetchSubgroupOptions()
-  }, [])
-  // Fetch products saat mount & saat page, limit, filter, search berubah
-  useEffect(() => {
-    fetchProducts()
-  }, [
-    page,
-    limit,
-    selectedCategory,
-    searchDebounced,
-    isProductFocused,
-    isDistributor,
-    selectedGroup,
-  ])
+    if (debouncedLocalSearch !== filters.search) {
+      setFilters({ search: debouncedLocalSearch || null, page: 1 })
+    }
+  }, [debouncedLocalSearch])
 
-  // Reset page ke 1 saat filter atau search berubah
-  useEffect(() => {
-    setPage(1)
-  }, [selectedCategory, searchDebounced])
+  const payload = {
+    page: filters.page,
+    limit: filters.limit,
+    distributor: filters.distributor ? true : false,
+    productFocused: filters.productFocused ? true : false,
+    ...(filters.search && { search: filters.search }),
+    ...(filters.category && { category: filters.category }),
+    ...(filters.group && { group: filters.group }),
+  }
 
+  const apiUrl = createUrl('product', payload)
+  const { data, isValidating, mutate } = useSWR<
+    IResPaginated<IProduct> & {
+      data: { categories?: { ItmsGrpCod: number; ItmsGrpNam: string }[] }
+    }
+  >(apiUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const products = data?.data.items || []
+  const categories = data?.data.categories || []
+  const totalRecords = data?.data.totalRecords || 0
+  const totalPages = data?.data.totalPages || 1
+
+  const subGroupsApiUrl = createUrl('customers/subgroups')
+  const { data: subgroupsData } = useSWR<IResSingle<ISubGroup>>(subGroupsApiUrl, fetcher)
+
+  const subgroupsOptions = subgroupsData?.data || []
   // Group Options
   const groupOptions = [
     { label: 'Chemical', value: EProductCategory.CHEMICAL },
@@ -114,14 +126,13 @@ const ProductList = () => {
   ]
   // Handler paginator
   const onPageChange = (e: PaginatorChangeEvent) => {
-    setLimit(e.rows)
-    setPage(Math.floor(e.first / e.rows) + 1)
+    setFilters({ page: Math.floor(e.first / e.rows) + 1, limit: e.rows })
   }
 
   const handleRemove = async () => {
     await removeActiveProduct()
     setShowDeleteDialog(false)
-    fetchProducts()
+    mutate()
   }
 
   const onSetPriority = (item: IProduct) => {
@@ -141,7 +152,7 @@ const ProductList = () => {
     }
 
     await sync()
-    fetchProducts()
+    mutate()
     setVisible(false)
   }
 
@@ -308,30 +319,35 @@ const ProductList = () => {
       <div className="grid mb-4">
         <div className="col-12 md:col-3">
           <Dropdown
-            value={selectedCategory}
+            value={filters.category} // Tambahkan ?? null
             options={categories}
-            onChange={(e) => setSelectedCategory(e.value)}
+            optionLabel="ItmsGrpNam"
+            optionValue="ItmsGrpCod"
+            onChange={(e) => {
+              const val = e.value === undefined ? null : e.value
+              setFilters({ category: val, page: 1 })
+            }}
             placeholder="Select Category"
-            className="w-full md:w-48"
-            clearIcon="pi pi-times"
             showClear
+            className="w-full md:w-48"
           />
         </div>
         <div className="col-12 md:col-3">
           <Dropdown
-            value={selectedGroup}
+            value={filters.group ?? null}
             options={groupOptions}
-            onChange={(e) => setSelectedGroup(e.value)}
+            onChange={(e) => {
+              setFilters({ group: e.value ?? null, page: 1 })
+            }}
             placeholder="Select Product Group"
             className="w-full md:w-48"
-            clearIcon="pi pi-times"
             showClear
           />
         </div>
         <div className="col-12 md:col-3 flex align-items-center">
           <InputText
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Search..."
             className="w-full md:w-48"
           />
@@ -343,9 +359,12 @@ const ProductList = () => {
             <Checkbox
               inputId="productFocused"
               name="productFocused"
-              value={isProductFocused}
-              onChange={(e) => setIsProductFocused(e.checked as boolean)}
-              checked={isProductFocused}
+              value={filters.productFocused}
+              onChange={(e) => {
+                setFilters({ productFocused: e.checked as boolean, page: 1 })
+                mutate()
+              }}
+              checked={filters.productFocused}
             />
             <label htmlFor="productFocused" className="ml-2">
               Show Product Focus
@@ -357,9 +376,9 @@ const ProductList = () => {
             <Checkbox
               inputId="distributor"
               name="distributor"
-              value={isDistributor}
-              onChange={(e) => setIsDistributor(e.checked as boolean)}
-              checked={isDistributor}
+              value={filters.distributor}
+              onChange={(e) => setFilters({ distributor: e.checked as boolean, page: 1 })}
+              checked={filters.distributor}
             />
             <label htmlFor="distributor" className="ml-2">
               Show Distributor Product
@@ -370,7 +389,7 @@ const ProductList = () => {
 
       {/* Product grid */}
       <div className="grid">
-        {products.length === 0 && !loading && (
+        {products.length === 0 && !isValidating && (
           <div className="col-12 text-center py-5">No products found</div>
         )}
 
@@ -402,21 +421,21 @@ const ProductList = () => {
                   <div className="flex flex-wrap gap-1 mt-2">
                     <CustomChip label={item.ItmsGrpNam} />
 
-                    {item.product_developments?.length ? (
+                    {filters.productFocused ? (
                       <CustomChip
                         label="Product Focus"
                         color="var(--blue-500)"
                         removable
-                        onRemove={() => setIsProductFocused(false)}
+                        onRemove={() => setFilters({ productFocused: null, page: 1 })}
                       />
                     ) : null}
 
-                    {item.Distributor === 'Y' && (
+                    {filters.distributor && (
                       <CustomChip
                         label="Distributor Product"
                         color="var(--green-500)"
                         removable
-                        onRemove={() => setIsDistributor(false)}
+                        onRemove={() => setFilters({ distributor: false, page: 1 })}
                       />
                     )}
 
@@ -428,7 +447,7 @@ const ProductList = () => {
                         }
                         color="var(--orange-500)"
                         removable
-                        onRemove={() => setSelectedGroup(undefined)}
+                        onRemove={() => setFilters({ group: null, page: 1 })}
                       />
                     )}
                   </div>
@@ -465,12 +484,12 @@ const ProductList = () => {
           <Paginator
             className="paginator border-0"
             first={first}
-            rows={limit}
-            totalRecords={total} // total dari backend
+            rows={filters.limit}
+            totalRecords={totalRecords} // total dari backend
             rowsPerPageOptions={[10, 20, 30]} // dropdown rows per page
             onPageChange={onPageChange}
             template="FirstPageLink PrevPageLink  PageLinks  NextPageLink  LastPageLink CurrentPageReport  RowsPerPageDropdown"
-            currentPageReportTemplate={`Page ${page} of ${totalPages}`}
+            currentPageReportTemplate={`Page ${filters.page} of ${totalPages}`}
           />
         </div>
       )}
@@ -495,10 +514,10 @@ const ProductList = () => {
         <Divider />
         <div className="flex items-start gap-2 mb-3">
           <Checkbox
-            checked={subgroupIds.length === subgroupOptions.length}
+            checked={subgroupIds.length === subgroupsOptions.length}
             onChange={(e) => {
               if (e.checked) {
-                setSubgroups(subgroupOptions.map((sg) => sg.value))
+                setSubgroups(subgroupsOptions.map((sg) => sg.IndCode))
               } else {
                 setSubgroups([])
               }
@@ -510,12 +529,12 @@ const ProductList = () => {
           </label>
         </div>
         <div className="grid">
-          {subgroupOptions.map((sg) => (
-            <div key={sg.value} className="col-12 md:col-4 flex items-center gap-2">
+          {subgroupsOptions.map((sg) => (
+            <div key={sg.IndCode} className="col-12 md:col-4 flex items-center gap-2">
               <Checkbox
-                checked={subgroupIds.includes(sg.value)}
-                inputId={`sg-${sg.value}`}
-                value={sg.value}
+                checked={subgroupIds.includes(sg.IndCode)}
+                inputId={`sg-${sg.IndCode}`}
+                value={sg.IndCode}
                 onChange={(e) => {
                   const value = e.value as number
 
@@ -526,8 +545,8 @@ const ProductList = () => {
                   }
                 }}
               />
-              <label htmlFor={`sg-${sg.value}`} className="cursor-pointer">
-                {sg.label}
+              <label htmlFor={`sg-${sg.IndCode}`} className="cursor-pointer">
+                {sg.IndName}
               </label>
             </div>
           ))}

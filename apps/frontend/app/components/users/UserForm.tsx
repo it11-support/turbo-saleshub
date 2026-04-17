@@ -71,10 +71,12 @@ const UserForm: React.FC<Props> = ({
 
   const salesPersonOptions = [
     { label: '-- No Sales Person --', value: null },
-    ...salesPersons.map((salesPerson) => ({
-      label: salesPerson.SlpName,
-      value: Number(salesPerson.id),
-    })),
+    ...salesPersons
+      .filter((sp) => !sp.user)
+      .map((salesPerson) => ({
+        label: salesPerson.SlpName,
+        value: Number(salesPerson.id),
+      })),
   ]
 
   useEffect(() => {

@@ -1,17 +1,19 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
-import { ICustomer, ISalesPerson, ISalesVisitRule } from '@saleshub-tsm/types'
+import { fetcher } from '../lib'
+import { ICustomer, IResSingle, ISalesPerson, ISalesVisitRule } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { Dropdown } from 'primereact/dropdown'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import useSWR from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import { $api, createUrl } from '@/lib/api'
-import { useUserStore, useVisitRulesStore } from '@/stores'
+import { useVisitRulesStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
 type WeekNumber = 1 | 2 | 3 | 4
@@ -34,7 +36,6 @@ const cloneWeeks = (src?: WeekFlags): WeekFlags =>
 export default function VisitsPage(): JSX.Element {
   const { fetchSalesVisitRules, salesVisitRules } = useVisitRulesStore()
   const { fetchCustomers } = useCustomerStore()
-  const { fetchSalesPersons, salesPersons } = useUserStore()
 
   const [selectedSalesPerson, setSelectedSalesPerson] = useState<number | null>(null)
   const [visitMatrix, setVisitMatrix] = useState<VisitMatrix>({})
@@ -48,6 +49,15 @@ export default function VisitsPage(): JSX.Element {
 
   const { isAdmin, user } = authStore
 
+  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
+
+  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const salesPersons = salesPersonData?.data || []
+
   useEffect(() => {
     if (!isAdmin) {
       setSelectedSalesPerson(Number(user?.sales_person?.id))
@@ -55,7 +65,6 @@ export default function VisitsPage(): JSX.Element {
   }, [isAdmin, user])
   // initial data fetch
   useEffect(() => {
-    fetchSalesPersons(false)
     fetchCustomers()
     fetchSalesVisitRules()
   }, [])

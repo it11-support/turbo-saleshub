@@ -73,6 +73,7 @@ export default function CustomerTable() {
   useEffect(() => {
     setLocalItemCount(filters.itemCount)
   }, [filters.itemCount])
+
   const payload = {
     page: filters.page,
     per_page: filters.limit,
@@ -111,10 +112,6 @@ export default function CustomerTable() {
     data?.subGroupNames?.map((name: string) => ({ label: name, value: name })) || []
   const salesPersonOptions =
     data?.salesPersonNames?.map((name: string) => ({ label: name, value: name })) || []
-
-  useEffect(() => {
-    console.log(customers)
-  }, [customers])
 
   const loyaltyLevelOptions = [
     { label: 'VIP', value: 'VIP' },

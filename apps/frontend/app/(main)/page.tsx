@@ -1,47 +1,33 @@
 'use client'
 
+import { fetcher } from './lib'
 import { LayoutContext } from '../../layout/context/layoutcontext'
+import { IDashboardData } from '@saleshub-tsm/types'
 import { TooltipItem } from 'chart.js'
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
+import { getCookie } from 'cookies-next'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 import { Knob } from 'primereact/knob'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { SelectButton } from 'primereact/selectbutton'
 import { useContext, useEffect, useState } from 'react'
+import useSWR from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
+import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
-import { useDashboardStore } from '@/stores'
 
 import 'chartjs-adapter-date-fns'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
-  const dashboard = useDashboardStore()
-  const { isAdmin } = useAuth()
 
-  const {
-    fetchSalesSummary,
-    slpRevenue,
-    productRevenueDistributor,
-    productRevenueGrocery,
-    loading,
-    newVsReturning,
-    CRR,
-    RPR,
-    RFM,
-    monthlyTrend,
-    summary,
-  } = dashboard
+  const { isAdmin } = useAuth()
 
   const applyLightTheme = () => {}
 
   const applyDarkTheme = () => {}
-
-  useEffect(() => {
-    fetchSalesSummary()
-  }, [])
 
   useEffect(() => {
     if (layoutConfig.colorScheme === 'light') {
@@ -51,66 +37,98 @@ const Dashboard = () => {
     }
   }, [layoutConfig.colorScheme])
 
-  const trendLabel = monthlyTrend.map(
+  const userCookie = getCookie('userData')
+  const userData = userCookie ? JSON.parse(String(userCookie)) : null
+
+  const salesPersonId = userData?.sales_person?.id
+
+  const payload = {
+    ...(salesPersonId ? { salesPersonId } : {}),
+  }
+
+  const url = createUrl('summary', payload)
+
+  const { data, isValidating } = useSWR<IDashboardData>(url, fetcher, {
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+    dedupingInterval: 60000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: true,
+  })
+
+  const {
+    slpRevenue,
+    productRevenueDistributor,
+    productRevenueGrocery,
+    newVsReturning,
+    CRR,
+    RPR,
+    RFM,
+    monthlyTrend,
+    summary,
+  } = data?.data || {}
+
+  const trendLabel = monthlyTrend?.map(
     (item) => `${item.year}-${item.month.toString().padStart(2, '0')}`
   )
-  const revenueData = monthlyTrend.map((item) => item.revenue)
 
-  const trendData = monthlyTrend.map((item) => item.orders)
+  const revenueData = monthlyTrend?.map((item) => item.revenue)
 
-  const customerData = monthlyTrend.map((item) => item.customers)
+  const trendData = monthlyTrend?.map((item) => item.orders)
 
-  const aovData = monthlyTrend.map((item) => item.revenue / item.orders)
+  const customerData = monthlyTrend?.map((item) => item.customers)
 
-  const slpRevenueLabel = slpRevenue.map((item) => item.slp)
-  const slpRevenueData = slpRevenue.map((item) => item.revenue)
+  const aovData = monthlyTrend?.map((item) => item.revenue / item.orders)
 
-  const productRevenueDistributorLabel = productRevenueDistributor.map((item) => item.ItemName)
-  const productRevenueDistributorData = productRevenueDistributor.map((item) => item.revenue)
+  const slpRevenueLabel = slpRevenue?.map((item) => item.slp)
+  const slpRevenueData = slpRevenue?.map((item) => item.revenue)
 
-  const productRevenueGroceryLabel = productRevenueGrocery.map((item) => item.ItemName)
-  const productRevenueGroceryData = productRevenueGrocery.map((item) => item.revenue)
+  const productRevenueDistributorLabel = productRevenueDistributor?.map((item) => item.ItemName)
+  const productRevenueDistributorData = productRevenueDistributor?.map((item) => item.revenue)
+
+  const productRevenueGroceryLabel = productRevenueGrocery?.map((item) => item.ItemName)
+  const productRevenueGroceryData = productRevenueGrocery?.map((item) => item.revenue)
 
   const newVsReturningLabel = ['New Customer', 'Returning Customer']
-  const newVsReturningData = [newVsReturning.newCustomer, newVsReturning.returningCustomer]
+  const newVsReturningData = [newVsReturning?.newCustomer, newVsReturning?.returningCustomer]
 
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
 
-  const rfmLabels = RFM.map((item) => {
+  const rfmLabels = RFM?.map((item) => {
     return item.segment.replace('_', ' ')
   })
 
-  const rfmData = RFM.map((item) => {
+  const rfmData = RFM?.map((item) => {
     return item.count
   })
 
-  const selectedSummary = summary[period]
+  const selectedSummary = summary?.[period]
 
   const mappedSummary = {
     revenue: {
       current: selectedSummary?.current.revenue,
       last: selectedSummary?.previous.revenue,
       growthPercent: selectedSummary?.growth.revenue,
-      diff: selectedSummary?.current.revenue - selectedSummary?.previous.revenue,
+      diff: (selectedSummary?.current?.revenue ?? 0) - (selectedSummary?.previous?.revenue ?? 0),
     },
     orders: {
       current: selectedSummary?.current.orders,
       last: selectedSummary?.previous.orders,
       growthPercent: selectedSummary?.growth.orders,
-      diff: selectedSummary?.current.orders - selectedSummary?.previous.orders,
+      diff: (selectedSummary?.current?.orders ?? 0) - (selectedSummary?.previous?.orders ?? 0),
     },
     customers: {
       current: selectedSummary?.current.customers,
       last: selectedSummary?.previous.customers,
       growthPercent: selectedSummary?.growth.customers,
-      diff: selectedSummary?.current.customers - selectedSummary?.previous.customers,
+      diff: (selectedSummary?.current?.customers ?? 0) - (selectedSummary?.previous.customers ?? 0),
     },
     aov: {
       current: selectedSummary?.current.aov,
       last: selectedSummary?.previous.aov,
       growthPercent: selectedSummary?.growth.aov,
-      diff: selectedSummary?.current.aov - selectedSummary?.previous.aov,
+      diff: (selectedSummary?.current?.aov ?? 0) - (selectedSummary?.previous.aov ?? 0),
     },
   }
 
@@ -118,7 +136,7 @@ const Dashboard = () => {
 
   return (
     <>
-      {loading ? (
+      {isValidating ? (
         <div
           className="absolute top-0 left-0 w-full h-full flex align-items-center justify-content-center bg-white-alpha-60 z-2"
           style={{ borderRadius: '6px' }}
@@ -156,7 +174,7 @@ const Dashboard = () => {
                         root: {
                           style: {
                             border: `1px solid ${
-                              mappedSummary[itemKey]?.growthPercent > 0
+                              (mappedSummary[itemKey]?.growthPercent ?? 0) > 0
                                 ? 'var(--green-500)'
                                 : 'var(--red-500)'
                             }`,
@@ -189,7 +207,7 @@ const Dashboard = () => {
                       </div>
                       <span
                         className={`${
-                          mappedSummary[itemKey]?.growthPercent > 0
+                          (mappedSummary[itemKey]?.growthPercent ?? 0) > 0
                             ? 'text-green-500'
                             : 'text-red-500'
                         } font-medium`}
@@ -287,7 +305,7 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {CRR > 0 && (
+            {(CRR ?? 0) > 0 && (
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Rentention Index</h5>
@@ -298,7 +316,7 @@ const Dashboard = () => {
                     </i>
                   </div>
                   <Knob
-                    value={Number(CRR.toFixed(2))}
+                    value={Number((CRR ?? 0).toFixed(2))}
                     readOnly
                     min={0}
                     max={100}
@@ -310,7 +328,7 @@ const Dashboard = () => {
               </div>
             )}
 
-            {RPR > 0 && (
+            {(RPR ?? 0) > 0 && (
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Purchase Frequency</h5>
@@ -321,7 +339,7 @@ const Dashboard = () => {
                     </i>
                   </div>
                   <Knob
-                    value={Number(RPR.toFixed(2))}
+                    value={Number((RPR ?? 0).toFixed(2))}
                     readOnly
                     min={0}
                     max={100}
