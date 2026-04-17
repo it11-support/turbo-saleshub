@@ -213,7 +213,7 @@ const Dashboard = () => {
                         } font-medium`}
                       >
                         {mappedSummary[itemKey]?.growthPercent != null
-                          ? `${mappedSummary[itemKey].growthPercent.toFixed(2)} %`
+                          ? `${mappedSummary[itemKey]?.growthPercent?.toFixed(2)} %`
                           : '0.00 %'}
 
                         {mappedSummary[itemKey]?.diff > 0 ? (
