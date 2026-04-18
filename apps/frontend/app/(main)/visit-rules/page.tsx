@@ -2,7 +2,13 @@
 
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
-import { ICustomer, IResSingle, ISalesPerson, ISalesVisitRule } from '@saleshub-tsm/types'
+import {
+  ICustomer,
+  IResPaginated,
+  IResSingle,
+  ISalesPerson,
+  ISalesVisitRule,
+} from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
@@ -13,8 +19,6 @@ import useSWR from 'swr'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
 import { $api, createUrl } from '@/lib/api'
-import { useVisitRulesStore } from '@/stores'
-import { useCustomerStore } from '@/stores/customers'
 
 type WeekNumber = 1 | 2 | 3 | 4
 
@@ -34,9 +38,6 @@ const cloneWeeks = (src?: WeekFlags): WeekFlags =>
   src ? { 1: src[1], 2: src[2], 3: src[3], 4: src[4] } : newWeekFlags()
 
 export default function VisitsPage(): JSX.Element {
-  const { fetchSalesVisitRules, salesVisitRules } = useVisitRulesStore()
-  const { fetchCustomers } = useCustomerStore()
-
   const [selectedSalesPerson, setSelectedSalesPerson] = useState<number | null>(null)
   const [visitMatrix, setVisitMatrix] = useState<VisitMatrix>({})
   const [lastChangedDay, setLastChangedDay] = useState<string | null>(null)
@@ -58,16 +59,38 @@ export default function VisitsPage(): JSX.Element {
 
   const salesPersons = salesPersonData?.data || []
 
+  const visitRulesUrl = createUrl('visit-rules', { sales_person_id: selectedSalesPerson })
+
+  const { data: visitRules, mutate } = useSWR<IResSingle<ISalesVisitRule>>(
+    selectedSalesPerson ? visitRulesUrl : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  const payload = {
+    page: 1,
+    per_page: 200,
+    sort_options: [],
+  }
+
+  const apiUrl = createUrl('customers', payload)
+
+  const { data: customers } = useSWR<IResPaginated<ICustomer>>(apiUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  console.log(customers)
+  const salesVisitRules = visitRules?.data
+
   useEffect(() => {
     if (!isAdmin) {
       setSelectedSalesPerson(Number(user?.sales_person?.id))
     }
   }, [isAdmin, user])
-  // initial data fetch
-  useEffect(() => {
-    fetchCustomers()
-    fetchSalesVisitRules()
-  }, [])
 
   useEffect(() => {
     if (!userMatrixInitialized.current) return
@@ -218,7 +241,7 @@ export default function VisitsPage(): JSX.Element {
         headers: { 'Content-Type': 'application/json' },
       })
 
-      await fetchSalesVisitRules()
+      mutate()
     } finally {
       isSyncingRef.current = false
     }

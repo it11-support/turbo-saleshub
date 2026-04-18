@@ -1,13 +1,23 @@
 'use client'
-import { EFollowUpStatus, ISalesVisitRule, IVisit } from '@saleshub-tsm/types'
+import { visitFilters } from './filters'
+import { fetcher } from '../../lib'
+import {
+  DataTableSortMeta,
+  EFollowUpStatus,
+  IResPaginated,
+  ISalesVisitRule,
+  IVisit,
+} from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
+import useSWR from 'swr'
 
-import { useVisitsStore } from '@/stores'
+import { createUrl } from '@/lib/api'
 
 type SalesVisit = {
   customer_id: number
@@ -21,10 +31,30 @@ type SalesVisit = {
   visit_date: string
 }
 const VisitListTable = () => {
-  const { data, limit, page, total, loading, setPage, setLimit, multiSortMeta, setMultiSortMeta } =
-    useVisitsStore()
+  const [filters, setFilters] = useQueryStates(visitFilters)
 
   const router = useRouter()
+
+  const payload = {
+    page: filters.page,
+    per_page: filters.limit,
+    dates: filters.dates?.map((date) => formatDate(date, 'yyyy-MM-dd')) ?? [],
+    salesPersonId: filters.salesPersonId,
+    status: filters.status,
+    needFollowUp: filters.needFollowUp,
+    sort: filters.sort,
+    order: filters.order,
+  }
+
+  const visitsUrl = createUrl('visits', payload)
+
+  const { data: visitData, isValidating } = useSWR<IResPaginated<IVisit>>(visitsUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const data = visitData?.data.items || []
+  const totalRecords = visitData?.data.totalRecords || 0
 
   const visitDateTemplate = (rowData: SalesVisit) => {
     return (
@@ -99,20 +129,31 @@ const VisitListTable = () => {
         value={data}
         paginator
         lazy
-        rows={limit}
-        first={(page - 1) * limit}
-        totalRecords={total}
+        rows={filters.limit}
+        first={(filters.page - 1) * filters.limit}
+        totalRecords={totalRecords}
         sortMode="multiple"
-        removableSort
-        multiSortMeta={multiSortMeta}
+        multiSortMeta={[
+          { field: filters.sort, order: filters.order as DataTableSortMeta['order'] },
+        ]}
         onPage={(e) => {
-          setPage((e.page ?? 0) + 1)
-          setLimit(e.rows)
+          setFilters({ page: Number(e.page) + 1, limit: e.rows })
         }}
-        onSort={(e) => setMultiSortMeta((e.multiSortMeta || []).filter((m) => m.order !== 0))}
+        onSort={(e) => {
+          const sortMeta = e.multiSortMeta?.[0]
+          if (sortMeta) {
+            setFilters(
+              {
+                sort: sortMeta.field,
+                order: sortMeta.order,
+                page: 1,
+              },
+              { history: 'replace', shallow: true }
+            )
+          }
+        }}
         dataKey="id"
-        className="text-sm"
-        loading={loading}
+        loading={isValidating}
         emptyMessage="No visit found"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"

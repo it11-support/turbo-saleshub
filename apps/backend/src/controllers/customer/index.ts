@@ -28,18 +28,23 @@ export const customerList = async (
     const { search = '', per_page = 10, page = 1, sort_options = [] } = req.query;
 
     const sort_options_mapped = () => {
-      const sortOptions = JSON.parse(sort_options as string);
-      return sortOptions.map((s: any) => {
+      if (!sort_options) return []
+
+      const parsed =
+        typeof sort_options === 'string'
+          ? JSON.parse(sort_options)
+          : sort_options
+
+      return parsed.map((s: any) => {
         if (s.key === 'rfm.segment' || s.key === 'segment') {
           return {
             ...s,
             key: 'rfm.rfmScore',
-          };
+          }
         }
-
-        return s;
-      });
-    };
+        return s
+      })
+    }
 
 
     const { groups, salesPersons, subgroups, slpCode, itemCount, loyaltyLevel, isNewCustomer } = req.query as {

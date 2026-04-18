@@ -13,9 +13,11 @@ export const getScheduleList = async (req: Request, res: Response) => {
     const page = Number(req.query.page || 1);
     const needFollowUp = req.query.needFollowUp === 'true';
     const limit = Number(req.query.limit || 20);
-    const sort_options = req.query.sort_options as
-      | { key: string; order: 'asc' | 'desc' }[]
-      | undefined;
+    const sort = req.query.sort || 'visit_date';
+    const order = req.query.order || -1;
+
+
+    const sort_options = [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }];
 
     const parsedSalesPersonId = Number(salesPersonId);
 
@@ -71,7 +73,7 @@ export const getScheduleList = async (req: Request, res: Response) => {
       }
     }
 
-    const sortOprtions = sortOptionsParser(sort_options || []);
+    const sortOprtions = sortOptionsParser(sort_options);
     const orderBy = convertToPrismaOrderBy(sortOprtions);
 
     const [data, total] = await prisma.$transaction([
@@ -124,8 +126,8 @@ export const getScheduleList = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: 'Success',
       data: {
-        data: result,
-        total,
+        items: result,
+        totalRecords: total,
         page,
         totalPages: Math.ceil(total / limit),
       },
@@ -185,7 +187,7 @@ export const exportVisits = async (req: Request, res: Response) => {
       include: {
         customer: true,
         salesPerson: {
-          include:{
+          include: {
             user: true
           }
         },

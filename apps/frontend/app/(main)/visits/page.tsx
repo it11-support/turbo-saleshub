@@ -1,10 +1,12 @@
 'use client'
+import { visitFilters } from './components/filters'
 import VisitListTable from './components/VisitListTable'
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
 import { IResSingle, ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
 import dayjs from 'dayjs'
+import { useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Checkbox } from 'primereact/checkbox'
@@ -51,19 +53,6 @@ const VisitList = () => {
   const [dialogVisible, setDialogVisible] = useState(false)
 
   const {
-    data,
-    page,
-    limit,
-    dates,
-    setDates,
-    fetchVisits,
-    multiSortMeta,
-    salesPersonId,
-    needFollowUp,
-    setNeedFollowUp,
-    status,
-    setStatus,
-    setSalesPersonId,
     exportDates,
     exportData,
     setExportDates,
@@ -73,6 +62,8 @@ const VisitList = () => {
     setSalesPersonFilter,
     setExportData,
   } = visitStore
+
+  const [filters, setFilters] = useQueryStates(visitFilters)
 
   const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
 
@@ -88,26 +79,14 @@ const VisitList = () => {
   const salesPersons = salesPersonData?.data || []
 
   useEffect(() => {
-    fetchVisits()
     setExportData([])
   }, [])
 
   useEffect(() => {
     if (isAdmin) return
     if (!user?.sales_person?.id) return
-    setSalesPersonId(Number(user.sales_person.id))
+    setFilters({ salesPersonId: Number(user.sales_person.id) })
   }, [isAdmin, user])
-
-  useEffect(() => {
-    if (!isAdmin && user?.sales_person?.id) {
-      fetchVisits()
-      return
-    }
-
-    if (isAdmin) {
-      fetchVisits()
-    }
-  }, [isAdmin, salesPersonId, user, dates, page, limit, multiSortMeta, status, needFollowUp])
 
   useEffect(() => {
     if (exportDates || salesPersonFilter) {
@@ -451,14 +430,19 @@ const VisitList = () => {
             {/* Status */}
             <div className="col-12 md:col-3">
               <Dropdown
-                value={status}
+                value={filters.status}
                 options={[VisitStatus.Completed, VisitStatus.Ongoing, VisitStatus.Missed].map(
                   (status) => ({
                     label: status,
                     value: status,
                   })
                 )}
-                onChange={(e) => setStatus(e.value ?? undefined)}
+                onChange={(e) => {
+                  setFilters({
+                    status: e.value ?? null, // ✅ sekarang valid
+                    page: 1,
+                  })
+                }}
                 placeholder="Select Status"
                 className="w-full"
                 showClear
@@ -468,19 +452,34 @@ const VisitList = () => {
             {/* Follow Up */}
             <div className="col-12 md:col-3 flex align-items-center">
               <Checkbox
-                inputId="productFocused"
-                onChange={(e) => setNeedFollowUp(e.checked as boolean)}
-                checked={needFollowUp}
+                inputId="followUp"
+                onChange={(e) => setFilters({ needFollowUp: e.checked, page: 1 })}
+                checked={filters.needFollowUp}
               />
-              <label htmlFor="productFocused" className="ml-2">
+              <label htmlFor="followUp" className="ml-2">
                 Visit with Follow Ups
               </label>
             </div>
 
             <div className="col-12 md:col-3">
               <Calendar
-                value={dates}
-                onChange={(e) => setDates(e.value!)}
+                value={filters.dates}
+                onChange={(e) => {
+                  const value = e.value as (Date | null)[] | null
+
+                  const clean = value?.filter((d): d is Date => d instanceof Date)
+
+                  setFilters({
+                    dates: clean?.length ? clean : undefined,
+                    page: 1,
+                  })
+                }}
+                onClearButtonClick={() => {
+                  setFilters({
+                    dates: null,
+                    page: 1,
+                  })
+                }}
                 selectionMode="range"
                 readOnlyInput
                 className="w-full"
@@ -493,14 +492,14 @@ const VisitList = () => {
             {isAdmin && (
               <div className="col-12 md:col-3">
                 <Dropdown
-                  value={salesPersonId}
+                  value={filters.salesPersonId}
                   options={salesPersons
                     .filter((sp) => sp.user)
                     .map((sp: ISalesPerson) => ({
                       label: sp.SlpName,
                       value: Number(sp.id),
                     }))}
-                  onChange={(e) => setSalesPersonId(e.value ?? undefined)}
+                  onChange={(e) => setFilters({ salesPersonId: e.value ?? null, page: 1 })}
                   placeholder="Select Sales Person"
                   className="w-full"
                   showClear
@@ -526,7 +525,7 @@ const VisitList = () => {
           </div>
         </div>
 
-        {data && <VisitListTable />}
+        {<VisitListTable />}
       </div>
       <Dialog
         className="w-full lg:w-3 md:w-4 sm:w-6"

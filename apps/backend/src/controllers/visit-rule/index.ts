@@ -68,7 +68,7 @@ export const visitRules = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ message: 'Success', data: { visit_rules } });
+    return res.status(200).json({ message: 'Success', data: visit_rules });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
