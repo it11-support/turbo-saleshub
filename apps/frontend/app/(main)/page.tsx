@@ -193,7 +193,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="text-400 font-medium text-sm">
-                        Previous {period === 'mtd' ? 'Month' : 'Year'}
+                        {period === 'mtd' ? 'Same Month Last Year' : 'Same Period Last Year'}
                         <span className="ml-2">
                           {formatCurrency(Number(mappedSummary[itemKey]?.last), true, isMoney)}
                         </span>
@@ -215,9 +215,7 @@ const Dashboard = () => {
                           <i className="ml-1 pi pi-arrow-down-right text-red-500 text-sm" />
                         )}
                       </span>
-                      <span className="ml-2 text-500">
-                        vs last {period === 'mtd' ? 'month' : 'year'}
-                      </span>
+                      <span className="ml-2 text-500">YoY</span>
                     </Card>
                   </div>
                 )

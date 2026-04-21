@@ -9,52 +9,36 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
   const [mtd, ytd] = await Promise.all([
     prisma.$queryRaw<any[]>`
       SELECT
+        -- CURRENT MTD
         SUM(CASE
               WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-              AND s.date <= CURDATE()
+              AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
               THEN s.revenue ELSE 0 END) AS revenue_current,
 
         SUM(CASE
               WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-              AND s.date <= CURDATE()
+              AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
               THEN s.orders ELSE 0 END) AS orders_current,
 
         COUNT(DISTINCT CASE
               WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-              AND s.date <= CURDATE()
+              AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
               THEN s.CardCode END) AS customers_current,
 
+        -- PREVIOUS YEAR MTD (YoY)
         SUM(CASE
-              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-              AND s.date <= LEAST(
-                DATE_ADD(
-                  DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'),
-                  INTERVAL DAY(CURDATE()) - 1 DAY
-                ),
-                LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-              )
+              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-%m-01')
+              AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
               THEN s.revenue ELSE 0 END) AS revenue_previous,
 
         SUM(CASE
-              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-              AND s.date <= LEAST(
-                DATE_ADD(
-                  DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'),
-                  INTERVAL DAY(CURDATE()) - 1 DAY
-                ),
-                LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-              )
+              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-%m-01')
+              AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
               THEN s.orders ELSE 0 END) AS orders_previous,
 
         COUNT(DISTINCT CASE
-              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
-              AND s.date <= LEAST(
-                DATE_ADD(
-                  DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01'),
-                  INTERVAL DAY(CURDATE()) - 1 DAY
-                ),
-                LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-              )
+              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-%m-01')
+              AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
               THEN s.CardCode END) AS customers_previous
 
       FROM daily_sales_summary_view s
@@ -62,43 +46,42 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
     `,
 
     prisma.$queryRaw<any[]>`
-    SELECT
-      -- CURRENT YTD
-      SUM(CASE
-            WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
-            AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-            THEN s.revenue ELSE 0 END) AS revenue_current,
+      SELECT
+        -- CURRENT YTD
+        SUM(CASE
+              WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
+              AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+              THEN s.revenue ELSE 0 END) AS revenue_current,
 
-      SUM(CASE
-            WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
-            AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-            THEN s.orders ELSE 0 END) AS orders_current,
+        SUM(CASE
+              WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
+              AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+              THEN s.orders ELSE 0 END) AS orders_current,
 
-      COUNT(DISTINCT CASE
-            WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
-            AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-            THEN s.CardCode END) AS customers_current,
+        COUNT(DISTINCT CASE
+              WHEN s.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
+              AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+              THEN s.CardCode END) AS customers_current,
 
+        -- PREVIOUS YEAR YTD
+        SUM(CASE
+              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-01-01')
+              AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
+              THEN s.revenue ELSE 0 END) AS revenue_previous,
 
-      -- LAST YEAR YTD (FIXED)
-      SUM(CASE
-            WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-01-01')
-            AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
-            THEN s.revenue ELSE 0 END) AS revenue_previous,
+        SUM(CASE
+              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-01-01')
+              AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
+              THEN s.orders ELSE 0 END) AS orders_previous,
 
-      SUM(CASE
-            WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-01-01')
-            AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
-            THEN s.orders ELSE 0 END) AS orders_previous,
+        COUNT(DISTINCT CASE
+              WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-01-01')
+              AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
+              THEN s.CardCode END) AS customers_previous
 
-      COUNT(DISTINCT CASE
-            WHEN s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), '%Y-01-01')
-            AND s.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 YEAR), INTERVAL 1 DAY)
-            THEN s.CardCode END) AS customers_previous
-
-    FROM daily_sales_summary_view s
-    WHERE (${salesPersonId} IS NULL OR s.sales_person_id = ${salesPersonId});
-  `
+      FROM daily_sales_summary_view s
+      WHERE (${salesPersonId} IS NULL OR s.sales_person_id = ${salesPersonId});
+    `
   ])
 
   const mapResult = (row: any): SummaryResult => {
