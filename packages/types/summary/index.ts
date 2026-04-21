@@ -13,14 +13,12 @@ export type MtdValue = {
   revenue: number
   orders: number
   customers: number
-  aov: number
 }
 
 export type GrowthValue = {
   revenue: number // %
   orders: number  // %
   customers: number // %
-  aov: number // %
 }
 
 export type MtdResult = {

@@ -9,7 +9,6 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   customerTrend: [],
   productRevenueDistributor: [],
   productRevenueGrocery: [],
-  aovTrend: [],
   slpRevenue:[],
   newVsReturning: {newCustomer: 0, returningCustomer: 0},
   summary: {} as Summary,

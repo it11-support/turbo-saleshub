@@ -50,7 +50,6 @@ export type SummaryValue = {
   revenue: number
   orders: number
   customers: number
-  aov: number
 }
 
 export type SummaryResult = {

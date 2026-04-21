@@ -105,31 +105,26 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
     const currentRevenue = Number(row.revenue_current ?? 0)
     const currentOrders = Number(row.orders_current ?? 0)
     const currentCustomers = Number(row.customers_current ?? 0)
-    const currentAOV = currentOrders > 0 ? currentRevenue / currentOrders : 0
 
     const prevRevenue = Number(row.revenue_previous ?? 0)
     const prevOrders = Number(row.orders_previous ?? 0)
     const prevCustomers = Number(row.customers_previous ?? 0)
-    const prevAOV = prevOrders > 0 ? prevRevenue / prevOrders : 0
 
     return {
       current: {
         revenue: currentRevenue,
         orders: currentOrders,
         customers: currentCustomers,
-        aov: currentAOV
       },
       previous: {
         revenue: prevRevenue,
         orders: prevOrders,
         customers: prevCustomers,
-        aov: prevAOV
       },
       growth: {
         revenue: calcGrowth(currentRevenue, prevRevenue),
         orders: calcGrowth(currentOrders, prevOrders),
         customers: calcGrowth(currentCustomers, prevCustomers),
-        aov: calcGrowth(currentAOV, prevAOV)
       }
     }
   }

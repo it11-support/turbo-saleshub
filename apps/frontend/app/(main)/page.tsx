@@ -78,8 +78,6 @@ const Dashboard = () => {
 
   const customerData = monthlyTrend?.map((item) => item.customers)
 
-  const aovData = monthlyTrend?.map((item) => item.revenue / item.orders)
-
   const slpRevenueLabel = slpRevenue?.map((item) => item.slp)
   const slpRevenueData = slpRevenue?.map((item) => item.revenue)
 
@@ -124,15 +122,9 @@ const Dashboard = () => {
       growthPercent: selectedSummary?.growth.customers,
       diff: (selectedSummary?.current?.customers ?? 0) - (selectedSummary?.previous.customers ?? 0),
     },
-    aov: {
-      current: selectedSummary?.current.aov,
-      last: selectedSummary?.previous.aov,
-      growthPercent: selectedSummary?.growth.aov,
-      diff: (selectedSummary?.current?.aov ?? 0) - (selectedSummary?.previous.aov ?? 0),
-    },
   }
 
-  const summaryKeys = ['revenue', 'orders', 'customers', 'aov'] as const
+  const summaryKeys = ['revenue', 'orders', 'customers'] as const
 
   return (
     <>
@@ -153,6 +145,7 @@ const Dashboard = () => {
                     className: 'p-button-sm p-2',
                   },
                 }}
+                allowEmpty={false}
                 value={period}
                 onChange={(e) => setPeriod(e.value)}
                 optionLabel="label"
@@ -165,10 +158,10 @@ const Dashboard = () => {
           </div>
           <div className="grid">
             {summaryKeys.map((itemKey) => {
-              const isMoney = itemKey === 'revenue' || itemKey === 'aov'
+              const isMoney = itemKey === 'revenue'
               return (
                 mappedSummary[itemKey].current && (
-                  <div className="col-12 lg:col-6 xl:col-3" key={itemKey}>
+                  <div className="col-12 lg:col-6 xl:col-4" key={itemKey}>
                     <Card
                       pt={{
                         root: {
@@ -551,53 +544,6 @@ const Dashboard = () => {
                         ticks: {
                           callback: function (value: string) {
                             return formatCurrency(value, false, false)
-                          },
-                        },
-                      },
-                    },
-                  }}
-                />
-              </Card>
-            </div>
-            <div className="col-12 lg:col-12 xl:col-6">
-              <Card>
-                <Chart
-                  type="bar"
-                  data={{ labels: trendLabel, datasets: [{ data: aovData, label: 'AOV Trend' }] }}
-                  options={{
-                    plugins: {
-                      tooltip: {
-                        callbacks: {
-                          label: function (context: TooltipItem<'bar'>) {
-                            return formatCurrency(context.parsed.y, true, true)
-                          },
-                          title: function (context: TooltipItem<'bar'>[]) {
-                            const date = new Date(context[0].parsed.x)
-                            return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
-                          },
-                        },
-                      },
-                    },
-                    scales: {
-                      x: {
-                        grid: {
-                          display: false,
-                        },
-                        type: 'time',
-                        time: {
-                          unit: 'month',
-                          displayFormats: {
-                            month: 'MMM yyyy',
-                          },
-                        },
-                      },
-                      y: {
-                        grid: {
-                          display: false,
-                        },
-                        ticks: {
-                          callback: function (value: string) {
-                            return formatCurrency(value, false, true)
                           },
                         },
                       },
