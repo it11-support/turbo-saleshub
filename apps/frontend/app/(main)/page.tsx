@@ -108,7 +108,6 @@ const Dashboard = () => {
     selectedNooVsExisting?.existingCustomer,
   ]
 
-  console.log('selectedNooVsExisting', selectedNooVsExisting)
   const mappedSummary = {
     revenue: {
       current: selectedSummary?.current.revenue,
