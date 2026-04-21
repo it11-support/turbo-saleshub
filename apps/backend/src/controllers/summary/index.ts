@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
-import { getSalesSummary } from './functions.js'
+import { getNooVsExisting, getSalesSummary } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 
 export const mtdSummary = async (req: Request, res: Response) => {
@@ -279,37 +279,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       orders: i.count,
     })).sort((a, b) => b.revenue - a.revenue)
 
-    // New Vs Returning
-    const monthStart = dayjs().subtract(3, 'month').startOf('month').toDate()
-    const monthEnd = dayjs().toDate()
-
-
-    const currentInvoices = await prisma.sales_invoices.groupBy({
-      by: ['CardCode'],
-      where: {
-        DocDate: { gte: monthStart, lte: monthEnd },
-        ...salesFilter
-      }
-    });
-    const currentCustomerCodes = currentInvoices.map(i => i.CardCode);
-
-    const existingBefore = await prisma.sales_invoices.groupBy({
-      by: ['CardCode'],
-      where: {
-        DocDate: { lt: monthStart },
-        CardCode: { in: currentCustomerCodes },
-        ...salesFilter
-      }
-    });
-
-    const returningSet = new Set(existingBefore.map(i => i.CardCode));
-    const returningCustomerCount = returningSet.size;
-    const newCustomerCount = currentCustomerCodes.length - returningCustomerCount;
-
-    const newVsReturning = {
-      newCustomer: newCustomerCount,
-      returningCustomer: returningCustomerCount
-    };
+    const nooVsExisting = await getNooVsExisting(salesPersonId ? Number(salesPersonId) : null)
 
     // ========== CRR ==========
     const CRR = await getCRR(salesFilter)
@@ -371,12 +341,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         slpRevenue,
         productRevenueDistributor,
         productRevenueGrocery,
-        newVsReturning,
         CRR,
         RPR,
         RFM,
         monthlyTrend,
-        summary
+        summary,
+        nooVsExisting
       },
     })
   } catch (error) {

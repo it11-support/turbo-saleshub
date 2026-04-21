@@ -86,7 +86,6 @@ export interface IDashboardData {
     slpRevenue: { slp: string; revenue: number }[];
     productRevenueDistributor: { ItemName: string; orders: number; revenue: number }[];
     productRevenueGrocery: { ItemName: string; orders: number; revenue: number }[];
-    newVsReturning: { newCustomer: number; returningCustomer: number };
     summary: Summary;
     CRR: number;
     RPR: number;
@@ -97,5 +96,15 @@ export interface IDashboardData {
       mom: Record<string, Partial<ISalesSummary>[]>;
       yoy: Record<string, Partial<ISalesSummary>[]>;
     };
+    nooVsExisting: {
+      mtd: {
+        newCustomer: number;
+        existingCustomer: number;
+      };
+      ytd: {
+        newCustomer: number;
+        existingCustomer: number;
+      };
+    }
   }
 }

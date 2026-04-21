@@ -60,14 +60,15 @@ const Dashboard = () => {
     slpRevenue,
     productRevenueDistributor,
     productRevenueGrocery,
-    newVsReturning,
     CRR,
     RPR,
     RFM,
     monthlyTrend,
     summary,
+    nooVsExisting,
   } = data?.data || {}
 
+  console.log('nooVsExisting', nooVsExisting)
   const trendLabel = monthlyTrend?.map(
     (item) => `${item.year}-${item.month.toString().padStart(2, '0')}`
   )
@@ -87,9 +88,6 @@ const Dashboard = () => {
   const productRevenueGroceryLabel = productRevenueGrocery?.map((item) => item.ItemName)
   const productRevenueGroceryData = productRevenueGrocery?.map((item) => item.revenue)
 
-  const newVsReturningLabel = ['New Customer', 'Returning Customer']
-  const newVsReturningData = [newVsReturning?.newCustomer, newVsReturning?.returningCustomer]
-
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
 
@@ -103,6 +101,14 @@ const Dashboard = () => {
 
   const selectedSummary = summary?.[period]
 
+  const selectedNooVsExisting = nooVsExisting?.[period]
+  const newVsReturningLabel = ['New Customer', 'Returning Customer']
+  const newVsReturningData = [
+    selectedNooVsExisting?.newCustomer,
+    selectedNooVsExisting?.existingCustomer,
+  ]
+
+  console.log('selectedNooVsExisting', selectedNooVsExisting)
   const mappedSummary = {
     revenue: {
       current: selectedSummary?.current.revenue,
@@ -344,9 +350,9 @@ const Dashboard = () => {
 
             <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
-                <h5>Acquisition vs. Loyalty</h5>
+                <h5>New vs Returning</h5>
                 <div className="text-xs italic">
-                  <i>Breakdown of first-time buyers compared to returning existing customers</i>
+                  <i>Breakdown of First-Time Buyers vs Returning Customers</i>
                 </div>
                 <div
                   style={{

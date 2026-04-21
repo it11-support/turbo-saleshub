@@ -117,3 +117,77 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
     ytd: mapResult(ytd[0])
   }
 }
+
+
+export const getNooVsExisting = async (salesPersonId: number | null) => {
+  const result = await prisma.$queryRaw<any[]>`
+    WITH first_purchase AS (
+      SELECT
+        CardCode,
+        MIN(date) AS first_date
+      FROM daily_sales_summary_view
+      GROUP BY CardCode
+    ),
+
+    base AS (
+      SELECT DISTINCT
+        CardCode,
+        date,
+        sales_person_id
+      FROM daily_sales_summary_view
+      WHERE date IS NOT NULL
+    )
+
+    SELECT
+      -- ================= MTD =================
+      COUNT(DISTINCT CASE
+        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+         AND fp.first_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
+        THEN b.CardCode END) AS mtd_new,
+
+      COUNT(DISTINCT CASE
+        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+         AND fp.first_date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
+        THEN b.CardCode END) AS mtd_existing,
+
+      -- ================= YTD =================
+      COUNT(DISTINCT CASE
+        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
+         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+         AND fp.first_date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
+         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
+        THEN b.CardCode END) AS ytd_new,
+
+      COUNT(DISTINCT CASE
+        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
+         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+         AND fp.first_date < DATE_FORMAT(CURDATE(), '%Y-01-01')
+         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
+        THEN b.CardCode END) AS ytd_existing
+
+    FROM base b
+    JOIN first_purchase fp ON fp.CardCode = b.CardCode;
+  `
+
+  const row = result[0] ?? {}
+
+  const mtdNew = Number(row.mtd_new ?? 0)
+  const mtdExisting = Number(row.mtd_existing ?? 0)
+  const ytdNew = Number(row.ytd_new ?? 0)
+  const ytdExisting = Number(row.ytd_existing ?? 0)
+
+  return {
+    mtd: {
+      newCustomer: mtdNew,
+      existingCustomer: mtdExisting,
+    },
+    ytd: {
+      newCustomer: ytdNew,
+      existingCustomer: ytdExisting,
+    }
+  }
+}
