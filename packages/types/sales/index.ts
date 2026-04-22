@@ -105,6 +105,19 @@ export interface IDashboardData {
         newCustomer: number;
         existingCustomer: number;
       };
+    },
+    activeCustomers: {
+      baseCustomer: {
+        total: number,
+      },
+      activeThisMonth: {
+        total: number,
+        penetration: number,
+      },
+      noActive: {
+        total: number,
+        customers: ICustomer[],
+      }
     }
   }
 }

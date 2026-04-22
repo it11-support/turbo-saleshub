@@ -191,3 +191,53 @@ export const getNooVsExisting = async (salesPersonId: number | null) => {
     }
   }
 }
+
+export const getActiveCustomers = async (salesPersonId: number | null) => {
+  const [baseRows, activeRows] = await Promise.all([
+    // Query Base: Customer yang pernah transaksi Jan 2025 - Bulan lalu
+    prisma.$queryRaw<any[]>`
+      SELECT v.CardCode, c.CardName, c.City, c.SalesName, c.GroupName
+      FROM daily_sales_summary_view v
+      LEFT JOIN customers c ON v.CardCode = c.CardCode
+      WHERE v.date >= '2025-01-01'
+        AND v.date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
+      GROUP BY v.CardCode
+    `,
+    // Query Active: Customer yang transaksi bulan ini (MTD)
+    prisma.$queryRaw<any[]>`
+      SELECT v.CardCode
+      FROM daily_sales_summary_view v
+      WHERE v.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND v.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
+      GROUP BY v.CardCode
+    `
+  ]);
+
+  // 1. Ambil set CardCode yang sudah aktif bulan ini untuk komparasi cepat
+  const activeSet = new Set(activeRows.map(r => r.CardCode));
+
+  // 2. Filter No Active: Ada di baseRows tapi TIDAK ADA di activeSet
+  const noActiveCustomers = baseRows.filter(customer => !activeSet.has(customer.CardCode));
+
+  const baseTotal = baseRows.length;
+  const activeTotal = activeRows.length;
+  const penetration = baseTotal > 0 ? (activeTotal / baseTotal) * 100 : 0;
+
+  return {
+    baseCustomer: {
+      total: baseTotal,
+    },
+    activeThisMonth: {
+      total: activeTotal,
+      penetration,
+    },
+    noActive: {
+      total: noActiveCustomers.length,
+      customers: noActiveCustomers,
+    }
+  };
+};
+
+

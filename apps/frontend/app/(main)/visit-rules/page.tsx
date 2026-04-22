@@ -2,13 +2,7 @@
 
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
-import {
-  ICustomer,
-  IResPaginated,
-  IResSingle,
-  ISalesPerson,
-  ISalesVisitRule,
-} from '@saleshub-tsm/types'
+import { ICustomer, IResSingle, ISalesPerson, ISalesVisitRule } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
@@ -70,20 +64,6 @@ export default function VisitsPage(): JSX.Element {
     }
   )
 
-  const payload = {
-    page: 1,
-    per_page: 200,
-    sort_options: [],
-  }
-
-  const apiUrl = createUrl('customers', payload)
-
-  const { data: customers } = useSWR<IResPaginated<ICustomer>>(apiUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
-
-  console.log(customers)
   const salesVisitRules = visitRules?.data
 
   useEffect(() => {
