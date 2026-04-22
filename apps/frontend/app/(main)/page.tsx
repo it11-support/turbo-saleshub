@@ -237,11 +237,8 @@ const Dashboard = () => {
             <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
                 <h5>Loyalty Benchmarking</h5>
-                <div className="text-xs italic">
-                  <i>
-                    Overall health score of customer relationships based on stability and recurring
-                    engagement
-                  </i>
+                <div className="text-xs italic mb-2">
+                  <i>Customer Stability & Engagement Health Score</i>
                 </div>
                 <div
                   style={{
@@ -311,11 +308,8 @@ const Dashboard = () => {
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Rentention Index</h5>
-                  <div className="text-xs italic">
-                    <i>
-                      Percentage of customers from the previous period who remained active in the
-                      last 3 months.
-                    </i>
+                  <div className="text-xs italic mb-2">
+                    <i>3-Month Customer Retention Rate</i>
                   </div>
                   <Knob
                     value={Number((CRR ?? 0).toFixed(2))}
@@ -334,11 +328,8 @@ const Dashboard = () => {
               <div className="col-12 lg:col-6 xl:col-3">
                 <Card className="text-center">
                   <h5>Purchase Frequency</h5>
-                  <div className="text-xs italic">
-                    <i>
-                      Percentage of customers who placed two or more separate orders within the last
-                      3 months
-                    </i>
+                  <div className="text-xs italic mb-2">
+                    <i>Repeat Purchase Frequency</i>
                   </div>
                   <Knob
                     value={Number((RPR ?? 0).toFixed(2))}
@@ -355,9 +346,9 @@ const Dashboard = () => {
 
             <div className="col-12 lg:col-6 xl:col-3">
               <Card className="text-center">
-                <h5>New vs Returning</h5>
-                <div className="text-xs italic">
-                  <i>Breakdown of First-Time Buyers vs Returning Customers</i>
+                <h5>New vs Existing</h5>
+                <div className="text-xs italic mb-2">
+                  <i>Breakdown of First-Time Buyers vs Existing </i>
                 </div>
                 <div
                   style={{
