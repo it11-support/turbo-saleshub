@@ -30,7 +30,8 @@
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.2.1",
     "prisma-extension-pagination": "^0.7.6",
-    "prisma-paginate": "^5.2.2"
+    "prisma-paginate": "^5.2.2",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

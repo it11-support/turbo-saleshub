@@ -3,6 +3,8 @@ import routes from './routes/index.js'
 import cors from "cors"
 import fileUpload from 'express-fileupload'
 import { startRfmScheduler } from './scheduler/index.js'
+import { createServer } from 'http'
+import { initSocket } from './libs/socket-io.js'
 
 (BigInt.prototype as any).toJSON = function () {
   return Number(this);
@@ -11,6 +13,10 @@ import { startRfmScheduler } from './scheduler/index.js'
 const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
+const httpServer = createServer(app)
+
+initSocket(httpServer)
+
 app.use(cors())
 app.use(
   fileUpload({
@@ -24,7 +30,7 @@ app.use("/api/v1", routes)
 
 startRfmScheduler()
 
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Express running on ${PORT}`);
   console.log(`Server Time: ${new Date()}` , process.env.TZ);
 })

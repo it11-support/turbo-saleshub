@@ -47,6 +47,7 @@ jobs:
             DATABASE_PORT=${{ secrets.DATABASE_PORT }}
             DATABASE_URL=mysql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SOCKET_IO_CLIENT_URL=${{ secrets.SOCKET_IO_CLIENT_URL }}
             TZ=Asia/Makassar
             NODE_ENV=production
             PORT=4000
@@ -59,6 +60,7 @@ jobs:
             NEXT_REMOTE_PROTOCOL=${{ secrets.NEXT_REMOTE_PROTOCOL }}
             NEXT_REMOTE_HOSTNAME=${{ secrets.NEXT_REMOTE_HOSTNAME }}
             NEXT_REMOTE_PATH=${{ secrets.NEXT_REMOTE_PATH }}
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             NODE_ENV=production
             PORT=3001
             TZ=Asia/Makassar

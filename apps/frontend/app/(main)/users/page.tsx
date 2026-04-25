@@ -12,6 +12,8 @@ import {
   IUser,
 } from '@saleshub-tsm/types'
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
+import { Avatar } from 'primereact/avatar'
+import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
@@ -23,6 +25,7 @@ import useSWR from 'swr'
 
 import UserForm from '@/app/components/users/UserForm'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useOnlineUsers } from '@/hooks/useOnlineUsers'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { useUserStore } from '@/stores/user'
@@ -31,7 +34,7 @@ export default function UserTable() {
   const { updateUser, createUser, deleteUser } = useUserStore()
 
   const { user } = useAuth()
-
+  const onlineIds = useOnlineUsers()
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -229,6 +232,21 @@ export default function UserTable() {
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
         rowsPerPageOptions={[10, 25, 50]}
       >
+        <Column
+          field="id"
+          header="Status"
+          body={(row) => {
+            const isOnline = onlineIds.includes(row.id)
+            const color = isOnline ? 'success' : 'danger'
+            return (
+              <>
+                <Avatar className="p-overlay-badge" icon="pi pi-user" size="large" shape="circle">
+                  <Badge severity={color} className="p-2 text-sm "></Badge>
+                </Avatar>
+              </>
+            )
+          }}
+        />
         <Column field="name" header="Name" sortable />
         <Column field="email" header="Email" sortable />
         <Column field="roles.role" header="Role" body={roleTemplate} sortable />

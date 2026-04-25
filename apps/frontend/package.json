@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@saleshub-tsm/types": "workspace:*",
     "@types/node": "20.3.1",
     "@types/react": "18.2.12",
     "@types/react-dom": "18.2.5",
-    "@saleshub-tsm/types": "workspace:*",
     "chart.js": "4.2.1",
     "cookies-next": "^6.1.0",
     "next": "15.5.4",
@@ -27,6 +27,7 @@
     "react-dom": "18.2.0",
     "react-hook-form": "^7.64.0",
     "react-transition-group": "^4.4.5",
+    "socket.io-client": "^4.8.3",
     "typescript": "5.1.3",
     "yup": "^1.7.1",
     "zustand": "^5.0.8"
