@@ -239,11 +239,16 @@ export default function UserTable() {
             const isOnline = onlineIds.includes(row.id)
             const color = isOnline ? 'success' : 'danger'
             return (
-              <>
-                <Avatar className="p-overlay-badge" icon="pi pi-user" size="large" shape="circle">
-                  <Badge severity={color} className="p-2 text-sm "></Badge>
-                </Avatar>
-              </>
+              <Avatar className="p-overlay-badge" icon="pi pi-user" size="large" shape="circle">
+                <Badge
+                  severity={color}
+                  className="p-2 text-sm"
+                  style={{
+                    position: 'absolute',
+                    transform: 'none',
+                  }}
+                />
+              </Avatar>
             )
           }}
         />
