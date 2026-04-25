@@ -46,34 +46,63 @@ export const mtdSummary = async (req: Request, res: Response) => {
       : {}
 
 
-    // =====================
-    // REVENUE TREND (12 MONTHS, MTD)
-    // =====================
-    const revenueTrendRaw = await prisma.sales_invoices.findMany({
-      where: {
-        DocDate: { gte: trendStart, lte: trendEnd },
-        ...salesFilter,
-      },
-      select: {
-        DocNum: true,
-        DocDate: true,
-        TotalSales: true
-      },
-    })
+    const [
+      revenueTrendRaw,
+      invoices
+    ] = await Promise.all([
+      prisma.sales_invoices.findMany({
+        where: {
+          DocDate: { gte: trendStart, lte: trendEnd },
+          ...salesFilter,
+        },
+        select: {
+          DocNum: true,
+          DocDate: true,
+          TotalSales: true
+        },
+      }),
+
+      prisma.sales_invoices.findMany({
+        where: {
+          DocDate: { gte: mtdStart, lte: mtdEnd },
+          ...salesFilter,
+        },
+        include: {
+          customer: {
+            include: { sales_person: true },
+          },
+        },
+      })
+    ])
 
     const docNums = revenueTrendRaw.map(s => s.DocNum)
+    const invDocNums = [...new Set(invoices.map(inv => inv.DocNum))]
 
-    const returTrendRaw = await prisma.retur_invoices.findMany({
-      where: {
-        DocNum: { in: docNums },
-        ...salesFilter,
-      },
-      select: {
-        DocNum: true,
-        DocDate: true,
-        TotalSales: true,
-      },
-    })
+    const [
+      returTrendRaw,
+      returTotals
+    ] = await Promise.all([
+      prisma.retur_invoices.findMany({
+        where: {
+          DocNum: { in: docNums },
+          ...salesFilter,
+        },
+        select: {
+          DocNum: true,
+          DocDate: true,
+          TotalSales: true,
+        },
+      }),
+
+      prisma.retur_invoices.groupBy({
+        by: ['DocNum'],
+        _sum: { TotalSales: true },
+        where: {
+          DocNum: { in: invDocNums },
+          ...salesFilter,
+        },
+      })
+    ])
 
     const revenueMap = new Map()
     revenueTrendRaw.forEach((s) => {
@@ -104,38 +133,94 @@ export const mtdSummary = async (req: Request, res: Response) => {
       revenueMap.set(key, existing)
     })
 
+    const [
+      topItemsSalesDistributor,
+      topItemsReturDistributor,
+      topItemsSalesGrocery,
+      topItemsReturGrocery,
+      nooVsExisting,
+      CRR,
+      RPR,
+      RFM,
+      monthlyTrendRaw,
+      summary,
+      activeCustomers
+    ] = await Promise.all([
 
-    const invoices = await prisma.sales_invoices.findMany({
-      where: {
-        DocDate: { gte: mtdStart, lte: mtdEnd },
-        ...salesFilter,
-      },
-      include: {
-        customer: {
-          include: {
-            sales_person: true,
-          },
-        }
-      },
-    })
+      prisma.sales_invoices.groupBy({
+        by: ['ItemCode'],
+        _sum: { TotalSales: true },
+        _count: { DocNum: true },
+        where: {
+          DocDate: { gte: mtdStart, lte: mtdEnd },
+          product: { Distributor: 'Y' },
+          ...salesFilter,
+        },
+      }),
 
-    const invDocNums = [...new Set(invoices.map(inv => inv.DocNum))]
+      prisma.retur_invoices.groupBy({
+        by: ['ItemCode'],
+        _sum: { TotalSales: true },
+        _count: { DocNum: true },
+        where: {
+          DocDate: { gte: mtdStart, lte: mtdEnd },
+          product: { Distributor: 'Y' },
+          ...salesFilter,
+        },
+      }),
 
-    const returTotals = await prisma.retur_invoices.groupBy({
-      by: ['DocNum'],
-      _sum: {
-        TotalSales: true,
-      },
-      where: {
-        DocNum: { in: invDocNums },
-        ...salesFilter,
-      },
-    })
+      prisma.sales_invoices.groupBy({
+        by: ['ItemCode'],
+        _sum: { TotalSales: true },
+        _count: { DocNum: true },
+        where: {
+          DocDate: { gte: mtdStart, lte: mtdEnd },
+          product: { Distributor: 'N' },
+          ...salesFilter,
+        },
+      }),
+
+      prisma.retur_invoices.groupBy({
+        by: ['ItemCode'],
+        _sum: { TotalSales: true },
+        _count: { DocNum: true },
+        where: {
+          DocDate: { gte: mtdStart, lte: mtdEnd },
+          product: { Distributor: 'N' },
+          ...salesFilter,
+        },
+      }),
+
+      getNooVsExisting(salesPersonId ? Number(salesPersonId) : null),
+      getCRR(salesFilter),
+      getRPR(salesFilter),
+      getRFM(salesFilter),
+
+      prisma.$queryRaw<MonthlySummary[]>`
+    SELECT
+      YEAR(s.date) AS year,
+      MONTH(s.date) AS month,
+      SUM(s.revenue) AS revenue,
+      SUM(s.orders) AS orders,
+      COUNT(DISTINCT s.CardCode) AS customers
+    FROM daily_sales_summary_view s
+    JOIN customers c ON c.CardCode = s.CardCode
+    JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+    WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
+      AND s.date <= LAST_DAY(CURDATE())
+      AND (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+    GROUP BY YEAR(s.date), MONTH(s.date)
+    ORDER BY YEAR(s.date), MONTH(s.date)
+  `,
+
+      getSalesSummary(salesPersonId ? Number(salesPersonId) : null),
+      getActiveCustomers(salesPersonId ? Number(salesPersonId) : null),
+    ])
+
 
     const returMap = new Map<number, number>(
       returTotals.map(r => [r.DocNum, Number(r._sum.TotalSales ?? 0)])
     )
-
 
     const revenueBySales: Record<string, number> = {}
 
@@ -156,28 +241,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       .map(([slp, revenue]) => ({ slp, revenue }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5)
-
-    const topItemsSalesDistributor = await prisma.sales_invoices.groupBy({
-      by: ['ItemCode'],
-      _sum: { TotalSales: true },
-      _count: { DocNum: true },
-      where: {
-        DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: { Distributor: 'Y' },
-        ...salesFilter,
-      },
-    })
-
-    const topItemsReturDistributor = await prisma.retur_invoices.groupBy({
-      by: ['ItemCode'],
-      _sum: { TotalSales: true },
-      _count: { DocNum: true },
-      where: {
-        DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: { Distributor: 'Y' },
-        ...salesFilter,
-      },
-    })
 
     const topItemsMapDistributor = new Map<string, { sales: number; count: number }>()
 
@@ -201,31 +264,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       topItemsMapDistributor.set(item.ItemCode, existing)
     })
 
-    const topItemsSalesGrocery = await prisma.sales_invoices.groupBy({
-      by: ['ItemCode'],
-      _sum: { TotalSales: true },
-      _count: { DocNum: true },
-      where: {
-        DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: {
-          Distributor: 'N'
-        },
-        ...salesFilter,
-      },
-    })
-
-    const topItemsReturGrocery = await prisma.retur_invoices.groupBy({
-      by: ['ItemCode'],
-      _sum: { TotalSales: true },
-      _count: { DocNum: true },
-      where: {
-        DocDate: { gte: mtdStart, lte: mtdEnd },
-        product: { Distributor: 'N' },
-        ...salesFilter,
-      },
-    })
-
-
     const topItemsMapGrocery = new Map<string, { sales: number; count: number }>()
 
     topItemsSalesGrocery.forEach(item => {
@@ -248,19 +286,16 @@ export const mtdSummary = async (req: Request, res: Response) => {
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 10)
 
-
-    const itemCodesDistributor: string[] = topItemsDistributor.map(i => i.ItemCode).filter((code) => code !== null)
-    const itemCodesGrocery: string[] = topItemsGrocery.map(i => i.ItemCode).filter((code) => code !== null)
-
-    const productDistributor = await prisma.products.findMany({
-      where: { ItemCode: { in: itemCodesDistributor } },
-      select: { ItemCode: true, ItemName: true },
-    })
-
-    const productGrocery = await prisma.products.findMany({
-      where: { ItemCode: { in: itemCodesGrocery } },
-      select: { ItemCode: true, ItemName: true },
-    })
+     const [productDistributor, productGrocery] = await Promise.all([
+      prisma.products.findMany({
+        where: { ItemCode: { in: topItemsDistributor.map(i => i.ItemCode) } },
+        select: { ItemCode: true, ItemName: true },
+      }),
+      prisma.products.findMany({
+        where: { ItemCode: { in: topItemsGrocery.map(i => i.ItemCode) } },
+        select: { ItemCode: true, ItemName: true },
+      }),
+    ])
 
     const productRevenueDistributor = topItemsDistributor.map(i => {
       const retur = topItemsReturDistributor.find(r => r.ItemCode === i.ItemCode)?._sum.TotalSales ?? 0;
@@ -279,49 +314,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       orders: i.count,
     })).sort((a, b) => b.revenue - a.revenue)
 
-    const nooVsExisting = await getNooVsExisting(salesPersonId ? Number(salesPersonId) : null)
-
-    // ========== CRR ==========
-    const CRR = await getCRR(salesFilter)
-
-    const RPR = await getRPR(salesFilter)
-
-    const RFM = await getRFM(salesFilter)
-
-
-    const monthlyTrendRaw = await prisma.$queryRaw<MonthlySummary[]>`
-      SELECT
-        YEAR(s.date) AS year,
-        MONTH(s.date) AS month,
-        SUM(s.revenue) AS revenue,
-        SUM(s.orders) AS orders,
-        COUNT(DISTINCT s.CardCode) AS customers
-
-      FROM daily_sales_summary_view s
-
-      JOIN customers c
-        ON c.CardCode = s.CardCode
-
-      JOIN sales_persons sp
-        ON sp.SlpCode = c.SlpCode
-
-      WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
-      AND s.date <= LAST_DAY(CURDATE())
-
-      AND (
-          ${salesPersonId} IS NULL
-          OR sp.id = ${salesPersonId}
-        )
-
-      GROUP BY
-        YEAR(s.date),
-        MONTH(s.date)
-
-      ORDER BY
-        YEAR(s.date),
-        MONTH(s.date);
-    `
-
     const monthlyTrend = monthlyTrendRaw.map(r => ({
       year: r.year,
       month: r.month,
@@ -329,10 +321,6 @@ export const mtdSummary = async (req: Request, res: Response) => {
       orders: Number(r.orders ?? 0),
       customers: Number(r.customers ?? 0),
     }))
-
-    const summary = await getSalesSummary(salesPersonId ? Number(salesPersonId) : null)
-
-    const activeCustomers = await getActiveCustomers(salesPersonId ? Number(salesPersonId) : null)
 
     // =====================
     // RESPONSE
