@@ -34,7 +34,7 @@ jobs:
           script: |
             # Exit immediately if a command exits with a non-zero status
             set -e
-            
+
             cd /home/sysdevrco1/release/turbo-saleshub
             git pull origin release/v1
 
@@ -75,9 +75,10 @@ jobs:
             pnpm --filter ./apps/frontend lint
             pnpm --filter ./apps/frontend build
 
-            npx pm2 kill
-            kill -9 $(lsof -t -i:4000) 2>/dev/null
-            kill -9 $(lsof -t -i:3001) 2>/dev/null
+            npx pm2 delete saleshub-backend saleshub-frontend || true
+
+            fuser -k 4000/tcp || true
+            fuser -k 3001/tcp || true
 
             npx pm2 start ecosystem.config.js
             npx pm2 save
