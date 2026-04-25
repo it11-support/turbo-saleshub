@@ -36,7 +36,7 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
   const handleVisitNavigation = async (schedule: VisitSchedule) => {
     const status = schedule.status?.toLowerCase().trim()
 
-    if (schedule.id === null) {
+    if (schedule.id === null || schedule.is_followup) {
       try {
         const newVisit = await createVisitSchedule({
           sales_person_id: Number(schedule.sales_person_id),

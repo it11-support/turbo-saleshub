@@ -21,6 +21,7 @@ import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
 
 import 'chartjs-adapter-date-fns'
+import { formatDate } from 'date-fns'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -494,7 +495,14 @@ const Dashboard = () => {
                     filter
                     style={{ width: '35%' }}
                   />
-                  <Column field="City" header="City" sortable filter style={{ width: '20%' }} />
+                  <Column
+                    field="lastTransactionDate"
+                    header="Last Transaction"
+                    sortable
+                    filter
+                    style={{ width: '20%' }}
+                    body={(row) => formatDate(row.lastTransactionDate, ' MMMM d, yyyy')}
+                  />
                   <Column
                     field="SalesName"
                     header="Sales Person"

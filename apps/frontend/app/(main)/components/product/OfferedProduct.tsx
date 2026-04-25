@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { variantColors } from '@/lib/constants'
-import { formatDate } from '@/lib/dateUtils'
+import { formatDate, normalizeDateToUTC } from '@/lib/dateUtils'
 import { useConcernStore, useSalesVisit } from '@/stores'
 
 type Props = {
@@ -276,9 +276,11 @@ const OfferedProduct = (props: Props) => {
             <Calendar
               value={followUpForm.next_follow_up_date}
               minDate={new Date()}
-              onChange={(e) =>
-                setFollowUpForm({ ...followUpForm, next_follow_up_date: e.value as Date })
-              }
+              onChange={(e) => {
+                const selectedDate = e.value as Date
+                const cleanDate = normalizeDateToUTC(selectedDate)
+                setFollowUpForm({ ...followUpForm, next_follow_up_date: cleanDate })
+              }}
               placeholder="Next follow up date"
               className="w-full"
               showIcon

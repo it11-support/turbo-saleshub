@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
-import { getActiveCustomers, getNooVsExisting, getSalesSummary } from './functions.js'
+import { getActiveCustomers, getCustomerPerformance, getNooVsExisting, getSalesSummary } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 
 export const mtdSummary = async (req: Request, res: Response) => {

@@ -29,3 +29,8 @@ export const formatDate = (date?: string | Date | null, options?: FormatDateOpti
 
   return format(parsed, pattern, { locale })
 }
+
+export const normalizeDateToUTC = (date: Date | null): Date | null => {
+  if (!date) return null
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+}

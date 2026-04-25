@@ -14,6 +14,7 @@ import useSWR from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
+import { normalizeDateToUTC } from '@/lib/dateUtils'
 import { useScheduleStore } from '@/stores'
 
 const VisitSchedules = () => {
@@ -139,7 +140,11 @@ const VisitSchedules = () => {
           <div className="hidden sm:block">
             <Calendar
               value={new Date(currentDate)}
-              onChange={(e) => handleChangeDate(e.value as Date)}
+              onChange={(e) => {
+                const selectedDate = e.value as Date
+                const cleanDate = normalizeDateToUTC(selectedDate)
+                handleChangeDate(cleanDate as Date)
+              }}
               showIcon
               className="max-h-10"
               disabledDays={[0]}

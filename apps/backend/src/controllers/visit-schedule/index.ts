@@ -229,11 +229,10 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'salesPersonId and date are required' });
     }
 
-    // Gunakan dayjs untuk semua logika tanggal
     const date = dayjs(dateStr);
+    const targetDateKey = date.format('YYYY-MM-DD');
     const limit = dayjs().subtract(1, 'day');
 
-    // Skip Sunday
     if (date.day() === 0) {
       return res.status(200).json({
         message: 'Sunday has no schedule',
@@ -243,13 +242,9 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
 
     const weekOfMonth = getWeekOfMonth(date.toDate());
     const dayOfWeek = getDayOfWeekEnum(date.toDate());
+    const cycleSlot = getCycleSlot(date.toDate());
 
-    // Helper untuk format YYYY-MM-DD, aman dari timezone
-    const toDateKey = (d: dayjs.Dayjs | string | Date) => dayjs(d).format('YYYY-MM-DD');
-
-    const targetDateKey = toDateKey(date);
-
-    // Ambil rules aktif sesuai sales person, hari, dan cycle
+    // ================= RULES =================
     const rules = await prisma.sales_visit_rules.findMany({
       where: {
         sales_person_id: salesPersonId,
@@ -263,16 +258,14 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       orderBy: { customer_id: 'asc' },
     });
 
-    const cycleSlot = getCycleSlot(date.toDate());
-
     const matchedRules = rules.filter(
       (r) => Array.isArray(r.visit_weeks) && r.visit_weeks.includes(cycleSlot)
     );
 
+    // ================= VISITS =================
     const monthStart = startOfMonth(date.toDate());
     const monthEnd = endOfMonth(date.toDate());
 
-    // Ambil semua visits bulan ini
     const visitsInMonth = await prisma.visits.findMany({
       where: {
         sales_person_id: salesPersonId,
@@ -288,52 +281,41 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       },
     });
 
-    const manualSchedules = await prisma.visits.findMany({
-      where: {
-        sales_person_id: salesPersonId,
-        visit_date: targetDateKey
-      },
-      include: {
-        customer: { include: { subgroup: true } }
+    const visitMap = new Map<number, typeof visitsInMonth>();
+
+    visitsInMonth.forEach(v => {
+      if (!v.start_at) return;
+      if (dayjs(v.start_at).format('YYYY-MM-DD') !== targetDateKey) return;
+
+      if (!visitMap.has(Number(v.customer_id))) {
+        visitMap.set(Number(v.customer_id), []);
       }
-    })
-
-    // Group visits berdasarkan tanggal target
-    const visitsOnTargetDate = visitsInMonth.filter(
-      (v) => v.start_at && toDateKey(v.start_at) === targetDateKey
-    )
-
-    const visitMap = new Map<number, typeof visitsOnTargetDate>();
-    for (const v of visitsOnTargetDate) {
-      if (!visitMap.has(Number(v.customer_id))) visitMap.set(Number(v.customer_id), []);
       visitMap.get(Number(v.customer_id))!.push(v);
-    }
+    });
 
-    // Mapping rules ke data output
-    const data = matchedRules.map((rule) => {
-      const todayVisits = visitMap.get(Number(rule.customer_id)) || [];
+    const ruleData = matchedRules.map(rule => {
+      const visits = visitMap.get(Number(rule.customer_id)) || [];
 
+      let visit = null;
       let status: TVisitStatus = VisitStatus.Planned;
-      let visit: (typeof todayVisits)[0] | null = null;
 
-      if (todayVisits.length > 0) {
-        // Ambil visit terakhir
-        const lastVisit = todayVisits.sort(
-          (a, b) => new Date(b.start_at!).getTime() - new Date(a.start_at!).getTime()
+      if (visits.length > 0) {
+        const last = visits.sort((a, b) =>
+          new Date(b.start_at!).getTime() - new Date(a.start_at!).getTime()
         )[0];
-        visit = lastVisit;
 
-        // 🔥 override status kalau tanggal sudah lewat dan masih Planned
-        if (dayjs(lastVisit.start_at).isBefore(dayjs(), 'day') && lastVisit.status === VisitStatus.Planned) {
+        visit = last;
+
+        if (
+          dayjs(last.start_at).isBefore(dayjs(), 'day') &&
+          last.status === VisitStatus.Planned
+        ) {
           status = VisitStatus.Missed;
         } else {
-          status = lastVisit.status;
+          status = last.status;
         }
-      } else {
-        // Tidak ada visit, cek kalau tanggal sudah lewat
-        if (dayjs(targetDateKey).isBefore(dayjs(), 'day')) {
-          status = VisitStatus.Missed;
-        }
+      } else if (date.isBefore(dayjs(), 'day')) {
+        status = VisitStatus.Missed;
       }
 
       return {
@@ -349,34 +331,34 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       };
     });
 
-    const ruleVisitIds = new Set(data.map((d) => d.id).filter((id) => id !== null));
-    const filteredManualSchedules = manualSchedules.filter(
-      (schedule) => !ruleVisitIds.has(schedule.id)
-    );
+    // ================= MANUAL =================
+    const manualSchedules = await prisma.visits.findMany({
+      where: {
+        sales_person_id: salesPersonId,
+        visit_date: targetDateKey,
+      },
+      include: {
+        customer: { include: { subgroup: true } },
+      },
+    });
 
-    const dataManual = filteredManualSchedules.map((schedule) => {
-      return {
-        rule: {
-          customer: schedule.customer
-        },
-        id: schedule?.id ?? null,
+    const ruleVisitIds = new Set(ruleData.map(d => d.id).filter(Boolean));
+
+    const dataManual = manualSchedules
+      .filter(s => !ruleVisitIds.has(s.id))
+      .map(schedule => ({
+        rule: { customer: schedule.customer },
+        id: schedule.id,
         sales_person_id: schedule.sales_person_id,
         customer_id: schedule.customer_id,
         visit_date: schedule.visit_date,
         max_items_per_visit: 15,
         status: schedule.status,
-        is_virtual: !schedule,
-        visit: {
-          id: schedule.id,
-          customer_id: schedule.customer_id,
-          start_at: schedule.start_at,
-          end_at: schedule.end_at,
-          status: schedule.status,
-        },
-      }
-    })
+        is_virtual: false,
+        visit: schedule,
+      }));
 
-    // Auto update status Missed untuk visits yang Ongoing dan sudah lewat
+    // ================= STATUS UPDATE =================
     await prisma.visits.updateMany({
       where: {
         sales_person_id: salesPersonId,
@@ -389,39 +371,109 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     await prisma.visits.updateMany({
       where: {
         sales_person_id: salesPersonId,
-        AND: [
-          { start_at: null },
-          { status: VisitStatus.Planned },
-          { visit_date: { lt: dayjs().startOf('day').format('YYYY-MM-DD') } }
-        ]
+        start_at: null,
+        status: VisitStatus.Planned,
+        visit_date: { lt: dayjs().format('YYYY-MM-DD') },
       },
-      data: { status: VisitStatus.Missed }
-    })
-
-    const existingCustomerIds = new Set(dataManual.map(item => item.customer_id));
-
-    const filteredData = data.filter(data => {
-      return !existingCustomerIds.has(data.customer_id);
+      data: { status: VisitStatus.Missed },
     });
+
+    // ================= FILTER RULE DUPLICATE =================
+    const getKey = (item: any) =>
+      `${item.customer_id}-${item.visit_date}`;
+    const manualKeys = new Set(dataManual.map(getKey));
+    // ================= FOLLOW UP =================
+    const start = dayjs(dateStr).startOf('day').toDate();
+    const end = dayjs(dateStr).add(1, 'day').startOf('day').toDate();
+
+    const followUps = await prisma.follow_ups.findMany({
+      where: {
+        next_follow_up_date: { gte: start, lt: end },
+        visit_item_concerns: {
+          visit_items: {
+            visit: {
+              sales_person_id: salesPersonId,
+            },
+          },
+          status: {
+            status: { notIn: ['Done', 'Closed'] },
+          },
+        },
+      },
+      include: {
+        visit_item_concerns: {
+          include: {
+            visit_items: {
+              include: {
+                visit: {
+                  include: {
+                    customer: { include: { subgroup: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const followUpSchedules = followUps.map(fu => {
+      const visit = fu.visit_item_concerns.visit_items.visit;
+
+      return {
+        rule: { customer: visit.customer },
+        id: visit.id,
+        sales_person_id: visit.sales_person_id,
+        customer_id: visit.customer_id,
+        visit_date: targetDateKey,
+        max_items_per_visit: 15,
+        status: VisitStatus.Planned,
+        is_virtual: true,
+        visit,
+        is_followup: true,
+        next_follow_up_date: fu.next_follow_up_date
+      };
+    });
+
+    const rawFollowUps = followUpSchedules.filter(f => !manualKeys.has(getKey(f)))
+
+    const followUpMap = new Map<number, any>();
+
+    rawFollowUps.forEach(f => {
+      if (!followUpMap.has(Number(f.customer_id))) {
+        followUpMap.set(Number(f.customer_id), f);
+      }
+    });
+
+    const filteredFollowUps = Array.from(followUpMap.values());
+    const afterFollowUpKeys = new Set([
+      ...dataManual.map(getKey),
+      ...filteredFollowUps.map(getKey),
+    ]);
+
+    const filteredData = ruleData.filter(
+      r => !afterFollowUpKeys.has(getKey(r))
+    );
+    // ================= FINAL =================
+    const finalData = [...filteredFollowUps, ...dataManual, ...filteredData];
+
+    // 🔥 FIX: include ALL customers (termasuk follow-up)
+    const allCustomerIds = Array.from(new Set(finalData.map(d => d.customer_id)));
 
     const allVisits = await prisma.visits.findMany({
       where: {
-        customer_id: {
-          in: [dataManual.map(item => item.customer_id), filteredData.map(item => item.customer_id)].flat()
-        },
+        customer_id: { in: allCustomerIds },
         visit_items: {
           some: {
             visit_item_concerns: {
               some: {
                 status: {
-                  status: {
-                    notIn: ['Done', 'Closed']
-                  }
-                }
-              }
-            }
-          }
-        }
+                  status: { notIn: ['Done', 'Closed'] },
+                },
+              },
+            },
+          },
+        },
       },
       include: {
         visit_items: {
@@ -431,54 +483,43 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
                 category: true,
                 status: true,
                 follow_ups: {
-                  orderBy: {
-                    created_at: 'asc'
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                  orderBy: { created_at: 'asc' },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-
-    const finalData = [...dataManual, ...filteredData]
-
-    const allVisitMaps = new Map()
+    const allVisitMaps = new Map<number, any[]>();
 
     allVisits.forEach(visit => {
-      const customerId = visit.customer_id
-
-      if (!allVisitMaps.has(customerId)) {
-        allVisitMaps.set(customerId, [])
-      }
-
       const openItems = visit.visit_items.map(item => ({
         ...item,
         visit_date: visit.visit_date,
         visit_item_concerns: item.visit_item_concerns.filter(c =>
           !['Done', 'Closed'].includes(c.status?.status ?? '')
-        )
-      }))
+        ),
+      }));
 
-      allVisitMaps.get(customerId).push(...openItems)
-    })
-
-    const mergeData = finalData.map(item => {
-      const visitItems = allVisitMaps.get(item.customer_id) || []
-
-
-      return {
-        ...item,
-        open_issues: visitItems
+      if (!allVisitMaps.has(Number(visit.customer_id))) {
+        allVisitMaps.set(Number(visit.customer_id), []);
       }
-    })
+
+      allVisitMaps.get(Number(visit.customer_id))!.push(...openItems);
+    });
+
+    const mergeData = finalData.map(item => ({
+      ...item,
+      open_issues: allVisitMaps.get(Number(item.customer_id)) || [],
+    }));
 
     return res.status(200).json({
       message: 'Success',
-      data: { data: mergeData, total: data.length, weekOfMonth },
+      data: { data: mergeData, total: mergeData.length, weekOfMonth },
     });
+
   } catch (error) {
     console.error('Error generating schedules:', error);
     return res.status(500).json({ message: 'Server error', error });

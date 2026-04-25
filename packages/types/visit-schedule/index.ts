@@ -24,6 +24,8 @@ export type VisitScheduleStatus =
     suggestedItems?: SuggestedItemsGrouped;
     visit?: IVisit
     open_issues?: IVisitItem[]
+    is_followup?: boolean
+    next_follow_up_date?: string
 }
 
 export interface CreateVisitScheduleDto {

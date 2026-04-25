@@ -446,8 +446,6 @@ const ProductList = () => {
                           item.ProductCategory.slice(1).toLowerCase()
                         }
                         color="var(--orange-500)"
-                        removable
-                        onRemove={() => setFilters({ group: null, page: 1 })}
                       />
                     )}
                   </div>

@@ -196,7 +196,7 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
   const [baseRows, activeRows] = await Promise.all([
     // Query Base: Customer yang pernah transaksi Jan 2025 - Bulan lalu
     prisma.$queryRaw<any[]>`
-      SELECT v.CardCode, c.CardName, c.City, c.SalesName, c.GroupName
+      SELECT v.CardCode, c.CardName, c.City, c.SalesName, c.GroupName, MAX(v.date) as lastTransactionDate
       FROM daily_sales_summary_view v
       LEFT JOIN customers c ON v.CardCode = c.CardCode
       WHERE v.date >= '2025-01-01'
