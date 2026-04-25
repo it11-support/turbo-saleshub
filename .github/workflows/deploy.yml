@@ -32,6 +32,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            # Exit immediately if a command exits with a non-zero status
+            set -e
+            
             cd /home/sysdevrco1/release/turbo-saleshub
             git pull origin release/v1
 
