@@ -6,6 +6,7 @@ import { IDashboardData } from '@saleshub-tsm/types'
 import { TooltipItem } from 'chart.js'
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
 import { getCookie } from 'cookies-next'
+import { formatDate } from 'date-fns'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 import { Column } from 'primereact/column'
@@ -21,7 +22,6 @@ import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
 
 import 'chartjs-adapter-date-fns'
-import { formatDate } from 'date-fns'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
