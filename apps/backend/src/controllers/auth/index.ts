@@ -1,8 +1,9 @@
 import { generateToken } from '@/utils/jwt.js';
-import { IUser } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, IUser } from '@saleshub-tsm/types';
 import bcrypt from 'bcryptjs';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import prisma from '@/libs/prisma.js';
+import { activityLogger } from '@/services/logs/index.js';
 
 export type LoginResponse = {
   data?: {
@@ -26,11 +27,14 @@ export const comparePassword = async (password: string, hashed: string) => {
   return bcrypt.compare(password, hashed);
 };
 
-export const login = async (req: Request<LoginRequest>, res: Response<LoginResponse>) => {
+export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Response<LoginResponse>) => {
+
+  const { username, password, remember } = req.body;
+
   try {
-    const { username, password, remember } = req.body;
 
     if (!username || !password) {
+      activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Username or password are required', status: 'FAILED', username });
       return res.status(400).json({ message: 'Username and password are required' });
     }
 
@@ -42,11 +46,13 @@ export const login = async (req: Request<LoginRequest>, res: Response<LoginRespo
     });
 
     if (!user) {
+      activityLogger({ req, actionType: 'Login', description: 'User Login Failed: User not found', status: 'FAILED', username });
       return res.status(404).json({ message: 'User not found' });
     }
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
+      activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Password incorrect', status: 'FAILED', username });
       return res.status(401).json({ message: 'Password incorrect' });
     }
 
@@ -56,10 +62,13 @@ export const login = async (req: Request<LoginRequest>, res: Response<LoginRespo
       {
         id: user.id,
         email: user.email,
+        username: user.username,
         role: user.roles.role,
       },
       expiresIn
     );
+
+    activityLogger({ req, actionType: 'Login', description: 'User Login Success', status: 'SUCCESS', username });
 
     // Kirim response
     return res.status(200).json({
@@ -77,6 +86,15 @@ export const login = async (req: Request<LoginRequest>, res: Response<LoginRespo
     });
   } catch (error) {
     console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    activityLogger({
+      req,
+      actionType: 'Login',
+      description: `User Login Failed: ${errorMessage}`,
+      status: 'FAILED'
+    });
+
     return res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
-import { VisitRuleRequestType } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, VisitRuleRequestType } from '@saleshub-tsm/types';
+import { activityLogger } from '@/services/logs/index.js';
 
 export const createVisitRules = async (
-  req: Request<{}, {}, VisitRuleRequestType>,
+  req: AuthenticatedRequest<{}, VisitRuleRequestType>,
   res: Response
 ) => {
   try {
@@ -18,6 +19,12 @@ export const createVisitRules = async (
     });
 
     if (existing) {
+      activityLogger({
+        req,
+        actionType: 'Visit Rule',
+        description: 'Rule with same sales_id, customer_id and day_of_week already exists.',
+        status: 'FAILED',
+      })
       throw new Error('Rule with same sales_id, customer_id and day_of_week already exists.');
     }
 
@@ -34,7 +41,12 @@ export const createVisitRules = async (
         customer: true,
       },
     });
-
+    activityLogger({
+      req,
+      actionType: 'Visit Rule',
+      description: 'Visit rule created successfully.',
+      status: 'SUCCESS',
+    })
     return res.status(200).json({ message: 'Success', data: { visit_rule } });
   } catch (error) {
     console.error(error);
@@ -75,7 +87,7 @@ export const visitRules = async (req: Request, res: Response) => {
   }
 };
 
-export const syncVisitRules = async (req: Request, res: Response) => {
+export const syncVisitRules = async (req: AuthenticatedRequest, res: Response) => {
   const { sales_person_id, dayFilter, data } = req.body;
   const spId = Number(sales_person_id);
 
@@ -130,6 +142,13 @@ export const syncVisitRules = async (req: Request, res: Response) => {
       }
     }
   });
+
+  activityLogger({
+    req,
+    actionType: 'Visit Rule',
+    description: 'Visit rule synced successfully.',
+    status: 'SUCCESS',
+  })
 
   return res.json({ ok: true });
 };

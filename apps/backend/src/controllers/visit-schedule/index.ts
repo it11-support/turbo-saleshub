@@ -1,10 +1,11 @@
-import { ISalesVisitRule, TVisitStatus, UpdateVisitScheduleDto } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, ISalesVisitRule, TVisitStatus, UpdateVisitScheduleDto } from '@saleshub-tsm/types';
 import { differenceInCalendarWeeks, endOfMonth, startOfMonth, startOfWeek } from 'date-fns';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import { dayOfWeeks, offeredStatus, VisitStatus } from '@/generated/prisma/client.js';
 import prisma from '@/libs/prisma.js';
 import { getSuggestedItems } from '../customer/index.js';
+import { activityLogger } from '@/services/logs/index.js';
 
 export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
   try {
@@ -554,7 +555,7 @@ export const getDayOfWeekEnum = (date: Date): dayOfWeeks => {
 
   return map[date.getDay() as keyof typeof map];
 };
-export const createVisitSchedule = async (req: Request, res: Response) => {
+export const createVisitSchedule = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { customer_id, sales_person_id, visit_date } = req.body
     const date = dayjs(visit_date).format("YYYY-MM-DD")
@@ -573,7 +574,17 @@ export const createVisitSchedule = async (req: Request, res: Response) => {
         visit_date: date,
         status: VisitStatus.Planned,
       },
+      include: {
+        customer: true
+      }
     });
+
+    activityLogger({
+      req,
+      actionType: 'Visit Schedule',
+      description: `Visit schedule created: ${visit.visit_date} for customer ${visit.customer.CardName}`,
+      status: 'SUCCESS',
+    })
     return res.status(200).json({ message: 'Success', data: visit });
   } catch (error) {
     console.error(error);

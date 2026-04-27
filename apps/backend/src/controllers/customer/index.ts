@@ -1,10 +1,11 @@
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
-import { ICommonRequestType, ICustomer, PaginationResult } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, ICommonRequestType, ICustomer, PaginationResult } from '@saleshub-tsm/types';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import { getParetoProducts } from './functions.js';
 import { generateLocalCode } from '@/utils/localCode.js';
+import { activityLogger } from '@/services/logs/index.js';
 
 export type CustomerRequestType = {
   active?: string[];
@@ -595,7 +596,7 @@ export const fetchGroups = async (req: Request, res: Response) => {
   }
 };
 
-export const createCustomer = async (req: Request, res: Response) => {
+export const createCustomer = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const {
       CardCode,
@@ -631,9 +632,23 @@ export const createCustomer = async (req: Request, res: Response) => {
         sales_person: true,
       }
     });
+
+    activityLogger({
+      req,
+      actionType: 'Customer',
+      description: `New customer created: ${CardName}`,
+      status: 'SUCCESS'
+    })
     return res.status(200).json({ message: 'Customer created successfully', data: { newCustomer } });
   } catch (error) {
     console.error(error);
+    const errorMessage = (error as Error).message;
+    activityLogger({
+      req,
+      actionType: 'Customer',
+      description: `Create customer failed: ${errorMessage}`,
+      status: 'FAILED'
+    })
     return res.status(500).json({ message: 'Internal server error' });
   }
 }

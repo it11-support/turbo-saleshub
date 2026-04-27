@@ -1,6 +1,7 @@
 import { Prisma } from '@/generated/prisma/client.js';
 import prisma from '@/libs/prisma.js';
-import { EProductCategory } from '@saleshub-tsm/types';
+import { activityLogger } from '@/services/logs/index.js';
+import { AuthenticatedRequest, EProductCategory } from '@saleshub-tsm/types';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import fileUpload from 'express-fileupload';
@@ -39,7 +40,7 @@ export const image = async (req: Request, res: Response) => {
 };
 
 // Delete image
-export const deleteImage = async (req: Request, res: Response) => {
+export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemCode } = req.params;
     const baseDir = path.join(process.cwd(), 'public/images/product');
@@ -62,6 +63,13 @@ export const deleteImage = async (req: Request, res: Response) => {
       fileDeleted = true;
     }
     if (fileDeleted) {
+      activityLogger({
+        req,
+        actionType: "Product",
+        description: `Product image deleted: ${itemCode}`,
+        status: "SUCCESS",
+      });
+
       return res.status(200).json({ message: 'Image deleted' });
     } else {
       return res.status(404).json({ message: 'Image not found' });
@@ -76,7 +84,7 @@ export const deleteImage = async (req: Request, res: Response) => {
   }
 };
 
-export const imageUpload = async (req: Request, res: Response) => {
+export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const baseDir = path.join(process.cwd(), 'public/images/product');
 
@@ -106,6 +114,12 @@ export const imageUpload = async (req: Request, res: Response) => {
     // Simpan file baru
     await imageFile.mv(filePath);
 
+    activityLogger({
+      req,
+      actionType: "Product",
+      description: `Product image uploaded: ${fileName}`,
+      status: "SUCCESS",
+    });
     return res.json({
       message: 'Upload successful',
       url: `/images/product/${fileName}`,
@@ -165,7 +179,7 @@ export const fetchProducts = async (req: Request, res: Response) => {
             : []),
         ]
       }),
-      ...(group ? {ProductCategory: productCategory} : {})
+      ...(group ? { ProductCategory: productCategory } : {})
     };
     const products = await prisma.products.findMany({
       skip: (currentPage - 1) * perPage,
@@ -230,7 +244,7 @@ export const fetchProducts = async (req: Request, res: Response) => {
   }
 };
 
-export const bulkUploadProducts = async (req: Request, res: Response) => {
+export const bulkUploadProducts = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const baseDir = path.join(process.cwd(), 'public/images/product');
     if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
@@ -282,6 +296,12 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
         url: `/images/product/${fileName}`,
       });
     }
+    activityLogger({
+      req,
+      actionType: "Product",
+      description: `Bulk upload of ${uploaded.length} images completed`,
+      status: "SUCCESS",
+    });
 
     return res.json({
       status: invalidFiles.length ? 'partial' : 'success',
@@ -295,7 +315,7 @@ export const bulkUploadProducts = async (req: Request, res: Response) => {
   }
 };
 
-export const productDevelopment = async (req: Request, res: Response) => {
+export const productDevelopment = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { productId, subgroupIds } = req.body;
 
@@ -321,6 +341,13 @@ export const productDevelopment = async (req: Request, res: Response) => {
       },
     });
     if (dev) {
+      activityLogger({
+        req,
+        actionType: "Product",
+        description: `Product development updated: ${dev.ItemCode}`,
+        status: "SUCCESS",
+      });
+
       return res.json({
         id: Number(dev.id),
         ItemCode: dev.ItemCode,
@@ -334,7 +361,7 @@ export const productDevelopment = async (req: Request, res: Response) => {
   }
 };
 
-export const removeProductDevelopment = async (req: Request, res: Response) => {
+export const removeProductDevelopment = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { productId, subgroupIds } = req.body;
 
@@ -347,6 +374,12 @@ export const removeProductDevelopment = async (req: Request, res: Response) => {
       },
     });
 
+    activityLogger({
+      req,
+      actionType: "Product",
+      description: `Product development removed: ${productId}`,
+      status: "SUCCESS",
+    });
     return res.json({ message: 'Success' });
   } catch (error) {
     console.error(error);
@@ -354,7 +387,7 @@ export const removeProductDevelopment = async (req: Request, res: Response) => {
   }
 };
 
-export const updateInfo = async (req: Request, res: Response) => {
+export const updateInfo = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { product_id, productInfo } = req.body;
     const product = await prisma.products.update({
@@ -363,6 +396,14 @@ export const updateInfo = async (req: Request, res: Response) => {
         ProductInfo: productInfo,
       },
     });
+
+    activityLogger({
+      req,
+      actionType: "Product",
+      description: `Product info updated: ${product.ItemCode}`,
+      status: "SUCCESS",
+    });
+
     return res.json(product);
   } catch (error) {
     console.error(error);

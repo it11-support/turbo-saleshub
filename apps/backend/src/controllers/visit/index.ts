@@ -3,6 +3,8 @@ import prisma from '@/libs/prisma.js';
 
 import { VisitStatus } from '@/generated/prisma/enums.js';
 import { getSuggestedItems } from '../customer/index.js';
+import { AuthenticatedRequest } from '@saleshub-tsm/types';
+import { activityLogger } from '@/services/logs/index.js';
 
 export const fetchSalesVisit = async (req: Request, res: Response) => {
   try {
@@ -55,7 +57,7 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
   }
 };
 
-export const syncSalesVisit = async (req: Request, res: Response) => {
+export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { visit_items } = req.body;
@@ -155,6 +157,13 @@ export const syncSalesVisit = async (req: Request, res: Response) => {
       },
     });
 
+    activityLogger({
+      req,
+      actionType: 'Sales Visit',
+      description: `Sales Visit synced : ${updatedVisit?.customer.CardName}`,
+      status: 'SUCCESS'
+    });
+
     return res.status(200).json({ message: 'Success', data: updatedVisit });
   } catch (error) {
     console.error(error);
@@ -162,7 +171,7 @@ export const syncSalesVisit = async (req: Request, res: Response) => {
   }
 };
 
-export const completeSalesVisit = async (req: Request, res: Response) => {
+export const completeSalesVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -177,6 +186,12 @@ export const completeSalesVisit = async (req: Request, res: Response) => {
         notes
       },
     });
+    activityLogger({
+      req,
+      actionType: 'Sales Visit',
+      description: `Sales Visit completed : ${id}`,
+      status: 'SUCCESS'
+    })
     return res.status(200).json({ message: 'Success' });
   } catch (error) {
     console.error(error);
@@ -233,7 +248,7 @@ export const visitDetails = async (req: Request, res: Response) => {
   }
 };
 
-export const followUpVisit = async (req: Request, res: Response) => {
+export const followUpVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { visit_item_concern_id, notes, status, type, next_follow_up_date } = req.body;
 
@@ -248,9 +263,20 @@ export const followUpVisit = async (req: Request, res: Response) => {
         },
         include: {
           visit_item_concerns: {
-            include: { status: true }
+            include: {
+              status: true, visit_items: {
+                include: {
+                  product: true,
+                  visit: {
+                    include: {
+                      customer: true
+                    }
+                  }
+                }
+              }
+            }
           },
-          concern_status: true
+          concern_status: true,
         }
       });
 
@@ -270,6 +296,12 @@ export const followUpVisit = async (req: Request, res: Response) => {
       return follow_up;
     })
 
+    activityLogger({
+      req,
+      actionType: "FollowUp",
+      description: `Follow up visit: ${result.visit_item_concerns.visit_items.visit.customer.CardName} - ${result.visit_item_concerns.visit_items.product.ItemName}`,
+      status: "SUCCESS",
+    })
     return res.status(200).json({ message: 'Success', data: result });
 
   } catch (error) {
@@ -278,7 +310,7 @@ export const followUpVisit = async (req: Request, res: Response) => {
   }
 };
 
-export const startVisit = async (req: Request, res: Response) => {
+export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
 
     const { id } = req.params
@@ -290,6 +322,13 @@ export const startVisit = async (req: Request, res: Response) => {
         status: VisitStatus.Ongoing
       },
     })
+
+    activityLogger({
+      req,
+      actionType: "Sales Visit",
+      description: `Sales Visit started : ${visitId}`,
+      status: "SUCCESS",
+    })
     return res.status(200).json({ message: 'Success', data: visitItem });
   } catch (error) {
     console.error("Error in startVisit:", error);
@@ -297,7 +336,7 @@ export const startVisit = async (req: Request, res: Response) => {
   }
 }
 
-export const closeItems = async (req: Request, res: Response) => {
+export const closeItems = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { visit_items } = req.body;
@@ -347,6 +386,12 @@ export const closeItems = async (req: Request, res: Response) => {
       },
     });
 
+    activityLogger({
+      req,
+      actionType: "Sales Visit",
+      description: `Sales Visit item closed : ${visitId}`,
+      status: "SUCCESS",
+    })
     return res.status(200).json({ message: 'Success', data: updatedVisit });
 
   } catch (error) {

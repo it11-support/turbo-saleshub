@@ -1,3 +1,5 @@
+import { IUser, IUserPayload } from "../user";
+import {type Request} from "express";
 export interface ICommonRequestType {
   page?: number
   per_page?: number
@@ -90,3 +92,20 @@ export interface IResPaginated<T> extends ISwrResponse {
 export interface IResSingle<T> extends ISwrResponse {
   data?: T[];
 }
+
+export interface AuthenticatedRequest<
+  TParams = any,
+  TBody = any,
+  TQuery = any
+> extends Request<TParams, any, TBody, TQuery> {
+  user?: IUserPayload;
+}
+
+// TActivityLogger sekarang menerima tipe generic <T> untuk Body
+export type TActivityLogger<T = Record<string, unknown>> = {
+  req: AuthenticatedRequest<T>
+  actionType: string
+  description: string
+  status: 'SUCCESS' | 'FAILED'
+  username?: string
+};

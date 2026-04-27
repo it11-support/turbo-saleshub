@@ -1,10 +1,11 @@
-import { IResPaginated, IUser, ProfileResponseType, UserRequstType } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, IResPaginated, IUser, ProfileResponseType, UserRequstType } from '@saleshub-tsm/types';
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { PER_PAGE } from '@/constants/index.js';
 
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
+import { activityLogger } from '@/services/logs/index.js';
 
 
 export const userList = async (
@@ -108,7 +109,7 @@ export const me = async (req: Request, res: Response<ProfileResponseType>) => {
   }
 };
 
-export const updateUser = async (req: Request<{ id: string }>, res: Response) => {
+export const updateUser = async (req: AuthenticatedRequest<{ id: string }>, res: Response) => {
   try {
     const { id } = req.params;
     const { password, ...rest } = req.body;
@@ -124,6 +125,13 @@ export const updateUser = async (req: Request<{ id: string }>, res: Response) =>
       data: dataToUpdate,
     });
 
+    activityLogger({
+      req,
+      actionType: 'User',
+      description: `User updated: ${user.username}`,
+      status: 'SUCCESS',
+    });
+
     return res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
     console.error(error);
@@ -131,7 +139,7 @@ export const updateUser = async (req: Request<{ id: string }>, res: Response) =>
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { password, ...rest } = req.body;
     const data: any = { ...rest };
@@ -144,6 +152,14 @@ export const createUser = async (req: Request, res: Response) => {
     const user = await prisma.users.create({
       data
     });
+
+    activityLogger({
+      req,
+      actionType: 'User',
+      description: `User created: ${user.username}`,
+      status: 'SUCCESS',
+    });
+
     return res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
     console.error(error);
@@ -151,11 +167,18 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const user = await prisma.users.delete({
       where: { id: Number(id) },
+    });
+
+    activityLogger({
+      req,
+      actionType: 'User',
+      description: `User deleted: ${user.username}`,
+      status: 'SUCCESS',
     });
     return res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {

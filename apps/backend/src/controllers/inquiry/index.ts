@@ -1,10 +1,11 @@
 import prisma from "@/libs/prisma.js";
-import { IInquiry } from "@saleshub-tsm/types";
+import { activityLogger } from "@/services/logs/index.js";
+import { AuthenticatedRequest, IInquiry } from "@saleshub-tsm/types";
 import { Request, Response } from "express";
 
-export const getInquiries = async(req: Request, res: Response) => {
+export const getInquiries = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params
+    const { id } = req.params
     const inquiries = await prisma.inquiries.findMany({
       where: {
         visit_id: Number(id)
@@ -17,7 +18,7 @@ export const getInquiries = async(req: Request, res: Response) => {
   }
 }
 
-export const syncInquiries = async (req: Request, res: Response) => {
+export const syncInquiries = async (req: AuthenticatedRequest, res: Response) => {
   const { inquiries, visit_id } = req.body
 
   await prisma.$transaction(async (tx) => {
@@ -36,9 +37,16 @@ export const syncInquiries = async (req: Request, res: Response) => {
       })),
     })
   })
-   const result = await prisma.inquiries.findMany({
+  const result = await prisma.inquiries.findMany({
     where: { visit_id: Number(visit_id) }
   })
+
+  activityLogger({
+    req,
+    actionType: "Product Inquiries",
+    description: "Inquiries synced",
+    status: "SUCCESS",
+  });
 
   res.json({ success: true, data: { inquiries: result } })
 }
