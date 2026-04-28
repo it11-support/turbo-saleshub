@@ -56,10 +56,9 @@ export default function AddScheduleDialog() {
       newErrors.salesPersonId = 'Sales Person is required'
     }
 
+    console.log(formData.customer)
     if (!formData.customer) {
       newErrors.customer = 'Customer is required'
-    } else if (typeof formData.customer === 'string' || !formData.customer.CardCode) {
-      newErrors.customer = 'Please select a valid customer'
     }
 
     if (!formData.scheduleDate) {
