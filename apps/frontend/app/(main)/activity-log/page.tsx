@@ -46,7 +46,7 @@ const ActivityLogPage = () => {
       type: parseAsString,
       dates: parseAsNativeArrayOf(parseAsDateOnly).withDefault([]),
       sort: parseAsString.withDefault(''),
-      order: parseAsInteger.withDefault(-1),
+      order: parseAsInteger.withDefault(1),
     },
     { shallow: true, history: 'replace' }
   )
