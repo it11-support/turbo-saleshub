@@ -19,7 +19,9 @@ export const fetchActivityLogs = async (req: Request, res: Response) => {
     const sort = req.query.sort || null;
     const order = req.query.order || null;
 
-    const sort_options = [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }];
+    const sort_options = sort
+      ? [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }]
+      : [{ key: 'created_at', order: 'desc' }]
 
     const where: user_activityWhereInput = {
       ...(salesPersonId ? { user: { sales_person_id: salesPersonId } } : {}),
