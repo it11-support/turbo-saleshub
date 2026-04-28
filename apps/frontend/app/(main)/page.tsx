@@ -496,6 +496,22 @@ const Dashboard = () => {
                     style={{ width: '35%' }}
                   />
                   <Column
+                    field="avgRevenuePerMonth"
+                    header="AVG Revenue/Month"
+                    sortable
+                    filter
+                    body={(row) => formatCurrency(row.avgRevenuePerMonth, true, true)}
+                    style={{ width: '15%' }}
+                  />
+                  <Column
+                    field="totalItems"
+                    header="Total Items"
+                    sortable
+                    filter
+                    body={(row) => `${row.totalItems} items`}
+                    style={{ width: '15%' }}
+                  />
+                  <Column
                     field="lastTransactionDate"
                     header="Last Transaction"
                     sortable
