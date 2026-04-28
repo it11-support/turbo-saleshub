@@ -196,38 +196,38 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
   const [baseRows, activeRows] = await Promise.all([
     // Query Base: Customer yang pernah transaksi Jan 2025 - Bulan lalu
     prisma.$queryRaw<any[]>`
-  SELECT
-    v.CardCode,
-    c.CardName,
-    c.City,
-    c.SalesName,
-    c.GroupName,
-    MAX(v.date) as lastTransactionDate,
-    SUM(v.revenue) / 12 AS avgRevenuePerMonth,
-    i.totalItems
+      SELECT
+        v.CardCode,
+        c.CardName,
+        c.City,
+        c.SalesName,
+        c.GroupName,
+        MAX(v.date) as lastTransactionDate,
+        SUM(v.revenue) / 12 AS avgRevenuePerMonth,
+        Max(i.totalItems) AS totalItems
 
-  FROM daily_sales_summary_view v
+      FROM daily_sales_summary_view v
 
-  LEFT JOIN customers c
-    ON v.CardCode = c.CardCode
+      LEFT JOIN customers c
+        ON v.CardCode = c.CardCode
 
-  LEFT JOIN (
-    SELECT
-      CardCode,
-      COUNT(DISTINCT ItemCode) AS totalItems
-    FROM customer_item_monthly_raw
-    WHERE month >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
-      AND month < DATE_FORMAT(CURDATE(), '%Y-%m-01')
-    GROUP BY CardCode
-  ) i
-    ON i.CardCode = v.CardCode
+      LEFT JOIN (
+        SELECT
+          CardCode,
+          COUNT(DISTINCT ItemCode) AS totalItems
+        FROM customer_item_monthly_raw
+        WHERE month >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
+          AND month < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        GROUP BY CardCode
+      ) i
+        ON i.CardCode = v.CardCode
 
-  WHERE v.date >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
-    AND v.date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
-    AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
+      WHERE v.date >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
+        AND v.date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+        AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
 
-  GROUP BY v.CardCode
-`,
+      GROUP BY v.CardCode
+    `,
     // Query Active: Customer yang transaksi bulan ini (MTD)
     prisma.$queryRaw<any[]>`
       SELECT v.CardCode
