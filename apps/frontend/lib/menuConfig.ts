@@ -92,12 +92,18 @@ export const menuConfig: MenuSection[] = [
 
   {
     label: 'Settings',
-    roles: ['admin'],
+    roles: ['admin', 'sales'],
     items: [
       {
         label: 'Settings',
         icon: 'pi pi-fw pi-cog',
         to: '/settings',
+        roles: ['admin'],
+      },
+      {
+        label: 'Activity Log',
+        icon: 'pi pi-fw pi-cog',
+        to: '/activity-log',
       },
     ],
   },

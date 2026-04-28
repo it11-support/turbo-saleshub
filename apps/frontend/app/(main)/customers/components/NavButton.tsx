@@ -8,7 +8,7 @@ type Props = {
 const NavButton = ({ handleEndVisit }: Props) => {
   const router = useRouter()
   return (
-    <div className="col-12 flex justify-content-start align-items-center gap-2">
+    <div className="col-12 flex justify-content-start align-items-center gap-2 pl-0">
       <Button
         label="Back"
         icon="pi pi-chevron-left"

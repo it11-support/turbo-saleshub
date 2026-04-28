@@ -189,7 +189,7 @@ export const completeSalesVisit = async (req: AuthenticatedRequest, res: Respons
     activityLogger({
       req,
       actionType: 'Sales Visit',
-      description: `Sales Visit completed : ${id}`,
+      description: `Sales Visit completed : ${process.env.CLIENT_URL}/visits/${id}`,
       status: 'SUCCESS'
     })
     return res.status(200).json({ message: 'Success' });
@@ -326,7 +326,7 @@ export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
     activityLogger({
       req,
       actionType: "Sales Visit",
-      description: `Sales Visit started : ${visitId}`,
+      description: `Sales Visit completed : ${process.env.CLIENT_URL}/visits/${visitId}`,
       status: "SUCCESS",
     })
     return res.status(200).json({ message: 'Success', data: visitItem });
@@ -389,7 +389,7 @@ export const closeItems = async (req: AuthenticatedRequest, res: Response) => {
     activityLogger({
       req,
       actionType: "Sales Visit",
-      description: `Sales Visit item closed : ${visitId}`,
+      description: `Sales Visit item closed : ${process.env.CLIENT_URL}/visits/${visitId}`,
       status: "SUCCESS",
     })
     return res.status(200).json({ message: 'Success', data: updatedVisit });

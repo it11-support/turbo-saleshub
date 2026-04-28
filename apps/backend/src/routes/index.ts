@@ -13,6 +13,7 @@ import visitSchedule from './visit-schedule.js';
 import visits from './visits.js';
 import concerns from './concerns.js'
 import inquiry from './inquiry.js'
+import activityLog from './activity-log.js'
 
 const router = Router();
 
@@ -30,5 +31,5 @@ router.use('/visit', visit);
 router.use('/visits', visits);
 router.use('/concern-categories', concerns);
 router.use('/inquiry', inquiry);
-
+router.use('/activity-log', activityLog)
 export default router;

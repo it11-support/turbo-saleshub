@@ -58,7 +58,7 @@ export const updateConcernCategory = async (req: AuthenticatedRequest, res: Resp
     activityLogger({
       req,
       actionType: 'Concern Category',
-      description: `Category Category Updated: ${name}`,
+      description: `Category Updated: ${name}`,
       status: 'SUCCESS'
     });
 

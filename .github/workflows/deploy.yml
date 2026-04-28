@@ -48,6 +48,7 @@ jobs:
             DATABASE_URL=mysql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SOCKET_IO_CLIENT_URL=${{ secrets.SOCKET_IO_CLIENT_URL }}
+            CLIENT_URL=${{ secrets.CLIENT_URL }}
             TZ=Asia/Makassar
             NODE_ENV=production
             PORT=4000
