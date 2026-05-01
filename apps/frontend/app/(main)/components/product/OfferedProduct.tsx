@@ -2,7 +2,7 @@
 
 import ProductTag from './ProductTag'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
-import { EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
+import { EFollowUpStatus, EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
@@ -11,7 +11,7 @@ import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { formatDate, normalizeDateToUTC } from '@/lib/dateUtils'
@@ -88,17 +88,13 @@ const OfferedProduct = (props: Props) => {
     setIsVisible(true)
   }
 
-  const followUpsNeeded = () => {
-    const concerns = visitItem?.visit_item_concerns || []
+  const hasFollowUps = useMemo(() => {
+    return (
+      visitItem.visit_item_concerns?.some((c) => c.status.status === EFollowUpStatus.FollowUp) ??
+      false
+    )
+  }, [visitItem])
 
-    return concerns.some((concern) => {
-      // Cek kemungkinan nama properti yang berbeda antara dev dan prod
-      const ups = concern.follow_ups || concern.follow_ups || []
-      return ups.length > 0
-    })
-  }
-
-  console.log(followUpsNeeded())
   return (
     <>
       <div className="col-12 p-1" key={product?.ItemCode}>
@@ -119,7 +115,7 @@ const OfferedProduct = (props: Props) => {
 
                 {/* Kontainer Tag: Gunakan ml-auto dan pastikan tidak tersembunyi */}
                 {activeIndex !== 0 &&
-                  followUpsNeeded() &&
+                  hasFollowUps &&
                   visitItem.visit_item_concerns?.[0]?.status && (
                     <div className="ml-auto flex-none align-self-start pt-1">
                       <ProductTag status={visitItem.visit_item_concerns[0].status} />
