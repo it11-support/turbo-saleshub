@@ -88,15 +88,15 @@ const OfferedProduct = (props: Props) => {
     setIsVisible(true)
   }
 
- const followUpsNeeded = () => {
-  const concerns = visitItem?.visit_item_concerns || [];
+  const followUpsNeeded = () => {
+    const concerns = visitItem?.visit_item_concerns || []
 
-  return concerns.some(concern => {
-    // Cek kemungkinan nama properti yang berbeda antara dev dan prod
-    const ups = concern.follow_ups || concern.follow_ups || [];
-    return ups.length > 0;
-  });
-};
+    return concerns.some((concern) => {
+      // Cek kemungkinan nama properti yang berbeda antara dev dan prod
+      const ups = concern.follow_ups || concern.follow_ups || []
+      return ups.length > 0
+    })
+  }
 
   console.log(followUpsNeeded())
   return (
