@@ -81,7 +81,7 @@ const OfferedProduct = (props: Props) => {
 
   return (
     <>
-      <div className="col-12 p-0" key={product?.ItemCode}>
+      <div className="col-12 p-1" key={product?.ItemCode}>
         <Accordion>
           <AccordionTab
             header={
