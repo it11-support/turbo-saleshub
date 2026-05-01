@@ -745,11 +745,14 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-      <div className="grid mt-2 ">
-        {isValidating ? (
-          <SkeletonLoader type="chart-horizontal" />
-        ) : (
-          <div className="col-12 lg:col-12 xl:col-6">
+      <div className="grid mt-2">
+        {/* 1 */}
+        <div className="col-12 lg:col-12 xl:col-6 p-2">
+          {isValidating ? (
+            <div style={{ height: '500px' }}>
+              <SkeletonLoader type="chart-horizontal" />
+            </div>
+          ) : (
             <Card>
               <div style={{ position: 'relative', width: '100%', height: '500px' }}>
                 <Chart
@@ -779,9 +782,7 @@ const Dashboard = () => {
                         formatter: (_: number | string, context: Context) => {
                           return context.chart.data.labels?.[context.dataIndex]
                         },
-                        font: {
-                          size: 10,
-                        },
+                        font: { size: 10 },
                       },
                       tooltip: {
                         callbacks: {
@@ -802,28 +803,91 @@ const Dashboard = () => {
                           },
                         },
                       },
-                      y: {
-                        grid: {
-                          display: false,
-                        },
-                        ticks: {
-                          display: false,
-                        },
-                      },
+                      y: { grid: { display: false }, ticks: { display: false } },
                     },
                   }}
                   plugins={[ChartDataLabels]}
                 />
               </div>
             </Card>
-          </div>
-        )}
+          )}
+        </div>
 
-        <div className="col-12 flex flex-column px-0 gap-3">
+        {/* 2 */}
+        <div className="col-12 lg:col-12 xl:col-6 p-2">
           {isValidating ? (
-            <SkeletonLoader type="chart-horizontal" />
+            <div style={{ height: '500px' }}>
+              <SkeletonLoader type="chart-horizontal" />
+            </div>
           ) : (
-            <div className="col-12 lg:col-12 xl:col-6">
+            <Card>
+              <div style={{ position: 'relative', width: '100%', height: '500px' }}>
+                <Chart
+                  width="100%"
+                  height="100%"
+                  type="bar"
+                  data={{
+                    labels: productRevenueGroceryLabel,
+                    datasets: [
+                      {
+                        data: productRevenueGroceryData,
+                        label: 'Top Performing Grocery Product',
+                      },
+                    ],
+                  }}
+                  options={{
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    plugins: {
+                      datalabels: {
+                        display: true,
+                        color: baseColor,
+                        align: 'end',
+                        anchor: 'start',
+                        clip: false,
+                        clamp: true,
+                        formatter: (_: number | string, context: Context) => {
+                          return context.chart.data.labels?.[context.dataIndex]
+                        },
+                        font: { size: 10 },
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function (context: TooltipItem<'bar'>) {
+                            return formatCurrency(context.parsed.x, true, true)
+                          },
+                          title: function (context: TooltipItem<'bar'>[]) {
+                            return context[0].label
+                          },
+                        },
+                      },
+                    },
+                    scales: {
+                      x: {
+                        ticks: {
+                          callback: function (value: string) {
+                            return formatCurrency(value, false, true)
+                          },
+                        },
+                      },
+                      y: { grid: { display: false }, ticks: { display: false } },
+                    },
+                  }}
+                  plugins={[ChartDataLabels]}
+                />
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* 3 */}
+        {isAdmin && (
+          <div className="col-12 lg:col-12 xl:col-6 p-2">
+            {isValidating ? (
+              <div style={{ height: '500px' }}>
+                <SkeletonLoader type="chart-horizontal" />
+              </div>
+            ) : (
               <Card>
                 <div style={{ position: 'relative', width: '100%', height: '500px' }}>
                   <Chart
@@ -831,11 +895,13 @@ const Dashboard = () => {
                     height="100%"
                     type="bar"
                     data={{
-                      labels: productRevenueGroceryLabel,
+                      labels: slpRevenueLabel,
                       datasets: [
                         {
-                          data: productRevenueGroceryData,
-                          label: 'Top Performing Grocery Product',
+                          data: slpRevenueData,
+                          label: 'Top Performing Salesperson',
+                          barPercentage: 0.9,
+                          categoryPercentage: 0.5,
                         },
                       ],
                     }}
@@ -853,9 +919,7 @@ const Dashboard = () => {
                           formatter: (_: number | string, context: Context) => {
                             return context.chart.data.labels?.[context.dataIndex]
                           },
-                          font: {
-                            size: 10,
-                          },
+                          font: { size: 12 },
                         },
                         tooltip: {
                           callbacks: {
@@ -876,99 +940,16 @@ const Dashboard = () => {
                             },
                           },
                         },
-                        y: {
-                          grid: {
-                            display: false,
-                          },
-                          ticks: {
-                            display: false,
-                          },
-                        },
+                        y: { grid: { display: false }, ticks: { display: false } },
                       },
                     }}
                     plugins={[ChartDataLabels]}
                   />
                 </div>
               </Card>
-            </div>
-          )}
-          {isAdmin && (
-            <div className="col-12 lg:col-12 xl:col-6">
-              {isValidating ? (
-                <SkeletonLoader type="chart-horizontal" />
-              ) : (
-                <Card>
-                  <div style={{ position: 'relative', width: '100%', height: '500px' }}>
-                    <Chart
-                      width="100%"
-                      height="100%"
-                      type="bar"
-                      data={{
-                        labels: slpRevenueLabel,
-                        datasets: [
-                          {
-                            data: slpRevenueData,
-                            label: 'Top Performing Salesperson',
-                            barPercentage: 0.9,
-                            categoryPercentage: 0.5,
-                          },
-                        ],
-                      }}
-                      options={{
-                        indexAxis: 'y',
-                        maintainAspectRatio: false,
-                        plugins: {
-                          datalabels: {
-                            display: true,
-                            color: baseColor,
-                            align: 'end',
-                            anchor: 'start',
-                            clip: false,
-                            clamp: true,
-                            formatter: (_: number | string, context: Context) => {
-                              return context.chart.data.labels?.[context.dataIndex]
-                            },
-                            font: {
-                              size: 12,
-                            },
-                          },
-                          tooltip: {
-                            callbacks: {
-                              label: function (context: TooltipItem<'bar'>) {
-                                return formatCurrency(context.parsed.x, true, true)
-                              },
-                              title: function (context: TooltipItem<'bar'>[]) {
-                                return context[0].label
-                              },
-                            },
-                          },
-                        },
-                        scales: {
-                          x: {
-                            ticks: {
-                              callback: function (value: string) {
-                                return formatCurrency(value, false, true)
-                              },
-                            },
-                          },
-                          y: {
-                            grid: {
-                              display: false,
-                            },
-                            ticks: {
-                              display: false,
-                            },
-                          },
-                        },
-                      }}
-                      plugins={[ChartDataLabels]}
-                    />
-                  </div>
-                </Card>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   )
