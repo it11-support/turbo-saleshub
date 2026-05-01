@@ -20,6 +20,7 @@ import { useConcernStore, useSalesVisit } from '@/stores'
 type Props = {
   visitItem: IVisitItem
   handleFollowUp?: (concern: IVisitItemConcern) => void
+  defaultOpen?: boolean
 }
 const OfferedProduct = (props: Props) => {
   const salesVisitStore = useSalesVisit()
@@ -27,16 +28,24 @@ const OfferedProduct = (props: Props) => {
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
   const { id } = useParams()
 
-  const { visitItem, handleFollowUp } = props
+  const { visitItem, handleFollowUp, defaultOpen } = props
   const product = visitItem.product
   const { followUpForm, setFollowUpForm, addFollowUp, fetchVisitDetails } = salesVisitStore
   const { fetchConcernStatuses, concernStatuses } = useConcernStore()
   const { isAdmin } = useAuth()
 
+  const [activeIndex, setActiveIndex] = useState<number | null>(defaultOpen ? 0 : null)
+
   const onHide = () => {
     setSelectedConcern(null)
     setIsVisible(false)
   }
+
+  useEffect(() => {
+    if (defaultOpen) {
+      setActiveIndex(0)
+    }
+  }, [defaultOpen])
 
   useEffect(() => {
     fetchConcernStatuses()
@@ -82,7 +91,7 @@ const OfferedProduct = (props: Props) => {
   return (
     <>
       <div className="col-12 p-1" key={product?.ItemCode}>
-        <Accordion>
+        <Accordion activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index as number)}>
           <AccordionTab
             header={
               <div className="flex justify-content-between align-items-center w-full">

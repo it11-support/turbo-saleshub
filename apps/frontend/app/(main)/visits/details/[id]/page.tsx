@@ -332,7 +332,7 @@ const VisitDetailsPage = () => {
                   <div className="grid">
                     {visitItems.map((visitItem) => (
                       <div key={visitItem.id.toString()} className="col-12 md:col-6 xl:col-4">
-                        <OfferedProduct visitItem={visitItem} />
+                        <OfferedProduct visitItem={visitItem} defaultOpen={true} />
                       </div>
                     ))}
                   </div>
@@ -353,7 +353,7 @@ const VisitDetailsPage = () => {
             <div className="grid">
               {offeredGroceries?.map((groceriesItem) => (
                 <div key={groceriesItem.id.toString()} className="col-12 md:col-6 xl:col-4">
-                  <OfferedProduct visitItem={groceriesItem} />
+                  <OfferedProduct visitItem={groceriesItem} defaultOpen={true} />
                 </div>
               ))}
             </div>

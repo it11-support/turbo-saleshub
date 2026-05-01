@@ -124,6 +124,7 @@ const VisitIssuesPage = () => {
                     {visitItems.map((visitItem) => {
                       return (
                         <OfferedProduct
+                          defaultOpen={false}
                           visitItem={visitItem}
                           key={visitItem.id.toString()}
                           handleFollowUp={handleClickFollowUp}
@@ -142,6 +143,7 @@ const VisitIssuesPage = () => {
               {offeredGroceries?.map((groceriesItem) => {
                 return (
                   <OfferedProduct
+                    defaultOpen={false}
                     visitItem={groceriesItem}
                     key={groceriesItem.id.toString()}
                     handleFollowUp={handleClickFollowUp}

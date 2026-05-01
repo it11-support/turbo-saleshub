@@ -505,6 +505,7 @@ const VisitsPage = () => {
                                 <OfferedProduct
                                   visitItem={visitItem}
                                   key={visitItem.id.toString()}
+                                  defaultOpen={false}
                                 />
                               )
                             })}
@@ -520,6 +521,7 @@ const VisitsPage = () => {
                       {offeredGroceries?.map((groceriesItem) => {
                         return (
                           <OfferedProduct
+                            defaultOpen={false}
                             visitItem={groceriesItem}
                             key={groceriesItem.id.toString()}
                           />
