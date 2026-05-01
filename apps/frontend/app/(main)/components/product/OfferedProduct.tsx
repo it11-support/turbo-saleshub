@@ -88,19 +88,39 @@ const OfferedProduct = (props: Props) => {
     setIsVisible(true)
   }
 
+  const followUpsNeeded = () => {
+    return (
+      visitItem.visit_item_concerns?.some((concern) => (concern.follow_ups?.length ?? 0) > 0) ??
+      false
+    )
+  }
+
   return (
     <>
       <div className="col-12 p-1" key={product?.ItemCode}>
         <Accordion activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index as number)}>
           <AccordionTab
+            headerClassName="w-full"
             header={
-              <div className="flex justify-content-between align-items-center w-full">
-                <div className="flex flex-column">
-                  <span className="font-semibold text-900">{product?.ItemName}</span>
+              <div className="flex align-items-start justify-content-between w-full">
+                {/* Kontainer Teks */}
+                <div className="flex flex-column" style={{ flex: '1 1 auto', minWidth: 0 }}>
+                  <span className="font-semibold text-900 pr-2" style={{ wordBreak: 'break-word' }}>
+                    {product?.ItemName}
+                  </span>
                   <small className="text-500">
                     {formatDate(visitItem?.created_at, { withTime: true })}
                   </small>
                 </div>
+
+                {/* Kontainer Tag: Gunakan ml-auto dan pastikan tidak tersembunyi */}
+                {activeIndex !== 0 &&
+                  followUpsNeeded() &&
+                  visitItem.visit_item_concerns?.[0]?.status && (
+                    <div className="ml-auto flex-none align-self-start pt-1">
+                      <ProductTag status={visitItem.visit_item_concerns[0].status} />
+                    </div>
+                  )}
               </div>
             }
           >
@@ -127,7 +147,7 @@ const OfferedProduct = (props: Props) => {
 
                     {/* TIMELINE */}
                     {followUps.length > 0 && (
-                      <div className="mt-2 pl-2 border-left-1 surface-border">
+                      <div className="mt-2 pl-2 surface-border">
                         <VisitTimeLine
                           events={followUps.map((f) => ({
                             concern_status: f.concern_status,

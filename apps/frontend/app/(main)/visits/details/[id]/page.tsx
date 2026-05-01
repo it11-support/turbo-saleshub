@@ -309,55 +309,49 @@ const VisitDetailsPage = () => {
       </div>
 
       <div className="card p-3">
-        <h4 className="mb-4">Offered Items</h4>
+        <h5 className="ml-2">Offered Items</h5>
 
         {/* ================= DISTRIBUTOR ================= */}
         {(offeredDistributor?.length ?? 0) > 0 && (
-          <div className="mb-5">
-            <div className="flex align-items-center gap-2 mb-3">
-              <i className="pi pi-box text-primary" />
-              <span className="text-lg font-semibold">Distributor</span>
-            </div>
-
+          <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
             {offeredDistributor?.map((distributorItem) => {
               const category = distributorItem.category
               const visitItems = distributorItem.items
-
               return (
-                <div key={`distributor-${category}`} className="mb-4">
-                  {/* CATEGORY TITLE */}
-                  <div className="text-sm font-semibold text-600 mb-2 ml-1">{category}</div>
-
-                  {/* GRID */}
+                <div key={`distributor-${category}`} className="py-3">
+                  <h5>{category}</h5>
                   <div className="grid">
-                    {visitItems.map((visitItem) => (
-                      <div key={visitItem.id.toString()} className="col-12 md:col-6 xl:col-4">
-                        <OfferedProduct visitItem={visitItem} defaultOpen={true} />
-                      </div>
-                    ))}
+                    {visitItems.map((visitItem) => {
+                      return (
+                        <OfferedProduct
+                          visitItem={visitItem}
+                          key={visitItem.id.toString()}
+                          defaultOpen={false}
+                        />
+                      )
+                    })}
                   </div>
                 </div>
               )
             })}
-          </div>
+          </Card>
         )}
 
         {/* ================= GROCERIES ================= */}
         {(offeredGroceries?.length ?? 0) > 0 && (
-          <div>
-            <div className="flex align-items-center gap-2 mb-3">
-              <i className="pi pi-shopping-cart text-green-500" />
-              <span className="text-lg font-semibold">Groceries</span>
-            </div>
-
+          <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
             <div className="grid">
-              {offeredGroceries?.map((groceriesItem) => (
-                <div key={groceriesItem.id.toString()} className="col-12 md:col-6 xl:col-4">
-                  <OfferedProduct visitItem={groceriesItem} defaultOpen={true} />
-                </div>
-              ))}
+              {offeredGroceries?.map((groceriesItem) => {
+                return (
+                  <OfferedProduct
+                    defaultOpen={false}
+                    visitItem={groceriesItem}
+                    key={groceriesItem.id.toString()}
+                  />
+                )
+              })}
             </div>
-          </div>
+          </Card>
         )}
       </div>
       {inquiries.length > 0 && (
