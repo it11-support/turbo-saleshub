@@ -581,7 +581,9 @@ const Dashboard = () => {
 
       <div className="grid mt-4 ">
         {isValidating ? (
-          <SkeletonLoader type="chart-vertical" />
+          <div className="col-12 lg:col-12 xl:col-6">
+            <SkeletonLoader type="chart-vertical" />
+          </div>
         ) : (
           <div className="col-12 lg:col-12 xl:col-6">
             <Card>
@@ -636,7 +638,9 @@ const Dashboard = () => {
         )}
 
         {isValidating ? (
-          <SkeletonLoader type="chart-vertical" />
+          <div className="col-12 lg:col-12 xl:col-6">
+            <SkeletonLoader type="chart-vertical" />
+          </div>
         ) : (
           <div className="col-12 lg:col-12 xl:col-6">
             <Card>
@@ -691,7 +695,9 @@ const Dashboard = () => {
         )}
 
         {isValidating ? (
-          <SkeletonLoader type="chart-vertical" />
+          <div className="col-12 lg:col-12 xl:col-6">
+            <SkeletonLoader type="chart-vertical" />
+          </div>
         ) : (
           <div className="col-12 lg:col-12 xl:col-6">
             <Card>
