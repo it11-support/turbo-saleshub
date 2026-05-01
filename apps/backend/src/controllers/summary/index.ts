@@ -138,13 +138,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
       topItemsReturDistributor,
       topItemsSalesGrocery,
       topItemsReturGrocery,
-      nooVsExisting,
-      CRR,
-      RPR,
-      RFM,
       monthlyTrendRaw,
       summary,
-      activeCustomers
     ] = await Promise.all([
 
       prisma.sales_invoices.groupBy({
@@ -191,30 +186,24 @@ export const mtdSummary = async (req: Request, res: Response) => {
         },
       }),
 
-      getNooVsExisting(salesPersonId ? Number(salesPersonId) : null),
-      getCRR(salesFilter),
-      getRPR(salesFilter),
-      getRFM(salesFilter),
-
       prisma.$queryRaw<MonthlySummary[]>`
-    SELECT
-      YEAR(s.date) AS year,
-      MONTH(s.date) AS month,
-      SUM(s.revenue) AS revenue,
-      SUM(s.orders) AS orders,
-      COUNT(DISTINCT s.CardCode) AS customers
-    FROM daily_sales_summary_view s
-    JOIN customers c ON c.CardCode = s.CardCode
-    JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
-    WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
-      AND s.date <= LAST_DAY(CURDATE())
-      AND (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
-    GROUP BY YEAR(s.date), MONTH(s.date)
-    ORDER BY YEAR(s.date), MONTH(s.date)
-  `,
+        SELECT
+          YEAR(s.date) AS year,
+          MONTH(s.date) AS month,
+          SUM(s.revenue) AS revenue,
+          SUM(s.orders) AS orders,
+          COUNT(DISTINCT s.CardCode) AS customers
+        FROM daily_sales_summary_view s
+        JOIN customers c ON c.CardCode = s.CardCode
+        JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+        WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
+          AND s.date <= LAST_DAY(CURDATE())
+          AND (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+        GROUP BY YEAR(s.date), MONTH(s.date)
+        ORDER BY YEAR(s.date), MONTH(s.date)
+      `,
 
       getSalesSummary(salesPersonId ? Number(salesPersonId) : null),
-      getActiveCustomers(salesPersonId ? Number(salesPersonId) : null),
     ])
 
 
@@ -286,7 +275,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 10)
 
-     const [productDistributor, productGrocery] = await Promise.all([
+    const [productDistributor, productGrocery] = await Promise.all([
       prisma.products.findMany({
         where: { ItemCode: { in: topItemsDistributor.map(i => i.ItemCode) } },
         select: { ItemCode: true, ItemName: true },
@@ -331,17 +320,65 @@ export const mtdSummary = async (req: Request, res: Response) => {
         slpRevenue,
         productRevenueDistributor,
         productRevenueGrocery,
-        CRR,
-        RPR,
-        RFM,
         monthlyTrend,
         summary,
-        nooVsExisting,
-        activeCustomers
       },
     })
   } catch (error) {
     console.error(error)
     return res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : error })
   }
+}
+
+export const customerLoyalty = async (req: Request, res: Response) => {
+  try {
+    const { salesPersonId } = req.query
+
+    const salesFilter = salesPersonId
+      ? {
+        customer: {
+          sales_person: {
+            id: Number(salesPersonId),
+          },
+        },
+      }
+      : {}
+
+    const [CRR, nooVsExisting, RPR, RFM] = await Promise.all([
+      getCRR(salesFilter),
+      getNooVsExisting(salesPersonId ? Number(salesPersonId) : null),
+      getRPR(salesFilter),
+      getRFM(salesFilter),
+    ])
+    return res.status(200).json({
+      message: 'Success',
+      data: {
+        CRR,
+        nooVsExisting,
+        RPR,
+        RFM
+      },
+    })
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export const fetchActiveCustomers = async (req: Request, res: Response) => {
+  const { salesPersonId } = req.query
+  try {
+    const activeCustomers = await getActiveCustomers(salesPersonId ? Number(salesPersonId) : null)
+    return res.status(200).json({
+      message: 'Success',
+      data: {
+        activeCustomers
+      },
+    })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+
 }
