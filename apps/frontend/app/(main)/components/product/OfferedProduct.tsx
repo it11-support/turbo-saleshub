@@ -89,12 +89,14 @@ const OfferedProduct = (props: Props) => {
   }
 
   const followUpsNeeded = () => {
-    return (
-      visitItem.visit_item_concerns?.some((concern) => (concern.follow_ups?.length ?? 0) > 0) ??
-      false
-    )
+    if (!visitItem || !visitItem.visit_item_concerns) return false
+
+    return visitItem.visit_item_concerns.some((concern) => {
+      return concern.follow_ups && concern.follow_ups.length > 0
+    })
   }
 
+  console.log(followUpsNeeded())
   return (
     <>
       <div className="col-12 p-1" key={product?.ItemCode}>
