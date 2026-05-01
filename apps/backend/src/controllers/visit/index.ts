@@ -160,7 +160,7 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
     activityLogger({
       req,
       actionType: 'Sales Visit',
-      description: `Sales Visit synced : ${updatedVisit?.customer.CardName}`,
+      description: `Sales Visit item synced : ${updatedVisit?.customer.CardName}`,
       status: 'SUCCESS'
     });
 
