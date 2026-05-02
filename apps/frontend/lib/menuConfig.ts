@@ -68,7 +68,7 @@ export const menuConfig: MenuSection[] = [
       {
         label: 'Add Schedule',
         icon: 'pi pi-fw pi-calendar-plus',
-        type: 'action', // 🔥 penting
+        type: 'action',
         commandKey: 'addSchedule',
       },
       {
@@ -86,6 +86,11 @@ export const menuConfig: MenuSection[] = [
         label: 'Visits',
         icon: 'pi pi-fw pi-briefcase',
         to: '/visits',
+      },
+      {
+        label: 'Follow Ups',
+        icon: 'pi pi-fw pi-send',
+        to: '/follow-ups',
       },
     ],
   },

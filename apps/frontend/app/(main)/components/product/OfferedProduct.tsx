@@ -108,7 +108,7 @@ const OfferedProduct = (props: Props) => {
                   <span className="font-semibold text-900 pr-2" style={{ wordBreak: 'break-word' }}>
                     {product?.ItemName}
                   </span>
-                  <small className="text-500">
+                  <small className="text-500 pt-1">
                     {formatDate(visitItem?.created_at, { withTime: true })}
                   </small>
                 </div>
@@ -117,7 +117,7 @@ const OfferedProduct = (props: Props) => {
                 {activeIndex !== 0 &&
                   hasFollowUps &&
                   visitItem.visit_item_concerns?.[0]?.status && (
-                    <div className="ml-auto flex-none align-self-start pt-1">
+                    <div className="ml-auto flex-none align-self-start pt-0">
                       <ProductTag status={visitItem.visit_item_concerns[0].status} />
                     </div>
                   )}

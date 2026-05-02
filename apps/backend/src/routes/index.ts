@@ -14,6 +14,7 @@ import visits from './visits.js';
 import concerns from './concerns.js'
 import inquiry from './inquiry.js'
 import activityLog from './activity-log.js'
+import followUpsRoute from './follow-ups.js'
 
 const router = Router();
 
@@ -32,4 +33,5 @@ router.use('/visits', visits);
 router.use('/concern-categories', concerns);
 router.use('/inquiry', inquiry);
 router.use('/activity-log', activityLog)
+router.use('/follow-ups', followUpsRoute)
 export default router;
