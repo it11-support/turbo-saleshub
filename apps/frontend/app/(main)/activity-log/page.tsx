@@ -232,7 +232,7 @@ const ActivityLogPage = () => {
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
           rowsPerPageOptions={[10, 25, 50]}
         >
-          <Column field="user.name" header="Name" sortable />
+          <Column field="user.name" header="Name" body={(row) => row.user?.name ?? row.username } sortable />
           <Column field="action_type" header="Action Type" sortable />
           <Column field="description" header="Description" sortable />
           <Column
