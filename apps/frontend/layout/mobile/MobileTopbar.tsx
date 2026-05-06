@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { LayoutContext } from '../context/layoutcontext'
 import styles from './mobile.module.css'
 import Image from 'next/image'
+import { Badge } from 'primereact/badge'
 
 type Props = {
   title?: string
@@ -63,6 +64,16 @@ export default forwardRef(function MobileTopbar(
       </div>
       <div>
         <div className="layout-topbar-menu flex w-full justify-end items-center gap-4">
+          <button
+            type="button"
+            className={`${styles.menuButton} p-link layout-topbar-button`}
+            onClick={() => {}}
+            aria-label="Seetings"
+          >
+            <i className="pi pi-bell text-2xl p-overlay-badge">
+              <Badge value="2" severity="danger"></Badge>
+            </i>
+          </button>
           <button
             type="button"
             className={`${styles.menuButton} p-link layout-topbar-button`}

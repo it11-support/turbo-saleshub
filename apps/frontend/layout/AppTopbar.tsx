@@ -8,16 +8,25 @@ import { LayoutContext } from './context/layoutcontext'
 import { AppTopbarRef, LayoutState } from '@/types'
 import Image from 'next/image'
 import { Badge } from 'primereact/badge'
+import { createUrl } from '@/lib/api'
+import useSWR from 'swr'
+import { fetcher } from '@/app/(main)/lib'
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
-  const { layoutState, setLayoutState } =
-    useContext(LayoutContext)
+  const { layoutState, setLayoutState } = useContext(LayoutContext)
   const menubuttonRef = useRef(null)
   const topbarmenuRef = useRef(null)
   const topbarmenubuttonRef = useRef(null)
   const auth = useAuth()
 
-  const { logout } = auth
+  const { logout, user } = auth
+
+  const apiNotifUrl = createUrl('notifications', { userId: Number(user?.id) })
+  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher)
+
+  const notifications = data?.data.notifications
+  const totalNotifications = notifications?.length
+
   useImperativeHandle(ref, () => ({
     menubutton: menubuttonRef.current,
     topbarmenu: topbarmenuRef.current,
@@ -30,9 +39,9 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const onProfileButtonClick = () => {
     setLayoutState((prev) => ({
       ...prev,
-      profileSidebarVisible: !prev.profileSidebarVisible
-    }));
-  };
+      profileSidebarVisible: !prev.profileSidebarVisible,
+    }))
+  }
 
   return (
     <div className="layout-topbar">
@@ -61,7 +70,26 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             <Badge value={auth.user?.name} severity="info" />
           </div>
         )}
-        <Link href={'/visit-schedules'}>
+        <Link href={'/notifications'}>
+          <button type="button" className="p-link layout-topbar-button">
+            <i className="pi pi-bell text-2xl p-overlay-badge">
+              {totalNotifications > 0 && (
+                <Badge
+                  value={
+                    totalNotifications > 0
+                      ? totalNotifications > 99
+                        ? '99+'
+                        : totalNotifications
+                      : null
+                  }
+                  severity={'danger'}
+                ></Badge>
+              )}
+            </i>
+            <span>Notifications</span>
+          </button>
+        </Link>
+        <Link href={'/notifications'}>
           <button type="button" className="p-link layout-topbar-button">
             <i className="pi pi-calendar"></i>
             <span>Calendar</span>

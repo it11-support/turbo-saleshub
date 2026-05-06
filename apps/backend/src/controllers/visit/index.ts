@@ -3,8 +3,11 @@ import prisma from '@/libs/prisma.js';
 
 import { VisitStatus } from '@/generated/prisma/enums.js';
 import { getSuggestedItems } from '../customer/index.js';
-import { AuthenticatedRequest } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, FollowUpUpdateData, IVisit } from '@saleshub-tsm/types';
 import { activityLogger } from '@/services/logs/index.js';
+import { socketIoEmitter } from '@/libs/socket-io.js';
+import { visitsWhereInput } from '@/generated/prisma/models.js';
+
 
 export const fetchSalesVisit = async (req: Request, res: Response) => {
   try {
@@ -264,11 +267,23 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
         include: {
           visit_item_concerns: {
             include: {
-              status: true, visit_items: {
+              status: true,
+              category: true,
+              follow_ups: {
+                include: {
+                  concern_status: true
+                }
+              },
+              visit_items: {
                 include: {
                   product: true,
                   visit: {
                     include: {
+                      salesPerson: {
+                        include: {
+                          user: true
+                        }
+                      },
                       customer: true
                     }
                   }
@@ -295,6 +310,69 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
       }
       return follow_up;
     })
+
+    const userId = Number(result.visit_item_concerns.visit_items.visit.salesPerson.user?.id)
+    const salesPersonId = Number(result.visit_item_concerns.visit_items.visit.sales_person_id)
+    const customerName = result.visit_item_concerns.visit_items.visit.customer.CardName
+    const productName = result.visit_item_concerns.visit_items.product.ItemName
+    const visitId = Number(result.visit_item_concerns.visit_items.visit.id)
+    const lastFollowUp = result.visit_item_concerns.follow_ups[result.visit_item_concerns.follow_ups.length - 1]
+
+    const messageContent =
+      `A follow-up has been updated for customer ${customerName}.\n` +
+      `Product: ${productName}\n` +
+      `Topic: ${result.visit_item_concerns.category.name}\n` +
+      `Current Status: ${lastFollowUp.concern_status.status}\n` +
+      `Admin notes: ${lastFollowUp.notes}\n` +
+      `Visit Reference ID: ${visitId}`;
+
+    const where: visitsWhereInput = {
+      visit_items: {
+        some: {
+          visit_item_concerns: {
+            some: {
+              status: {
+                status: { contains: "Follow Up" }
+              }
+            }
+          }
+        }
+      },
+      sales_person_id: salesPersonId
+    };
+
+    const visits = await prisma.visits.findMany({
+      where,
+      select: { id: true, salesPerson: { select: { user: true } } }
+    });
+
+    const count = visits.length;
+
+    if (type === 'Override') {
+      const data: FollowUpUpdateData<IVisit> = {
+        followUpUpdate: {
+          count,
+          updatedAt: new Date()
+        },
+        item: result.visit_item_concerns.visit_items.visit as IVisit,
+        info: {
+          title: "Update Follow Up",
+          message: messageContent,
+          action_url: `/visits/issues/${visitId}#productId-${result.visit_item_concerns.visit_items.product.ItemCode}`,
+          severity: 'info'
+        }
+      }
+      await prisma.notifications.create({
+        data: {
+          title: "Update Follow Up",
+          message: messageContent,
+          type: 'FOLLOW UP',
+          action_url: `/visits/issues/${visitId}#productId-${result.visit_item_concerns.visit_items.product.ItemCode}`,
+          user_id: userId
+        }
+      })
+      await socketIoEmitter<FollowUpUpdateData<IVisit>>('followUpUpdate', data, userId)
+    }
 
     activityLogger({
       req,

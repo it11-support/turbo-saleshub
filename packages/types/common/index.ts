@@ -93,6 +93,11 @@ export interface IResSingle<T> extends ISwrResponse {
   data?: T[];
 }
 
+export interface IResObject<T> extends ISwrResponse {
+  data?: T;
+}
+
+
 export interface AuthenticatedRequest<
   TParams = any,
   TBody = any,
@@ -109,3 +114,21 @@ export type TActivityLogger<T = Record<string, unknown>> = {
   status: 'SUCCESS' | 'FAILED'
   username?: string
 };
+
+
+export interface FollowUpUpdate {
+  count: number
+  updatedAt: Date
+}
+
+export interface  EventInfo {
+  title: string
+  message: string
+  severity?: "success" | "info" | "warn" | "error"
+  action_url?: string
+}
+export interface FollowUpUpdateData<T> {
+  followUpUpdate: FollowUpUpdate
+  item: T
+  info: EventInfo
+}

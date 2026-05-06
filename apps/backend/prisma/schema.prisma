@@ -495,6 +495,22 @@ model follow_ups {
   concern_status          concern_status @relation(fields: [status], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
+model notifications {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id     BigInt   @db.UnsignedBigInt
+  title       String   @db.VarChar(255)
+  message     String   @db.Text
+  type        String   @db.VarChar(50)
+  action_url  String?  @db.Text
+  is_read     Boolean  @default(false) @db.TinyInt
+  created_at  DateTime @default(now()) @db.DateTime(3)
+
+  user        users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id], map: "notifications_user_id_idx")
+}
+
+
 model concern_status {
   id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
   status              String? @db.VarChar(50)
@@ -543,6 +559,7 @@ model users {
 
   sales_person sales_persons? @relation(fields: [sales_person_id], references: [id])
   activities        user_activity[]
+  notifications notifications[]
 
   @@index([role_id], map: "users_role_id_foreign")
   @@index([team_id], map: "users_team_id_foreign")

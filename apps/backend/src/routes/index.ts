@@ -15,6 +15,7 @@ import concerns from './concerns.js'
 import inquiry from './inquiry.js'
 import activityLog from './activity-log.js'
 import followUpsRoute from './follow-ups.js'
+import notificationRoute from './notifications.js'
 
 const router = Router();
 
@@ -34,4 +35,5 @@ router.use('/concern-categories', concerns);
 router.use('/inquiry', inquiry);
 router.use('/activity-log', activityLog)
 router.use('/follow-ups', followUpsRoute)
+router.use('/notifications', notificationRoute)
 export default router;

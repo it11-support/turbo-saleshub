@@ -13,6 +13,7 @@ import 'primereact/resources/primereact.css'
 import '../styles/demo/Demos.scss'
 import '../styles/layout/layout.scss'
 import SocketIoProvider from '@/layout/context/SocketIoContext'
+import { ToastProvider } from '@/layout/context/ToastContext'
 
 interface RootLayoutProps {
   children: React.ReactNode
@@ -27,15 +28,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body>
         <PrimeReactProvider>
-          <AuthProvider>
-            <SocketIoProvider>
-              <NuqsAdapter>
-                <Suspense fallback={null}>
-                  <LayoutProvider>{children}</LayoutProvider>
-                </Suspense>
-              </NuqsAdapter>
-            </SocketIoProvider>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <SocketIoProvider>
+                <NuqsAdapter>
+                  <Suspense fallback={null}>
+                    <LayoutProvider>{children}</LayoutProvider>
+                  </Suspense>
+                </NuqsAdapter>
+              </SocketIoProvider>
+            </AuthProvider>
+          </ToastProvider>
         </PrimeReactProvider>
       </body>
     </html>

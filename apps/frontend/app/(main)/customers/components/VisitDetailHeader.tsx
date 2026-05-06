@@ -7,8 +7,8 @@ import { Divider } from 'primereact/divider'
 import { formatDate } from '@/lib/dateUtils'
 
 type Props = {
-  customer: ICustomer
-  salesVisit: IVisit
+  customer?: ICustomer
+  salesVisit?: IVisit
   handleEndVisit?: () => void
 }
 const VisitDetailHeader = (props: Props) => {
@@ -53,10 +53,10 @@ const VisitDetailHeader = (props: Props) => {
             {formatDate(salesVisit?.end_at, { withTime: true })}
           </p>
           <p>
-            <span className="font-semibold">Notes: </span> {salesVisit.notes}
+            <span className="font-semibold">Notes: </span> {salesVisit?.notes}
           </p>
           <p>
-            <span className="font-semibold">Status: </span> {salesVisit.status}
+            <span className="font-semibold">Status: </span> {salesVisit?.status}
           </p>
         </div>
       </div>

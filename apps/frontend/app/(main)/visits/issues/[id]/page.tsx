@@ -1,6 +1,13 @@
 'use client'
 
-import { EBadgeVariant, EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
+import {
+  EBadgeVariant,
+  EFollowUpType,
+  FollowUpUpdateData,
+  IVisit,
+  IVisitItem,
+  IVisitItemConcern,
+} from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
@@ -9,27 +16,57 @@ import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 
 import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
+import { fetcher } from '@/app/(main)/lib'
+import { useSocket } from '@/layout/context/SocketIoContext'
+import { createUrl } from '@/lib/api'
 import { variantColors } from '@/lib/constants'
 import { useConcernStore, useSalesVisit } from '@/stores'
 
 const VisitIssuesPage = () => {
   const { id } = useParams()
-
+  const socket = useSocket()
   const salesVisitStore = useSalesVisit()
 
-  const { salesVisit, fetchVisitDetails, followUpForm, setFollowUpForm, addFollowUp } =
-    salesVisitStore
+  const { followUpForm, setFollowUpForm, addFollowUp } = salesVisitStore
   const { fetchConcernStatuses, concernStatuses } = useConcernStore()
   const [visible, setIsVisible] = useState(false)
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
 
+  const [activeProductCode, setActiveProductCode] = useState<string | null>(null)
+
+  const visitDetailApi = createUrl(`visit/${id}/details`)
+  const { data, mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher, {
+    revalidateOnFocus: false,
+  })
+
+  const salesVisit = data?.data as IVisit
   const customer = salesVisit?.customer
 
   useEffect(() => {
-    fetchVisitDetails(Number(id))
+    if (typeof window === 'undefined') return
+
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '')
+
+      if (hash.startsWith('productId-')) {
+        const code = hash.replace('productId-', '')
+        setActiveProductCode(code)
+      } else {
+        setActiveProductCode(null)
+      }
+    }
+
+    handleHash()
+    window.addEventListener('hashchange', handleHash)
+
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [salesVisit?.visit_items])
+
+  useEffect(() => {
     fetchConcernStatuses()
   }, [])
 
@@ -44,12 +81,29 @@ const VisitIssuesPage = () => {
   }
 
   const handleSubmit = async () => {
-    await addFollowUp().then(() => {
-      fetchVisitDetails(Number(id))
-    })
+    await addFollowUp()
+    await mutate()
     setIsVisible(false)
     setSelectedConcern(null)
   }
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleUpdate = (data: FollowUpUpdateData<IVisit>) => {
+      const updatedVisitId = data?.item?.id
+
+      if (Number(updatedVisitId) === Number(id)) {
+        mutate()
+      }
+    }
+
+    socket.on('followUpUpdate', handleUpdate)
+
+    return () => {
+      socket.off('followUpUpdate', handleUpdate)
+    }
+  }, [socket, id])
 
   useEffect(() => {
     if (selectedConcern && visible) {
@@ -75,7 +129,7 @@ const VisitIssuesPage = () => {
     value: t,
   }))
 
-  const groupedProduct = salesVisit.visit_items?.reduce(
+  const groupedProduct = salesVisit?.visit_items?.reduce(
     (acc, item) => {
       const product = item.product
       if (!product) return acc
@@ -124,7 +178,7 @@ const VisitIssuesPage = () => {
                     {visitItems.map((visitItem) => {
                       return (
                         <OfferedProduct
-                          defaultOpen={false}
+                          defaultOpen={visitItem.product?.ItemCode === activeProductCode}
                           visitItem={visitItem}
                           key={visitItem.id.toString()}
                           handleFollowUp={handleClickFollowUp}
@@ -143,7 +197,7 @@ const VisitIssuesPage = () => {
               {offeredGroceries?.map((groceriesItem) => {
                 return (
                   <OfferedProduct
-                    defaultOpen={false}
+                    defaultOpen={groceriesItem.product?.ItemCode === activeProductCode}
                     visitItem={groceriesItem}
                     key={groceriesItem.id.toString()}
                     handleFollowUp={handleClickFollowUp}

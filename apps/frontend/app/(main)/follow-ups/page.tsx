@@ -43,7 +43,6 @@ const FollowUpsPage = () => {
   const router = useRouter()
 
   const salesPersonId = Number(user?.sales_person?.id)
-  console.log(salesPersonId)
   const [filters, setFilters] = useQueryStates(visitFilters)
   const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
 
@@ -91,7 +90,7 @@ const FollowUpsPage = () => {
   }
   const followUpsBodyTemplate = (rowData: SalesVisit) => {
     const visitItems = rowData.visits?.visit_items
-    console.log(visitItems?.length)
+
     if (!visitItems?.length) return
     const openConcerns = visitItems
       ?.flatMap((item) => item.visit_item_concerns || [])
@@ -102,10 +101,7 @@ const FollowUpsPage = () => {
           )
       )
 
-    console.log(openConcerns)
-
     if (!openConcerns.length || rowData.status !== 'Completed') return
-    console.log(rowData.visits.id)
     return (
       <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
         <div className="flex align-items-center gap-2 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
@@ -244,7 +240,6 @@ const FollowUpsPage = () => {
             header="Customer"
             sortField="customer.CardName"
             sortable
-            // body={(rowData) => {console.log(rowData.visits.customer)}}
           />
 
           <Column field="visits.notes" header="Visit Notes" sortField="notes" sortable />

@@ -1,6 +1,7 @@
 'use client'
 
 import ProductTag from './ProductTag'
+import { fetcher } from '../../lib'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
 import { EFollowUpStatus, EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
@@ -12,8 +13,10 @@ import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useMemo, useState } from 'react'
+import useSWR from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
+import { createUrl } from '@/lib/api'
 import { formatDate, normalizeDateToUTC } from '@/lib/dateUtils'
 import { useConcernStore, useSalesVisit } from '@/stores'
 
@@ -30,11 +33,16 @@ const OfferedProduct = (props: Props) => {
 
   const { visitItem, handleFollowUp, defaultOpen } = props
   const product = visitItem.product
-  const { followUpForm, setFollowUpForm, addFollowUp, fetchVisitDetails } = salesVisitStore
+  const { followUpForm, setFollowUpForm, addFollowUp } = salesVisitStore
   const { fetchConcernStatuses, concernStatuses } = useConcernStore()
   const { isAdmin } = useAuth()
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(defaultOpen ? 0 : null)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+
+  const visitDetailApi = createUrl(`visit/${id}/details`)
+  const { mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher, {
+    revalidateOnFocus: false,
+  })
 
   const onHide = () => {
     setSelectedConcern(null)
@@ -42,9 +50,14 @@ const OfferedProduct = (props: Props) => {
   }
 
   useEffect(() => {
-    if (defaultOpen) {
-      setActiveIndex(0)
-    }
+    setActiveIndex(defaultOpen ? 0 : null)
+  }, [defaultOpen])
+
+  useEffect(() => {
+    if (!defaultOpen) return
+
+    const el = document.getElementById(`productId-${product?.ItemCode}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [defaultOpen])
 
   useEffect(() => {
@@ -76,9 +89,8 @@ const OfferedProduct = (props: Props) => {
   }))
 
   const handleSubmit = async () => {
-    await addFollowUp().then(() => {
-      fetchVisitDetails(Number(id))
-    })
+    await addFollowUp()
+    await mutate()
     setIsVisible(false)
     setSelectedConcern(null)
   }
@@ -97,12 +109,26 @@ const OfferedProduct = (props: Props) => {
 
   return (
     <>
-      <div className="col-12 p-1" key={product?.ItemCode}>
-        <Accordion activeIndex={activeIndex} onTabChange={(e) => setActiveIndex(e.index as number)}>
+      <div className="col-12 p-1" key={product?.ItemCode} id={`productId-${product?.ItemCode}`}>
+        <Accordion
+          activeIndex={activeIndex}
+          onTabChange={(e) => {
+            const isOpen = e.index === 0
+
+            setActiveIndex(isOpen ? 0 : null)
+
+            if (isOpen) {
+              window.location.hash = `productId-${product?.ItemCode}`
+            }
+          }}
+        >
           <AccordionTab
             headerClassName="w-full"
             header={
-              <div className="flex align-items-start justify-content-between w-full">
+              <div
+                className="flex align-items-start justify-content-between w-full"
+                id={`acc-header-${product?.ItemCode}`}
+              >
                 {/* Kontainer Teks */}
                 <div className="flex flex-column" style={{ flex: '1 1 auto', minWidth: 0 }}>
                   <span className="font-semibold text-900 pr-2" style={{ wordBreak: 'break-word' }}>

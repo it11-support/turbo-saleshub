@@ -16,8 +16,26 @@ import { AppTopbarRef, ChildContainerProps, LayoutState } from '@/types'
 import AddScheduleDialog from '@/app/(main)/components/add-schedule/dialog'
 import NewCustomerDialog from '@/app/(main)/components/customer/new-customer'
 import { ScrollTop } from 'primereact/scrolltop'
+import { useSocket } from './context/SocketIoContext'
+import { FollowUpUpdateData, IVisit } from '@saleshub-tsm/types'
+import { useGlobalToast } from './context/ToastContext'
+import { useRouter } from 'next/navigation'
+import { Button } from 'primereact/button'
+import { ToastMessage, ToastProps } from 'primereact/toast'
+import { createUrl } from '@/lib/api'
+import { useAuth } from './context/AuthContext'
+import { mutate } from "swr"
+
+interface CustomToastContentProps {
+  message: ToastMessage
+  onClose?: () => void
+}
 
 const Layout = ({ children }: ChildContainerProps) => {
+  const router = useRouter()
+  const socket = useSocket()
+  const {user} = useAuth()
+  const { showToast } = useGlobalToast()
   const { layoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
   const topbarRef = useRef<AppTopbarRef>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -38,6 +56,61 @@ const Layout = ({ children }: ChildContainerProps) => {
   })
 
   const pathname = usePathname()
+
+  useEffect(() => {
+    const currentSocket = socket
+
+    if (currentSocket) {
+      const handleUpdate = (data: FollowUpUpdateData<IVisit>) => {
+        const info = data.info
+        const apiNotifUrl = createUrl('notifications', {userId: Number(user?.id)})
+
+
+        mutate(apiNotifUrl)
+        showToast({
+          severity: info.severity,
+
+          sticky: true,
+          content: (props: CustomToastContentProps) => (
+            <div className="flex flex-column align-items-start" style={{ flex: '1' }}>
+              {/* Judul Notifikasi */}
+              <div className="flex align-items-center gap-2">
+                <i
+                  className={`pi ${
+                    info.severity === 'error' ? 'pi-times-circle' : 'pi-info-circle'
+                  } text-lg`}
+                ></i>
+                <span className="font-bold text-900">{info.title}</span>
+              </div>
+
+              {/* Isi Pesan */}
+              <div style={{ whiteSpace: 'pre-line' }} className="font-medium text-sm my-3 text-700 line-height-3">{info.message}</div>
+
+              {/* Tombol Aksi */}
+              <div className="flex gap-2 w-full">
+                <Button
+                  type="button"
+                  label="View Details"
+                  className="p-button-sm p-button-outlined" // Menggunakan outlined
+                  onClick={() => {
+                    if (info.action_url) router.push(info.action_url)
+                    props?.onClose?.()
+                  }}
+                />
+              </div>
+            </div>
+          ),
+        })
+      }
+
+      currentSocket.on('followUpUpdate', handleUpdate)
+
+      return () => {
+        currentSocket.off('followUpUpdate', handleUpdate)
+      }
+    }
+  }, [socket, showToast])
+
   useEffect(() => {
     hideMenu()
     hideProfileMenu()
@@ -147,11 +220,7 @@ const Layout = ({ children }: ChildContainerProps) => {
         <div className="layout-mask"></div>
         <AddScheduleDialog />
         <NewCustomerDialog />
-        <ScrollTop
-          threshold={300}
-          className="z-5"
-          icon="pi pi-chevron-up"
-        />
+        <ScrollTop threshold={300} className="z-5" icon="pi pi-chevron-up" />
       </div>
     </React.Fragment>
   )

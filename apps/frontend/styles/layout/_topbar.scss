@@ -63,6 +63,23 @@
             font-size: 1rem;
             display: none;
         }
+        span.p-badge {
+          display: inline-flex !important;
+        }
+        .p-badge {
+            display: inline-flex !important;
+
+            align-items: center;
+            justify-content: center;
+
+            min-width: 16px;
+            height: 16px;
+
+            font-size: 0.65rem;
+            padding: 0;
+
+            line-height: 1; /* penting */
+          }
     }
 
     .layout-menu-button {
