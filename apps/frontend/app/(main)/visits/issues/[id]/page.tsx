@@ -51,9 +51,8 @@ const VisitIssuesPage = () => {
 
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '')
-
-      if (hash.startsWith('productId-')) {
-        const code = hash.replace('productId-', '')
+      if (hash.toLowerCase().startsWith('productid-')) {
+        const code = hash.replace(/productid-/i, '')
         setActiveProductCode(code)
       } else {
         setActiveProductCode(null)

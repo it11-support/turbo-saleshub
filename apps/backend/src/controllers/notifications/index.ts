@@ -1,5 +1,6 @@
 import { notificationsWhereInput } from "@/generated/prisma/models.js";
 import prisma from "@/libs/prisma.js";
+import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsParser.js";
 import { Request, Response } from "express";
 
 export const fetchNotifications = async (req: Request, res: Response) => {
@@ -9,6 +10,16 @@ export const fetchNotifications = async (req: Request, res: Response) => {
     const userId = Number(req.query.userId);
     const status = req.query.status;
 
+    const sort = req.query.sort || null;
+    const order = req.query.order || null;
+
+    const sort_options = sort
+      ? [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }]
+      : [{ key: 'created_at', order: 'desc' }]
+
+    const sortOptions = sortOptionsParser(sort_options);
+    const orderBy = convertToPrismaOrderBy(sortOptions);
+
     const where: notificationsWhereInput = {
       ...(userId ? { user_id: userId } : {}),
       ...(status === 'read' ? { is_read: true } : {}),
@@ -17,6 +28,7 @@ export const fetchNotifications = async (req: Request, res: Response) => {
 
     const [notifications, meta] = await prisma.notifications.paginate({
       where,
+      orderBy,
     }).withPages({
       page: Number(page),
       limit: Number(per_page),
