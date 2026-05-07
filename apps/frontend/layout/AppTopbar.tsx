@@ -21,10 +21,12 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
   const { logout, user } = auth
 
-  const apiNotifUrl = createUrl('notifications', { userId: Number(user?.id) })
-  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher)
+  const apiNotifUrl = createUrl('notifications/unread', { userId: Number(user?.id) })
+  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher, {
+    revalidateOnFocus: false,
+  })
 
-  const notifications = data?.data.notifications
+  const notifications = data?.data
   const totalNotifications = notifications?.length
 
   useImperativeHandle(ref, () => ({
