@@ -238,6 +238,12 @@ const ActivityLogPage = () => {
             body={(row) => row.user?.name ?? row.username}
             sortable
           />
+          <Column
+            field="user.sales_person.SlpName"
+            header="Sales Person Name"
+            body={(row) => row.user?.sales_person?.SlpName ?? ''}
+            sortable
+          />
           <Column field="action_type" header="Action Type" sortable />
           <Column field="description" header="Description" sortable />
           <Column
