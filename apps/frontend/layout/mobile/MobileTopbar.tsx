@@ -8,6 +8,10 @@ import { LayoutContext } from '../context/layoutcontext'
 import styles from './mobile.module.css'
 import Image from 'next/image'
 import { Badge } from 'primereact/badge'
+import { createUrl } from '@/lib/api'
+import { fetcher } from '@/app/(main)/lib'
+import useSWR from 'swr'
+import Link from 'next/link'
 
 type Props = {
   title?: string
@@ -24,7 +28,15 @@ export default forwardRef(function MobileTopbar(
   const menubuttonRef = useRef<HTMLButtonElement>(null)
   const { setLayoutState } = useContext(LayoutContext)
 
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+
+  const apiNotifUrl = createUrl('notifications/unread', { userId: Number(user?.id) })
+  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher, {
+    revalidateOnFocus: false,
+  })
+
+  const notifications = data?.data
+  const totalNotifications = notifications?.length
 
   useImperativeHandle(ref, () => ({
     menubutton: menubuttonRef.current,
@@ -64,16 +76,28 @@ export default forwardRef(function MobileTopbar(
       </div>
       <div>
         <div className="layout-topbar-menu flex w-full justify-end items-center gap-4">
-          <button
-            type="button"
-            className={`${styles.menuButton} p-link layout-topbar-button`}
-            onClick={() => {}}
-            aria-label="Seetings"
-          >
-            <i className="pi pi-bell text-2xl p-overlay-badge">
-              <Badge value="2" severity="danger"></Badge>
-            </i>
-          </button>
+          <Link href={'/notifications'}>
+            <button
+              type="button"
+              className={`${styles.menuButton} p-link layout-topbar-button`}
+              aria-label="Seetings"
+            >
+              <i className="pi pi-bell text-2xl p-overlay-badge">
+                {totalNotifications > 0 && (
+                  <Badge
+                    value={
+                      totalNotifications > 0
+                        ? totalNotifications > 99
+                          ? '99+'
+                          : totalNotifications
+                        : null
+                    }
+                    severity={'danger'}
+                  ></Badge>
+                )}
+              </i>
+            </button>
+          </Link>
           <button
             type="button"
             className={`${styles.menuButton} p-link layout-topbar-button`}

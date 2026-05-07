@@ -91,7 +91,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             <span>Notifications</span>
           </button>
         </Link>
-        <Link href={'/notifications'}>
+        <Link href={'/visit-schedules'}>
           <button type="button" className="p-link layout-topbar-button">
             <i className="pi pi-calendar"></i>
             <span>Calendar</span>
