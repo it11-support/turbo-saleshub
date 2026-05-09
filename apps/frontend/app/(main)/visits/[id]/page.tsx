@@ -3,6 +3,7 @@
 import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
+import Competitors from '../components/Competitors'
 import { IVisitItem, ProductWithFrequency } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { AutoComplete } from 'primereact/autocomplete'
@@ -629,6 +630,7 @@ const VisitsPage = () => {
                 />
               </div>
             </div>
+            <Competitors />
           </div>
         )}
       </div>

@@ -16,6 +16,7 @@ import inquiry from './inquiry.js'
 import activityLog from './activity-log.js'
 import followUpsRoute from './follow-ups.js'
 import notificationRoute from './notifications.js'
+import competitorRoute from './competitors.js'
 
 const router = Router();
 
@@ -36,4 +37,6 @@ router.use('/inquiry', inquiry);
 router.use('/activity-log', activityLog)
 router.use('/follow-ups', followUpsRoute)
 router.use('/notifications', notificationRoute)
+router.use('/competitors', competitorRoute)
+
 export default router;

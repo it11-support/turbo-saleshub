@@ -11,3 +11,4 @@ export * from './visit/index.js';
 export * from './visits/index.js';
 export * from './concerns/index.js'
 export * from './inquiry/index.js'
+export * from './competitors/index.js'

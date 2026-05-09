@@ -236,6 +236,12 @@ export const visitDetails = async (req: Request, res: Response) => {
             }
           },
         },
+        visit_competitors: {
+          include: {
+            competitors: true,
+            competitor_products: true,
+          },
+        }
       },
     });
 

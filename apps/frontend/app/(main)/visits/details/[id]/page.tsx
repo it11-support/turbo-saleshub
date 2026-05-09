@@ -1,37 +1,60 @@
 'use client'
 
-import { IVisitItem, ProductWithFrequency } from '@saleshub-tsm/types'
+import {
+  CompetitorProduct,
+  IInquiry,
+  IVisitItem,
+  ProductWithFrequency,
+  RawVisitCompetitor,
+  VisitCompetitor,
+} from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Card } from 'primereact/card'
 import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { OverlayPanel } from 'primereact/overlaypanel'
+import { Tag } from 'primereact/tag'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 
 import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
 import ProductOfferCard from '@/app/(main)/components/product/ProductOfferCard'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
-import { useSalesVisit } from '@/stores'
-import { useInquiryStore } from '@/stores/inquiry'
+import { fetcher } from '@/app/(main)/lib'
+import { createUrl } from '@/lib/api'
 
 const VisitDetailsPage = () => {
   const { id } = useParams()
-  const salesVisirStore = useSalesVisit()
   const [suggestedGroup, setSuggestedGroup] = useState('')
 
-  const { salesVisit, fetchVisitDetails } = salesVisirStore
-  const { fetchInquiries, inquiries } = useInquiryStore()
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [search, setSearch] = useState('')
   const [activeProductGroup, setActiveProductGroup] = useState<ProductWithFrequency[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
-  useEffect(() => {
-    fetchVisitDetails(Number(id))
-    fetchInquiries(Number(id))
-  }, [])
+  const apiDetailUrl = createUrl(`visit/${id}/details`)
+  const { data: visitDetailsData } = useSWR(apiDetailUrl, fetcher, {
+    revalidateOnFocus: false,
+  })
+
+  const apiInquiryUrl = createUrl(`inquiry/${id}`)
+  const { data: inquiriesData } = useSWR(apiInquiryUrl, fetcher, {
+    revalidateOnFocus: false,
+  })
+
+  const salesVisit = visitDetailsData?.data || {}
+
+  const inquiries = inquiriesData?.data?.inquiries || []
+
+  const visitCompetitors: RawVisitCompetitor[] = visitDetailsData?.data?.visit_competitors || []
+
+  const competitors: VisitCompetitor[] = visitCompetitors.map((vc) => ({
+    competitor_id: vc.competitor_id,
+    name: vc.competitors?.name,
+    products: vc.competitor_products,
+  }))
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,7 +117,7 @@ const VisitDetailsPage = () => {
     setSelectedCategories(_selected)
   }
 
-  const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))
+  const offeredProductIds = new Set((visit_items ?? []).map((item: IVisitItem) => item.product_id))
 
   const filteredProducts = activeProductGroup.filter((item) => {
     const offered = offeredProductIds.has(item.id)
@@ -133,7 +156,10 @@ const VisitDetailsPage = () => {
   }, [debouncedSearch, isDistributor, activeProductGroup])
 
   const groupedProduct = salesVisit.visit_items?.reduce(
-    (acc, item) => {
+    (
+      acc: { distributor: { category: string; items: IVisitItem[] }[]; groceries: IVisitItem[] },
+      item: IVisitItem
+    ) => {
       const product = item.product
       if (!product) return acc
 
@@ -240,7 +266,7 @@ const VisitDetailsPage = () => {
                                       item.ProductCategory.slice(1).toLocaleLowerCase()
                                     : ''
                                   const visitItems = visit_items?.find(
-                                    (i) => i.product_id === item.id
+                                    (i: IVisitItem) => i.product_id === item.id
                                   )
                                   const visitItemConcerns = visitItems?.visit_item_concerns
 
@@ -279,7 +305,9 @@ const VisitDetailsPage = () => {
                       ? item.ProductCategory.charAt(0) +
                         item.ProductCategory.slice(1).toLocaleLowerCase()
                       : ''
-                    const visitItems = visit_items?.find((i) => i.product_id === item.id)
+                    const visitItems = visit_items?.find(
+                      (i: IVisitItem) => i.product_id === item.id
+                    )
                     const visitItemConcerns = visitItems?.visit_item_concerns
                     return (
                       <div key={`groceries-${item.ItemCode}`} className="col-12 lg:col-6 xl:col-4">
@@ -308,57 +336,62 @@ const VisitDetailsPage = () => {
         )}
       </div>
 
-      <div className="card p-3">
-        <h5 className="ml-2">Offered Items</h5>
+      {(offeredDistributor?.length > 0 || offeredGroceries?.length > 0) && (
+        <div className="card p-3">
+          <h5 className="ml-2">Offered Items</h5>
 
-        {/* ================= DISTRIBUTOR ================= */}
-        {(offeredDistributor?.length ?? 0) > 0 && (
-          <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
-            {offeredDistributor?.map((distributorItem) => {
-              const category = distributorItem.category
-              const visitItems = distributorItem.items
-              return (
-                <div key={`distributor-${category}`} className="py-3">
-                  <h5>{category}</h5>
-                  <div className="grid">
-                    {visitItems.map((visitItem) => {
-                      return (
-                        <OfferedProduct
-                          visitItem={visitItem}
-                          key={visitItem.id.toString()}
-                          defaultOpen={false}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </Card>
-        )}
+          {/* ================= DISTRIBUTOR ================= */}
+          {(offeredDistributor?.length ?? 0) > 0 && (
+            <Card className="w-full h-full shadow-none px-0" title="DISTRIBUTOR">
+              {offeredDistributor?.map(
+                (distributorItem: { category: string; items: IVisitItem[] }) => {
+                  const category = distributorItem.category
+                  const visitItems = distributorItem.items
+                  return (
+                    <div key={`distributor-${category}`} className="py-3">
+                      <h5>{category}</h5>
+                      <div className="grid">
+                        {visitItems.map((visitItem) => {
+                          return (
+                            <OfferedProduct
+                              visitItem={visitItem}
+                              key={visitItem.id.toString()}
+                              defaultOpen={false}
+                            />
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                }
+              )}
+            </Card>
+          )}
 
-        {/* ================= GROCERIES ================= */}
-        {(offeredGroceries?.length ?? 0) > 0 && (
-          <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
-            <div className="grid">
-              {offeredGroceries?.map((groceriesItem) => {
-                return (
-                  <OfferedProduct
-                    defaultOpen={false}
-                    visitItem={groceriesItem}
-                    key={groceriesItem.id.toString()}
-                  />
-                )
-              })}
-            </div>
-          </Card>
-        )}
-      </div>
+          {/* ================= GROCERIES ================= */}
+          {(offeredGroceries?.length ?? 0) > 0 && (
+            <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
+              <div className="grid">
+                {offeredGroceries?.map((groceriesItem: IVisitItem) => {
+                  return (
+                    <OfferedProduct
+                      defaultOpen={false}
+                      visitItem={groceriesItem}
+                      key={groceriesItem.id.toString()}
+                    />
+                  )
+                })}
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
       {inquiries.length > 0 && (
         <div className="card">
           <h5 className="ml-2">Product Inquiries</h5>
           <div className="grid">
-            {inquiries.map((inquiry) => (
+            {inquiries.map((inquiry: IInquiry) => (
               <div className="col-12 md:col-12 lg:col-12 flex" key={`inquiry-${inquiry.id}`}>
                 <Card className="w-full h-full p-2">
                   <div className="flex flex-column w-full gap-3">
@@ -377,6 +410,105 @@ const VisitDetailsPage = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {competitors.length > 0 && (
+        <div className="card">
+          <h5 className="ml-2">Competitors</h5>
+          {/* Competitor */}
+          {competitors.map((competitor: VisitCompetitor) => (
+            <div className="col-12" key={`competitor-${competitor.competitor_id}`}>
+              <Card className="w-full">
+                <div className="flex flex-column gap-2">
+                  {/* HEADER */}
+                  <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-2 pb-3 border-bottom-1 surface-border">
+                    <div>
+                      <div className="text-2xl font-bold text-900">{competitor.name}</div>
+
+                      <div className="text-sm text-500 mt-1">
+                        {competitor.products.length} Product
+                        {competitor.products.length > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+
+                  <h6 className="mb-1 ml-1">Competitor Products</h6>
+                  {/* PRODUCT LIST */}
+                  <div className="flex flex-column gap-2">
+                    {competitor.products.map((product: CompetitorProduct) => (
+                      <div
+                        key={`product-${product.id}`}
+                        className="surface-border border-round-sm border-1 p-3 lg:p-4"
+                      >
+                        {/* TOP SECTION */}
+                        <div className="flex flex-column lg:flex-row lg:justify-content-between lg:align-items-start gap-3">
+                          {/* LEFT */}
+                          <div className="flex-1">
+                            <div className="grid">
+                              {/* PRODUCT */}
+                              <div className="col-12">
+                                <div className="text-500 text-sm mb-1">Product</div>
+
+                                <div className="text-lg font-semibold text-900 line-height-3">
+                                  {product.product_name}
+                                </div>
+                              </div>
+
+                              {/* BRAND */}
+                              <div className="col-12">
+                                <div className="text-500 text-sm mb-1">Brand</div>
+
+                                <div className="text-lg font-semibold text-900">
+                                  {product.brand || '-'}
+                                </div>
+                              </div>
+
+                              {/* PRICE + PROMO */}
+                              <div className="col-12 md:col-2">
+                                <div className="text-500 text-sm mb-1">Price</div>
+
+                                <div className="flex align-items-center gap-2 flex-wrap">
+                                  <div className="font-semibold text-900">
+                                    Rp {Number(product.price).toLocaleString('id-ID')} /{' '}
+                                    {product.unit || 'unit'}
+                                  </div>
+
+                                  {product.is_promo && <Tag value="Promo" severity="danger" />}
+                                </div>
+                              </div>
+
+                              <div className="col-6 md:col-2">
+                                <div className="text-500 text-sm mb-1">Monthly Usage</div>
+
+                                <div className="font-semibold text-900">
+                                  {product.monthly_usage !== undefined
+                                    ? product.monthly_usage
+                                    : '-'}{' '}
+                                  / {product.unit || 'unit'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* NOTES */}
+                        {product.notes && (
+                          <div className="mt-4 pt-3 border-top-1 surface-border">
+                            <div className="text-500 text-sm mb-2">Notes</div>
+
+                            <div className="surface-100 border-round-lg p-3 text-700 line-height-3">
+                              {product.notes}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            </div>
+          ))}
         </div>
       )}
     </>
