@@ -9,6 +9,11 @@ export type LoginResponse = {
   data?: {
     token?: string;
     user?: Partial<IUser>;
+    errors?: {
+      username?: string;
+      password?: string;
+      remember?: string;
+    }
   };
   message?: string;
 };
@@ -35,7 +40,7 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
 
     if (!username || !password) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Username or password are required', status: 'FAILED', username });
-      return res.status(400).json({ message: 'Username and password are required' });
+      return res.status(200).json({ message: 'Username and password are required', data: { errors: { username: !username ? 'Username is required' : undefined, password: !password ? 'Password is required' : undefined } } });
     }
 
     const user = await prisma.users.findFirst({
@@ -47,13 +52,13 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
 
     if (!user) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: User not found', status: 'FAILED', username });
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(200).json({ message: 'User not found', data: { errors: { username: 'User not found. Check your email/username and try again.' } } });
     }
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Password incorrect', status: 'FAILED', username });
-      return res.status(401).json({ message: 'Password incorrect' });
+      return res.status(200).json({ message: 'Password incorrect', data: { errors: { password: 'Password is incorrect.' } } });
     }
 
     const expiresIn = remember ? '7d' : '1d';

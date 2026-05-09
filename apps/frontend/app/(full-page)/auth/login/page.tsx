@@ -66,23 +66,21 @@ const LoginPage = () => {
           password: credentials.password,
           remember: credentials.remember,
         },
-        onResponseError({ response }) {
-          const data = response?._data
-
-          if (data?.errors) {
-            Object.entries(data.errors).forEach(([key, value]) => {
-              if (['username', 'password', 'remember'].includes(key)) {
-                setError(key as 'username' | 'password' | 'remember', {
-                  type: 'server',
-                  message: value as string,
-                })
-              }
-            })
-          }
-        },
       })
 
       const { data } = res
+
+      if (data?.errors) {
+        Object.entries(data.errors).forEach(([key, value]) => {
+          if (['username', 'password', 'remember'].includes(key)) {
+            setError(key as 'username' | 'password' | 'remember', {
+              type: 'server',
+              message: value as string,
+            })
+          }
+        })
+      }
+
       if (!data?.token) {
         throw new Error('Invalid login response')
       }
@@ -90,7 +88,7 @@ const LoginPage = () => {
       await login(data.token, data.user)
       await fetchConfigs()
     } catch (err: unknown) {
-      console.error('Login error:', err)
+      console.log('Login error:', err)
     } finally {
       setLoading(false)
     }
