@@ -22,8 +22,6 @@ export default function CompetitorDialog() {
 
   const { addCompetitorToVisit, selectedCompetitors, syncCompetitors } = useCompetitorStore()
 
-  console.log(selectedCompetitors)
-
   const apiUrl = createUrl('competitors')
   const { data: competitorData } = useSWR<IResSingle<Competitor>>(apiUrl, fetcher, {
     revalidateOnFocus: false,
@@ -39,12 +37,9 @@ export default function CompetitorDialog() {
 
   const searchCompetitor = (event: AutoCompleteCompleteEvent) => {
     const query = event.query.toLowerCase()
-    console.log(query)
-    console.log(competitorOptions)
     const _filteredCompetitors = competitorOptions?.filter((c) =>
       c.name.toLowerCase().startsWith(query)
     )
-    console.log(_filteredCompetitors)
     setFilteredCompetitors(_filteredCompetitors)
   }
 

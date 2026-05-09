@@ -18,7 +18,6 @@ export const fetchCompetitorsById = async (req: Request, res: Response) => {
       where: { visit_id: Number(id) },
       include: { competitors: true, competitor_products: true }
     });
-    console.log(competitors);
     return res.status(200).json({ message: "Competitor fetched successfully", data: competitors });
   } catch (error) {
     console.error(error);
