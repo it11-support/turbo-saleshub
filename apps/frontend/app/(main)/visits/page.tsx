@@ -399,7 +399,6 @@ const VisitList = () => {
       }
     }
 
-    // 🔥 FULL VERTICAL (INI YANG DIUBAH)
     for (let R = startRow; R <= endRow; R++) {
       for (let C = 0; C <= lastCol; C++) {
         const ref = XLSX.utils.encode_cell({ r: R, c: C })

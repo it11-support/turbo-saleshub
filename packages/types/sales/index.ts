@@ -3,6 +3,12 @@ import { ICustomer } from '../customer'
 import { IProduct } from '../product'
 import { IReturInvoices } from '../retur'
 
+export type ICustomerExtended = ICustomer & {
+  avgRevenuePerMonth: string;
+  lastTransactionDate: string;
+  totalItems: number;
+};
+
 export interface ISalesInvoices {
   id: BigInt | number
   DocNum: number
@@ -114,9 +120,9 @@ export interface IDashboardData {
         total: number,
         penetration: number,
       },
-      noActive: {
+      nonActive: {
         total: number,
-        customers: ICustomer[],
+        customers: ICustomerExtended[],
       }
     }
   }

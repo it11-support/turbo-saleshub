@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { getParetoProducts } from './functions.js';
 import { generateLocalCode } from '@/utils/localCode.js';
 import { activityLogger } from '@/services/logs/index.js';
+import { getActiveCustomers } from '../summary/functions.js';
 
 export type CustomerRequestType = {
   active?: string[];

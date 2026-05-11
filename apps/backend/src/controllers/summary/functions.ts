@@ -205,6 +205,7 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
         c.GroupName,
         c.Phone1,
         c.Cellular,
+        c.SlpCode,
         MAX(v.date) as lastTransactionDate,
         SUM(v.revenue) / 12 AS avgRevenuePerMonth,
         Max(i.totalItems) AS totalItems
@@ -245,8 +246,8 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
   // 1. Ambil set CardCode yang sudah aktif bulan ini untuk komparasi cepat
   const activeSet = new Set(activeRows.map(r => r.CardCode));
 
-  // 2. Filter No Active: Ada di baseRows tapi TIDAK ADA di activeSet
-  const noActiveCustomers = baseRows.filter(customer => !activeSet.has(customer.CardCode));
+  // 2. Filter Non-Active: Ada di baseRows tapi TIDAK ADA di activeSet
+  const nonActiveCustomers = baseRows.filter(customer => !activeSet.has(customer.CardCode));
 
   const baseTotal = baseRows.length;
   const activeTotal = activeRows.length;
@@ -260,9 +261,9 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
       total: activeTotal,
       penetration,
     },
-    noActive: {
-      total: noActiveCustomers.length,
-      customers: noActiveCustomers,
+    nonActive: {
+      total: nonActiveCustomers.length,
+      customers: nonActiveCustomers,
     }
   };
 };
