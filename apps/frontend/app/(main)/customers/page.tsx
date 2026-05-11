@@ -3,6 +3,7 @@
 import { fetcher } from '../lib'
 import { getClass, segmentToStars } from './components/functions'
 import NavButton from './components/NavButton'
+import CustomerCell from '../components/customer/CustomerCell'
 import { DataTableSortMeta, ICustomer } from '@saleshub-tsm/types'
 import {
   parseAsArrayOf,
@@ -265,9 +266,18 @@ export default function CustomerTable() {
         onRowClick={(e) => (window.location.href = `/customers/${e.data.id}`)}
         rowsPerPageOptions={[10, 20, 25, 50]}
       >
-        {visibleHeaders.map((col) => (
-          <Column key={col.field} {...col} />
-        ))}
+        {visibleHeaders.map((col) => {
+          if (col.field === 'CardName') {
+            return (
+              <Column
+                key={col.field}
+                {...col}
+                body={(rowData) => <CustomerCell rowData={rowData} />}
+              />
+            )
+          }
+          return <Column key={col.field} {...col} />
+        })}
       </DataTable>
     </div>
   )

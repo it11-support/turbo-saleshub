@@ -197,11 +197,14 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
     // Query Base: Customer yang pernah transaksi Jan 2025 - Bulan lalu
     prisma.$queryRaw<any[]>`
       SELECT
+        c.id,
         v.CardCode,
         c.CardName,
         c.City,
         c.SalesName,
         c.GroupName,
+        c.Phone1,
+        c.Cellular,
         MAX(v.date) as lastTransactionDate,
         SUM(v.revenue) / 12 AS avgRevenuePerMonth,
         Max(i.totalItems) AS totalItems

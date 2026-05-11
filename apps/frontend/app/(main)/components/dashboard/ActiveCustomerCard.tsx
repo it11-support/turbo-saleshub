@@ -1,3 +1,4 @@
+import CustomerCell from '../customer/CustomerCell'
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import { IDashboardData } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
@@ -112,7 +113,7 @@ const ActiveCustomerCard = ({
                 rowsPerPageOptions={[10, 25, 50]}
                 className="p-datatable-sm"
                 filterDisplay="menu"
-                emptyMessage="Hebat! Semua customer sudah bertransaksi."
+                emptyMessage="All customers are active."
               >
                 <Column field="CardCode" header="Code" sortable filter style={{ width: '15%' }} />
                 <Column
@@ -120,6 +121,7 @@ const ActiveCustomerCard = ({
                   header="Customer Name"
                   sortable
                   filter
+                  body={(row) => <CustomerCell rowData={row} />}
                   style={{ width: '35%' }}
                 />
                 <Column
