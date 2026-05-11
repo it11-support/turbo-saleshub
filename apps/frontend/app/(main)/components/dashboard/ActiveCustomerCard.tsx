@@ -15,6 +15,7 @@ import useSWR from 'swr'
 
 import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
+import { useAuth } from '@/layout/context/AuthContext'
 
 type ActiveCustomerCardProps = {
   isActiveCustomersValidating: boolean
@@ -25,6 +26,7 @@ const ActiveCustomerCard = ({
   isActiveCustomersValidating,
   activeCustomersData,
 }: ActiveCustomerCardProps) => {
+  const { isAdmin } = useAuth()
   const activeCustomers = activeCustomersData?.data?.activeCustomers
   const baseCustomers = activeCustomers?.baseCustomer
   const nonActive = activeCustomers?.nonActive
@@ -72,14 +74,16 @@ const ActiveCustomerCard = ({
         <h3 className="m-0">Non Active Customers</h3>
         <small className="text-color-secondary">{`Non Active Customers This Month (Total: ${nonActive?.total})`}</small>
       </div>
-      <div className="flex gap-2">
-        <Button
-          label="Export"
-          icon="pi pi-download"
-          className="p-button-outlined p-button-sm"
-          onClick={() => setShowExport(true)}
-        />
-      </div>
+      {isAdmin && (
+        <div className="flex gap-2">
+          <Button
+            label="Export"
+            icon="pi pi-download"
+            className="p-button-outlined p-button-sm"
+            onClick={() => setShowExport(true)}
+          />
+        </div>
+      )}
     </div>
   )
 
