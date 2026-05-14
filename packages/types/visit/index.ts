@@ -177,5 +177,5 @@ export interface IVisitState {
   setVisitNote: (note: string) => void
   addFollowUp: () => Promise<void>
   startVisit: (visitId: number) => Promise<void>
-  closeItems: (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => Promise<void>
+  processItems: (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => Promise<void>
 }

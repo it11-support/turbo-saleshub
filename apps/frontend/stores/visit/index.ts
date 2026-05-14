@@ -71,7 +71,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       set({ loading: false })
     }
   },
-  closeItems: async (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => {
+  processItems: async (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => {
     try {
       set({ loading: true })
 
