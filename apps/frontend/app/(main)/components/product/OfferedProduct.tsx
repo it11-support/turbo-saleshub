@@ -3,7 +3,7 @@
 import ProductTag from './ProductTag'
 import { fetcher } from '../../lib'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
-import { EFollowUpStatus, EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
+import { EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
@@ -100,11 +100,8 @@ const OfferedProduct = (props: Props) => {
     setIsVisible(true)
   }
 
-  const hasFollowUps = useMemo(() => {
-    return (
-      visitItem.visit_item_concerns?.some((c) => c.status.status === EFollowUpStatus.FollowUp) ??
-      false
-    )
+  const hasStatus = useMemo(() => {
+    return visitItem.visit_item_concerns?.some((c) => c.status) ?? false
   }, [visitItem])
 
   return (
@@ -140,13 +137,11 @@ const OfferedProduct = (props: Props) => {
                 </div>
 
                 {/* Kontainer Tag: Gunakan ml-auto dan pastikan tidak tersembunyi */}
-                {activeIndex !== 0 &&
-                  hasFollowUps &&
-                  visitItem.visit_item_concerns?.[0]?.status && (
-                    <div className="ml-auto flex-none align-self-start pt-0">
-                      <ProductTag status={visitItem.visit_item_concerns[0].status} />
-                    </div>
-                  )}
+                {activeIndex !== 0 && hasStatus && visitItem.visit_item_concerns?.[0]?.status && (
+                  <div className="ml-auto flex-none align-self-start pt-0">
+                    <ProductTag status={visitItem.visit_item_concerns[0].status} />
+                  </div>
+                )}
               </div>
             }
           >

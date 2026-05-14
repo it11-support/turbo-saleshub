@@ -7,6 +7,7 @@ import {
   IResPaginated,
   ISalesVisitRule,
   IVisit,
+  IVisitItemConcern,
 } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import Link from 'next/link'
@@ -69,24 +70,68 @@ const VisitListTable = () => {
   }
 
   const followUpsBodyTemplate = (rowData: SalesVisit) => {
-    const visitItems = rowData.visits.visit_items
+    const visitItems = rowData.visits?.visit_items
     if (!visitItems?.length) return
-    const openConcerns = visitItems
-      ?.flatMap((item) => item.visit_item_concerns || [])
-      .filter(
-        (concern) =>
-          ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
-            concern.status?.status as EFollowUpStatus
-          )
-      )
 
-    if (!openConcerns.length || rowData.status !== 'Completed') return
+    // 1. Kumpulkan semua concern dari visit items
+    const allConcerns = visitItems.flatMap((item) => item.visit_item_concerns || [])
+
+    // 2. Fungsi untuk mengambil status paling akhir dari array follow_ups
+    const getLatestStatus = (concern: IVisitItemConcern): EFollowUpStatus | null => {
+      const followUps = concern.follow_ups || []
+      if (followUps.length > 0) {
+        // Mengambil data follow_up urutan paling terakhir (terbaru)
+        const latestFollowUp = followUps[followUps.length - 1]
+        return latestFollowUp.concern_status?.status as EFollowUpStatus
+      }
+      // Fallback jika tidak ada riwayat follow_ups
+      return concern.status?.status as EFollowUpStatus
+    }
+
+    // 3. Kelompokkan data berdasarkan status terakhirnya
+    const openIssues = allConcerns.filter((concern) => {
+      const latestStatus = getLatestStatus(concern)
+      return latestStatus && ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(latestStatus)
+    })
+
+    const doneIssues = allConcerns.filter((concern) => {
+      return getLatestStatus(concern) === EFollowUpStatus.Done
+    })
+
+    const closedIssues = allConcerns.filter((concern) => {
+      return getLatestStatus(concern) === EFollowUpStatus.Closed
+    })
+
+    // 4. Validasi tampilan: jika tidak ada isu apa pun atau visit belum Completed, sembunyikan komponen
+    const hasAnyIssue = openIssues.length > 0 || doneIssues.length > 0 || closedIssues.length > 0
+    if (!hasAnyIssue || rowData.status !== 'Completed') return
 
     return (
       <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
-        <div className="flex align-items-center gap-2 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
-          <i className="pi pi-exclamation-triangle text-yellow-500"></i>
-          <span className="font-medium">{openConcerns.length} Open Issues</span>
+        <div className="flex flex-column gap-2 cursor-pointer text-sm">
+          {/* Tampilan jika ada Open Issues (Belum Done & Belum Closed) */}
+          {openIssues.length > 0 && (
+            <div className="flex align-items-center gap-2 text-gray-600 hover:text-yellow-600 transition-colors">
+              <i className="pi pi-exclamation-triangle text-yellow-500"></i>
+              <span className="font-medium">{openIssues.length} Open Issues</span>
+            </div>
+          )}
+
+          {/* Tampilan jika ada Done Issues */}
+          {doneIssues.length > 0 && (
+            <div className="flex align-items-center gap-2 text-green-600 hover:text-green-700 transition-colors">
+              <i className="pi pi-check-circle text-green-500"></i>
+              <span className="font-medium">{doneIssues.length} Done</span>
+            </div>
+          )}
+
+          {/* Tampilan jika ada Closed Issues */}
+          {closedIssues.length > 0 && (
+            <div className="flex align-items-center gap-2 text-red-600 hover:text-red-700 transition-colors">
+              <i className="pi pi-times text-red-500"></i>
+              <span className="font-medium">{closedIssues.length} Closed</span>
+            </div>
+          )}
         </div>
       </Link>
     )

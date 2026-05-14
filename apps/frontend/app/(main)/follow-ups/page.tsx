@@ -92,21 +92,88 @@ const FollowUpsPage = () => {
     const visitItems = rowData.visits?.visit_items
 
     if (!visitItems?.length) return
-    const openConcerns = visitItems
-      ?.flatMap((item) => item.visit_item_concerns || [])
-      .filter(
-        (concern) =>
-          ![EFollowUpStatus.Done, EFollowUpStatus.Closed].includes(
-            concern.status?.status as EFollowUpStatus
-          )
-      )
 
-    if (!openConcerns.length || rowData.status !== 'Completed') return
+    const closedStatuses: string[] = [EFollowUpStatus.Done, EFollowUpStatus.Closed]
+
+    const allConcerns = visitItems.flatMap((item) => item.visit_item_concerns || [])
+
+    if (!allConcerns.length || rowData.status !== 'Completed') return
+
+    let openIssuesCount = 0
+
+    const statusCounts = allConcerns.reduce((acc, concern) => {
+      const followUps = concern.follow_ups
+
+      const activeStatusObj =
+        followUps && followUps.length > 0 ? followUps[0]?.concern_status : concern.status
+
+      const statusName = activeStatusObj?.status
+      const statusLevel = activeStatusObj?.level || 'info'
+      const statusIcon = activeStatusObj?.icon || 'pi pi-circle' // Fallback jika icon kosong
+
+      if (statusName) {
+        if (!acc[statusName]) {
+          acc[statusName] = { count: 0, level: statusLevel, icon: statusIcon }
+        }
+
+        acc[statusName].count += 1
+
+        if (!closedStatuses.includes(statusName as EFollowUpStatus)) {
+          openIssuesCount++
+        }
+      }
+      return acc
+    }, {} as Record<string, { count: number; level: string; icon: string }>)
+
+    const sortedStatuses = Object.entries(statusCounts).sort(([statusA], [statusB]) => {
+      const isAClosed = closedStatuses.includes(statusA as EFollowUpStatus)
+      const isBClosed = closedStatuses.includes(statusB as EFollowUpStatus)
+
+      if (!isAClosed && isBClosed) return -1
+      if (isAClosed && !isBClosed) return 1
+      return statusA.localeCompare(statusB)
+    })
+
+    // 2. Pemetaan warna berbasis string level database
+    const getStatusColorClass = (level: string) => {
+      switch (level) {
+        case 'warning':
+          return 'text-yellow-600 font-medium'
+        case 'success':
+          return 'text-green-600 font-medium'
+        case 'danger':
+          return 'text-red-500 font-medium'
+        default:
+          return 'text-blue-600 font-medium'
+      }
+    }
+
     return (
       <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
-        <div className="flex align-items-center gap-2 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
-          <i className="pi pi-exclamation-triangle text-yellow-500"></i>
-          <span className="font-medium">{openConcerns.length} Open Issues</span>
+        <div className="flex flex-column gap-1 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
+          {/* Total Isu Terbuka */}
+          <div className="flex align-items-center gap-2 mb-1">
+            <i className="pi pi-exclamation-triangle text-yellow-500"></i>
+            <span className="font-semibold">
+              {openIssuesCount} Open Issue{openIssuesCount > 1 && 's'}
+            </span>
+          </div>
+
+          {/* Rincian Status Tunggal per Item Lengkap dengan Warna & Icon Dinamis */}
+          <div className="pl-4 flex flex-column gap-1 text-xs">
+            {sortedStatuses.map(([statusName, data]) => (
+              <div
+                key={statusName}
+                className={`flex align-items-center gap-1.5 capitalize ${getStatusColorClass(
+                  data.level
+                )}`}
+              >
+                <span>
+                  {data.count} {statusName.toLowerCase()}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </Link>
     )
