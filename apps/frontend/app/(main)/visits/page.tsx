@@ -438,7 +438,7 @@ const VisitList = () => {
                 )}
                 onChange={(e) => {
                   setFilters({
-                    status: e.value ?? null, // ✅ sekarang valid
+                    status: e.value ?? null,
                     page: 1,
                   })
                 }}
