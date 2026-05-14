@@ -35,7 +35,7 @@ const VisitsPage = () => {
     setVisitNote,
     endVisit,
     startVisit,
-    closeItems,
+    processItems,
   } = salesVisitStore
   const { fetchScheduleByDate, currentDate } = useScheduleStore()
   const { fetchConcernStatuses, fetchConcernCategories, concernCategories, concernStatuses } =
@@ -59,7 +59,7 @@ const VisitsPage = () => {
     Record<number | string, Record<number, { notes: string; statusId: number | null }>>
   >({})
 
-  const [concernSelctionForClose, setConcernSelctionForClose] = useState<
+  const [concernSelctionForUpdate, setConcernSelctionForUpdate] = useState<
     Record<number, { notes: string; statusId: number | null }>
   >({})
 
@@ -69,8 +69,8 @@ const VisitsPage = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [markedAsClosed, setMarkedAsClosed] = useState<ProductWithFrequency[]>([])
-  const [showCloseDialog, setShowCloseDialog] = useState(false)
+  const [markedAs, setMarkedAs] = useState<ProductWithFrequency[]>([])
+  const [showBulkOfferDialog, setShowBulkOfferDialog] = useState(false)
 
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
@@ -137,7 +137,7 @@ const VisitsPage = () => {
     const activeGroup = suggestedGroups.find((group) => group.key === value)
     setActiveProductGroup(activeGroup?.items ?? [])
     setSearch('')
-    setMarkedAsClosed([])
+    setMarkedAs([])
   }
 
   const isDistributor = suggestedGroup === 'distributor'
@@ -230,21 +230,21 @@ const VisitsPage = () => {
 
   const isVisitInitated = salesVisit.start_at !== null
 
-  const handleMarkAllAsClosed = (items: ProductWithFrequency[]) => {
+  const handleTagAllForOffer = (items: ProductWithFrequency[]) => {
     const itemIds = items.map((item) => item.id)
-    if (markedAsClosed.some((item) => itemIds.includes(item.id))) {
-      setMarkedAsClosed((prev) => prev.filter((item) => !itemIds.includes(item.id)))
+    if (markedAs.some((item) => itemIds.includes(item.id))) {
+      setMarkedAs((prev) => prev.filter((item) => !itemIds.includes(item.id)))
     } else {
-      const toMark = items.filter((item) => !markedAsClosed.some((i) => i.id === item.id))
-      setMarkedAsClosed((prev) => [...prev, ...toMark])
+      const toMark = items.filter((item) => !markedAs.some((i) => i.id === item.id))
+      setMarkedAs((prev) => [...prev, ...toMark])
     }
   }
 
-  const handleMarkAsClosed = (item: ProductWithFrequency) => {
-    if (markedAsClosed.some((i) => i.id === item.id)) {
-      setMarkedAsClosed((prev) => prev.filter((i) => i.id !== item.id))
+  const handleTagForOffer = (item: ProductWithFrequency) => {
+    if (markedAs.some((i) => i.id === item.id)) {
+      setMarkedAs((prev) => prev.filter((i) => i.id !== item.id))
     } else {
-      setMarkedAsClosed((prev) => [...prev, item])
+      setMarkedAs((prev) => [...prev, item])
     }
   }
 
@@ -362,15 +362,15 @@ const VisitsPage = () => {
               <>
                 <div className="mx-2 mt-3">
                   <h6>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h6>
-                  {markedAsClosed.length > 0 && (
+                  {markedAs.length > 0 && (
                     <div className="flex align-items-center gap-2 my-3">
                       <Button
                         size="small"
                         outlined
-                        severity="danger"
-                        icon="pi pi-times-circle"
-                        label="Close Selected Items"
-                        onClick={() => setShowCloseDialog(true)}
+                        severity="success"
+                        icon="pi pi-cog pi-spin"
+                        label="Process Tagged Items"
+                        onClick={() => setShowBulkOfferDialog(true)}
                       />
                     </div>
                   )}
@@ -395,11 +395,11 @@ const VisitsPage = () => {
                                   <Checkbox
                                     inputId={`checkbox-closed-${cat.value}`}
                                     checked={items.every((item) =>
-                                      markedAsClosed.some((i) => i.id === item.id)
+                                      markedAs.some((i) => i.id === item.id)
                                     )}
-                                    onChange={() => handleMarkAllAsClosed(items)}
+                                    onChange={() => handleTagAllForOffer(items)}
                                   />
-                                  <span>Mark all as Closed</span>
+                                  <span>Tag all</span>
                                 </label>
                               </div>
                               <div className="grid">
@@ -412,7 +412,7 @@ const VisitsPage = () => {
                                   const visitItems = visit_items?.find(
                                     (i) => i.product_id === item.id
                                   )
-                                  const checked = markedAsClosed.map((i) => i.id).includes(item.id)
+                                  const checked = markedAs.map((i) => i.id).includes(item.id)
                                   const visitItemConcerns = visitItems?.visit_item_concerns
 
                                   return (
@@ -427,8 +427,8 @@ const VisitsPage = () => {
                                         overlayRefs={overlayRefs}
                                         setSelectedProduct={setSelectedProduct}
                                         setShowOfferDialog={setShowOfferDialog}
-                                        handleMarkAsClosed={handleMarkAsClosed}
-                                        markedAsClosed={checked}
+                                        handleTagForOffer={handleTagForOffer}
+                                        markedForOffer={checked}
                                       />
                                     </div>
                                   )
@@ -453,7 +453,7 @@ const VisitsPage = () => {
                           ? item.ProductCategory.charAt(0) +
                             item.ProductCategory.slice(1).toLocaleLowerCase()
                           : ''
-                        const checked = markedAsClosed.map((i) => i.id).includes(item.id)
+                        const checked = markedAs.map((i) => i.id).includes(item.id)
                         const visitItems = visit_items?.find((i) => i.product_id === item.id)
                         const visitItemConcerns = visitItems?.visit_item_concerns
                         return (
@@ -468,8 +468,8 @@ const VisitsPage = () => {
                               overlayRefs={overlayRefs}
                               setSelectedProduct={setSelectedProduct}
                               setShowOfferDialog={setShowOfferDialog}
-                              handleMarkAsClosed={handleMarkAsClosed}
-                              markedAsClosed={checked}
+                              handleTagForOffer={handleTagForOffer}
+                              markedForOffer={checked}
                             />
                           </div>
                         )
@@ -789,9 +789,9 @@ const VisitsPage = () => {
         modal
         blockScroll
         dismissableMask
-        header="Close Items"
-        visible={showCloseDialog}
-        onHide={() => setShowCloseDialog(false)}
+        header="Submit Items for Offer"
+        visible={showBulkOfferDialog}
+        onHide={() => setShowBulkOfferDialog(false)}
         style={{ width: '90%', maxWidth: '400px' }}
         footer={
           <>
@@ -800,22 +800,22 @@ const VisitsPage = () => {
               label="Cancel"
               severity="danger"
               outlined
-              onClick={() => setShowCloseDialog(false)}
+              onClick={() => setShowBulkOfferDialog(false)}
             />
             <Button
               icon="pi pi-save"
               label="Save"
               outlined
               onClick={() => {
-                closeItems(
-                  concernSelctionForClose,
-                  markedAsClosed.map((item) => Number(item.id))
+                processItems(
+                  concernSelctionForUpdate,
+                  markedAs.map((item) => Number(item.id))
                 ).then(() => {
                   fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
                   fetchConcernCategories()
                   fetchConcernStatuses()
-                  setShowCloseDialog(false)
-                  setMarkedAsClosed([])
+                  setShowBulkOfferDialog(false)
+                  setMarkedAs([])
                 })
               }}
             />
@@ -825,7 +825,7 @@ const VisitsPage = () => {
         <div className="flex flex-column gap-3 w-full my-2">
           <h6>Select Topic</h6>
           {concernCategories.map((category) => {
-            const selection = concernSelctionForClose?.[Number(category.id)]
+            const selection = concernSelctionForUpdate?.[Number(category.id)]
             return (
               <div key={Number(category.id)} className="border-bottom-1 surface-border pb-3">
                 <div className="flex align-items-center gap-2">
@@ -835,7 +835,7 @@ const VisitsPage = () => {
                     onChange={(e) => {
                       const id = Number(category.id)
 
-                      setConcernSelctionForClose((prev) => {
+                      setConcernSelctionForUpdate((prev) => {
                         const next = { ...prev }
 
                         if (!e.checked) {
@@ -875,7 +875,7 @@ const VisitsPage = () => {
                         onChange={(e) => {
                           const id = Number(category.id)
 
-                          setConcernSelctionForClose((prev) => ({
+                          setConcernSelctionForUpdate((prev) => ({
                             ...prev,
                             [id]: {
                               ...prev[id],
@@ -898,16 +898,14 @@ const VisitsPage = () => {
                       <Dropdown
                         inputId={`concern-status-${category.id}`}
                         value={selection?.statusId ?? null}
-                        options={concernStatuses
-                          .filter((s) => !s.requires_action)
-                          .map((s) => ({
-                            label: s.status,
-                            value: s.id,
-                          }))}
+                        options={concernStatuses.map((s) => ({
+                          label: s.status,
+                          value: s.id,
+                        }))}
                         onChange={(e) => {
                           const id = Number(category.id)
 
-                          setConcernSelctionForClose((prev) => ({
+                          setConcernSelctionForUpdate((prev) => ({
                             ...prev,
                             [id]: {
                               ...prev[id],

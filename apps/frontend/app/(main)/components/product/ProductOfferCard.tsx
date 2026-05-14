@@ -20,8 +20,8 @@ type Props = {
   setSelectedProduct?: (item: ProductWithFrequency | null) => void
   setShowOfferDialog?: (show: boolean) => void
   hideOfferButton?: boolean
-  handleMarkAsClosed?: (item: ProductWithFrequency) => void
-  markedAsClosed?: boolean
+  handleTagForOffer?: (item: ProductWithFrequency) => void
+  markedForOffer?: boolean
 }
 const ProductOfferCard = (props: Props) => {
   const {
@@ -31,8 +31,8 @@ const ProductOfferCard = (props: Props) => {
     setSelectedProduct,
     setShowOfferDialog,
     hideOfferButton,
-    handleMarkAsClosed,
-    markedAsClosed,
+    handleTagForOffer,
+    markedForOffer,
   } = props
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
@@ -42,7 +42,7 @@ const ProductOfferCard = (props: Props) => {
   }
 
   const clickMarkAsClosed = (item: ProductWithFrequency) => {
-    handleMarkAsClosed?.(item)
+    handleTagForOffer?.(item)
   }
 
   return (
@@ -104,16 +104,16 @@ const ProductOfferCard = (props: Props) => {
             severity="success"
             onClick={() => handleProductOffer(item)}
           />
-          <div className="flex align-items-center gap-2 mb-2">
+          <div className="flex align-items-center gap-2">
             <label
               htmlFor={`checkbox-closed-${item.ItemCode}`}
-              className="flex align-items-center gap-2 mb-2"
+              className="flex align-items-center gap-2"
             >
-              Mark as Closed
+              Tag for Offer
             </label>
             <Checkbox
               inputId={`checkbox-closed-${item.ItemCode}`}
-              checked={markedAsClosed || false}
+              checked={markedForOffer || false}
               onChange={() => clickMarkAsClosed(item)}
             />
           </div>
