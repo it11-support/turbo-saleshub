@@ -121,10 +121,10 @@ const LoginPage = () => {
                   defaultValue=""
                   render={({ field }) => (
                     <InputText
-                      id="identifier"
+                      id="username"
                       {...field}
                       placeholder="Email address or username"
-                      className={`w-full md:w-30rem mb-2 ${errors.username ? 'p-invalid' : ''}`}
+                      className={ `w-full md:w-30rem mb-2 ${errors.username ? 'p-invalid' : ''}` }
                       style={{ padding: '1rem' }}
                     />
                   )}
@@ -148,7 +148,7 @@ const LoginPage = () => {
                       placeholder="Password"
                       toggleMask
                       // feedback={false} // hilangkan strength meter kalau tidak perlu
-                      className={`w-full mb-5 ${errors.password ? 'p-invalid' : ''}`}
+                      className={`w-full md:w-30rem mb-2 ${errors.password ? 'p-invalid' : ''}`}
                       inputClassName="w-full p-3 md:w-30rem"
                     />
                   )}

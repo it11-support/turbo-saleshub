@@ -52,7 +52,7 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
 
     if (!user) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: User not found', status: 'FAILED', username });
-      return res.status(200).json({ message: 'User not found', data: { errors: { username: 'User not found. Check your email/username and try again.' } } });
+      return res.status(200).json({ message: 'User not found', data: { errors: { username: 'Username or email not found.' } } });
     }
 
     const isMatch = await comparePassword(password, user.password);
