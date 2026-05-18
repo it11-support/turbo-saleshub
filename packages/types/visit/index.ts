@@ -90,7 +90,7 @@ export enum EFollowUpType {
   Visit = 'Visit',
   WhatsApp = 'WhatsApp',
   Email = 'Email',
-  Override = 'Override'
+  Feedback = 'Feedback'
 }
 
 

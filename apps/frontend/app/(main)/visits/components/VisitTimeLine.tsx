@@ -65,7 +65,7 @@ const VisitTimeLine = (props: VisitTimeLineState) => {
             </small>
 
             <small className="text-color-secondary text-xs block mt-1 font-italic">
-              {item.type === EFollowUpType.Override ? 'Added by Admin' : ''}
+              {item.type === EFollowUpType.Feedback ? 'Added by Admin' : ''}
             </small>
           </div>
         )}

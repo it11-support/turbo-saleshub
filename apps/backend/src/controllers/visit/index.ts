@@ -354,7 +354,7 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
 
     const count = visits.length;
 
-    if (type === 'Override') {
+    if (type === 'Feedback') {
       const data: FollowUpUpdateData<IVisit> = {
         followUpUpdate: {
           count,

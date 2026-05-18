@@ -70,7 +70,7 @@ const OfferedProduct = (props: Props) => {
         visit_item_concern_id: selectedConcern.id,
         status: selectedConcern.status.status,
         action_required: selectedConcern.status.requires_action || false,
-        type: EFollowUpType.Override,
+        type: EFollowUpType.Feedback,
         notes: '',
         next_follow_up_date: null,
       })
@@ -95,7 +95,7 @@ const OfferedProduct = (props: Props) => {
     setSelectedConcern(null)
   }
 
-  const handleOverride = (concern: IVisitItemConcern) => {
+  const handleFeedback = (concern: IVisitItemConcern) => {
     setSelectedConcern(concern)
     setIsVisible(true)
   }
@@ -202,10 +202,10 @@ const OfferedProduct = (props: Props) => {
 
                       {isAdmin && (
                         <Button
-                          onClick={() => handleOverride(concern)}
+                          onClick={() => handleFeedback(concern)}
                           size="small"
                           severity="info"
-                          label="Override"
+                          label="Feedback"
                           icon="pi pi-pencil"
                           className="p-button-sm border-round-md p-button-outlined"
                         />
@@ -226,7 +226,7 @@ const OfferedProduct = (props: Props) => {
 
       {/* DIALOG TETAP */}
       <Dialog
-        header="Override Status"
+        header="Update Status"
         visible={visible}
         style={{ width: '420px' }}
         modal
