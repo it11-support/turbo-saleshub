@@ -13,9 +13,9 @@ import { Dropdown } from 'primereact/dropdown'
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 
+import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
-import { useAuth } from '@/layout/context/AuthContext'
 
 type ActiveCustomerCardProps = {
   isActiveCustomersValidating: boolean

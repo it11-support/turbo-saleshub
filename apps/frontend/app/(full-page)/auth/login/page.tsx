@@ -124,7 +124,7 @@ const LoginPage = () => {
                       id="username"
                       {...field}
                       placeholder="Email address or username"
-                      className={ `w-full md:w-30rem mb-2 ${errors.username ? 'p-invalid' : ''}` }
+                      className={`w-full md:w-30rem mb-2 ${errors.username ? 'p-invalid' : ''}`}
                       style={{ padding: '1rem' }}
                     />
                   )}
