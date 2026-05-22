@@ -458,6 +458,20 @@ model visit_competitors {
   @@index([competitor_id])
 
 }
+model customer_item_range_monthly {
+  period    String
+  category  String
+  customers Int      @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([period, category])
+
+  @@index([period], map: "idx_period")
+  @@index([category], map: "idx_range")
+
+}
 
 model competitor_products {
   id                        BigInt      @id @default(autoincrement()) @db.UnsignedBigInt

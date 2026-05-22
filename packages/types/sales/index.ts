@@ -124,6 +124,7 @@ export interface IDashboardData {
         total: number,
         customers: ICustomerExtended[],
       }
-    }
+    },
+    customersByRangeItem: { period: string, category: string, customers: number }[]
   }
 }

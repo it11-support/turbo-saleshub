@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
-import { getActiveCustomers, getNooVsExisting, getSalesSummary } from './functions.js'
+import { getActiveCustomers, getNooVsExisting, getPeriodRange, getSalesSummary } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 
 export const mtdSummary = async (req: Request, res: Response) => {
@@ -381,4 +381,31 @@ export const fetchActiveCustomers = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 
+}
+
+export const fetchCustomersByRangeItem = async (req: Request, res: Response) => {
+  try {
+    const { start, end } = getPeriodRange(12)
+    const customersByRangeItem = await prisma.customer_item_range_monthly.findMany({
+      where: {
+        period: {
+          gte: start,
+          lte: end
+        },
+      },
+      orderBy: {
+        period: 'asc'
+      }
+    })
+    return res.status(200).json({
+      message: 'Success',
+      data: {
+        customersByRangeItem
+      },
+    })
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+
+  }
 }

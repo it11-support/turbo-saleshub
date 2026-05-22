@@ -3,6 +3,7 @@
 import prisma from '@/libs/prisma.js'
 import { calcGrowth } from '@/utils/statsFunctions.js'
 import { SummaryResult } from '@saleshub-tsm/types'
+import dayjs from 'dayjs'
 
 
 export const getSalesSummary = async (salesPersonId?: number | null) => {
@@ -269,3 +270,12 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
 };
 
 
+export const getPeriodRange = (months = 12) => {
+  return {
+    start: dayjs()
+      .subtract(months - 1, 'month')
+      .format('YYYY-MM'),
+
+    end: dayjs().format('YYYY-MM'),
+  }
+}
