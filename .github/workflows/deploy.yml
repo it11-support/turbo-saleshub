@@ -80,21 +80,20 @@ jobs:
 
             set +e
 
-            sudo fuser -k 4000/tcp || true
-            sudo fuser -k 3001/tcp || true
-            sudo kill -9 $(sudo lsof -t -i:4000) 2>/dev/null || true
-            sudo kill -9 $(sudo lsof -t -i:3001) 2>/dev/null || true
+            sudo fuser -k 4000/tcp >/dev/null 2>&1 || true
+            sudo fuser -k 3001/tcp >/dev/null 2>&1 || true
+            sudo kill -9 $(sudo lsof -t -i:4000) >/dev/null 2>&1 || true
+            sudo kill -9 $(sudo lsof -t -i:3001) >/dev/null 2>&1 || true
 
 
-            pm2 delete all || true
-            pm2 drop || true
-            
-            pm2 kill || true
-            sudo pkill -9 -f "node" || true
-            sudo pkill -9 -f "pm2" || true
+            pm2 delete all >/dev/null 2>&1 || true
+            pm2 clear >/dev/null 2>&1 || true
+
+            sudo pkill -9 -f "node" >/dev/null 2>&1 || true
+            sudo pkill -9 -f "pm2" >/dev/null 2>&1 || true
             rm -rf ~/.pm2 || true
-
+            
             set -e
             
-            pm2 start ecosystem.config.js --update-env
+            pm2 start ecosystem.config.js
             pm2 save
