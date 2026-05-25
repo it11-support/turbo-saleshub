@@ -33,69 +33,62 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Exit immediately if a command exits with a non-zero status
-            bash -i -c '
-              set -e
+            set -e
+            ulimit -v unlimited || true
+            ulimit -m unlimited || true
 
-              cd /home/sysdevrco1/release/turbo-saleshub
-              git pull origin release/v1
+            cd /home/sysdevrco1/release/turbo-saleshub
+            git pull origin release/v1
 
-              # Backend env
-              cat > apps/backend/.env <<EOF
-              DATABASE_USER=${{ secrets.DATABASE_USER }}
-              DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-              DATABASE_NAME=${{ secrets.DATABASE_NAME }}
-              DATABASE_HOST=${{ secrets.DATABASE_HOST }}
-              DATABASE_PORT=${{ secrets.DATABASE_PORT }}
-              DATABASE_URL=mysql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}
-              JWT_SECRET=${{ secrets.JWT_SECRET }}
-              SOCKET_IO_CLIENT_URL=${{ secrets.SOCKET_IO_CLIENT_URL }}
-              CLIENT_URL=${{ secrets.CLIENT_URL }}
-              TZ=Asia/Makassar
-              NODE_ENV=production
-              PORT=4000
-              EOF
+            # Backend env
+            cat > apps/backend/.env <<EOF
+            DATABASE_USER=${{ secrets.DATABASE_USER }}
+            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+            DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+            DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+            DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+            DATABASE_URL=mysql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ secrets.DATABASE_HOST }}:${{ secrets.DATABASE_PORT }}/${{ secrets.DATABASE_NAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SOCKET_IO_CLIENT_URL=${{ secrets.SOCKET_IO_CLIENT_URL }}
+            CLIENT_URL=${{ secrets.CLIENT_URL }}
+            TZ=Asia/Makassar
+            NODE_ENV=production
+            PORT=4000
+            EOF
 
-              # Frontend env
-              cat > apps/frontend/.env.production <<EOF
-              NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-              NEXT_PUBLIC_APP_TITLE="${{ secrets.NEXT_PUBLIC_APP_TITLE }}"
-              NEXT_REMOTE_PROTOCOL=${{ secrets.NEXT_REMOTE_PROTOCOL }}
-              NEXT_REMOTE_HOSTNAME=${{ secrets.NEXT_REMOTE_HOSTNAME }}
-              NEXT_REMOTE_PATH=${{ secrets.NEXT_REMOTE_PATH }}
-              NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-              NODE_ENV=production
-              PORT=3001
-              TZ=Asia/Makassar
-              EOF
+            # Frontend env
+            cat > apps/frontend/.env.production <<EOF
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_APP_TITLE="${{ secrets.NEXT_PUBLIC_APP_TITLE }}"
+            NEXT_REMOTE_PROTOCOL=${{ secrets.NEXT_REMOTE_PROTOCOL }}
+            NEXT_REMOTE_HOSTNAME=${{ secrets.NEXT_REMOTE_HOSTNAME }}
+            NEXT_REMOTE_PATH=${{ secrets.NEXT_REMOTE_PATH }}
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NODE_ENV=production
+            PORT=3001
+            TZ=Asia/Makassar
+            EOF
 
-              # Install dependencies
-              pnpm install --frozen-lockfile
+            # Install dependencies
+            pnpm install --frozen-lockfile
 
-              # Backend prisma generate & build
-              pnpm --filter ./apps/backend db:generate
-              pnpm --filter ./apps/backend build
+            # Backend prisma generate & build
+            pnpm --filter ./apps/backend db:generate
+            pnpm --filter ./apps/backend build
 
-              # Frontend build
-              pnpm --filter ./apps/frontend lint
-              pnpm --filter ./apps/frontend build
+            # Frontend build
+            pnpm --filter ./apps/frontend lint
+            pnpm --filter ./apps/frontend build
 
-              set +e
-
-              sudo fuser -k 4000/tcp >/dev/null 2>&1 || true
-              sudo fuser -k 3001/tcp >/dev/null 2>&1 || true
-              sudo kill -9 $(sudo lsof -t -i:4000) >/dev/null 2>&1 || true
-              sudo kill -9 $(sudo lsof -t -i:3001) >/dev/null 2>&1 || true
-
-
-              pm2 delete all >/dev/null 2>&1 || true
-              pm2 clear >/dev/null 2>&1 || true
-
-              sudo pkill -9 -f "node" >/dev/null 2>&1 || true
-              sudo pkill -9 -f "pm2" >/dev/null 2>&1 || true
-              rm -rf ~/.pm2 || true
-              
-              set -e
-              
-              pm2 start ecosystem.config.js
-              pm2 save
-            '
+            set +e
+            sudo fuser -k 4000/tcp >/dev/null 2>&1 || true
+            sudo fuser -k 3001/tcp >/dev/null 2>&1 || true
+            
+            # Hapus aplikasi lama, tidak perlu pkill -9 pm2 agar daemon tetap stabil
+            pm2 delete all >/dev/null 2>&1 || true
+            pm2 clear >/dev/null 2>&1 || true
+            set -e
+            
+            # 3. Jalankan ulang aplikasi
+            pm2 start ecosystem.config.js --update-env
+            pm2 save
