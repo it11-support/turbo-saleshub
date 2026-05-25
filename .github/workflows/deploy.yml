@@ -86,7 +86,9 @@ jobs:
             sudo kill -9 $(sudo lsof -t -i:3001) 2>/dev/null || true
 
 
-            pm2 delete saleshub-frontend saleshub-backend || true
+            pm2 delete all || true
+            pm2 drop || true
+            
             pm2 kill || true
             sudo pkill -9 -f "node" || true
             sudo pkill -9 -f "pm2" || true
