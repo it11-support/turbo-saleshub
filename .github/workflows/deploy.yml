@@ -80,21 +80,24 @@ jobs:
 
       - name: Remove pm2 instances if exist
         run: |
-          # Remove pm2 instance (Gunakan || true agar tidak crash jika pm2 tidak ada)
-          sudo pm2 kill || true
+          # 1. Stop all node process
+          sudo fuser -k 4000/tcp || true
+          sudo fuser -k 3001/tcp || true
+          sudo kill -9 $(sudo lsof -t -i:4000) 2>/dev/null || true
+          sudo kill -9 $(sudo lsof -t -i:3001) 2>/dev/null || true
+
+          # 2. Stop all pm2 process
           npx pm2 kill || true
+          sudo pm2 kill || true
 
-          # Remove pm2 lock file
-          sudo rm -rf /root/.pm2 || true
-          rm -rf ~/.pm2 || true
-
-          # Kill pm2 (node process)
+          # 3. Kill all remaining node process
           sudo pkill -9 -f "node" || true
           sudo pkill -9 -f "pm2" || true
 
-          # Kill process on 4000 and 3001
-          sudo kill -9 $(sudo lsof -t -i:4000) 2>/dev/null || true
-          sudo kill -9 $(sudo lsof -t -i:3001) 2>/dev/null || true
+          # 4. Remove pm2 directory
+          rm -rf ~/.pm2 || true
+          sudo rm -rf /root/.pm2 || true
+
 
       - name: Redeploy pm2
         run: |
