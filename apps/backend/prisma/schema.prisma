@@ -462,6 +462,7 @@ model customer_item_range_monthly {
   period    String
   category  String
   customers Int      @default(0)
+  revenue   Decimal  @db.Decimal(20, 6) @default(0)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

@@ -1,12 +1,18 @@
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
+import { ChartDataset, TooltipItem } from 'chart.js'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
+
+interface CustomBarDataset extends ChartDataset<'bar', number[]> {
+  revenueData?: number[]
+}
 
 type CustomerByItemRangeProp = {
   customersByRangeItem?: {
     period: string
     category: string
     customers: number
+    revenue: number
   }[]
   isValidating: boolean
 }
@@ -41,6 +47,13 @@ const CustomerByItemRange = (props: CustomerByItemRangeProp) => {
       return found?.customers ?? 0
     }),
 
+    revenueData: labels.map((period) => {
+      const found = customersByRangeItem?.find(
+        (item) => item.period === period && item.category === category
+      )
+      return found?.revenue ?? 0
+    }),
+
     borderWidth: 1,
   }))
 
@@ -66,6 +79,45 @@ const CustomerByItemRange = (props: CustomerByItemRangeProp) => {
       tooltip: {
         mode: 'index',
         intersect: false,
+        callbacks: {
+          label: function (context: TooltipItem<'bar'>) {
+            // PERUBAHAN: Hapus tanda [] agar menjadi objek tunggal
+            let label = context.dataset.label || ''
+            if (label) {
+              label += ' '
+            }
+
+            // Ambil data y (customers)
+            const customersCount = context.parsed.y
+
+            // Ambil data revenue dari custom property dataset Anda
+            const dataset = context.dataset as CustomBarDataset
+            const revenueAmount = dataset.revenueData?.[context.dataIndex] || 0
+
+            const formattedRevenue = new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+              maximumFractionDigits: 0,
+            }).format(revenueAmount)
+
+            // Menggunakan padEnd dengan spasi karakter manual agar terhitung di canvas
+            return [`${label}: (${customersCount} Customers)`, `${formattedRevenue}`]
+          },
+
+          title: function (context: TooltipItem<'bar'>[]) {
+            const rawDate = context[0].label
+
+            // Ubah menjadi objek Date
+            const date = new Date(rawDate + '-01')
+
+            // Format menjadi nama bulan bahasa Indonesia
+            return date.toLocaleDateString('en-EN', {
+              month: 'long',
+              year: 'numeric',
+            })
+          },
+        },
+        bodySpacing: 4,
       },
     },
 
