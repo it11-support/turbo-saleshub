@@ -78,8 +78,25 @@ jobs:
             pnpm --filter ./apps/frontend lint
             pnpm --filter ./apps/frontend build
 
-            fuser -k 4000/tcp || true
-            fuser -k 3001/tcp || true
+      - name: Remove pm2 instances if exist
+        run: |
+          # Remove pm2 instance (Gunakan || true agar tidak crash jika pm2 tidak ada)
+          sudo pm2 kill || true
+          npx pm2 kill || true
 
-            npx pm2 startOrReload ecosystem.config.js --update-env
-            npx pm2 save
+          # Remove pm2 lock file
+          sudo rm -rf /root/.pm2 || true
+          rm -rf ~/.pm2 || true
+
+          # Kill pm2 (node process)
+          sudo pkill -9 -f "node" || true
+          sudo pkill -9 -f "pm2" || true
+
+          # Kill process on 4000 and 3001
+          sudo kill -9 $(sudo lsof -t -i:4000) 2>/dev/null || true
+          sudo kill -9 $(sudo lsof -t -i:3001) 2>/dev/null || true
+
+      - name: Redeploy pm2
+        run: |
+          npx pm2 start ecosystem.config.js --update-env
+          npx pm2 save
