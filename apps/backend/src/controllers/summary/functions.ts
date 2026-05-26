@@ -216,6 +216,9 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
       LEFT JOIN customers c
         ON v.CardCode = c.CardCode
 
+      LEFT JOIN sales_persons sp
+        ON c.SlpCode = sp.SlpCode
+
       LEFT JOIN (
         SELECT
           CardCode,
@@ -230,6 +233,7 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
       WHERE v.date >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
         AND v.date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
         AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
+        AND (sp.SlpName IS NULL OR sp.SlpName NOT IN ('Langganan Kantor', 'Kontan Kantor'))
 
       GROUP BY v.CardCode
     `,
@@ -237,9 +241,12 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
     prisma.$queryRaw<any[]>`
       SELECT v.CardCode
       FROM daily_sales_summary_view v
+      LEFT JOIN sales_persons sp
+        ON v.sales_person_id = sp.id
       WHERE v.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
         AND v.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
         AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
+        AND (sp.SlpName IS NULL OR sp.SlpName NOT IN ('Langganan Kantor', 'Kontan Kantor'))
       GROUP BY v.CardCode
     `
   ]);
