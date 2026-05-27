@@ -8,9 +8,9 @@ type Props = {
 const NavButton = ({ handleEndVisit }: Props) => {
   const router = useRouter()
 
-  const searchParams = useSearchParams();
-  const fromPage = searchParams.get('from');
-  const handleBack = () => fromPage ? router.push(`/${fromPage}`) : router.back();
+  const searchParams = useSearchParams()
+  const fromPage = searchParams.get('from')
+  const handleBack = () => (fromPage ? router.push(`/${fromPage}`) : router.back())
 
   return (
     <div className="col-12 flex justify-content-start align-items-center gap-2 pl-0">
