@@ -149,7 +149,13 @@ const FollowUpsPage = () => {
     }
 
     return (
-      <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
+      <Link
+        href={{
+          pathname: `/visits/issues/${Number(rowData.visits.id)}`,
+          query: { from: 'follow-ups' },
+        }}
+        className="no-underline"
+      >
         <div className="flex flex-column gap-1 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
           {/* Total Isu Terbuka */}
           <div className="flex align-items-center gap-2 mb-1">
@@ -204,10 +210,10 @@ const FollowUpsPage = () => {
 
   const handleClickEdit = (data: IVisit) => {
     if (data.status === 'Ongoing') {
-      router.push(`/visits/${data.id}`)
+      router.push(`/visits/${data.id}?from=follow-ups`)
       return
     }
-    router.push(`/visits/details/${data.id}`)
+    router.push(`/visits/details/${data.id}?from=follow-ups`)
   }
 
   return (

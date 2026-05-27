@@ -107,7 +107,13 @@ const VisitListTable = () => {
     if (!hasAnyIssue || rowData.status !== 'Completed') return
 
     return (
-      <Link href={`/visits/issues/${Number(rowData.visits.id)}`} className="no-underline">
+      <Link
+        href={{
+          pathname: `/visits/issues/${Number(rowData.visits.id)}`,
+          query: { from: 'visits' },
+        }}
+        className="no-underline"
+      >
         <div className="flex flex-column gap-2 cursor-pointer text-sm">
           {/* Tampilan jika ada Open Issues (Belum Done & Belum Closed) */}
           {openIssues.length > 0 && (
@@ -139,10 +145,10 @@ const VisitListTable = () => {
 
   const handleClickEdit = (data: IVisit) => {
     if (data.status === 'Ongoing') {
-      router.push(`/visits/${data.id}`)
+      router.push(`/visits/${data.id}?from=visits`)
       return
     }
-    router.push(`/visits/details/${data.id}`)
+    router.push(`/visits/details/${data.id}?from=visits`)
   }
 
   const statusBodyTemplate = (rowData: SalesVisit) => {
