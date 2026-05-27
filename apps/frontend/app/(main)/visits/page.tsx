@@ -106,9 +106,9 @@ const VisitList = () => {
     const data: VisitRow[] = []
 
     exportData.forEach((visit) => {
-      if (!visit.visit_items || visit.visit_items.length === 0) {
-        return
-      }
+      // if (!visit.visit_items || visit.visit_items.length === 0) {
+      //   return
+      // }
 
       const getDuration = (start?: Date, end?: Date | null) => {
         if (!start || !end) return ''
