@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { classNames } from 'primereact/utils'
-import { forwardRef, useContext, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from 'react'
 
 import { useAuth } from './context/AuthContext'
 import { LayoutContext } from './context/layoutcontext'
@@ -11,6 +11,8 @@ import { Badge } from 'primereact/badge'
 import { createUrl } from '@/lib/api'
 import useSWR from 'swr'
 import { fetcher } from '@/app/(main)/lib'
+import { useSocket } from './context/SocketIoContext'
+import { INotification } from '@saleshub-tsm/types'
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const { layoutState, setLayoutState } = useContext(LayoutContext)
@@ -18,13 +20,37 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const topbarmenuRef = useRef(null)
   const topbarmenubuttonRef = useRef(null)
   const auth = useAuth()
+  const socket = useSocket()
 
   const { logout, user } = auth
 
   const apiNotifUrl = createUrl('notifications/unread', { userId: Number(user?.id) })
-  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher, {
+  const { data, mutate } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher, {
     revalidateOnFocus: false,
   })
+
+  useEffect(() => {
+    const currentSocket = socket
+
+    if (currentSocket) {
+      const handleUpdate = (newNotification: INotification) => {
+        mutate((currentData: any) => {
+          if (!currentData) return currentData
+
+          return {
+            ...currentData,
+            data: [newNotification, ...(currentData.data || [])],
+          }
+        }, false)
+      }
+
+      currentSocket.on('followUpUpdate', handleUpdate)
+
+      return () => {
+        currentSocket.off('followUpUpdate', handleUpdate)
+      }
+    }
+  }, [socket, mutate])
 
   const notifications = data?.data
   const totalNotifications = notifications?.length
