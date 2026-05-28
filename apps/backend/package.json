@@ -42,9 +42,9 @@
     "eslint": "10.4.0",
     "eslint-plugin-import": "^2.32.0",
     "prisma": "^7.8.0",
-    "tsc-alias": "^1.8.17",
-    "tsx": "^4.20.6",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.0"
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.22.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.51.0"
   }
 }
