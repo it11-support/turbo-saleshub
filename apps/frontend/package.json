@@ -13,7 +13,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@saleshub-tsm/types": "workspace:*",
-    "@types/node": "20.3.1",
+    "@types/node": "25.9.1",
     "@types/react": "18.2.12",
     "@types/react-dom": "18.2.5",
     "chart.js": "4.5.1",
