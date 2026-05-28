@@ -284,8 +284,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       primeicons:
-        specifier: ^6.0.1
-        version: 6.0.1
+        specifier: ^7.0.0
+        version: 7.0.0
       primereact:
         specifier: 10.2.1
         version: 10.2.1(@types/react@18.2.12)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -3663,8 +3663,8 @@ packages:
   primeflex@4.0.0:
     resolution: {integrity: sha512-UOEZCRjR36+sm5bUpDhS1xbA068l9VC6y1aTNVqQPtXuKIdPTqAWHRUxj3mKAoPrQ9W373ooJJMgNVXfiaw04g==}
 
-  primeicons@6.0.1:
-    resolution: {integrity: sha512-KDeO94CbWI4pKsPnYpA1FPjo79EsY9I+M8ywoPBSf9XMXoe/0crjbUK7jcQEDHuc0ZMRIZsxH3TYLv4TUtHmAA==}
+  primeicons@7.0.0:
+    resolution: {integrity: sha512-jK3Et9UzwzTsd6tzl2RmwrVY/b8raJ3QZLzoDACj+oTJ0oX7L9Hy+XnVwgo4QVKlKpnP/Ur13SXV/pVh4LzaDw==}
 
   primereact@10.2.1:
     resolution: {integrity: sha512-F25053E1z+fod6V7AJ1Ix/DwSPkFQotk2+Idm0XkFsN+gQEywH7DgtbvNKpUA+LEq48h2+/WVK3D0V8IAm1Npg==}
@@ -3958,6 +3958,11 @@ packages:
 
   semver@7.7.2:
     resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
+  semver@7.8.1:
+    resolution: {integrity: sha512-rkVq3IXh+4FDGch+KwzX3aV9W3kO54GyEgpvBzSyctDA6Xtd7RJQV1xmXbeQp5v7+VzLOfVqiutSE6GICgPFvg==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -8166,7 +8171,7 @@ snapshots:
 
   primeflex@4.0.0: {}
 
-  primeicons@6.0.1: {}
+  primeicons@7.0.0: {}
 
   primereact@10.2.1(@types/react@18.2.12)(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
@@ -8505,6 +8510,9 @@ snapshots:
   semver@7.7.2: {}
 
   semver@7.8.1: {}
+
+  semver@7.8.1:
+    optional: true
 
   semver@7.8.1:
     optional: true
