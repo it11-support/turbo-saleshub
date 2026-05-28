@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "pnpm"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -10,9 +10,7 @@ updates:
     ignore:
       - dependency-name: "@saleshub-tsm/types"
     open-pull-requests-limit: 10
-    
     versioning-strategy: increase
-
     groups:
       monorepo-dependencies:
         patterns:
@@ -20,3 +18,21 @@ updates:
           - "react*"
           - "express"
           - "prisma*"
+
+  - package-ecosystem: "npm"
+    directory: "/apps/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "npm"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 5
