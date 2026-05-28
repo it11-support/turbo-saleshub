@@ -7,6 +7,8 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+    ignore:
+      - dependecy-name: "@saleshub-tsm/types"
     open-pull-requests-limit: 10
     
     versioning-strategy: increase
