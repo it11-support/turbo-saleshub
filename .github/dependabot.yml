@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "pnpm"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -8,7 +8,7 @@ updates:
       time: "09:00"
       timezone: "Asia/Jakarta"
     ignore:
-      - dependecy-name: "@saleshub-tsm/types"
+      - dependency-name: "@saleshub-tsm/types"
     open-pull-requests-limit: 10
     
     versioning-strategy: increase
