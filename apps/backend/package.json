@@ -34,7 +34,7 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^9.39.4",
     "@types/express": "^5.0.6",
     "@types/node": "^20.19.21",
     "@typescript-eslint/eslint-plugin": "8.11.0",
