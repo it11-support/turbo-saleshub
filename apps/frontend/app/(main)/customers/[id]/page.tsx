@@ -1,34 +1,69 @@
 'use client'
+import { fetcher } from '../../lib'
 import { CustomerDetail } from '../components/CustomerDetail'
 import { calculateCustomerSpent } from '../components/functions'
-import { ILastPurchase } from '@saleshub-tsm/types'
-import { use, useEffect } from 'react'
+import { ICustomer, ILastPurchase, IResObject, SuggestedItemsGrouped } from '@saleshub-tsm/types'
+import { use } from 'react'
+import useSWR from 'swr'
 
-import { useCustomerStore } from '@/stores/customers'
+import { createUrl } from '@/lib/api'
 
 interface Props {
   params: Promise<{ id: string }>
 }
+type History = {
+  lastPurchase: ILastPurchase[]
+  ordersByRange: { current: number; last3Months: number; last6Months: number }
+  invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
+  purchaseValue: { current: number; last3Months: number; last6Months: number }
+}
+
 const CustomerDetailPage = ({ params }: Props) => {
   const { id } = use(params)
 
-  const customerStore = useCustomerStore()
-  const {
-    fetchCustomerSummary,
-    customer,
-    fetchSuggestedItems,
-    suggestedItems,
-    fetchPurchaseHistory,
-    lastPurchase,
-    ordersByRange,
-    invoiceCountByRange,
-  } = customerStore
-  useEffect(() => {
-    fetchCustomerSummary(id)
-    fetchSuggestedItems(id)
-    fetchPurchaseHistory(id)
-  }, [])
+  const customerUrl = createUrl(`customers/${id}`)
+  const { data: customerData } = useSWR<IResObject<ICustomer>>(id ? customerUrl : null, fetcher, {
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+    dedupingInterval: 60000,
+  })
 
+  const suggestionsUrl = createUrl(`customers/${id}/suggestions`)
+  const { data: suggestionsData } = useSWR<IResObject<SuggestedItemsGrouped>>(
+    id ? suggestionsUrl : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+      dedupingInterval: 60000,
+    }
+  )
+
+  const purchaseHistoryUrl = createUrl(`customers/${id}/purchases`)
+  const { data: purchaseHistoryData } = useSWR<IResObject<History>>(
+    id ? purchaseHistoryUrl : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+      dedupingInterval: 60000,
+    }
+  )
+
+  const lastPurchase = purchaseHistoryData?.data?.lastPurchase || []
+  const ordersByRange = purchaseHistoryData?.data?.ordersByRange || {
+    current: 0,
+    last3Months: 0,
+    last6Months: 0,
+  }
+  const invoiceCountByRange = purchaseHistoryData?.data?.invoiceCountByRange || {
+    current: 0,
+    last3Months: 0,
+    last6Months: 0,
+  }
+  const customer = customerData?.data as ICustomer
+
+  const suggestedItems = suggestionsData?.data as SuggestedItemsGrouped
   const valueCurrentMonth = customer?.sales_invoices
     ? calculateCustomerSpent(customer.sales_invoices)
     : 0
@@ -38,13 +73,6 @@ const CustomerDetailPage = ({ params }: Props) => {
   const value6Months = customer?.sales_invoices
     ? calculateCustomerSpent(customer.sales_invoices, 6)
     : 0
-
-  type History = {
-    lastPurchase: ILastPurchase[]
-    ordersByRange: { current: number; last3Months: number; last6Months: number }
-    invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
-    purchaseValue: { current: number; last3Months: number; last6Months: number }
-  }
 
   const history: History = {
     lastPurchase,

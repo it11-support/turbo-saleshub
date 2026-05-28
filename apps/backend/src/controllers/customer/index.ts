@@ -314,7 +314,7 @@ export const customerSummary = async (req: Request<{ id: string }>, res: Respons
       }
       : null;
 
-    return res.status(200).json({ message: 'Success', data: { customer: customerWithNetSales } });
+    return res.status(200).json({ message: 'Success', data: customerWithNetSales });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -325,11 +325,11 @@ export const itemSuggestions = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const suggestions = await getSuggestedItems(Number(id), undefined, false);
+    const { distributor, groceries } = await getSuggestedItems(Number(id), undefined, false);
 
     return res.status(200).json({
       message: 'Success',
-      data: { suggestions },
+      data: { distributor, groceries },
     });
   } catch (error) {
     console.error(error);

@@ -5,6 +5,7 @@ import { getClass, segmentToStars } from './components/functions'
 import NavButton from './components/NavButton'
 import CustomerCell from '../components/customer/CustomerCell'
 import { DataTableSortMeta, ICustomer } from '@saleshub-tsm/types'
+import { useRouter } from 'next/navigation'
 import {
   parseAsArrayOf,
   parseAsBoolean,
@@ -16,13 +17,13 @@ import {
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { Column } from 'primereact/column'
-import { DataTable } from 'primereact/datatable'
+import { DataTable, DataTableRowMouseEvent } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { Rating } from 'primereact/rating'
 import { Slider } from 'primereact/slider'
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
+import useSWR, { preload } from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
@@ -33,7 +34,7 @@ import { useCustomerStore } from '@/stores/customers'
 export default function CustomerTable() {
   const isMobile = useIsMobile(768)
   const { isAdmin } = useAuth()
-
+  const router = useRouter()
   // Ambil setter dari store untuk metadata dropdown
   const { setGroupNames, setSalesPersonNames, setSubGroupNames } = useCustomerStore()
 
@@ -61,6 +62,16 @@ export default function CustomerTable() {
   const debouncedLocalSearch = useDebounce(localSearch, 400)
   const [localItemCount, setLocalItemCount] = useState(filters.itemCount)
 
+  const rowHoverHandler = (e: DataTableRowMouseEvent) => {
+    const customerId = e.data?.id
+    if (!customerId) return
+    const cacheKey = `/customers/${customerId}`
+    const suggestionKey = `customers/${customerId}/suggestions`
+    const purchasesKey = `customers/${customerId}/purchases`
+    preload(cacheKey, fetcher)
+    preload(suggestionKey, fetcher)
+    preload(purchasesKey, fetcher)
+  }
   // Update URL hanya saat debounced search berubah
   useEffect(() => {
     setFilters({ search: debouncedLocalSearch, page: 1 })
@@ -263,8 +274,9 @@ export default function CustomerTable() {
         onSort={(e) => setFilters({ sort: e.multiSortMeta })}
         loading={isValidating}
         rowClassName={rowClass}
-        onRowClick={(e) => (window.location.href = `/customers/${e.data.id}`)}
+        onRowClick={(e) => router.push(`/customers/${e.data.id}`)}
         rowsPerPageOptions={[10, 20, 25, 50]}
+        onRowMouseEnter={rowHoverHandler}
       >
         {visibleHeaders.map((col) => {
           if (col.field === 'CardName') {

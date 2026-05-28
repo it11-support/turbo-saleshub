@@ -83,7 +83,7 @@ export const CustomerDetail = (props: Props) => {
     )
   }
 
-  const distributorItems = suggestedItems.distributor
+  const distributorItems = suggestedItems?.distributor || []
 
   const opts = Array.from(new Set(distributorItems.map((item) => item.ProductCategory))).map(
     (category) => ({
