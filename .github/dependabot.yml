@@ -1,4 +1,5 @@
 version: 2
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
@@ -7,17 +8,39 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
-    ignore:
-      - dependency-name: "@saleshub-tsm/types"
+
     open-pull-requests-limit: 10
     versioning-strategy: increase
+
+    ignore:
+      - dependency-name: "@saleshub-tsm/types"
+
     groups:
-      monorepo-dependencies:
+      nextjs:
         patterns:
           - "next"
-          - "react*"
-          - "express"
-          - "prisma*"
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+
+      prisma:
+        patterns:
+          - "@prisma/*"
+          - "prisma"
+
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+
+      radix:
+        patterns:
+          - "@radix-ui/*"
+
+      fontawesome:
+        patterns:
+          - "@fortawesome/*"
 
   - package-ecosystem: "npm"
     directory: "/apps/frontend"
@@ -26,7 +49,11 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+
     open-pull-requests-limit: 5
+
+    ignore:
+      - dependency-name: "@saleshub-tsm/types"
 
   - package-ecosystem: "npm"
     directory: "/apps/backend"
@@ -35,4 +62,8 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+
     open-pull-requests-limit: 5
+
+    ignore:
+      - dependency-name: "@saleshub-tsm/types"

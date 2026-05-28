@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
-    "@saleshub-tsm/types": "workspace:*",
+    "@saleshub-tsm/types": "workspace:1.0.0",
     "@types/node": "20.3.1",
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",

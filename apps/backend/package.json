@@ -17,7 +17,7 @@
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.0.0",
     "@prisma/client": "^7.0.0",
-    "@saleshub-tsm/types": "workspace:*",
+    "@saleshub-tsm/types": "workspace:1.0.0",
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "apriori": "^1.0.7",
