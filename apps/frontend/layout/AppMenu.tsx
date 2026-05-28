@@ -1,31 +1,24 @@
 'use client'
 
-import React, { useContext, useMemo } from 'react'
-import { DialogType, useScheduleDialog } from '@/stores'
 import AppMenuitem from './AppMenuitem'
 import { useAuth } from './context/AuthContext'
+import { LayoutContext } from './context/layoutcontext'
 import { MenuProvider } from './context/menucontext'
 import { getMenus } from './menu'
-import { LayoutState } from '@/types'
-import { LayoutContext } from './context/layoutcontext'
 import { Role } from '@saleshub-tsm/types'
+import { useContext, useMemo } from 'react'
+
+import { DialogType, useScheduleDialog } from '@/stores'
+import { LayoutState } from '@/types'
 
 const AppMenu = () => {
   const { logout, user, loading } = useAuth()
   const { setLayoutState } = useContext(LayoutContext)
   const { show } = useScheduleDialog()
-  const showAddScheduleDialog = () => {
-    show('schedule')
-  }
-
-  const showNewCustomerDialog = () => {
-    show('customer')
-  }
 
   const showDialog = (key: DialogType) => {
     show(key)
   }
-
 
   const openSettings = () => {
     setLayoutState((prevState: LayoutState) => ({
@@ -38,7 +31,7 @@ const AppMenu = () => {
     addSchedule: showDialog.bind(null, 'schedule'),
     logout,
     openSettings,
-    newCustomer: showDialog.bind(null, 'customer')
+    newCustomer: showDialog.bind(null, 'customer'),
   }
 
   const baseMenus = useMemo(() => {

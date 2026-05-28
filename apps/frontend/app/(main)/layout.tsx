@@ -1,5 +1,6 @@
 import Layout from '../../layout/layout'
 import { Metadata, Viewport } from 'next'
+import React from 'react'
 
 import ViewportLayoutSwitcher from '@/layout/mobile/ViewportLayoutSwitcher'
 

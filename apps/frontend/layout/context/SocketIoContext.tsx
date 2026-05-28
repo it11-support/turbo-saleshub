@@ -1,8 +1,8 @@
 'use client'
-import { getCookie } from 'cookies-next'
-import { io, Socket } from 'socket.io-client'
 import { useAuth } from './AuthContext'
-import { useEffect, useState, createContext, useRef, useContext } from 'react'
+import { getCookie } from 'cookies-next'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { io, Socket } from 'socket.io-client'
 
 const SocketContext = createContext<Socket | null>(null)
 
@@ -16,7 +16,6 @@ export const SocketIoProvider = ({ children }: { children: React.ReactNode }) =>
     const token = getCookie('accessToken') as string
 
     if (user && token && !socketRef.current) {
-
       const newSocket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000', {
         auth: { token },
         transports: ['websocket'],

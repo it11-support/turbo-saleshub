@@ -1,17 +1,16 @@
 'use client'
 
-import Link from 'next/link'
-import { Sidebar } from 'primereact/sidebar'
-import React, { useMemo } from 'react'
-
 import AppMenuitem from '../AppMenuitem'
 import { useAuth } from '../context/AuthContext'
 import { MenuProvider } from '../context/menucontext'
 import { getMenus } from '../menu'
-
-import Image from 'next/image'
-import { Badge } from 'primereact/badge'
 import { Role } from '@saleshub-tsm/types'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Badge } from 'primereact/badge'
+import { Sidebar } from 'primereact/sidebar'
+import React, { useMemo } from 'react'
+
 import { DialogType, useScheduleDialog } from '@/stores'
 
 type Props = {
@@ -25,16 +24,6 @@ const MobileSidebar = (props: Props) => {
   const auth = useAuth()
   const { show } = useScheduleDialog()
 
-
-
- const showAddScheduleDialog = () => {
-    show('schedule')
-  }
-
-  const showNewCustomerDialog = () => {
-    show('customer')
-  }
-
   const showDialog = (key: DialogType) => {
     show(key)
   }
@@ -42,15 +31,14 @@ const MobileSidebar = (props: Props) => {
   const commandMap: Record<string, () => void> = {
     addSchedule: showDialog.bind(null, 'schedule'),
     logout: logout,
-    newCustomer: showDialog.bind(null, 'customer')
+    newCustomer: showDialog.bind(null, 'customer'),
   }
 
-const baseMenus = useMemo(() => {
-  const userRole = auth.user?.roles?.role;
-  if (!userRole) return [];
-  return getMenus(userRole as Role);
-}, [auth.user]);
-
+  const baseMenus = useMemo(() => {
+    const userRole = auth.user?.roles?.role
+    if (!userRole) return []
+    return getMenus(userRole as Role)
+  }, [auth.user])
 
   const attachCommands = (items: any[]): any[] => {
     return items.map((item) => {
@@ -89,7 +77,9 @@ const baseMenus = useMemo(() => {
           <div className="flex items-center justify-center p-4 border-b border-gray-200">
             <Link href="/" onClick={onHide} className="flex items-center gap-2">
               <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} />
-              <span className="font-semibold text-lg text-gray-500">{process.env.NEXT_PUBLIC_APP_TITLE}</span>
+              <span className="font-semibold text-lg text-gray-500">
+                {process.env.NEXT_PUBLIC_APP_TITLE}
+              </span>
             </Link>
           </div>
           <div className="flex item-center justify-center px-4 ">

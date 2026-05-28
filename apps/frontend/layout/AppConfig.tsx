@@ -1,12 +1,11 @@
 'use client'
 
+import { LayoutContext } from './context/layoutcontext'
+import Image from 'next/image'
 import { PrimeReactContext } from 'primereact/api'
 import { InputSwitch, InputSwitchChangeEvent } from 'primereact/inputswitch'
-import { RadioButtonChangeEvent } from 'primereact/radiobutton'
 import { Sidebar } from 'primereact/sidebar'
-import { useContext, useEffect, useState } from 'react'
-
-import { LayoutContext } from './context/layoutcontext'
+import { useContext, useEffect } from 'react'
 
 import { useConfigStore } from '@/stores'
 import { AppConfigProps, LayoutConfig, LayoutState } from '@/types'
@@ -16,16 +15,8 @@ const AppConfig = (props: AppConfigProps) => {
   const { layoutConfig, setLayoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
   const { setRipple, changeTheme } = useContext(PrimeReactContext)
 
-  const onConfigButtonClick = () => {
-    setLayoutState((prevState: LayoutState) => ({ ...prevState, configSidebarVisible: true }))
-  }
-
   const onConfigSidebarHide = () => {
     setLayoutState((prevState: LayoutState) => ({ ...prevState, configSidebarVisible: false }))
-  }
-
-  const changeInputStyle = (e: RadioButtonChangeEvent) => {
-    setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, inputStyle: e.value }))
   }
 
   const changeRipple = (e: InputSwitchChangeEvent) => {
@@ -33,10 +24,6 @@ const AppConfig = (props: AppConfigProps) => {
     setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, ripple: e.value as boolean }))
     const ripple = (e.value as boolean) ? 'true' : 'false'
     configStore.updateConfig({ ripple: ripple })
-  }
-
-  const changeMenuMode = (e: RadioButtonChangeEvent) => {
-    setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, menuMode: e.value }))
   }
 
   const _changeTheme = (theme: string, colorScheme: string) => {
@@ -50,21 +37,12 @@ const AppConfig = (props: AppConfigProps) => {
     })
   }
 
-  const decrementScale = () => {
-    setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, scale: prevState.scale - 1 }))
-  }
-
-  const incrementScale = () => {
-    setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, scale: prevState.scale + 1 }))
-  }
-
   const applyScale = () => {
     document.documentElement.style.fontSize = layoutConfig.scale + 'px'
   }
 
   useEffect(() => {
     applyScale()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutConfig.scale])
 
   return (
@@ -174,7 +152,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-light-indigo', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-light-indigo.png"
                 className="w-2rem h-2rem"
                 alt="Lara Light Indigo"
@@ -186,7 +164,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-light-blue', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-light-blue.png"
                 className="w-2rem h-2rem"
                 alt="Lara Light Blue"
@@ -198,7 +176,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-light-purple', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-light-purple.png"
                 className="w-2rem h-2rem"
                 alt="Lara Light Purple"
@@ -210,7 +188,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-light-teal', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-light-teal.png"
                 className="w-2rem h-2rem"
                 alt="Lara Light Teal"
@@ -222,7 +200,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-dark-indigo', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-dark-indigo.png"
                 className="w-2rem h-2rem"
                 alt="Lara Dark Indigo"
@@ -234,7 +212,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-dark-blue', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-dark-blue.png"
                 className="w-2rem h-2rem"
                 alt="Lara Dark Blue"
@@ -246,7 +224,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-dark-purple', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-dark-purple.png"
                 className="w-2rem h-2rem"
                 alt="Lara Dark Purple"
@@ -258,7 +236,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('lara-dark-teal', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/lara-dark-teal.png"
                 className="w-2rem h-2rem"
                 alt="Lara Dark Teal"
@@ -270,7 +248,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('soho-light', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/soho-light.png"
                 className="w-2rem h-2rem"
                 alt="Soho Light"
@@ -282,7 +260,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('soho-dark', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/soho-dark.png"
                 className="w-2rem h-2rem"
                 alt="Soho Dark"
@@ -294,7 +272,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('viva-light', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/viva-light.svg"
                 className="w-2rem h-2rem"
                 alt="Viva Light"
@@ -306,7 +284,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('viva-dark', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/viva-dark.svg"
                 className="w-2rem h-2rem"
                 alt="Viva Dark"
@@ -322,7 +300,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('bootstrap4-light-blue', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/bootstrap4-light-blue.svg"
                 className="w-2rem h-2rem"
                 alt="Bootstrap Light Blue"
@@ -334,7 +312,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('bootstrap4-light-purple', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/bootstrap4-light-purple.svg"
                 className="w-2rem h-2rem"
                 alt="Bootstrap Light Purple"
@@ -346,7 +324,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('bootstrap4-dark-blue', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/bootstrap4-dark-blue.svg"
                 className="w-2rem h-2rem"
                 alt="Bootstrap Dark Blue"
@@ -358,7 +336,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('bootstrap4-dark-purple', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/bootstrap4-dark-purple.svg"
                 className="w-2rem h-2rem"
                 alt="Bootstrap Dark Purple"
@@ -374,7 +352,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('md-light-indigo', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-light-indigo.svg"
                 className="w-2rem h-2rem"
                 alt="Material Light Indigo"
@@ -386,7 +364,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('md-light-deeppurple', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-light-deeppurple.svg"
                 className="w-2rem h-2rem"
                 alt="Material Light DeepPurple"
@@ -398,7 +376,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('md-dark-indigo', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-dark-indigo.svg"
                 className="w-2rem h-2rem"
                 alt="Material Dark Indigo"
@@ -410,7 +388,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('md-dark-deeppurple', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-dark-deeppurple.svg"
                 className="w-2rem h-2rem"
                 alt="Material Dark DeepPurple"
@@ -426,7 +404,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('mdc-light-indigo', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-light-indigo.svg"
                 className="w-2rem h-2rem"
                 alt="Material Light Indigo"
@@ -438,7 +416,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('mdc-light-deeppurple', 'light')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-light-deeppurple.svg"
                 className="w-2rem h-2rem"
                 alt="Material Light Deep Purple"
@@ -450,7 +428,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('mdc-dark-indigo', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-dark-indigo.svg"
                 className="w-2rem h-2rem"
                 alt="Material Dark Indigo"
@@ -462,7 +440,7 @@ const AppConfig = (props: AppConfigProps) => {
               className="p-link w-2rem h-2rem"
               onClick={() => _changeTheme('mdc-dark-deeppurple', 'dark')}
             >
-              <img
+              <Image
                 src="/layout/images/themes/md-dark-deeppurple.svg"
                 className="w-2rem h-2rem"
                 alt="Material Dark Deep Purple"

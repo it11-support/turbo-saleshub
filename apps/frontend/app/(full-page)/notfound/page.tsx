@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { PrimeReactContext } from 'primereact/api'
 import React, { useContext, useEffect } from 'react'
@@ -24,7 +25,7 @@ const NotFoundPage = () => {
   return (
     <div className="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
       <div className="flex flex-column align-items-center justify-content-center">
-        <img src="/images/logo/logo.png" alt="logo" className="mb-5 w-6rem flex-shrink-0" />
+        <Image src="/images/logo/logo.png" alt="logo" className="mb-5 w-6rem flex-shrink-0" />
         <div
           style={{
             borderRadius: '53px',

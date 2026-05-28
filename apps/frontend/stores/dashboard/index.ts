@@ -1,16 +1,13 @@
-import { getCookie } from 'cookies-next'
+import { ISalesSummaryState, Summary } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
-import { $api, createUrl } from '@/lib/api'
-import { ISalesSummaryState, Summary } from '@saleshub-tsm/types'
-
-export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
+export const useDashboardStore = create<ISalesSummaryState>()((set) => ({
   monthlyTrend: [],
   customerTrend: [],
   productRevenueDistributor: [],
   productRevenueGrocery: [],
-  slpRevenue:[],
-  newVsReturning: {newCustomer: 0, returningCustomer: 0},
+  slpRevenue: [],
+  newVsReturning: { newCustomer: 0, returningCustomer: 0 },
   summary: {} as Summary,
   CRR: 0,
   RPR: 0,
@@ -41,5 +38,5 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, get) => ({
   month: new Date().getMonth() + 1,
   setMonth: (val) => set({ month: val }),
   setSalesSummary: (salesSummary) => set({ salesSummary }),
-  loading: false
+  loading: false,
 }))

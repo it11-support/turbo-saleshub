@@ -1,22 +1,22 @@
-'use client';
-import React, { createContext, useCallback, useContext, useRef } from 'react';
-import { Toast, ToastMessage } from 'primereact/toast';
+'use client'
+import { Toast, ToastMessage } from 'primereact/toast'
+import React, { createContext, useCallback, useContext, useRef } from 'react'
 
-const ToastContext = createContext<any>(null);
+const ToastContext = createContext<any>(null)
 
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
-  const toastRef = useRef<Toast>(null);
+  const toastRef = useRef<Toast>(null)
 
-   const showToast = useCallback((options: ToastMessage) => {
-    toastRef.current?.show(options);
-  }, []);
+  const showToast = useCallback((options: ToastMessage) => {
+    toastRef.current?.show(options)
+  }, [])
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       <Toast ref={toastRef} position="top-right" baseZIndex={9999} />
       {children}
     </ToastContext.Provider>
-  );
-};
+  )
+}
 
-export const useGlobalToast = () => useContext(ToastContext);
+export const useGlobalToast = () => useContext(ToastContext)

@@ -1,5 +1,6 @@
 'use client'
 import NavButton from '../../customers/components/NavButton'
+import Image from 'next/image'
 import { Button } from 'primereact/button'
 import {
   FileUpload,
@@ -13,7 +14,7 @@ import { ProgressBar } from 'primereact/progressbar'
 import { Tag } from 'primereact/tag'
 import { Toast } from 'primereact/toast'
 import { Tooltip } from 'primereact/tooltip'
-import { SyntheticEvent, useRef, useState } from 'react'
+import React, { SyntheticEvent, useRef, useState } from 'react'
 
 import { $api } from '@/lib/api'
 
@@ -95,7 +96,7 @@ const BulkUpload = () => {
     return (
       <div className="flex align-items-center flex-wrap">
         <div className="flex align-items-center" style={{ width: '40%' }}>
-          <img alt={file.name} role="presentation" src={fileObjectURL(file)} width={100} />
+          <Image alt={file.name} role="presentation" src={fileObjectURL(file)} width={100} />
           <span className="flex flex-column text-left ml-3">
             {file.name}
             <small>{new Date().toLocaleDateString()}</small>

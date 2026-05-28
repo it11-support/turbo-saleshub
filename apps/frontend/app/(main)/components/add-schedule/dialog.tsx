@@ -78,7 +78,7 @@ export default function AddScheduleDialog() {
     if (isAdmin) {
       mutateSalesPerson()
     }
-  }, [isAdmin])
+  }, [isAdmin, mutateSalesPerson])
 
   useEffect(() => {
     if (activeDialog === 'schedule') {
