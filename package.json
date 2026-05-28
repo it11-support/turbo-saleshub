@@ -36,7 +36,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@types/scheduler": "0.16.4"
+      "@types/scheduler": "0.26.0"
     }
   },
   "dependencies": {
