@@ -281,8 +281,8 @@ importers:
         specifier: ^1.4.1
         version: 1.4.1
       primeflex:
-        specifier: ^3.3.1
-        version: 3.3.1
+        specifier: ^4.0.0
+        version: 4.0.0
       primeicons:
         specifier: ^6.0.1
         version: 6.0.1
@@ -3657,8 +3657,8 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
-  primeflex@3.3.1:
-    resolution: {integrity: sha512-zaOq3YvcOYytbAmKv3zYc+0VNS9Wg5d37dfxZnveKBFPr7vEIwfV5ydrpiouTft8MVW6qNjfkaQphHSnvgQbpQ==}
+  primeflex@4.0.0:
+    resolution: {integrity: sha512-UOEZCRjR36+sm5bUpDhS1xbA068l9VC6y1aTNVqQPtXuKIdPTqAWHRUxj3mKAoPrQ9W373ooJJMgNVXfiaw04g==}
 
   primeicons@6.0.1:
     resolution: {integrity: sha512-KDeO94CbWI4pKsPnYpA1FPjo79EsY9I+M8ywoPBSf9XMXoe/0crjbUK7jcQEDHuc0ZMRIZsxH3TYLv4TUtHmAA==}
@@ -8154,7 +8154,7 @@ snapshots:
 
   prettier@2.8.8: {}
 
-  primeflex@3.3.1: {}
+  primeflex@4.0.0: {}
 
   primeicons@6.0.1: {}
 
