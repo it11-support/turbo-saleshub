@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@types/react-transition-group": "^4.4.12",
-    "@typescript-eslint/eslint-plugin": "8.11.0",
+    "@typescript-eslint/eslint-plugin": "8.60.0",
     "@typescript-eslint/parser": "8.60.0",
     "eslint": "9.39.4",
     "eslint-config-next": "^16.2.6",
