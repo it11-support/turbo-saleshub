@@ -5,17 +5,18 @@ type CustomChipProps = {
   color?: string
   removable?: boolean
   icon?: string
-  onRemove?: () => void
+  onRemove?: () => boolean
 }
 const CustomChip = (props: CustomChipProps) => {
   const { label, color, icon, removable, onRemove } = props
 
   const labelValue = label ? label : ''
 
-  const onRemoveClick = () => {
+  const onRemoveClick = (): boolean => {
     if (onRemove) {
       onRemove()
     }
+    return true
   }
 
   return (

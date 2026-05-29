@@ -3,6 +3,7 @@ import NavButton from '../../customers/components/NavButton'
 import { Button } from 'primereact/button'
 import {
   FileUpload,
+  FileUploadFile,
   FileUploadHandlerEvent,
   FileUploadHeaderTemplateOptions,
   FileUploadSelectEvent,
@@ -162,7 +163,9 @@ const BulkUpload = () => {
       })
 
       const successNames = data.map((d: UploadedFile) => d.filename)
-      const remainFiles = files.filter((file) => !successNames.includes(file.name))
+      const remainFiles = files.filter(
+        (file) => !successNames.includes(file.name)
+      ) as FileUploadFile[]
       fileUploadRef.current?.setFiles(remainFiles)
 
       const newTotalSize = remainFiles.reduce((sum, f) => sum + f.size, 0)
@@ -197,7 +200,12 @@ const BulkUpload = () => {
     }
 
     if (files.length && fileUploadRef.current) {
-      fileUploadRef.current.setFiles([...(fileUploadRef.current.getFiles() || []), ...files])
+      const updatedFiles = [
+        ...(fileUploadRef.current.getFiles() || []),
+        ...files,
+      ] as FileUploadFile[]
+
+      fileUploadRef.current.setFiles(updatedFiles)
     }
   }
 
