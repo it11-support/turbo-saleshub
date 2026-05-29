@@ -85,3 +85,109 @@
         }
     }
   }
+
+
+  /* Pastikan container menduduki posisi relative dan lebar penuh */
+.p-icon-field.p-icon-field-right {
+    position: relative !important;
+    display: inline-block !important;
+    width: 100% !important;
+}
+
+/* Paksa ikon mata mengapung di sebelah kanan dalam input */
+.p-icon-field-right .p-input-icon {
+    position: absolute !important;
+    top: 50% !important;
+    right: 0.75rem !important; /* Jarak dari tepi kanan input */
+    transform: translateY(-50%) !important;
+    z-index: 10 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+    margin: 0 !important;
+}
+
+/* Pastikan cursor berubah menjadi pointer saat diarahkan ke ikon */
+.p-icon-field-right .p-input-icon svg {
+    cursor: pointer !important;
+}
+
+
+/* ==========================================================================
+   UPDATED: PERBAIKAN TOTAL CHECKBOX PRIMEREACT v10+ & TAILWIND FORMS
+   ========================================================================== */
+
+/* 1. Mengunci Ukuran dan Posisi Kontainer Induk (Mencegah Klik Meluber) */
+.p-checkbox {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;       /* 👈 Mengunci lebar maksimal area komponen */
+    height: 20px !important;      /* 👈 Mengunci tinggi maksimal area komponen */
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;    /* Mencegah kotak gepeng akibat layout flex Tailwind */
+}
+
+/* 2. Kondisi Normal / Unchecked (Kosong) */
+.p-checkbox .p-checkbox-box {
+    width: 100% !important;       /* Mengikuti ukuran .p-checkbox induk */
+    height: 100% !important;      /* Mengikuti ukuran .p-checkbox induk */
+    border: 1px solid var(--surface-d, #ced4da) !important;
+    background: var(--surface-card, #ffffff) !important;
+    border-radius: var(--border-radius, 4px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s !important;
+}
+
+/* Sembunyikan ikon centang secara default saat kosong */
+.p-checkbox .p-checkbox-box:not(.p-highlight) .p-checkbox-icon {
+    display: none !important;
+}
+
+/* 3. Kondisi AKTIF / Checked (Mengikuti Warna Tema Aktif) */
+.p-checkbox[data-p-highlight="true"] .p-checkbox-box,
+.p-checkbox .p-checkbox-box.p-highlight {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Tampilkan ikon centang di dalam box yang aktif */
+.p-checkbox[data-p-highlight="true"] .p-checkbox-box .p-checkbox-icon,
+.p-checkbox .p-checkbox-box.p-highlight .p-checkbox-icon {
+    display: block !important;
+    color: var(--primary-color-text, #ffffff) !important;
+    fill: var(--primary-color-text, #ffffff) !important;
+    font-size: 12px !important;
+}
+
+/* Efek Hover */
+.p-checkbox:not(.p-disabled):hover .p-checkbox-box {
+    border-color: var(--primary-color) !important;
+}
+
+/* 4. Mematikan & Menyegel Checkbox Bawaan Browser (Kunci Area Klik) */
+.p-checkbox .p-checkbox-input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    position: absolute !important;
+    opacity: 0 !important;        /* Membuat kotak default browser transparan */
+
+    /* 👈 Mengunci koordinat 0 di semua sisi agar tidak meluber keluar dari 20x20px induk */
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    z-index: 2 !important;
+}
