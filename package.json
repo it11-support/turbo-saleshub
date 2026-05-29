@@ -15,7 +15,7 @@
     "eslint-plugin-unused-imports": "^4.3.0",
     "scheduler": "^0.27.0",
     "ts-node": "^10.9.2",
-    "turbo": "^1.13.4",
+    "turbo": "^2.9.14",
     "typescript": "5.4.5",
     "typescript-eslint": "^8.60.0"
   },
