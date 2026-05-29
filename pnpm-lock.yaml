@@ -93,8 +93,8 @@ importers:
         specifier: ^1.19.4
         version: 1.19.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-gauge-component:
-        specifier: ^2.0.28
-        version: 2.0.28(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^2.0.29
+        version: 2.0.29(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       scheduler:
         specifier: ^0.27.0
         version: 0.27.0
@@ -3714,8 +3714,8 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
-  react-gauge-component@2.0.28:
-    resolution: {integrity: sha512-dI0NAQ8QKM6J26muhdj7LxyvIjrc76kJZ5XLyIBkE+DhVFwKjAozVywAm8ZmnagGGzbDKDa7YB91fq2FwxfwFQ==}
+  react-gauge-component@2.0.29:
+    resolution: {integrity: sha512-LlYwAnNKXoVyGAzhBh2QkjuGXlrR8ss5h/VutzIhBVszgBlyFjUwZef0noowWrvdkJJZSHFf0z9JSKxBn9rvdg==}
     peerDependencies:
       react: ^16.8.2 || ^17.0 || ^18.x || ^19.x
       react-dom: ^16.8.2 || ^17.0 || ^18.x || ^19.x
@@ -8108,7 +8108,7 @@ snapshots:
       react: 18.2.0
       scheduler: 0.23.2
 
-  react-gauge-component@2.0.28(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  react-gauge-component@2.0.29(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       d3: 7.9.0
       react: 18.2.0
