@@ -514,7 +514,7 @@ const ProductList = () => {
           Set target subgroup for{' '}
           <strong className="font-semibold text-gray-700">{activeProduct?.ItemName}</strong>
         </span>
-        
+
         <Divider />
         <div className="flex items-start gap-2 mb-3">
           <Checkbox
