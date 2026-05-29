@@ -1,0 +1,70 @@
+version: 2
+
+updates:
+
+  # Root workspace
+  - package-ecosystem: "npm"
+    directory: "/"
+
+    schedule:
+      interval: "daily"
+
+    open-pull-requests-limit: 10
+
+    versioning-strategy: increase
+
+    groups:
+      nextjs:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+
+      turbo:
+        patterns:
+          - "turbo"
+          - "@turbo/*"
+
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+
+  # Frontend app
+  - package-ecosystem: "npm"
+    directory: "/apps/frontend"
+
+    schedule:
+      interval: "daily"
+
+    open-pull-requests-limit: 10
+
+    versioning-strategy: increase
+
+  # Backend app
+  - package-ecosystem: "npm"
+    directory: "/apps/backend"
+
+    schedule:
+      interval: "daily"
+
+    open-pull-requests-limit: 10
+
+    versioning-strategy: increase
+
+  # Shared types package
+  - package-ecosystem: "npm"
+    directory: "/packages/types"
+
+    schedule:
+      interval: "daily"
+
+    open-pull-requests-limit: 10
+
+    versioning-strategy: increase
