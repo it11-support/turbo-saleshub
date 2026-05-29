@@ -4,15 +4,15 @@
   "main": "index.ts",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "8.11.0",
-    "@typescript-eslint/parser": "8.11.0",
-    "eslint": "9.39.4"
+    "@typescript-eslint/parser": "8.60.0",
+    "eslint": "10.4.0"
   },
   "scripts": {
     "build": "tsc -b"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.3",
     "@prisma/client": "^7.8.0"
   }
 }
