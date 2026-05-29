@@ -27,7 +27,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.22.2",
     "express-fileupload": "^1.5.2",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.2.1",
     "prisma-extension-pagination": "^0.7.6",
     "prisma-paginate": "^5.2.2",
