@@ -255,7 +255,7 @@ importers:
     dependencies:
       '@hookform/resolvers':
         specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.65.0(react@18.2.0))
+        version: 5.2.2(react-hook-form@7.76.1(react@18.2.0))
       '@saleshub-tsm/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -296,8 +296,8 @@ importers:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
       react-hook-form:
-        specifier: ^7.64.0
-        version: 7.65.0(react@18.2.0)
+        specifier: ^7.76.1
+        version: 7.76.1(react@18.2.0)
       react-transition-group:
         specifier: ^4.4.5
         version: 4.4.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -3720,8 +3720,8 @@ packages:
       react: ^16.8.2 || ^17.0 || ^18.x || ^19.x
       react-dom: ^16.8.2 || ^17.0 || ^18.x || ^19.x
 
-  react-hook-form@7.65.0:
-    resolution: {integrity: sha512-xtOzDz063WcXvGWaHgLNrNzlsdFgtUWcb32E6WFaGTd7kPZG3EeDusjdZfUsPwKCKVXy1ZlntifaHZ4l8pAsmw==}
+  react-hook-form@7.76.1:
+    resolution: {integrity: sha512-rYM7tPiWlu3nZchkR/ex7piyzui2vFPyaLnXnI/RnblB/L4qfMmyses8llJVtF1NpE9WBBsJlGtcSZzPCXW1qQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -4645,10 +4645,10 @@ snapshots:
     dependencies:
       hono: 4.12.23
 
-  '@hookform/resolvers@5.2.2(react-hook-form@7.65.0(react@18.2.0))':
+  '@hookform/resolvers@5.2.2(react-hook-form@7.76.1(react@18.2.0))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.65.0(react@18.2.0)
+      react-hook-form: 7.76.1(react@18.2.0)
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -8114,7 +8114,7 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  react-hook-form@7.65.0(react@18.2.0):
+  react-hook-form@7.76.1(react@18.2.0):
     dependencies:
       react: 18.2.0
 
