@@ -191,3 +191,30 @@
     cursor: pointer !important;
     z-index: 2 !important;
 }
+
+/* Paksa kontainer menu tab berbaris horizontal dan hilangkan titik bullet */
+.p-tabview .p-tabview-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Hilangkan gaya list pada item tab */
+.p-tabview .p-tabview-nav li {
+    list-style-type: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Rapikan tombol navigasi di dalam tab */
+.p-tabview .p-tabview-nav .p-tabview-nav-link {
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    padding: 1rem 1.25rem !important;
+    gap: 0.5rem !important;
+}

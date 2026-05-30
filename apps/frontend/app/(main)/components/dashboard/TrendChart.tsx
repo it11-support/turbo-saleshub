@@ -44,7 +44,10 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                         return formatCurrency(context.parsed.y, true, true)
                       },
                       title: function (context: TooltipItem<'bar'>[]) {
-                        const date = new Date(context[0].parsed.x)
+                        const rawX = context[0]?.parsed?.x
+                        if (rawX === undefined || rawX === null) return ''
+
+                        const date = new Date(rawX)
                         return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
                       },
                     },
@@ -101,7 +104,9 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                         return formatCurrency(context.parsed.y, true, false)
                       },
                       title: function (context: TooltipItem<'bar'>[]) {
-                        const date = new Date(context[0].parsed.x)
+                        const rawX = context[0]?.parsed?.x
+                        if (rawX === undefined || rawX === null) return ''
+                        const date = new Date(rawX)
                         return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
                       },
                     },
@@ -158,7 +163,9 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                         return formatCurrency(context.parsed.y, true, false)
                       },
                       title: function (context: TooltipItem<'bar'>[]) {
-                        const date = new Date(context[0].parsed.x)
+                        const rawX = context[0]?.parsed?.x
+                        if (rawX === undefined || rawX === null) return ''
+                        const date = new Date(rawX)
                         return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
                       },
                     },

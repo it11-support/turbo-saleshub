@@ -52,7 +52,6 @@ export const LayoutProvider = ({ children }: ChildContainerProps) => {
       ripple: configs.ripple === 'true',
       colorScheme: configs.colorScheme as string,
     }))
-
   }, [configs.theme, configs.colorScheme, configs.ripple])
 
   const value: LayoutContextProps = {
