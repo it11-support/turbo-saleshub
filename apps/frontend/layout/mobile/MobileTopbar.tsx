@@ -1,17 +1,17 @@
 'use client'
 
-import { forwardRef, useContext, useImperativeHandle, useRef } from 'react'
-
-import { LayoutState } from '@/types'
+import styles from './mobile.module.css'
 import { useAuth } from '../context/AuthContext'
 import { LayoutContext } from '../context/layoutcontext'
-import styles from './mobile.module.css'
 import Image from 'next/image'
-import { Badge } from 'primereact/badge'
-import { createUrl } from '@/lib/api'
-import { fetcher } from '@/app/(main)/lib'
-import useSWR from 'swr'
 import Link from 'next/link'
+import { Badge } from 'primereact/badge'
+import { forwardRef, useContext, useImperativeHandle, useRef } from 'react'
+import useSWR from 'swr'
+
+import { fetcher } from '@/app/(main)/lib'
+import { createUrl } from '@/lib/api'
+import { LayoutState } from '@/types'
 
 type Props = {
   title?: string

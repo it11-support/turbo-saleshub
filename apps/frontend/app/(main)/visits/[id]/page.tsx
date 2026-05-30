@@ -143,19 +143,22 @@ const VisitsPage = () => {
   const isDistributor = suggestedGroup === 'distributor'
 
   const distributorCategories = isDistributor
-    ? activeProductGroup.reduce((acc, item) => {
-        const categoryName = item.ProductCategory ?? ''
+    ? activeProductGroup.reduce(
+        (acc, item) => {
+          const categoryName = item.ProductCategory ?? ''
 
-        const exists = acc.find((option) => option.value === categoryName)
+          const exists = acc.find((option) => option.value === categoryName)
 
-        if (categoryName && !exists) {
-          acc.push({
-            value: categoryName,
-            label: categoryName,
-          })
-        }
-        return acc
-      }, [] as { value: string; label: string }[])
+          if (categoryName && !exists) {
+            acc.push({
+              value: categoryName,
+              label: categoryName,
+            })
+          }
+          return acc
+        },
+        [] as { value: string; label: string }[]
+      )
     : []
 
   const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))

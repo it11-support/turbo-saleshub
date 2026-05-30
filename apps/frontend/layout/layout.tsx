@@ -1,30 +1,29 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { useEventListener, useUnmountEffect } from 'primereact/hooks'
-import { classNames } from 'primereact/utils'
-import React, { useContext, useEffect, useRef } from 'react'
-
 import AppConfig from './AppConfig'
 import AppFooter from './AppFooter'
 import AppSidebar from './AppSidebar'
 import AppTopbar from './AppTopbar'
+import { useAuth } from './context/AuthContext'
 import { LayoutContext } from './context/layoutcontext'
+import { useSocket } from './context/SocketIoContext'
+import { useGlobalToast } from './context/ToastContext'
 import useIsMobile from './mobile/useIsMobile'
+import { FollowUpUpdateData, IVisit } from '@saleshub-tsm/types'
+import { useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { Button } from 'primereact/button'
+import { useEventListener, useUnmountEffect } from 'primereact/hooks'
+import { ScrollTop } from 'primereact/scrolltop'
+import { ToastMessage } from 'primereact/toast'
+import { classNames } from 'primereact/utils'
+import React, { useContext, useEffect, useRef } from 'react'
+import { mutate } from 'swr'
 
-import { AppTopbarRef, ChildContainerProps, LayoutState } from '@/types'
 import AddScheduleDialog from '@/app/(main)/components/add-schedule/dialog'
 import NewCustomerDialog from '@/app/(main)/components/customer/new-customer'
-import { ScrollTop } from 'primereact/scrolltop'
-import { useSocket } from './context/SocketIoContext'
-import { FollowUpUpdateData, IVisit } from '@saleshub-tsm/types'
-import { useGlobalToast } from './context/ToastContext'
-import { useRouter } from 'next/navigation'
-import { Button } from 'primereact/button'
-import { ToastMessage, ToastProps } from 'primereact/toast'
 import { createUrl } from '@/lib/api'
-import { useAuth } from './context/AuthContext'
-import { mutate } from "swr"
+import { AppTopbarRef, ChildContainerProps, LayoutState } from '@/types'
 
 interface CustomToastContentProps {
   message: ToastMessage
@@ -34,7 +33,7 @@ interface CustomToastContentProps {
 const Layout = ({ children }: ChildContainerProps) => {
   const router = useRouter()
   const socket = useSocket()
-  const {user} = useAuth()
+  const { user } = useAuth()
   const { showToast } = useGlobalToast()
   const { layoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
   const topbarRef = useRef<AppTopbarRef>(null)
@@ -63,8 +62,7 @@ const Layout = ({ children }: ChildContainerProps) => {
     if (currentSocket) {
       const handleUpdate = (data: FollowUpUpdateData<IVisit>) => {
         const info = data.info
-        const apiNotifUrl = createUrl('notifications', {userId: Number(user?.id)})
-
+        const apiNotifUrl = createUrl('notifications', { userId: Number(user?.id) })
 
         mutate(apiNotifUrl)
         showToast({
@@ -84,7 +82,12 @@ const Layout = ({ children }: ChildContainerProps) => {
               </div>
 
               {/* Isi Pesan */}
-              <div style={{ whiteSpace: 'pre-line' }} className="font-medium text-sm my-3 text-700 line-height-3">{info.message}</div>
+              <div
+                style={{ whiteSpace: 'pre-line' }}
+                className="font-medium text-sm my-3 text-700 line-height-3"
+              >
+                {info.message}
+              </div>
 
               {/* Tombol Aksi */}
               <div className="flex gap-2 w-full">

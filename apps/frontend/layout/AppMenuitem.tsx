@@ -1,12 +1,11 @@
 'use client'
+import { MenuContext } from './context/menucontext'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Ripple } from 'primereact/ripple'
 import { classNames } from 'primereact/utils'
-import React, { useEffect, useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { CSSTransition } from 'react-transition-group'
-
-import { MenuContext } from './context/menucontext'
 
 import { AppMenuItemProps } from '@/types'
 
@@ -26,7 +25,6 @@ const AppMenuitem = (props: AppMenuItemProps) => {
 
   useEffect(() => {
     onRouteChange(pathname)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
   const itemClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
