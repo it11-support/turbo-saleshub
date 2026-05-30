@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const rootPath = process.cwd()
-const path = require('path')
 
 const nextConfig = {
   devIndicators: false,

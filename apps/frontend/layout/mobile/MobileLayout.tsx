@@ -1,12 +1,11 @@
 'use client'
 
-import { useEventListener } from 'primereact/hooks' // PrimeReact helper
-import React, { ReactNode, useRef, useState, useEffect } from 'react'
-
 import styles from './mobile.module.css'
 import MobileBottomNav from './MobileBottomNav'
 import MobileSidebar from './MobileSidebar'
 import MobileTopbar from './MobileTopbar'
+import { useEventListener } from 'primereact/hooks' // PrimeReact helper
+import React, { ReactNode, useEffect, useRef, useState } from 'react'
 
 type Props = {
   children: ReactNode

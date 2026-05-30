@@ -4,8 +4,8 @@
   "main": "index.ts",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "8.60.0",
-    "@typescript-eslint/parser": "8.11.0",
-    "eslint": "10.4.0"
+    "@typescript-eslint/parser": "8.60.0",
+    "eslint": "10.4.1"
   },
   "scripts": {
     "build": "tsc -b"

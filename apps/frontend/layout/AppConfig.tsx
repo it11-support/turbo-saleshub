@@ -1,12 +1,11 @@
 'use client'
 
+import { LayoutContext } from './context/layoutcontext'
 import { PrimeReactContext } from 'primereact/api'
 import { InputSwitch, InputSwitchChangeEvent } from 'primereact/inputswitch'
 import { RadioButtonChangeEvent } from 'primereact/radiobutton'
 import { Sidebar } from 'primereact/sidebar'
-import { useContext, useEffect, useState } from 'react'
-
-import { LayoutContext } from './context/layoutcontext'
+import { useContext, useEffect } from 'react'
 
 import { useConfigStore } from '@/stores'
 import { AppConfigProps, LayoutConfig, LayoutState } from '@/types'
@@ -16,7 +15,7 @@ const AppConfig = (props: AppConfigProps) => {
   const { layoutConfig, setLayoutConfig, layoutState, setLayoutState } = useContext(LayoutContext)
   const { setRipple, changeTheme } = useContext(PrimeReactContext)
 
-  const onConfigButtonClick = () => {
+  const _onConfigButtonClick = () => {
     setLayoutState((prevState: LayoutState) => ({ ...prevState, configSidebarVisible: true }))
   }
 
@@ -24,7 +23,7 @@ const AppConfig = (props: AppConfigProps) => {
     setLayoutState((prevState: LayoutState) => ({ ...prevState, configSidebarVisible: false }))
   }
 
-  const changeInputStyle = (e: RadioButtonChangeEvent) => {
+  const _changeInputStyle = (e: RadioButtonChangeEvent) => {
     setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, inputStyle: e.value }))
   }
 
@@ -35,7 +34,7 @@ const AppConfig = (props: AppConfigProps) => {
     configStore.updateConfig({ ripple: ripple })
   }
 
-  const changeMenuMode = (e: RadioButtonChangeEvent) => {
+  const _changeMenuMode = (e: RadioButtonChangeEvent) => {
     setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, menuMode: e.value }))
   }
 
@@ -50,11 +49,11 @@ const AppConfig = (props: AppConfigProps) => {
     })
   }
 
-  const decrementScale = () => {
+  const _decrementScale = () => {
     setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, scale: prevState.scale - 1 }))
   }
 
-  const incrementScale = () => {
+  const _incrementScale = () => {
     setLayoutConfig((prevState: LayoutConfig) => ({ ...prevState, scale: prevState.scale + 1 }))
   }
 
@@ -64,7 +63,6 @@ const AppConfig = (props: AppConfigProps) => {
 
   useEffect(() => {
     applyScale()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutConfig.scale])
 
   return (
