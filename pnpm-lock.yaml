@@ -178,7 +178,7 @@ importers:
   apps/backend:
     dependencies:
       '@prisma/adapter-mariadb':
-        specifier: ^7.0.0
+        specifier: ^7.8.0
         version: 7.8.0
       '@prisma/client':
         specifier: ^7.8.0
