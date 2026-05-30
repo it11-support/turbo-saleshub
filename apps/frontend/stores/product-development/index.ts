@@ -1,6 +1,7 @@
-import { create } from 'zustand'
-import { $api, createUrl } from '@/lib/api'
 import { IProduct, IProductDevelopmentList, ProductDevelopmentState } from '@saleshub-tsm/types'
+import { create } from 'zustand'
+
+import { $api, createUrl } from '@/lib/api'
 
 export const useProductDevelopmentStore = create<ProductDevelopmentState>((set, get) => ({
   loading: false,
@@ -48,7 +49,7 @@ export const useProductDevelopmentStore = create<ProductDevelopmentState>((set, 
           id: activeProduct.id,
           ItemCode: activeProduct.ItemCode,
           ItemName: activeProduct.ItemName,
-          subgroups: serverSubgroups
+          subgroups: serverSubgroups,
         }
 
         const exists = state.devProducts.find((p) => p.id === activeProduct.id)

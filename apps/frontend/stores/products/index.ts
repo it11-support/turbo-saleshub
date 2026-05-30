@@ -1,8 +1,7 @@
-import { $api, createUrl } from "@/lib/api"
-import { EProductCategory, ProductStoreState } from "@saleshub-tsm/types"
-import { create } from "zustand"
+import { ProductStoreState } from '@saleshub-tsm/types'
+import { create } from 'zustand'
 
-
+import { $api, createUrl } from '@/lib/api'
 
 const initialState = {
   data: [] as any[],
@@ -16,7 +15,7 @@ const initialState = {
   selectedCategory: undefined,
   isProductFocused: false,
   isDistributor: false,
-  selectedGroup: undefined
+  selectedGroup: undefined,
 }
 
 export const useProductsStore = create<ProductStoreState>((set, get) => ({
@@ -51,7 +50,7 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
     set({ limit, page: 1 }) // reset page saat limit berubah
   },
 
-  updateProductInfo: async(product_id, productInfo) => {
+  updateProductInfo: async (product_id, productInfo) => {
     try {
       const url = createUrl('product/info')
       await $api<any>(url, {
@@ -59,7 +58,7 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: {
           product_id,
-          productInfo
+          productInfo,
         },
       })
     } catch (error) {
@@ -72,7 +71,15 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
 
   fetchProducts: async () => {
     set({ loading: true })
-    const { page, limit, search, selectedCategory, isProductFocused, isDistributor, selectedGroup } = get()
+    const {
+      page,
+      limit,
+      search,
+      selectedCategory,
+      isProductFocused,
+      isDistributor,
+      selectedGroup,
+    } = get()
 
     try {
       const url = createUrl('product', {
@@ -82,17 +89,19 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
         category: selectedCategory,
         productFocused: isProductFocused,
         distributor: isDistributor,
-        group: selectedGroup
+        group: selectedGroup,
       })
       const res = await $api<any>(url)
 
-      const productCategories = res.data.categories?.map((cat: any) => ({
-        value: cat.ItmsGrpCod,
-        label: cat.ItmsGrpNam,
-      })) || []
+      const productCategories =
+        res.data.categories?.map((cat: any) => ({
+          value: cat.ItmsGrpCod,
+          label: cat.ItmsGrpNam,
+        })) || []
 
       // hitung totalPages jika backend tidak mengirim
-      const totalPages = res.data.totalPages ?? (Math.ceil((res.data.totalRecords || 0) / limit) || 1)
+      const totalPages =
+        res.data.totalPages ?? (Math.ceil((res.data.totalRecords || 0) / limit) || 1)
 
       set({
         data: res.data.items || [],

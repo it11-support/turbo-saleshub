@@ -1,37 +1,35 @@
-import { ReactNode } from 'react'
-
 import {
+  AppMailProps,
+  AppMailReplyProps,
+  AppMailSidebarItem,
+  ChartDataState,
+  ChartOptionsState,
+  CustomEvent,
   Demo,
   LayoutType,
   SortOrderType,
-  CustomEvent,
-  ChartDataState,
-  ChartOptionsState,
-  AppMailSidebarItem,
-  AppMailReplyProps,
-  AppMailProps,
 } from './demo'
 import {
-  Page,
   AppBreadcrumbProps,
+  AppConfigProps,
+  AppMenuItem,
+  AppMenuItemProps,
+  AppTopbarRef,
   Breadcrumb,
   BreadcrumbItem,
-  MenuProps,
-  MenuModel,
+  ChatContextProps,
   LayoutConfig,
-  LayoutState,
-  Breadcrumb,
   LayoutContextProps,
+  LayoutState,
   MailContextProps,
   MenuContextProps,
-  ChatContextProps,
-  TaskContextProps,
-  AppConfigProps,
+  MenuModel,
+  MenuProps,
   NodeRef,
-  AppTopbarRef,
-  AppMenuItemProps,
-  AppMenuItem,
+  Page,
+  TaskContextProps,
 } from './layout'
+import { ReactNode } from 'react'
 
 type ChildContainerProps = {
   children: ReactNode

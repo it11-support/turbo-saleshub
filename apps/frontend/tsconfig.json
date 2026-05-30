@@ -16,7 +16,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -27,18 +27,22 @@
       "@/*": [
         "./*"
       ],
-      "@/stores/*" : [
+      "@/stores/*": [
         "./stores/*"
       ],
-      "@saleshub-tsm/types": ["../../packages/types"],
+      "@saleshub-tsm/types": [
+        "../../packages/types"
+      ]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-, "eslint.config.js"  ],
+    ".next/types/**/*.ts",
+    "eslint.config.js",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

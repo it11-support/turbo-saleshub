@@ -61,23 +61,26 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
     }
   }
 
-  const groupedByVisit = schedule.open_issues?.reduce((acc, item) => {
-    const visitId = Number(item.visit_id)
-    if (!acc[visitId]) {
-      acc[visitId] = []
-    }
+  const groupedByVisit = schedule.open_issues?.reduce(
+    (acc, item) => {
+      const visitId = Number(item.visit_id)
+      if (!acc[visitId]) {
+        acc[visitId] = []
+      }
 
-    item.visit_item_concerns?.forEach((c) => {
-      acc[visitId].push({
-        visitDate: item?.visit_date,
-        category: c.category?.name,
-        status: c.status?.status,
-        notes: c.notes,
+      item.visit_item_concerns?.forEach((c) => {
+        acc[visitId].push({
+          visitDate: item?.visit_date,
+          category: c.category?.name,
+          status: c.status?.status,
+          notes: c.notes,
+        })
       })
-    })
 
-    return acc
-  }, {} as Record<number, VisitConcernItem[]>)
+      return acc
+    },
+    {} as Record<number, VisitConcernItem[]>
+  )
 
   const status = schedule.status.toLowerCase()
 
@@ -213,9 +216,9 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
               schedule.status.toLowerCase() === VisitStatus.Completed.toLowerCase()
                 ? 'View Details'
                 : schedule.status.toLowerCase() === VisitStatus.Pending.toLowerCase() ||
-                  schedule.status.toLowerCase() === VisitStatus.Ongoing.toLowerCase()
-                ? 'Continue'
-                : 'Start Visit'
+                    schedule.status.toLowerCase() === VisitStatus.Ongoing.toLowerCase()
+                  ? 'Continue'
+                  : 'Start Visit'
             }
           />
         )}

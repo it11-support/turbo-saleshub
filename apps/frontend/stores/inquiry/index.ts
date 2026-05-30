@@ -1,6 +1,7 @@
-import { $api, createUrl } from "@/lib/api";
-import { IInquiry, IProductInquiryState } from "@saleshub-tsm/types";
-import { create } from "zustand";
+import { IInquiry, IProductInquiryState } from '@saleshub-tsm/types'
+import { create } from 'zustand'
+
+import { $api, createUrl } from '@/lib/api'
 
 export const useInquiryStore = create<IProductInquiryState>()((set, get) => ({
   loading: false,
@@ -13,10 +14,7 @@ export const useInquiryStore = create<IProductInquiryState>()((set, get) => ({
   },
   addInquiry: () =>
     set((state) => ({
-      inquiries: [
-        ...state.inquiries,
-        { product_id: null, product_name: '', notes: '' },
-      ],
+      inquiries: [...state.inquiries, { product_id: null, product_name: '', notes: '' }],
     })),
   removeInquiry: (index) =>
     set((state) => ({
@@ -64,9 +62,7 @@ export const useInquiryStore = create<IProductInquiryState>()((set, get) => ({
       const { inquiries, setInquiries } = get()
       set({ loading: true })
       const filteredInquiries = inquiries.filter((item) => {
-        return (
-          item.product_id || item.product_name?.trim() || item.notes?.trim()
-        )
+        return item.product_id || item.product_name?.trim() || item.notes?.trim()
       })
 
       const payload = {
@@ -75,15 +71,14 @@ export const useInquiryStore = create<IProductInquiryState>()((set, get) => ({
       }
 
       const url = createUrl(`inquiry`)
-      const res =await $api<any>(url, {
+      const res = await $api<any>(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload }),
       })
-      
+
       const { data } = res
       setInquiries(data.inquiries)
-
     } catch (error) {
       console.error(error)
       set({ loading: false })

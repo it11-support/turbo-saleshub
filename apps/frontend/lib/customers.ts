@@ -28,31 +28,34 @@ export const getActiveItems = (customer: ICustomer, month?: number): CustomerSum
     return isWithinInterval(docDate, interval)
   })
 
-  const grouped = filteredInvoices.reduce((acc, curr) => {
-    const key = curr.ItemCode!
+  const grouped = filteredInvoices.reduce(
+    (acc, curr) => {
+      const key = curr.ItemCode!
 
-    if (!acc[key])
-      acc[key] = {
-        ItemCode: key,
-        ItemName: curr.product?.ItemName ?? '',
-        QtyKg: 0,
-        TotalSales: 0,
-        count: 0,
-        lastInvDate: '',
-      }
+      if (!acc[key])
+        acc[key] = {
+          ItemCode: key,
+          ItemName: curr.product?.ItemName ?? '',
+          QtyKg: 0,
+          TotalSales: 0,
+          count: 0,
+          lastInvDate: '',
+        }
 
-    acc[key].QtyKg += Number(curr.QtyKg) || 0
-    acc[key].TotalSales += curr.TotalSales || 0
-    acc[key].count += 1
+      acc[key].QtyKg += Number(curr.QtyKg) || 0
+      acc[key].TotalSales += curr.TotalSales || 0
+      acc[key].count += 1
 
-    if (
-      curr.DocDate &&
-      (!acc[key].lastInvDate || new Date(curr.DocDate) > new Date(acc[key].lastInvDate))
-    )
-      acc[key].lastInvDate = curr.DocDate
+      if (
+        curr.DocDate &&
+        (!acc[key].lastInvDate || new Date(curr.DocDate) > new Date(acc[key].lastInvDate))
+      )
+        acc[key].lastInvDate = curr.DocDate
 
-    return acc
-  }, {} as Record<string, CustomerSummary>)
+      return acc
+    },
+    {} as Record<string, CustomerSummary>
+  )
 
   return Object.values(grouped).sort((a, b) => b.count - a.count)
 }
