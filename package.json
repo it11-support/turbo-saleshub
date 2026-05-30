@@ -17,7 +17,7 @@
     "globals": "^17.6.0",
     "scheduler": "^0.27.0",
     "ts-node": "^10.9.2",
-    "turbo": "^1.13.4",
+    "turbo": "^2.9.16",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.60.0"
   },
@@ -75,5 +75,6 @@
     "xlsx": "^0.18.5",
     "xlsx-js-style": "^1.2.0",
     "zod": "^4.1.13"
-  }
+  },
+  "packageManager": "pnpm@10.29.2"
 }
