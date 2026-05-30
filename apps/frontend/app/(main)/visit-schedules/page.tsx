@@ -124,6 +124,8 @@ const VisitSchedules = () => {
   }
 
   const handleHoverButton = (dateStr: string) => {
+    if (!filters.salesPersonId) return
+
     const fetchDate = formatScheduleDate(dateStr)
     const prefetchPayload = {
       ...payload,
