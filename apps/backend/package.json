@@ -45,6 +45,6 @@
     "tsc-alias": "^1.8.17",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.51.0"
+    "typescript-eslint": "^8.60.0"
   }
 }
