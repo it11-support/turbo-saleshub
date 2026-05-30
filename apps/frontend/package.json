@@ -14,9 +14,7 @@
     "@hookform/resolvers": "^5.4.0",
     "@saleshub-tsm/types": "workspace:*",
     "@types/node": "25.9.1",
-    "@types/react": "18.2.18",
-    "@types/react-dom": "18.2.5",
-    "chart.js": "4.2.1",
+    "chart.js": "4.5.1",
     "cookies-next": "^6.1.0",
     "next": "15.5.18",
     "ofetch": "^1.5.1",
@@ -38,7 +36,7 @@
     "@typescript-eslint/parser": "8.60.0",
     "eslint": "9.39.4",
     "eslint-config-next": "^16.2.6",
-    "prettier": "^2.8.8",
+    "prettier": "^3.8.3",
     "sass": "^1.100.0"
   }
 }
