@@ -288,8 +288,8 @@ const SettingsPage = () => {
               ? 'Edit Category'
               : 'Add Category'
             : editingStatusId
-            ? 'Edit Status'
-            : 'Add Status'
+              ? 'Edit Status'
+              : 'Add Status'
         }
         visible={showFormDialog}
         onHide={() => {

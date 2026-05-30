@@ -156,15 +156,15 @@ const VisitListTable = () => {
       rowData.status === 'Completed'
         ? 'text-green-500'
         : rowData.status === 'Missed'
-        ? 'text-red-500'
-        : 'text-orange-500'
+          ? 'text-red-500'
+          : 'text-orange-500'
 
     const statusIcon =
       rowData.status === 'Completed'
         ? 'pi pi-check'
         : rowData.status === 'Missed'
-        ? 'pi pi-times'
-        : 'pi pi-clock'
+          ? 'pi pi-times'
+          : 'pi pi-clock'
 
     return (
       <span className={`flex align-items-center gap-2 ${statusColor}`}>

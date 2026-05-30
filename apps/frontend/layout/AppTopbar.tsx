@@ -1,18 +1,17 @@
-import Link from 'next/link'
-import { classNames } from 'primereact/utils'
-import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from 'react'
-
 import { useAuth } from './context/AuthContext'
 import { LayoutContext } from './context/layoutcontext'
-
-import { AppTopbarRef, LayoutState } from '@/types'
-import Image from 'next/image'
-import { Badge } from 'primereact/badge'
-import { createUrl } from '@/lib/api'
-import useSWR from 'swr'
-import { fetcher } from '@/app/(main)/lib'
 import { useSocket } from './context/SocketIoContext'
 import { INotification } from '@saleshub-tsm/types'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Badge } from 'primereact/badge'
+import { classNames } from 'primereact/utils'
+import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from 'react'
+import useSWR from 'swr'
+
+import { fetcher } from '@/app/(main)/lib'
+import { createUrl } from '@/lib/api'
+import { AppTopbarRef, LayoutState } from '@/types'
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const { layoutState, setLayoutState } = useContext(LayoutContext)

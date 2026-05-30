@@ -1,6 +1,7 @@
-import { $api, createUrl } from "@/lib/api";
-import { IConcernState, IConcernStatus } from "@saleshub-tsm/types";
-import { create } from "zustand";
+import { IConcernState, IConcernStatus } from '@saleshub-tsm/types'
+import { create } from 'zustand'
+
+import { $api, createUrl } from '@/lib/api'
 
 export const useConcernStore = create<IConcernState>()((set, get) => ({
   concernCategory: null,
@@ -185,7 +186,9 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       set({ loading: false })
 
       set({
-        concernCategories: get().concernCategories.filter((category) => Number(category?.id) !== id),
+        concernCategories: get().concernCategories.filter(
+          (category) => Number(category?.id) !== id
+        ),
       })
 
       return true

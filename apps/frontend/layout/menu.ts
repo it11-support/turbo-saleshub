@@ -1,21 +1,21 @@
-import { menuConfig } from '@/lib/menuConfig'
 import { Role } from '@saleshub-tsm/types'
 
+import { menuConfig } from '@/lib/menuConfig'
 
 export const getMenus = (role: Role) => {
   return menuConfig
     .filter((section) => {
-      if (section.roles && !section.roles.includes(role)) return false;
-      return true;
+      if (section.roles && !section.roles.includes(role)) return false
+      return true
     })
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
         if (item.roles) {
-          return item.roles.includes(role);
+          return item.roles.includes(role)
         }
-        return true;
+        return true
       }),
     }))
-    .filter((section) => section.items.length > 0);
-};
+    .filter((section) => section.items.length > 0)
+}

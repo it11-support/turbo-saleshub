@@ -101,29 +101,32 @@ const FollowUpsPage = () => {
 
     let openIssuesCount = 0
 
-    const statusCounts = allConcerns.reduce((acc, concern) => {
-      const followUps = concern.follow_ups
+    const statusCounts = allConcerns.reduce(
+      (acc, concern) => {
+        const followUps = concern.follow_ups
 
-      const activeStatusObj =
-        followUps && followUps.length > 0 ? followUps[0]?.concern_status : concern.status
+        const activeStatusObj =
+          followUps && followUps.length > 0 ? followUps[0]?.concern_status : concern.status
 
-      const statusName = activeStatusObj?.status
-      const statusLevel = activeStatusObj?.level || 'info'
-      const statusIcon = activeStatusObj?.icon || 'pi pi-circle' // Fallback jika icon kosong
+        const statusName = activeStatusObj?.status
+        const statusLevel = activeStatusObj?.level || 'info'
+        const statusIcon = activeStatusObj?.icon || 'pi pi-circle' // Fallback jika icon kosong
 
-      if (statusName) {
-        if (!acc[statusName]) {
-          acc[statusName] = { count: 0, level: statusLevel, icon: statusIcon }
+        if (statusName) {
+          if (!acc[statusName]) {
+            acc[statusName] = { count: 0, level: statusLevel, icon: statusIcon }
+          }
+
+          acc[statusName].count += 1
+
+          if (!closedStatuses.includes(statusName as EFollowUpStatus)) {
+            openIssuesCount++
+          }
         }
-
-        acc[statusName].count += 1
-
-        if (!closedStatuses.includes(statusName as EFollowUpStatus)) {
-          openIssuesCount++
-        }
-      }
-      return acc
-    }, {} as Record<string, { count: number; level: string; icon: string }>)
+        return acc
+      },
+      {} as Record<string, { count: number; level: string; icon: string }>
+    )
 
     const sortedStatuses = Object.entries(statusCounts).sort(([statusA], [statusB]) => {
       const isAClosed = closedStatuses.includes(statusA as EFollowUpStatus)
@@ -190,15 +193,15 @@ const FollowUpsPage = () => {
       rowData.status === 'Completed'
         ? 'text-green-500'
         : rowData.status === 'Missed'
-        ? 'text-red-500'
-        : 'text-orange-500'
+          ? 'text-red-500'
+          : 'text-orange-500'
 
     const statusIcon =
       rowData.status === 'Completed'
         ? 'pi pi-check'
         : rowData.status === 'Missed'
-        ? 'pi pi-times'
-        : 'pi pi-clock'
+          ? 'pi pi-times'
+          : 'pi pi-clock'
 
     return (
       <span className={`flex align-items-center gap-2 ${statusColor}`}>
