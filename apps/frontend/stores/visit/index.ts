@@ -1,7 +1,7 @@
+import { FollowUpForm, IVisit, IVisitDetails, IVisitState, OfferedItem } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { FollowUpForm, IVisit, IVisitDetails, IVisitState, OfferedItem } from '@saleshub-tsm/types'
 
 export const useSalesVisit = create<IVisitState>()((set, get) => ({
   visitNote: '',
@@ -44,13 +44,15 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
         visit_items: Object.entries(data).flatMap(([productId, categories]) => ({
           product_id: Number(productId),
           visitNote: get().visitNote,
-          concerns: Object.entries(categories as Record<string, { notes: string; statusId: number }>).map(([categoryId, detail]) => ({
+          concerns: Object.entries(
+            categories as Record<string, { notes: string; statusId: number }>
+          ).map(([categoryId, detail]) => ({
             concern_id: Number(categoryId),
             note: detail.notes,
-            status_id: detail.statusId
-          }))
-        }))
-      };
+            status_id: detail.statusId,
+          })),
+        })),
+      }
 
       const url = createUrl(`visit/${get().salesVisit.id}`)
       const res = await $api<any>(url, {
@@ -71,7 +73,10 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       set({ loading: false })
     }
   },
-  processItems: async (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => {
+  processItems: async (
+    data: Record<number, { notes: string; statusId: number | null }>,
+    productIds: number[]
+  ) => {
     try {
       set({ loading: true })
 
@@ -169,5 +174,5 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       set({ loading: false })
       console.error(error)
     }
-  }
+  },
 }))

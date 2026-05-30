@@ -3,7 +3,6 @@ import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
 
-
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
   currentDate: new Date().toISOString().slice(0, 10),
   setCurrentDate: (date: string) => set({ currentDate: date }),
@@ -123,7 +122,6 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
     const selectedDate = date ?? currentDate
 
     try {
-
       const payload: Record<string, any> = {
         salesPersonId: sales_person_id,
         date: selectedDate,

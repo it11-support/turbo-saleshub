@@ -1,21 +1,19 @@
 'use client'
+import styles from './mobile.module.css'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useContext } from 'react'
-
-import styles from './mobile.module.css'
+import React from 'react'
 
 type MenuItems = {
-  href: string;
-  label: string;
-  icon: string;
+  href: string
+  label: string
+  icon: string
   action?: () => void
 }[]
 export default function MobileBottomNav() {
   const pathname = usePathname?.() || '/'
 
-
-  const items : MenuItems = [
+  const items: MenuItems = [
     { href: '/', label: 'Home', icon: 'pi pi-fw pi-home' },
     { href: '/visit-schedules', label: 'Schedules', icon: 'pi pi-fw pi-calendar' },
     { href: '/visits', label: 'Visit List', icon: 'pi pi-fw pi-list' },

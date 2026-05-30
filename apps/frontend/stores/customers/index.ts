@@ -67,7 +67,19 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       const userData = userCookie ? JSON.parse(String(userCookie)) : null
       const loginSlpCode = userData?.sales_person?.SlpCode
 
-      const { page, limit, search, multiSortMeta, groups, salesPersons, subgroups, itemCount, loyaltyLevel, slpCode, isNewCustomer } = get()
+      const {
+        page,
+        limit,
+        search,
+        multiSortMeta,
+        groups,
+        salesPersons,
+        subgroups,
+        itemCount,
+        loyaltyLevel,
+        slpCode,
+        isNewCustomer,
+      } = get()
 
       const finalSlpCode = slpCode ?? loginSlpCode
 
@@ -89,7 +101,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         ...(finalSlpCode ? { slpCode: finalSlpCode } : {}),
         ...(itemCount ? { itemCount } : {}),
         ...(loyaltyLevel ? { loyaltyLevel } : {}),
-        ...(isNewCustomer ? { isNewCustomer } : {})
+        ...(isNewCustomer ? { isNewCustomer } : {}),
       }
 
       const url = createUrl('customers', payload)
@@ -183,7 +195,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
       const url = createUrl('customers')
       const res = await $api<any>(url, {
         method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomerForm),
       })
       return res.data.newCustomer

@@ -1,10 +1,9 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import React from 'react'
-
 import MobileLayout from './MobileLayout'
 import useIsMobile from './useIsMobile'
+import { usePathname } from 'next/navigation'
+import React from 'react'
 
 type ViewportLayoutSwitcherProps = {
   children: React.ReactNode
