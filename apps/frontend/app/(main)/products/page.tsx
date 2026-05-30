@@ -2,7 +2,6 @@
 
 import ProductImageUploader from './Components/ProductImageUploader'
 import CustomChip from '../components/custom/chip'
-import { DialogFooter, DialogHeader } from '../components/ui/dialog'
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
 import {
@@ -426,7 +425,10 @@ const ProductList = () => {
                         label="Product Focus"
                         color="var(--blue-500)"
                         removable
-                        onRemove={() => setFilters({ productFocused: null, page: 1 })}
+                        onRemove={() => {
+                          setFilters({ productFocused: null, page: 1 })
+                          return true
+                        }}
                       />
                     ) : null}
 
@@ -435,7 +437,10 @@ const ProductList = () => {
                         label="Distributor Product"
                         color="var(--green-500)"
                         removable
-                        onRemove={() => setFilters({ distributor: false, page: 1 })}
+                        onRemove={() => {
+                          setFilters({ distributor: false, page: 1 })
+                          return true
+                        }}
                       />
                     )}
 
@@ -505,9 +510,10 @@ const ProductList = () => {
         header="Subgroups"
         footer={dialogFooter}
       >
-        <DialogHeader className="mb-3">
-          Set target subgroup for {activeProduct?.ItemName}
-        </DialogHeader>
+        <span className="text-sm font-normal text-gray-500 mt-1 block">
+          Set target subgroup for{' '}
+          <strong className="font-semibold text-gray-700">{activeProduct?.ItemName}</strong>
+        </span>
 
         <Divider />
         <div className="flex items-start gap-2 mb-3">
@@ -549,7 +555,6 @@ const ProductList = () => {
             </div>
           ))}
         </div>
-        <DialogFooter></DialogFooter>
       </Dialog>
       <Dialog
         header="Confirm Delete"
