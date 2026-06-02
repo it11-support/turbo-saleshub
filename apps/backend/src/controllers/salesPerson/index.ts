@@ -33,12 +33,12 @@ export const salesPersons = async (req: Request, res: Response<IResSingle<ISales
       user: sp.user ?? undefined,
     }));
 
-    return res
+    res
       .status(200)
       .json({ message: 'Sales person data fetched successfully', data: formattedSalesPersons });
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error', data: []});
+    res.status(500).json({ message: 'Internal server error', data: []});
   }
 };

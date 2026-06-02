@@ -6,7 +6,6 @@ import { Request, Response } from 'express';
 import { getParetoProducts } from './functions.js';
 import { generateLocalCode } from '@/utils/localCode.js';
 import { activityLogger } from '@/services/logs/index.js';
-import { getActiveCustomers } from '../summary/functions.js';
 
 export type CustomerRequestType = {
   active?: string[];
@@ -248,7 +247,7 @@ export const customerList = async (
     const groupNames: (string | null)[] = customerGroup.map((g) => g.GroupName);
     const subGroupNames: (string | null)[] = customerSubgroups.map((g) => g.IndName);
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         items: customers.map((c) => ({
@@ -273,7 +272,7 @@ export const customerList = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -314,10 +313,10 @@ export const customerSummary = async (req: Request<{ id: string }>, res: Respons
       }
       : null;
 
-    return res.status(200).json({ message: 'Success', data: customerWithNetSales });
+    res.status(200).json({ message: 'Success', data: customerWithNetSales });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -327,13 +326,13 @@ export const itemSuggestions = async (req: Request, res: Response) => {
 
     const { distributor, groceries } = await getSuggestedItems(Number(id), undefined, false);
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: { distributor, groceries },
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -419,7 +418,8 @@ export const purchaseHistory = async (req: Request, res: Response) => {
     };
 
     if (!customer) {
-      return res.status(404).json({ message: 'Customer not found' });
+      res.status(404).json({ message: 'Customer not found' });
+      return;
     }
 
     const grouped: Record<number, any[]> = {};
@@ -440,13 +440,13 @@ export const purchaseHistory = async (req: Request, res: Response) => {
     const firstDocNum = docNums[0];
     const lastPurchase = grouped[firstDocNum];
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: { customer, lastPurchase, ordersByRange, invoiceCountByRange },
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -575,10 +575,10 @@ export const fetchSubgroups = async (req: Request, res: Response) => {
       },
       distinct: ['IndCode'],
     });
-    return res.status(200).json({ message: 'Subgroups fetched successfully', data: subgroups });
+    res.status(200).json({ message: 'Subgroups fetched successfully', data: subgroups });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -590,10 +590,10 @@ export const fetchGroups = async (req: Request, res: Response) => {
       },
       distinct: ['GroupName'],
     });
-    return res.status(200).json({ message: 'Groups fetched successfully', data: groups });
+    res.status(200).json({ message: 'Groups fetched successfully', data: groups });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -640,7 +640,7 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
       description: `New customer created: ${CardName}`,
       status: 'SUCCESS'
     })
-    return res.status(200).json({ message: 'Customer created successfully', data: { newCustomer } });
+    res.status(200).json({ message: 'Customer created successfully', data: { newCustomer } });
   } catch (error) {
     console.error(error);
     const errorMessage = (error as Error).message;
@@ -650,6 +650,6 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
       description: `Create customer failed: ${errorMessage}`,
       status: 'FAILED'
     })
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }

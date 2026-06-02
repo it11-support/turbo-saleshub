@@ -126,7 +126,7 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
         visits: visit,
       }));
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Visit with follow up fetched successfully',
       data: {
         items: result,
@@ -139,6 +139,6 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error', data: { items: [], totalRecords: 0 } });
+    res.status(500).json({ message: 'Internal server error', data: { items: [], totalRecords: 0 } });
   }
 };

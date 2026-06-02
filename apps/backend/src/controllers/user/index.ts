@@ -67,7 +67,7 @@ export const userList = async (
         includePageCount: true,
       });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Users fetched successfully',
       data: {
         items: users,
@@ -79,7 +79,7 @@ export const userList = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error', data: {items: [], totalRecords: 0} });
+    res.status(500).json({ message: 'Internal server error', data: {items: [], totalRecords: 0} });
   }
 };
 
@@ -87,7 +87,10 @@ export const me = async (req: Request, res: Response<ProfileResponseType>) => {
   try {
     const userId = (req as any).user.id;
 
-    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
 
     const user = await prisma.users.findUnique({
       where: { id: Number(userId) },
@@ -97,7 +100,7 @@ export const me = async (req: Request, res: Response<ProfileResponseType>) => {
       },
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         user,
@@ -105,7 +108,7 @@ export const me = async (req: Request, res: Response<ProfileResponseType>) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -132,10 +135,10 @@ export const updateUser = async (req: AuthenticatedRequest<{ id: string }>, res:
       status: 'SUCCESS',
     });
 
-    return res.status(200).json({ message: 'Success', data: { user } });
+    res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -160,10 +163,10 @@ export const createUser = async (req: AuthenticatedRequest, res: Response) => {
       status: 'SUCCESS',
     });
 
-    return res.status(200).json({ message: 'Success', data: { user } });
+    res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -180,9 +183,9 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
       description: `User deleted: ${user.username}`,
       status: 'SUCCESS',
     });
-    return res.status(200).json({ message: 'Success', data: { user } });
+    res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -24,7 +24,8 @@ export const userConfig = async (
     const userId = req.query.userId;
 
     if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+      res.status(400).json({ message: 'User ID is required' });
+      return;
     }
 
     const configs = await prisma.configs.findMany({
@@ -37,7 +38,7 @@ export const userConfig = async (
       },
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         configs,
@@ -45,7 +46,7 @@ export const userConfig = async (
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -54,7 +55,10 @@ export const updateConfig = async (req: Request, res: Response) => {
     const { user_id, configs } = req.body;
     const keys = Object.keys(configs);
 
-    if (!keys) return res.status(400).json({ message: 'Key is required' });
+    if (!keys) {
+      res.status(400).json({ message: 'Key is required' });
+      return;
+    }
 
     await prisma.$transaction(
       keys.map((key) =>
@@ -66,9 +70,9 @@ export const updateConfig = async (req: Request, res: Response) => {
       )
     );
 
-    return res.status(200).json({ message: 'Success', data: configs });
+    res.status(200).json({ message: 'Success', data: configs });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
