@@ -4,10 +4,10 @@ import { Request, Response } from "express";
 export const fetchCompetitors = async (req: Request, res: Response) => {
   try {
     const competitors = await prisma.competitors.findMany();
-    return res.status(200).json({ message: "Competitors fetched successfully", data: competitors });
+    res.status(200).json({ message: "Competitors fetched successfully", data: competitors });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -18,10 +18,10 @@ export const fetchCompetitorsById = async (req: Request, res: Response) => {
       where: { visit_id: Number(id) },
       include: { competitors: true, competitor_products: true }
     });
-    return res.status(200).json({ message: "Competitor fetched successfully", data: competitors });
+    res.status(200).json({ message: "Competitor fetched successfully", data: competitors });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -29,6 +29,12 @@ export const syncCompetitors = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const competitors = req.body;
+
+    if (Array.isArray(id) || !id) {
+      res.status(400).json({ message: "Invalid ID parameter" });
+      return;
+    }
+
 
     const result = await prisma.$transaction(async (tx) => {
 
@@ -83,6 +89,6 @@ export const syncCompetitors = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }

@@ -27,15 +27,16 @@ export const image = async (req: Request, res: Response) => {
     if (fs.existsSync(jpeg)) return res.sendFile(jpeg);
 
     if (nofallback === '1') {
-      return res.json({ exists: false });
+      res.json({ exists: false });
+      return;
     }
 
     // default fallback lama
-    return res.sendFile(fallback);
+    res.sendFile(fallback);
   } catch (error) {
     console.error(error);
     const fallback = path.join(process.cwd(), 'public/images/product/no-image.png');
-    return res.sendFile(fallback);
+    res.sendFile(fallback);
   }
 };
 
@@ -70,16 +71,16 @@ export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
         status: "SUCCESS",
       });
 
-      return res.status(200).json({ message: 'Image deleted' });
+      res.status(200).json({ message: 'Image deleted' });
     } else {
-      return res.status(404).json({ message: 'Image not found' });
+      res.status(404).json({ message: 'Image not found' });
     }
   } catch (error) {
     console.error(error);
     if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     } else {
-      return res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({ message: 'Internal server error' });
     }
   }
 };
@@ -90,10 +91,14 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
 
     const { itemCode } = req.params;
 
-    if (!itemCode) return res.status(400).json({ message: 'itemCode required' });
+    if (!itemCode) {
+      res.status(400).json({ message: 'itemCode required' });
+      return;
+    }
 
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      res.status(400).json({ message: 'No file uploaded' });
+      return;
     }
 
     // ambil file pertama
@@ -120,13 +125,13 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
       description: `Product image uploaded: ${fileName}`,
       status: "SUCCESS",
     });
-    return res.json({
+    res.json({
       message: 'Upload successful',
       url: `/images/product/${fileName}`,
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Failed to upload image' });
+    res.status(500).json({ message: 'Failed to upload image' });
   }
 };
 
@@ -229,7 +234,7 @@ export const fetchProducts = async (req: Request, res: Response) => {
         revenue
       };
     });
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Products fetched successfully',
       data: {
         items: productList,
@@ -240,7 +245,7 @@ export const fetchProducts = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -250,7 +255,8 @@ export const bulkUploadProducts = async (req: AuthenticatedRequest, res: Respons
     if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
 
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+      res.status(400).json({ status: 'error', message: 'No file uploaded' });
+      return;
     }
 
     const files = req.files['files'] as fileUpload.UploadedFile[] | fileUpload.UploadedFile;
@@ -303,7 +309,7 @@ export const bulkUploadProducts = async (req: AuthenticatedRequest, res: Respons
       status: "SUCCESS",
     });
 
-    return res.json({
+    res.json({
       status: invalidFiles.length ? 'partial' : 'success',
       message: invalidFiles.length ? 'Some files failed to upload' : 'Images uploaded successfully',
       data: uploaded,
@@ -311,7 +317,7 @@ export const bulkUploadProducts = async (req: AuthenticatedRequest, res: Respons
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ status: 'error', message: 'Bulk upload failed' });
+    res.status(500).json({ status: 'error', message: 'Bulk upload failed' });
   }
 };
 
@@ -348,7 +354,7 @@ export const productDevelopment = async (req: AuthenticatedRequest, res: Respons
         status: "SUCCESS",
       });
 
-      return res.json({
+      res.json({
         id: Number(dev.id),
         ItemCode: dev.ItemCode,
         ItemName: dev.ItemName,
@@ -357,7 +363,7 @@ export const productDevelopment = async (req: AuthenticatedRequest, res: Respons
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -380,10 +386,10 @@ export const removeProductDevelopment = async (req: AuthenticatedRequest, res: R
       description: `Product development removed: ${productId}`,
       status: "SUCCESS",
     });
-    return res.json({ message: 'Success' });
+    res.json({ message: 'Success' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -404,9 +410,9 @@ export const updateInfo = async (req: AuthenticatedRequest, res: Response) => {
       status: "SUCCESS",
     });
 
-    return res.json(product);
+    res.json(product);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

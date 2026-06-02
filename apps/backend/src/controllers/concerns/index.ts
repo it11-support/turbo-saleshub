@@ -15,10 +15,10 @@ import { Request, Response } from "express";
 export const fetchConcernCategories = async (req: Request, res: Response) => {
   try {
     const concernCategories = await getConcerns();
-    return res.status(200).json({ message: "Concern categories fetched successfully", data: { concernCategories } });
+    res.status(200).json({ message: "Concern categories fetched successfully", data: { concernCategories } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -32,7 +32,7 @@ export const createNewCategory = async (req: AuthenticatedRequest, res: Response
       description: `New category created: ${name}`,
       status: 'SUCCESS'
     });
-    return res.status(200).json({ message: "Success", data: category });
+    res.status(200).json({ message: "Success", data: category });
   } catch (error) {
     console.error(error);
     const errorMessage = (error as Error).message;
@@ -42,7 +42,7 @@ export const createNewCategory = async (req: AuthenticatedRequest, res: Response
       description: `New category created: ${errorMessage}`,
       status: 'FAILED'
     });
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -62,7 +62,7 @@ export const updateConcernCategory = async (req: AuthenticatedRequest, res: Resp
       status: 'SUCCESS'
     });
 
-    return res.status(200).json({ message: "Success", data: category });
+    res.status(200).json({ message: "Success", data: category });
   } catch (error) {
     console.error(error);
     const errorMessage = (error as Error).message;
@@ -72,7 +72,7 @@ export const updateConcernCategory = async (req: AuthenticatedRequest, res: Resp
       description: `Concern Category Updated: ${errorMessage}`,
       status: 'FAILED'
     });
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -80,7 +80,8 @@ export const deleteConcernCategory = async (req: AuthenticatedRequest, res: Resp
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
-      return res.status(400).json({ message: "Invalid concern category id" });
+      res.status(400).json({ message: "Invalid concern category id" });
+      return;
     }
 
     const category = await deleteCategory(id);
@@ -91,20 +92,20 @@ export const deleteConcernCategory = async (req: AuthenticatedRequest, res: Resp
       status: 'SUCCESS'
     });
 
-    return res.status(200).json({ message: "Success", data: category });
+    res.status(200).json({ message: "Success", data: category });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 export const fetchConcernStatuses = async (req: Request, res: Response) => {
   try {
     const concernStatuses = await getConcernStatuses();
-    return res.status(200).json({ message: "Concern statuses fetched successfully", data: { concernStatuses } });
+    res.status(200).json({ message: "Concern statuses fetched successfully", data: { concernStatuses } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -118,7 +119,7 @@ export const createNewStatus = async (req: AuthenticatedRequest, res: Response) 
       description: 'New status created',
       status: 'SUCCESS'
     });
-    return res.status(200).json({ message: "Success", data: statusData });
+    res.status(200).json({ message: "Success", data: statusData });
   } catch (error) {
     console.error(error);
     activityLogger({
@@ -128,7 +129,7 @@ export const createNewStatus = async (req: AuthenticatedRequest, res: Response) 
       status: 'FAILED'
     });
 
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -138,7 +139,8 @@ export const updateConcernStatus = async (req: AuthenticatedRequest, res: Respon
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
-      return res.status(400).json({ message: "Invalid concern status id" });
+      res.status(400).json({ message: "Invalid concern status id" });
+      return;
     }
 
     const newStatus = await updateStatus(id, { status, level, icon, requires_action });
@@ -150,7 +152,7 @@ export const updateConcernStatus = async (req: AuthenticatedRequest, res: Respon
       status: 'SUCCESS'
     });
 
-    return res.status(200).json({ message: "Success", data: newStatus });
+    res.status(200).json({ message: "Success", data: newStatus });
   } catch (error) {
     console.error(error);
     activityLogger({
@@ -159,7 +161,7 @@ export const updateConcernStatus = async (req: AuthenticatedRequest, res: Respon
       description: `Failed to update status: ${status} `,
       status: 'FAILED'
     });
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -167,13 +169,14 @@ export const deleteConcernStatus = async (req: AuthenticatedRequest, res: Respon
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
-      return res.status(400).json({ message: "Invalid concern status id" });
+      res.status(400).json({ message: "Invalid concern status id" });
+      return;
     }
     const status = await deleteStatus(id);
-    return res.status(200).json({ message: "Success", data: status });
+    res.status(200).json({ message: "Success", data: status });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

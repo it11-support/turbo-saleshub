@@ -11,10 +11,10 @@ export const getInquiries = async (req: Request, res: Response) => {
         visit_id: Number(id)
       }
     })
-    return res.status(200).json({ message: "Success", data: { inquiries } });
+    res.status(200).json({ message: "Success", data: { inquiries } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 

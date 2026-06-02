@@ -19,7 +19,8 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
     const year = req.query.year ? Number(req.query.year) : new Date().getFullYear();
     const date = new Date().getDate();
     if (!salesPersonId) {
-      return res.status(400).json({ message: 'salesPersonId is required' });
+      res.status(400).json({ message: 'salesPersonId is required' });
+      return;
     }
 
     const page = req.query.page ? Number(req.query.page) : 1;
@@ -55,7 +56,7 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
         };
       })
     );
-    return res.json({
+    res.json({
       page,
       perPage,
       total,
@@ -64,7 +65,7 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('❌ Error fetching schedules:', error);
-    return res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 
@@ -148,10 +149,10 @@ export const generateScheduleByRules = async (req: Request, res: Response) => {
       schedules_generated: insertedSchedules.length,
     };
 
-    return res.status(200).json({ message: 'Schedules generated', data: response });
+    res.status(200).json({ message: 'Schedules generated', data: response });
   } catch (error) {
     console.error('Error generating schedules:', error);
-    return res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 
@@ -227,7 +228,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     const dateStr = req.query.date as string;
 
     if (!salesPersonId || !dateStr) {
-      return res.status(400).json({ message: 'salesPersonId and date are required' });
+      res.status(400).json({ message: 'salesPersonId and date are required' });
     }
 
     const date = dayjs(dateStr);
@@ -235,7 +236,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     const limit = dayjs().subtract(1, 'day');
 
     if (date.day() === 0) {
-      return res.status(200).json({
+      res.status(200).json({
         message: 'Sunday has no schedule',
         data: { data: [], total: 0 },
       });
@@ -516,14 +517,14 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       open_issues: allVisitMaps.get(Number(item.customer_id)) || [],
     }));
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: { data: mergeData, total: mergeData.length, weekOfMonth },
     });
 
   } catch (error) {
     console.error('Error generating schedules:', error);
-    return res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 
@@ -585,9 +586,9 @@ export const createVisitSchedule = async (req: AuthenticatedRequest, res: Respon
       description: `Visit schedule created: ${visit.visit_date} for customer ${visit.customer.CardName}`,
       status: 'SUCCESS',
     })
-    return res.status(200).json({ message: 'Success', data: visit });
+    res.status(200).json({ message: 'Success', data: visit });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
