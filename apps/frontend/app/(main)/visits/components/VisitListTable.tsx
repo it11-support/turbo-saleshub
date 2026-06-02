@@ -12,7 +12,7 @@ import {
 import { formatDate } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useQueryStates } from 'nuqs'
+import { createSerializer, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
@@ -36,6 +36,7 @@ const VisitListTable = () => {
 
   const router = useRouter()
 
+  const serialize = createSerializer(visitFilters)
   const payload = {
     page: filters.page,
     per_page: filters.limit,
@@ -48,6 +49,8 @@ const VisitListTable = () => {
   }
 
   const visitsUrl = createUrl('visits', payload)
+
+  const fromUrl = `visits${serialize(filters)}`
 
   const { data: visitData, isValidating } = useSWR<IResPaginated<IVisit>>(visitsUrl, fetcher, {
     keepPreviousData: true,
@@ -108,11 +111,9 @@ const VisitListTable = () => {
 
     return (
       <Link
-        href={{
-          pathname: `/visits/issues/${Number(rowData.visits.id)}`,
-          query: { from: 'visits' },
-        }}
+        href={`/visits/issues/${Number(rowData.visits.id)}?from=${encodeURIComponent(fromUrl)}`}
         className="no-underline"
+        prefetch={false}
       >
         <div className="flex flex-column gap-2 cursor-pointer text-sm">
           {/* Tampilan jika ada Open Issues (Belum Done & Belum Closed) */}
@@ -145,10 +146,10 @@ const VisitListTable = () => {
 
   const handleClickEdit = (data: IVisit) => {
     if (data.status === 'Ongoing') {
-      router.push(`/visits/${data.id}?from=visits`)
+      router.push(`/visits/${data.id}?from=${encodeURIComponent(fromUrl)}`)
       return
     }
-    router.push(`/visits/details/${data.id}?from=visits`)
+    router.push(`/visits/details/${data.id}?from=${encodeURIComponent(fromUrl)}`)
   }
 
   const statusBodyTemplate = (rowData: SalesVisit) => {

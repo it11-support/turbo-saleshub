@@ -15,7 +15,7 @@ import {
 import { formatDate } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useQueryStates } from 'nuqs'
+import { createSerializer, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Column } from 'primereact/column'
@@ -57,6 +57,8 @@ const FollowUpsPage = () => {
 
   const salesPersons = salesPersonData?.data || []
 
+  const serialize = createSerializer(visitFilters)
+
   const payload = {
     page: filters.page,
     per_page: filters.limit,
@@ -67,6 +69,8 @@ const FollowUpsPage = () => {
     sort: filters.sort,
     order: filters.order,
   }
+
+  const fromUrl = `follow-ups${serialize(filters)}`
 
   const apiFollowupUrl = createUrl('follow-ups', payload)
 
@@ -153,11 +157,9 @@ const FollowUpsPage = () => {
 
     return (
       <Link
-        href={{
-          pathname: `/visits/issues/${Number(rowData.visits.id)}`,
-          query: { from: 'follow-ups' },
-        }}
+        href={`/visits/issues/${Number(rowData.visits.id)}?from=${encodeURIComponent(fromUrl)}`}
         className="no-underline"
+        prefetch={false}
       >
         <div className="flex flex-column gap-1 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
           {/* Total Isu Terbuka */}
@@ -213,10 +215,10 @@ const FollowUpsPage = () => {
 
   const handleClickEdit = (data: IVisit) => {
     if (data.status === 'Ongoing') {
-      router.push(`/visits/${data.id}?from=follow-ups`)
+      router.push(`/visits/${data.id}?from=${encodeURIComponent(fromUrl)}`)
       return
     }
-    router.push(`/visits/details/${data.id}?from=follow-ups`)
+    router.push(`/visits/details/${data.id}?from=${encodeURIComponent(fromUrl)}`)
   }
 
   return (
