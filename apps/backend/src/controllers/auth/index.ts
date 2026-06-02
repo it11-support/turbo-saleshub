@@ -40,7 +40,8 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
 
     if (!username || !password) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Username or password are required', status: 'FAILED', username });
-      return res.status(200).json({ message: 'Username and password are required', data: { errors: { username: !username ? 'Username is required' : undefined, password: !password ? 'Password is required' : undefined } } });
+      res.status(200).json({ message: 'Username and password are required', data: { errors: { username: !username ? 'Username is required' : undefined, password: !password ? 'Password is required' : undefined } } });
+      return;
     }
 
     const user = await prisma.users.findFirst({
@@ -52,13 +53,15 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
 
     if (!user) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: User not found', status: 'FAILED', username });
-      return res.status(200).json({ message: 'User not found', data: { errors: { username: 'Username or email not found.' } } });
+      res.status(200).json({ message: 'User not found', data: { errors: { username: 'Username or email not found.' } } });
+      return;
     }
 
-    const isMatch = await comparePassword(password, user.password);
+    const isMatch = await comparePassword(password, user?.password);
     if (!isMatch) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Password incorrect', status: 'FAILED', username });
-      return res.status(200).json({ message: 'Password incorrect', data: { errors: { password: 'Password is incorrect.' } } });
+      res.status(200).json({ message: 'Password incorrect', data: { errors: { password: 'Password is incorrect.' } } });
+      return;
     }
 
     const expiresIn = remember ? '7d' : '1d';
@@ -76,7 +79,7 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
     activityLogger({ req, actionType: 'Login', description: 'User Login Success', status: 'SUCCESS', username });
 
     // Kirim response
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Login successful',
       data: {
         token,
@@ -100,6 +103,6 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
       status: 'FAILED'
     });
 
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

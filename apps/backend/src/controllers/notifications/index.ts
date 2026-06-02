@@ -35,7 +35,7 @@ export const fetchNotifications = async (req: Request, res: Response) => {
       includePageCount: true,
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Success",
       data: {
         items: notifications,
@@ -47,7 +47,7 @@ export const fetchNotifications = async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -59,10 +59,10 @@ export const unreadNotifications = async (req: Request, res: Response) => {
         is_read: false
       }
     });
-    return res.status(200).json({ message: "Success", data: notifications });
+    res.status(200).json({ message: "Success", data: notifications });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }
 
@@ -70,7 +70,8 @@ export const updateReadStatus = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
-      return res.status(400).json({ message: "Invalid notification id" });
+      res.status(400).json({ message: "Invalid notification id" });
+      return;
     }
     const notification = await prisma.notifications.update({
       where: {
@@ -80,9 +81,9 @@ export const updateReadStatus = async (req: Request, res: Response) => {
         is_read: true
       }
     });
-    return res.status(200).json({ message: "Success", data: notification });
+    res.status(200).json({ message: "Success", data: notification });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
   }
 }

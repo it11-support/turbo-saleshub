@@ -314,7 +314,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // RESPONSE
     // =====================
-    return res.status(200).json({
+     res.status(200).json({
       message: 'Success',
       data: {
         slpRevenue,
@@ -326,7 +326,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error(error)
-    return res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : error })
+    res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : error })
   }
 }
 
@@ -350,7 +350,7 @@ export const customerLoyalty = async (req: Request, res: Response) => {
       getRPR(salesFilter),
       getRFM(salesFilter),
     ])
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         CRR,
@@ -362,7 +362,7 @@ export const customerLoyalty = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 
@@ -370,7 +370,7 @@ export const fetchActiveCustomers = async (req: Request, res: Response) => {
   const { salesPersonId } = req.query
   try {
     const activeCustomers = await getActiveCustomers(salesPersonId ? Number(salesPersonId) : null)
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         activeCustomers
@@ -378,7 +378,7 @@ export const fetchActiveCustomers = async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 
 }
@@ -397,7 +397,7 @@ export const fetchCustomersByRangeItem = async (req: Request, res: Response) => 
         period: 'asc'
       }
     })
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         customersByRangeItem
@@ -405,7 +405,6 @@ export const fetchCustomersByRangeItem = async (req: Request, res: Response) => 
     })
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
-
+    res.status(500).json({ message: 'Internal server error' });
   }
 }

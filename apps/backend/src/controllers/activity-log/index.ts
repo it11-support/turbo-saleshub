@@ -107,10 +107,10 @@ export const fetchActivityLogs = async (req: Request, res: Response) => {
       }
     }
 
-    return res.status(200).json({ message: 'Success', ...result });
+    res.status(200).json({ message: 'Success', ...result });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -123,9 +123,9 @@ export const fetchActivityActionTypes = async (req: Request, res: Response) => {
       },
       distinct: ['action_type'],
     });
-    return res.status(200).json({ message: 'Activity action types fetched successfully', data: activityActionTypes });
+    res.status(200).json({ message: 'Activity action types fetched successfully', data: activityActionTypes });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }

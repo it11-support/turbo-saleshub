@@ -5,9 +5,9 @@ import prisma from '@/libs/prisma.js';
 export const roles = async (req: Request, res: Response<IResSingle<IRole>>) => {
   try {
     const roles = await prisma.roles.findMany();
-    return res.status(200).json({ message: 'Roles data fetched successfully', data: roles });
+    res.status(200).json({ message: 'Roles data fetched successfully', data: roles });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error', data: [] });
+    res.status(500).json({ message: 'Internal server error', data: [] });
   }
 };

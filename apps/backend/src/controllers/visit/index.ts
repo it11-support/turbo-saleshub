@@ -41,7 +41,8 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
     });
 
     if (!visit) {
-      return res.status(404).json({ message: 'Visit not found' });
+      res.status(404).json({ message: 'Visit not found' });
+      return;
     }
 
     const suggestedItems = await getSuggestedItems(
@@ -53,10 +54,10 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
       ...visit,
       suggestedItems,
     };
-    return res.status(200).json({ message: 'Success', data });
+    res.status(200).json({ message: 'Success', data });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -66,7 +67,8 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
     const { visit_items } = req.body;
 
     if (!Array.isArray(visit_items)) {
-      return res.status(400).json({ message: 'Bad request' });
+      res.status(400).json({ message: 'Bad request' });
+      return;
     }
 
     const visitId = Number(id);
@@ -94,7 +96,8 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
     }
 
     if (!visit) {
-      return res.status(404).json({ message: 'Visit not found' });
+      res.status(404).json({ message: 'Visit not found' });
+      return;
     }
 
     const existing = await prisma.visit_items.findMany({
@@ -167,10 +170,10 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
       status: 'SUCCESS'
     });
 
-    return res.status(200).json({ message: 'Success', data: updatedVisit });
+    res.status(200).json({ message: 'Success', data: updatedVisit });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -195,10 +198,10 @@ export const completeSalesVisit = async (req: AuthenticatedRequest, res: Respons
       description: `Sales Visit completed : ${process.env.CLIENT_URL}/visits/${id}`,
       status: 'SUCCESS'
     })
-    return res.status(200).json({ message: 'Success' });
+    res.status(200).json({ message: 'Success' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -250,10 +253,10 @@ export const visitDetails = async (req: Request, res: Response) => {
       salesVisit?.rule?.max_items_per_visit,
       true
     );
-    return res.status(200).json({ message: 'Success', data: { ...salesVisit, suggestedItems } });
+    res.status(200).json({ message: 'Success', data: { ...salesVisit, suggestedItems } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -386,11 +389,11 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
       description: `Follow up visit: ${result.visit_item_concerns.visit_items.visit.customer.CardName} - ${result.visit_item_concerns.visit_items.product.ItemName}`,
       status: "SUCCESS",
     })
-    return res.status(200).json({ message: 'Success', data: result });
+    res.status(200).json({ message: 'Success', data: result });
 
   } catch (error) {
     console.error("Error in followUpVisit:", error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -413,10 +416,10 @@ export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
       description: `Sales Visit completed : ${process.env.CLIENT_URL}/visits/${visitId}`,
       status: "SUCCESS",
     })
-    return res.status(200).json({ message: 'Success', data: visitItem });
+    res.status(200).json({ message: 'Success', data: visitItem });
   } catch (error) {
     console.error("Error in startVisit:", error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }
 
@@ -426,7 +429,8 @@ export const closeItems = async (req: AuthenticatedRequest, res: Response) => {
     const { visit_items } = req.body;
 
     if (!Array.isArray(visit_items)) {
-      return res.status(400).json({ message: 'Bad request' });
+      res.status(400).json({ message: 'Bad request' });
+      return;
     }
 
     const visitId = Number(id);
@@ -476,10 +480,10 @@ export const closeItems = async (req: AuthenticatedRequest, res: Response) => {
       description: `Sales Visit item closed : ${process.env.CLIENT_URL}/visits/${visitId}`,
       status: "SUCCESS",
     })
-    return res.status(200).json({ message: 'Success', data: updatedVisit });
+    res.status(200).json({ message: 'Success', data: updatedVisit });
 
   } catch (error) {
     console.error("Error in closeItems:", error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }

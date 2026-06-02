@@ -47,10 +47,10 @@ export const createVisitRules = async (
       description: 'Visit rule created successfully.',
       status: 'SUCCESS',
     })
-    return res.status(200).json({ message: 'Success', data: { visit_rule } });
+    res.status(200).json({ message: 'Success', data: { visit_rule } });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -80,10 +80,10 @@ export const visitRules = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ message: 'Success', data: visit_rules });
+    res.status(200).json({ message: 'Success', data: visit_rules });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -150,5 +150,5 @@ export const syncVisitRules = async (req: AuthenticatedRequest, res: Response) =
     status: 'SUCCESS',
   })
 
-  return res.json({ ok: true });
+  res.json({ ok: true });
 };
