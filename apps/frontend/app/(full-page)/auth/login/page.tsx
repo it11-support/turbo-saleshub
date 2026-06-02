@@ -3,6 +3,7 @@
 import { LayoutContext } from '../../../../layout/context/layoutcontext'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Credentials } from '@saleshub-tsm/types'
+import Image from 'next/image'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { InputText } from 'primereact/inputtext'
@@ -97,7 +98,12 @@ const LoginPage = () => {
   return (
     <div className={containerClassName}>
       <div className="flex flex-column align-items-center justify-content-center">
-        <img src={`/images/logo/logo.png`} alt="logo" className="mb-5 w-6rem flex-shrink-0" />
+        <Image
+          src={`/images/logo/logo.png`}
+          alt="logo"
+          className="mb-5 w-6rem flex-shrink-0"
+          loading="eager"
+        />
         <div
           style={{
             borderRadius: '53px',

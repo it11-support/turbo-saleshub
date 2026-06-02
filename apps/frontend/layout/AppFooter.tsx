@@ -4,7 +4,7 @@ import Image from 'next/image'
 const AppFooter = () => {
   return (
     <div className="layout-footer">
-      <Image src={`/images/logo/logo.png`} width={30} height={30} alt={'Logo'} />
+      <Image src={`/images/logo/logo.png`} width={30} height={30} alt={'Logo'} loading="eager" />
       <p className="ml-2 font-bold">TSM SalesHub {new Date().getFullYear()}</p>
     </div>
   )
