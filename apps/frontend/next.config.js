@@ -1,10 +1,13 @@
+
+const path = require('node:path')
+
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
   devIndicators: false,
   transpilePackages: ['@saleshub-tsm/types'],
   turbopack: {
-    root: '../..',
+    root: path.resolve(__dirname, '../..'),
   },
   images: {
     remotePatterns: [

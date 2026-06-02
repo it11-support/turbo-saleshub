@@ -72,7 +72,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
   return (
     <div className="layout-topbar">
-      <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} />
+      <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} loading="eager" />
 
       <p className="mb-0 ml-2 text-xl font-bold">
         {process.env.NEXT_PUBLIC_APP_TITLE || 'TSM SalesHub'}

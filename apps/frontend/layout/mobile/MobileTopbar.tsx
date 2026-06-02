@@ -64,7 +64,13 @@ export default forwardRef(function MobileTopbar(
         <div className={styles.logoWrap}>
           <div className={styles.logoCircle} aria-hidden>
             {/* simple home icon */}
-            <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} />
+            <Image
+              src={`/images/logo/logo.png`}
+              width={35}
+              height={35}
+              alt={'Logo'}
+              loading="eager"
+            />
           </div>
         </div>
 
