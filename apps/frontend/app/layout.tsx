@@ -7,6 +7,7 @@ import { Suspense } from 'react'
 import AuthProvider from '@/layout/context/AuthContext'
 
 import 'primeflex/primeflex.css'
+import 'primeflex/themes/primeone-light.css'
 import 'primeicons/primeicons.css'
 import 'primereact/resources/primereact.css'
 
