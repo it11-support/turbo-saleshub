@@ -102,11 +102,9 @@ const LoginPage = () => {
           style={{
             borderRadius: '53px',
             padding: '0.1rem',
-            background:
-              'linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 60%)',
           }}
         >
-          <div className="w-full surface-card py-8 px-5 sm:px-8" style={{ borderRadius: '53px' }}>
+          <div className="w-full surface-card py-4 px-4" style={{ borderRadius: '53px' }}>
             <div className="text-center mb-5">
               <span className="text-700 text-3xl font-medium">Sign in to continue</span>
             </div>
