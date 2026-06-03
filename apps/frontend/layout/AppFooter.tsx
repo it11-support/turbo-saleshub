@@ -1,10 +1,10 @@
 'use client'
 
-import Image from 'next/image'
+import Logo from '@/app/components/logo/Logo'
 const AppFooter = () => {
   return (
     <div className="layout-footer">
-      <Image src={`/images/logo/logo.png`} width={30} height={30} alt={'Logo'} loading="eager" />
+      <Logo width={30} height={30} className="flex-shrink-0" />
       <p className="ml-2 font-bold">TSM SalesHub {new Date().getFullYear()}</p>
     </div>
   )

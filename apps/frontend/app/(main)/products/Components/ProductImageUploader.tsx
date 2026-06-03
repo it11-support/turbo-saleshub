@@ -138,7 +138,8 @@ export default function ProductImageUploader({
         fill
         sizes={`${width}px`}
         className="object-contain"
-        unoptimized // Gunakan ini jika backend return gambar mentah tanpa optimasi Next.js
+        unoptimized
+        loading="eager"
       />
 
       {!preview && hasImage && (

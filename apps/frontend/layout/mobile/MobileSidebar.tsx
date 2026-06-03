@@ -5,12 +5,12 @@ import { useAuth } from '../context/AuthContext'
 import { MenuProvider } from '../context/menucontext'
 import { getMenus } from '../menu'
 import { Role } from '@saleshub-tsm/types'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from 'primereact/badge'
 import { Sidebar } from 'primereact/sidebar'
 import React, { useMemo } from 'react'
 
+import Logo from '@/app/components/logo/Logo'
 import { DialogType, useScheduleDialog } from '@/stores'
 
 type Props = {
@@ -84,13 +84,7 @@ const MobileSidebar = (props: Props) => {
         >
           <div className="flex items-center justify-center p-4 border-b border-gray-200">
             <Link href="/" onClick={onHide} className="flex items-center gap-2">
-              <Image
-                src={`/images/logo/logo.png`}
-                width={35}
-                height={35}
-                alt={'Logo'}
-                loading="eager"
-              />
+              <Logo width={30} height={30} className="flex-shrink-0" />
               <span className="font-semibold text-lg text-gray-500">
                 {process.env.NEXT_PUBLIC_APP_TITLE}
               </span>

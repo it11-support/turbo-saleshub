@@ -3,13 +3,13 @@
 import styles from './mobile.module.css'
 import { useAuth } from '../context/AuthContext'
 import { LayoutContext } from '../context/layoutcontext'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from 'primereact/badge'
 import { forwardRef, useContext, useImperativeHandle, useRef } from 'react'
 import useSWR from 'swr'
 
 import { fetcher } from '@/app/(main)/lib'
+import Logo from '@/app/components/logo/Logo'
 import { createUrl } from '@/lib/api'
 import { LayoutState } from '@/types'
 
@@ -64,13 +64,7 @@ export default forwardRef(function MobileTopbar(
         <div className={styles.logoWrap}>
           <div className={styles.logoCircle} aria-hidden>
             {/* simple home icon */}
-            <Image
-              src={`/images/logo/logo.png`}
-              width={35}
-              height={35}
-              alt={'Logo'}
-              loading="eager"
-            />
+            <Logo width={24} height={24} className="flex-shrink-0" />
           </div>
         </div>
 

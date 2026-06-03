@@ -8,6 +8,7 @@ export default function ProductImage({ code, alt }: { code: string; alt: string 
       width={80}
       height={80}
       alt={alt}
+      loading="eager"
     />
   )
 }

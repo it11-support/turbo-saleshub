@@ -2,7 +2,6 @@ import { useAuth } from './context/AuthContext'
 import { LayoutContext } from './context/layoutcontext'
 import { useSocket } from './context/SocketIoContext'
 import { INotification } from '@saleshub-tsm/types'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from 'primereact/badge'
 import { classNames } from 'primereact/utils'
@@ -10,6 +9,7 @@ import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from '
 import useSWR from 'swr'
 
 import { fetcher } from '@/app/(main)/lib'
+import Logo from '@/app/components/logo/Logo'
 import { createUrl } from '@/lib/api'
 import { AppTopbarRef, LayoutState } from '@/types'
 
@@ -72,7 +72,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
 
   return (
     <div className="layout-topbar">
-      <Image src={`/images/logo/logo.png`} width={35} height={35} alt={'Logo'} loading="eager" />
+      <Logo width={35} height={35} className="flex-shrink-0" />
 
       <p className="mb-0 ml-2 text-xl font-bold">
         {process.env.NEXT_PUBLIC_APP_TITLE || 'TSM SalesHub'}

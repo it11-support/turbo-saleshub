@@ -3,7 +3,6 @@
 import { LayoutContext } from '../../../../layout/context/layoutcontext'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Credentials } from '@saleshub-tsm/types'
-import Image from 'next/image'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { InputText } from 'primereact/inputtext'
@@ -13,6 +12,7 @@ import { useContext } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import * as yup from 'yup'
 
+import Logo from '@/app/components/logo/Logo'
 import { useAuth } from '@/layout/context/AuthContext'
 import { $api } from '@/lib/api'
 import { useConfigStore } from '@/stores'
@@ -98,12 +98,7 @@ const LoginPage = () => {
   return (
     <div className={containerClassName}>
       <div className="flex flex-column align-items-center justify-content-center">
-        <Image
-          src={`/images/logo/logo.png`}
-          alt="logo"
-          className="mb-5 w-6rem flex-shrink-0"
-          loading="eager"
-        />
+        <Logo />
         <div
           style={{
             borderRadius: '53px',
