@@ -21,7 +21,7 @@ import { Calendar } from 'primereact/calendar'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
-import useSWR from 'swr'
+import useSWR, { preload } from 'swr'
 
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
@@ -78,8 +78,13 @@ const FollowUpsPage = () => {
     revalidateOnFocus: false,
   })
 
+  const preloadVisits = (targetPage: number) => {
+    const cacheKey = createUrl('follow-ups', { ...payload, page: targetPage })
+    preload(cacheKey, fetcher)
+  }
   const data = followups?.data.items || []
   const totalRecords = followups?.data.totalRecords || 0
+  const totalPages = followups?.data.totalPages || 0
 
   const visitDateTemplate = (rowData: SalesVisit) => {
     return (
@@ -160,6 +165,7 @@ const FollowUpsPage = () => {
         href={`/visits/issues/${Number(rowData.visits.id)}?from=${encodeURIComponent(fromUrl)}`}
         className="no-underline"
         prefetch={false}
+        onMouseEnter={() => handlePreloadOnHover(rowData.visits)}
       >
         <div className="flex flex-column gap-1 cursor-pointer text-sm text-gray-600 hover:text-yellow-600 transition-colors">
           {/* Total Isu Terbuka */}
@@ -219,6 +225,14 @@ const FollowUpsPage = () => {
       return
     }
     router.push(`/visits/details/${data.id}?from=${encodeURIComponent(fromUrl)}`)
+  }
+
+  const handlePreloadOnHover = (data: IVisit) => {
+    const cacheKey =
+      data.status === 'Ongoing'
+        ? createUrl(`visit/${data.id}`)
+        : createUrl(`visit/${data.id}/details`)
+    preload(cacheKey, fetcher)
   }
 
   return (
@@ -310,7 +324,32 @@ const FollowUpsPage = () => {
           emptyMessage="No visit found"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-          rowsPerPageOptions={[10, 25, 50]}
+          rowsPerPageOptions={[10, 20, 25, 50]}
+          pt={{
+            paginator: {
+              pageButton: () => ({
+                onMouseEnter: async (e: React.MouseEvent<HTMLButtonElement>) => {
+                  const text = e.currentTarget.textContent
+                  if (text) {
+                    const pageNumber = parseInt(text, 10)
+                    preloadVisits(pageNumber)
+                  }
+                },
+              }),
+              firstPageButton: () => ({
+                onMouseEnter: () => preloadVisits(1),
+              }),
+              prevPageButton: () => ({
+                onMouseEnter: () => preloadVisits(filters.page - 1),
+              }),
+              nextPageButton: () => ({
+                onMouseEnter: () => preloadVisits(filters.page + 1),
+              }),
+              lastPageButton: () => ({
+                onMouseEnter: () => preloadVisits(totalPages),
+              }),
+            },
+          }}
         >
           <Column field="visit_date" header="Visit Date" sortable body={visitDateTemplate} />
           <Column
@@ -339,6 +378,7 @@ const FollowUpsPage = () => {
                 <>
                   {isOnGoing ? (
                     <Button
+                      onMouseEnter={() => handlePreloadOnHover(rowData)}
                       onClick={() => handleClickEdit(rowData)}
                       disabled={isAdmin}
                       className={`p-button-text p-button-plain p-button-sm ${
@@ -349,6 +389,7 @@ const FollowUpsPage = () => {
                     </Button>
                   ) : (
                     <Button
+                      onMouseEnter={() => handlePreloadOnHover(rowData)}
                       onClick={() => handleClickEdit(rowData)}
                       disabled={isAdmin}
                       className={`p-button-text p-button-plain p-button-sm ${

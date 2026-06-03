@@ -67,7 +67,7 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
                 include: {
                   status: true,
                   follow_ups: {
-                    orderBy: { created_at: 'desc' }, // Log terbaru berada di indeks 0
+                    orderBy: { created_at: 'desc' },
                     include: {
                       concern_status: true
                     }
@@ -81,7 +81,6 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
       .withPages({
         limit: Number(per_page),
         page: Number(page),
-        skip: (Number(page) - 1) * Number(per_page),
         includePageCount: true,
       });
 
@@ -92,10 +91,8 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
         let totalOpenIssuesForThisVisit = 0;
 
         const mappedVisitItems = visit.visit_items.map((item) => {
-
           item.visit_item_concerns.forEach((concern) => {
             const followUps = concern.follow_ups;
-
             const latestStatus = (followUps && followUps.length > 0)
               ? followUps[0]?.concern_status?.status
               : concern.status?.status;
@@ -104,7 +101,6 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
               totalOpenIssuesForThisVisit++;
             }
           });
-
           return item;
         });
 
@@ -114,6 +110,7 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
           openIssuesCount: totalOpenIssuesForThisVisit,
         };
       })
+
       .filter((visit) => visit.openIssuesCount > 0)
       .map((visit) => ({
         id: visit.id,
@@ -130,10 +127,10 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
       message: 'Visit with follow up fetched successfully',
       data: {
         items: result,
-        totalRecords: result.length,
+        totalRecords: meta.totalCount ?? 0,
         currentPage: meta.currentPage,
         perPage: Number(per_page),
-        totalPages: Math.ceil(result.length / Number(per_page)) || 1,
+        totalPages: meta.pageCount ?? 1,
       },
     });
 
