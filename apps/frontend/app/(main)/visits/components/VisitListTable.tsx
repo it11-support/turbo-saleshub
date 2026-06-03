@@ -16,7 +16,7 @@ import { createSerializer, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
-import useSWR from 'swr'
+import useSWR, { preload } from 'swr'
 
 import { createUrl } from '@/lib/api'
 
@@ -59,7 +59,12 @@ const VisitListTable = () => {
 
   const data = visitData?.data.items || []
   const totalRecords = visitData?.data.totalRecords || 0
+  const totalPages = visitData?.data.totalPages || 0
 
+  const preloadVisits = (targetPage: number) => {
+    const cacheKey = createUrl('visits', { ...payload, page: targetPage })
+    preload(cacheKey, fetcher)
+  }
   const visitDateTemplate = (rowData: SalesVisit) => {
     return (
       <div className="flex flex-column justify-content-center align-items-start font-semibold">
@@ -209,7 +214,32 @@ const VisitListTable = () => {
         emptyMessage="No visit found"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-        rowsPerPageOptions={[10, 25, 50]}
+        rowsPerPageOptions={[10, 20, 25, 50]}
+        pt={{
+          paginator: {
+            pageButton: () => ({
+              onMouseEnter: async (e: React.MouseEvent<HTMLButtonElement>) => {
+                const text = e.currentTarget.textContent
+                if (text) {
+                  const pageNumber = parseInt(text, 10)
+                  preloadVisits(pageNumber)
+                }
+              },
+            }),
+            firstPageButton: () => ({
+              onMouseEnter: () => preloadVisits(1),
+            }),
+            prevPageButton: () => ({
+              onMouseEnter: () => preloadVisits(filters.page - 1),
+            }),
+            nextPageButton: () => ({
+              onMouseEnter: () => preloadVisits(filters.page + 1),
+            }),
+            lastPageButton: () => ({
+              onMouseEnter: () => preloadVisits(totalPages),
+            }),
+          },
+        }}
       >
         <Column field="visit_date" header="Visit Date" sortable body={visitDateTemplate} />
         <Column
