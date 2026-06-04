@@ -10,9 +10,15 @@ import path from 'path';
 
 export type ImageResponseType = never;
 
+const isSafeItemCode = (itemCode: string): boolean => /^[A-Za-z0-9_-]+$/.test(itemCode);
+
 export const image = async (req: Request, res: Response) => {
   try {
     const { itemCode } = req.params;
+    if (!isSafeItemCode(itemCode)) {
+      res.status(400).json({ message: 'Invalid item code' });
+      return;
+    }
     const { nofallback } = req.query; // optional param
     const baseDir = path.join(process.cwd(), 'public/images/product');
 
@@ -44,6 +50,10 @@ export const image = async (req: Request, res: Response) => {
 export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemCode } = req.params;
+    if (!isSafeItemCode(itemCode)) {
+      res.status(400).json({ message: 'Invalid item code' });
+      return;
+    }
     const baseDir = path.join(process.cwd(), 'public/images/product');
 
     const png = path.join(baseDir, `${itemCode}.png`);
