@@ -111,9 +111,16 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
     const firstKey = Object.keys(req.files)[0];
     const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
     const ext = path.extname(imageFile.name).toLowerCase();
-    const fileName = `${itemCode}${ext}`;
+    const allowedExt = new Set(['.png', '.jpg', '.jpeg', '.webp']);
+    if (!allowedExt.has(ext)) {
+      res.status(400).json({ message: 'Invalid file extension' });
+      return;
+    }
+
+    const safeItemCode = itemCode;
+    const fileName = `${safeItemCode}${ext}`;
     const resolvedBaseDir = path.resolve(baseDir);
-    const resolvedFilePath = path.resolve(baseDir, fileName);
+    const resolvedFilePath = path.resolve(resolvedBaseDir, fileName);
 
     if (
       resolvedFilePath !== resolvedBaseDir &&
