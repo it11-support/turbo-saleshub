@@ -3,8 +3,14 @@
 import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
+import { fetcher } from '../../lib'
 import Competitors from '../components/Competitors'
-import { IVisitItem, ProductWithFrequency } from '@saleshub-tsm/types'
+import {
+  IConcernCategory,
+  IConcernStatus,
+  IVisitItem,
+  ProductWithFrequency,
+} from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { AutoComplete } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
@@ -19,9 +25,11 @@ import { OverlayPanel } from 'primereact/overlaypanel'
 import { Panel } from 'primereact/panel'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 
+import { createUrl } from '@/lib/api'
 import { parsePhone } from '@/lib/phoneParser'
-import { useConcernStore, useSalesVisit, useScheduleStore } from '@/stores'
+import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
 
@@ -38,8 +46,6 @@ const VisitsPage = () => {
     processItems,
   } = salesVisitStore
   const { fetchScheduleByDate, currentDate } = useScheduleStore()
-  const { fetchConcernStatuses, fetchConcernCategories, concernCategories, concernStatuses } =
-    useConcernStore()
   const { id } = useParams()
   const searchParams = useSearchParams()
 
@@ -77,6 +83,18 @@ const VisitsPage = () => {
   const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
     useInquiryStore()
 
+  const concernCategoriesUrl = createUrl('concern-categories')
+  const { data: concernCategoriesData, mutate: mutateCategories } = useSWR(
+    concernCategoriesUrl,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    }
+  )
+
+  const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
+
   useEffect(() => {
     fetchProducts()
     fetchInquiries(Number(id))
@@ -96,8 +114,6 @@ const VisitsPage = () => {
 
   useEffect(() => {
     fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
-    fetchConcernCategories()
-    fetchConcernStatuses()
   }, [])
 
   useEffect(() => {
@@ -114,6 +130,14 @@ const VisitsPage = () => {
       router.back()
     })
   }
+
+  const statusUrl = createUrl(`concern-categories/statuses`)
+  const { data: concernStatusesData, mutate: mutateStatus } = useSWR(statusUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
   const { suggestedItems, customer, visit_items } = salesVisit
   const suggestedGroups = [
@@ -662,8 +686,8 @@ const VisitsPage = () => {
               onClick={() => {
                 syncOfferedItems(concernSelections).then(() => {
                   fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
-                  fetchConcernCategories()
-                  fetchConcernStatuses()
+                  mutateCategories()
+                  mutateStatus()
                   setShowOfferDialog(false)
                 })
               }}
@@ -674,7 +698,7 @@ const VisitsPage = () => {
         <div className="flex flex-column gap-3 w-full my-2">
           <h5>{selectedProduct?.ItemName}</h5>
           <h6>Select Topic</h6>
-          {concernCategories.map((category) => {
+          {concernCategories.map((category: IConcernCategory) => {
             const productId = selectedProduct ? Number(selectedProduct.id) : null
             const selection =
               productId !== null ? concernSelections[productId]?.[Number(category.id)] : undefined
@@ -759,7 +783,10 @@ const VisitsPage = () => {
                       <Dropdown
                         inputId={`concern-status-${category.id}`}
                         value={selection.statusId}
-                        options={concernStatuses.map((s) => ({ label: s.status, value: s.id }))}
+                        options={concernStatuses.map((s: IConcernStatus) => ({
+                          label: s.status,
+                          value: s.id,
+                        }))}
                         onChange={(e) =>
                           productId === null
                             ? undefined
@@ -815,8 +842,8 @@ const VisitsPage = () => {
                   markedAs.map((item) => Number(item.id))
                 ).then(() => {
                   fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
-                  fetchConcernCategories()
-                  fetchConcernStatuses()
+                  mutateCategories()
+                  mutateStatus()
                   setShowBulkOfferDialog(false)
                   setMarkedAs([])
                 })
@@ -827,7 +854,7 @@ const VisitsPage = () => {
       >
         <div className="flex flex-column gap-3 w-full my-2">
           <h6>Select Topic</h6>
-          {concernCategories.map((category) => {
+          {concernCategories.map((category: IConcernCategory) => {
             const selection = concernSelctionForUpdate?.[Number(category.id)]
             return (
               <div key={Number(category.id)} className="border-bottom-1 surface-border pb-3">
@@ -901,7 +928,7 @@ const VisitsPage = () => {
                       <Dropdown
                         inputId={`concern-status-${category.id}`}
                         value={selection?.statusId ?? null}
-                        options={concernStatuses.map((s) => ({
+                        options={concernStatuses.map((s: IConcernStatus) => ({
                           label: s.status,
                           value: s.id,
                         }))}

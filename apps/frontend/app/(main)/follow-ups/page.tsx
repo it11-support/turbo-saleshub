@@ -233,6 +233,8 @@ const FollowUpsPage = () => {
         ? createUrl(`visit/${data.id}`)
         : createUrl(`visit/${data.id}/details`)
     preload(cacheKey, fetcher)
+    const statusCacheKey = createUrl(`concern-categories/statuses`)
+    preload(statusCacheKey, fetcher)
   }
 
   return (

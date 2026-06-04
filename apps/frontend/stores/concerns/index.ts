@@ -12,40 +12,6 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
   name: '',
   description: '',
   setConcernStatus: (status: IConcernStatus) => set({ concernStatus: status }),
-  fetchConcernCategories: async () => {
-    try {
-      set({ loading: true })
-      const url = createUrl('concern-categories')
-      const res = await $api<any>(url)
-      set({ loading: false })
-      const payload = res?.data ?? res
-      const concernCategories = payload?.concernCategories ?? payload?.data?.concernCategories ?? []
-      set({ concernCategories })
-      return concernCategories
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
-      return []
-    }
-  },
-
-  fetchConcernStatuses: async () => {
-    try {
-      set({ loading: true })
-      const url = createUrl('concern-categories/statuses')
-      const res = await $api<any>(url)
-      set({ loading: false })
-      const payload = res?.data ?? res
-      const concernStatuses = payload?.concernStatuses ?? payload?.data?.concernStatuses ?? []
-
-      set({ concernStatuses })
-      return concernStatuses
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
-      return []
-    }
-  },
   createCategory: async (data) => {
     try {
       const { concernCategories } = get()

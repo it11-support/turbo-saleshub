@@ -3,7 +3,7 @@
 import ProductTag from './ProductTag'
 import { fetcher } from '../../lib'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
-import { EFollowUpType, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
+import { EFollowUpType, IConcernStatus, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
@@ -18,7 +18,7 @@ import useSWR from 'swr'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { formatDate, normalizeDateToUTC } from '@/lib/dateUtils'
-import { useConcernStore, useSalesVisit } from '@/stores'
+import { useSalesVisit } from '@/stores'
 
 type Props = {
   visitItem: IVisitItem
@@ -34,7 +34,6 @@ const OfferedProduct = (props: Props) => {
   const { visitItem, handleFollowUp, defaultOpen } = props
   const product = visitItem.product
   const { followUpForm, setFollowUpForm, addFollowUp } = salesVisitStore
-  const { fetchConcernStatuses, concernStatuses } = useConcernStore()
   const { isAdmin } = useAuth()
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
@@ -43,6 +42,14 @@ const OfferedProduct = (props: Props) => {
   const { mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher, {
     revalidateOnFocus: false,
   })
+
+  const statusUrl = createUrl(`concern-categories/statuses`)
+  const { data: concernStatusesData } = useSWR(statusUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
   const onHide = () => {
     setSelectedConcern(null)
@@ -61,10 +68,6 @@ const OfferedProduct = (props: Props) => {
   }, [defaultOpen])
 
   useEffect(() => {
-    fetchConcernStatuses()
-  }, [])
-
-  useEffect(() => {
     if (selectedConcern && visible) {
       setFollowUpForm({
         visit_item_concern_id: selectedConcern.id,
@@ -77,7 +80,7 @@ const OfferedProduct = (props: Props) => {
     }
   }, [selectedConcern, visible])
 
-  const statusOptions = concernStatuses.map((status) => ({
+  const statusOptions = concernStatuses.map((status: IConcernStatus) => ({
     label: status.status,
     value: status.id,
     level: status.level,
@@ -248,7 +251,8 @@ const OfferedProduct = (props: Props) => {
                 ...followUpForm,
                 status: e.value,
                 action_required:
-                  concernStatuses.find((s) => s.id === e.value)?.requires_action || false,
+                  concernStatuses.find((s: IConcernStatus) => s.id === e.value)?.requires_action ||
+                  false,
               })
             }
             placeholder="Select Status"

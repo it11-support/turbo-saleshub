@@ -1,6 +1,7 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
+import { fetcher } from '../lib'
 import { EFollowUpStatus, IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
@@ -8,21 +9,19 @@ import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import useSWR from 'swr'
 
+import { createUrl } from '@/lib/api'
 import { ICON_OPTIONS, variantColors, variantOptions } from '@/lib/constants'
 import { useConcernStore } from '@/stores'
 
 const SettingsPage = () => {
   const concernStore = useConcernStore()
   const {
-    fetchConcernCategories,
-    fetchConcernStatuses,
-    concernCategories,
     createCategory,
     updateCategory,
     deleteCategory,
-    concernStatuses,
     createStatus,
     updateStatus,
     deleteStatus,
@@ -32,6 +31,22 @@ const SettingsPage = () => {
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [showFormDialog, setShowFormDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  const statusUrl = createUrl(`concern-categories/statuses`)
+  const { data: concernStatusesData } = useSWR(statusUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
+
+  const concernCategoriesUrl = createUrl('concern-categories')
+  const { data: concernCategoriesData } = useSWR(concernCategoriesUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
 
   const [data, setData] = useState<Pick<IConcernCategory, 'name' | 'description'>>({
     name: '',
@@ -114,11 +129,6 @@ const SettingsPage = () => {
     setShowDeleteDialog(true)
   }
 
-  useEffect(() => {
-    fetchConcernCategories()
-    fetchConcernStatuses()
-  }, [])
-
   const handleSave = async () => {
     if (modalType === 'category') {
       if (editingCategoryId) {
@@ -189,7 +199,7 @@ const SettingsPage = () => {
           </div>
           <div className="col-12 lg:col-6">
             {/* Card */}
-            {concernCategories.filter(Boolean).map((category) => (
+            {concernCategories.filter(Boolean).map((category: IConcernCategory) => (
               <div
                 className="border-1 surface-border border-round p-2 mb-3 surface-50"
                 key={Number(category.id)}
@@ -236,7 +246,7 @@ const SettingsPage = () => {
           </div>
           <div className="col-12 lg:col-6">
             {/* Card */}
-            {concernStatuses.filter(Boolean).map((status) => (
+            {concernStatuses.filter(Boolean).map((status: IConcernStatus) => (
               <div
                 className="border-1 surface-border border-round p-2 mb-3 surface-50"
                 key={Number(status.id)}

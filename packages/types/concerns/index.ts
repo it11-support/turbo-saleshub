@@ -25,8 +25,6 @@ export interface IConcernState {
   concernStatus: IConcernStatus | null
   concernCategories: IConcernCategory[]
   concernStatuses: IConcernStatus[]
-  fetchConcernCategories: () => Promise<IConcernCategory[]>
-  fetchConcernStatuses: () => Promise<IConcernStatus[]>
   createStatus: (data: Partial<IConcernStatus>) => Promise<IConcernStatus | null>
   updateStatus: (id: number, data: Partial<IConcernStatus>) => Promise<IConcernStatus | null>
   deleteStatus: (id: number) => Promise<boolean>

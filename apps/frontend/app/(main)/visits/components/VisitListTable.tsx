@@ -77,6 +77,16 @@ const VisitListTable = () => {
     )
   }
 
+  const handlePreloadOnHover = (data: IVisit) => {
+    const cacheKey =
+      data.status === 'Ongoing'
+        ? createUrl(`visit/${data.id}`)
+        : createUrl(`visit/${data.id}/details`)
+    preload(cacheKey, fetcher)
+    const statusCacheKey = createUrl(`concern-categories/statuses`)
+    preload(statusCacheKey, fetcher)
+  }
+
   const followUpsBodyTemplate = (rowData: SalesVisit) => {
     const visitItems = rowData.visits?.visit_items
     if (!visitItems?.length) return
@@ -119,6 +129,7 @@ const VisitListTable = () => {
         href={`/visits/issues/${Number(rowData.visits.id)}?from=${encodeURIComponent(fromUrl)}`}
         className="no-underline"
         prefetch={false}
+        onMouseEnter={() => handlePreloadOnHover(rowData.visits)}
       >
         <div className="flex flex-column gap-2 cursor-pointer text-sm">
           {/* Tampilan jika ada Open Issues (Belum Done & Belum Closed) */}
@@ -273,6 +284,7 @@ const VisitListTable = () => {
                     className={`p-button-text p-button-plain p-button-sm ${
                       isAdmin ? 'p-disabled' : ''
                     }`}
+                    onMouseEnter={() => handlePreloadOnHover(rowData)}
                   >
                     Continue<i className="pi pi-pencil py-1 ml-2"></i>
                   </Button>
@@ -283,6 +295,7 @@ const VisitListTable = () => {
                     className={`p-button-text p-button-plain p-button-sm ${
                       isAdmin ? 'p-disabled' : ''
                     }`}
+                    onMouseEnter={() => handlePreloadOnHover(rowData)}
                   >
                     View Details <i className="pi pi-eye py-1 ml-2"></i>
                   </Button>

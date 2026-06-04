@@ -5,6 +5,7 @@ import {
   EBadgeVariant,
   EFollowUpType,
   FollowUpUpdateData,
+  IConcernStatus,
   IVisit,
   IVisitItem,
   IVisitItemConcern,
@@ -28,7 +29,7 @@ import { fetcher } from '@/app/(main)/lib'
 import { useSocket } from '@/layout/context/SocketIoContext'
 import { createUrl } from '@/lib/api'
 import { variantColors } from '@/lib/constants'
-import { useConcernStore, useSalesVisit } from '@/stores'
+import { useSalesVisit } from '@/stores'
 
 const VisitIssuesPage = () => {
   const { id } = useParams()
@@ -36,7 +37,6 @@ const VisitIssuesPage = () => {
   const salesVisitStore = useSalesVisit()
 
   const { followUpForm, setFollowUpForm, addFollowUp } = salesVisitStore
-  const { fetchConcernStatuses, concernStatuses } = useConcernStore()
   const [visible, setIsVisible] = useState(false)
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
 
@@ -77,9 +77,13 @@ const VisitIssuesPage = () => {
     return () => window.removeEventListener('hashchange', handleHash)
   }, [salesVisit?.visit_items])
 
-  useEffect(() => {
-    fetchConcernStatuses()
-  }, [])
+  const statusUrl = createUrl(`concern-categories/statuses`)
+  const { data: concernStatusesData } = useSWR(statusUrl, fetcher, {
+    keepPreviousData: true,
+    revalidateOnFocus: false,
+  })
+
+  const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
   const handleClickFollowUp = (concern: IVisitItemConcern) => {
     setSelectedConcern(concern)
@@ -129,7 +133,7 @@ const VisitIssuesPage = () => {
     }
   }, [selectedConcern, visible])
 
-  const statusOptions = concernStatuses.map((status) => ({
+  const statusOptions = concernStatuses.map((status: IConcernStatus) => ({
     label: status.status,
     value: status.id,
     level: status.level,
@@ -342,7 +346,8 @@ const VisitIssuesPage = () => {
                 ...followUpForm,
                 status: e.value,
                 action_required:
-                  concernStatuses.find((s) => s.id === e.value)?.requires_action || false,
+                  concernStatuses.find((s: IConcernStatus) => s.id === e.value)?.requires_action ||
+                  false,
               })
             }
             placeholder="Select Status"
