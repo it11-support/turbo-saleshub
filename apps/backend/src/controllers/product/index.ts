@@ -96,6 +96,12 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
+    // allow only safe filename characters to prevent path traversal/injection
+    if (!/^[A-Za-z0-9_-]+$/.test(itemCode)) {
+      res.status(400).json({ message: 'Invalid itemCode format' });
+      return;
+    }
+
     if (!req.files || Object.keys(req.files).length === 0) {
       res.status(400).json({ message: 'No file uploaded' });
       return;
@@ -106,7 +112,16 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
     const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
     const ext = path.extname(imageFile.name).toLowerCase();
     const fileName = `${itemCode}${ext}`;
-    const filePath = path.join(baseDir, fileName);
+    const resolvedBaseDir = path.resolve(baseDir);
+    const resolvedFilePath = path.resolve(baseDir, fileName);
+
+    if (
+      resolvedFilePath !== resolvedBaseDir &&
+      !resolvedFilePath.startsWith(resolvedBaseDir + path.sep)
+    ) {
+      res.status(400).json({ message: 'Invalid file path' });
+      return;
+    }
 
     // Hapus semua file lama dengan nama itemCode.*
     const filesInDir = fs.readdirSync(baseDir);
@@ -117,7 +132,7 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     // Simpan file baru
-    await imageFile.mv(filePath);
+    await imageFile.mv(resolvedFilePath);
 
     activityLogger({
       req,
