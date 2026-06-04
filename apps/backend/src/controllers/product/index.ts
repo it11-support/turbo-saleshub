@@ -138,8 +138,12 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
       }
     });
 
-    // Simpan file baru
-    await imageFile.mv(resolvedFilePath);
+    // Simpan file baru via temporary server-generated path, then move to final validated path
+    const tmpDir = fs.mkdtempSync(path.join(resolvedBaseDir, '.upload-'));
+    const tmpPath = path.join(tmpDir, `upload-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    await imageFile.mv(tmpPath);
+    fs.renameSync(tmpPath, resolvedFilePath);
+    fs.rmdirSync(tmpDir);
 
     activityLogger({
       req,
