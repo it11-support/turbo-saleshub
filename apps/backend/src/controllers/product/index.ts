@@ -96,8 +96,9 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    // allow only safe filename characters to prevent path traversal/injection
-    if (!/^[A-Za-z0-9_-]+$/.test(itemCode)) {
+    // Canonicalize and validate itemCode to prevent path traversal/injection
+    const safeItemCode = itemCode.replace(/[^A-Za-z0-9_-]/g, '');
+    if (!safeItemCode || safeItemCode !== itemCode) {
       res.status(400).json({ message: 'Invalid itemCode format' });
       return;
     }
@@ -117,7 +118,6 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    const safeItemCode = itemCode;
     const fileName = `${safeItemCode}${ext}`;
     const resolvedBaseDir = path.resolve(baseDir);
     const resolvedFilePath = path.resolve(resolvedBaseDir, fileName);
@@ -133,7 +133,7 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
     // Hapus semua file lama dengan nama itemCode.*
     const filesInDir = fs.readdirSync(baseDir);
     filesInDir.forEach((f) => {
-      if (f.startsWith(itemCode + '.')) {
+      if (f.startsWith(safeItemCode + '.')) {
         fs.unlinkSync(path.join(baseDir, f));
       }
     });
