@@ -1,0 +1,52 @@
+name: "CodeQL Security Scan"
+
+on:
+  push:
+    branches: [ "release/v1", "main" ]
+  pull_request:
+    branches: [ "release/v1", "main" ]
+  schedule:
+    - cron: '0 0 * * 0'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+    continue-on-error: true 
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript-typescript'
+          queries: security-extended
+
+      - name: Generate Prisma Types
+        run: pnpm db:generate || true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
