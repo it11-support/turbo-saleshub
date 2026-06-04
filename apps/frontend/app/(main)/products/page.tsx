@@ -119,7 +119,9 @@ const ProductList = () => {
   // Group Options
   const groupOptions = [
     { label: 'Chemical', value: EProductCategory.CHEMICAL },
-    { label: 'Butter', value: EProductCategory.BUTTER },
+    { label: 'Dairy', value: EProductCategory.DAIRY },
+    { label: 'Sauce', value: EProductCategory.SAUCE },
+    { label: 'Beverage', value: EProductCategory.BEVERAGE },
     { label: 'Tissue', value: EProductCategory.TISSUE },
     { label: 'Groceries', value: EProductCategory.GROCERIES },
   ]

@@ -3,9 +3,11 @@ import { ISubGroup } from "../subgroups"
 
 export enum EProductCategory {
   "GROCERIES" = "GROCERIES",
-  "BUTTER" = "BUTTER",
+  "DAIRY" = "DAIRY",
   "TISSUE" = "TISSUE",
   "CHEMICAL" = "CHEMICAL",
+  "SAUCE" = "SAUCE",
+  "BEVERAGE" = "BEVERAGE",
 }
 export interface IProduct {
   id: bigint | number; // ✅

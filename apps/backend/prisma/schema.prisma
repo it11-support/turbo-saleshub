@@ -740,9 +740,11 @@ enum CustomerSegment {
 
 enum ProductCategory {
   GROCERIES
-  BUTTER
+  BEVERAGE
   TISSUE
   CHEMICAL
+  DAIRY
+  SAUCE
 }
 
 enum SeverityLevel {
