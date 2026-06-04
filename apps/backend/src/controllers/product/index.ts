@@ -14,23 +14,30 @@ const isSafeItemCode = (itemCode: string): boolean => /^[A-Za-z0-9_-]+$/.test(it
 
 export const image = async (req: Request, res: Response) => {
   try {
-    const { itemCode } = req.params;
-    if (!isSafeItemCode(itemCode)) {
+    const itemCodeStr = String(req.params.itemCode);
+    const { nofallback } = req.query;
+
+    if (!isSafeItemCode(itemCodeStr)) {
       res.status(400).json({ message: 'Invalid item code' });
       return;
     }
-    const { nofallback } = req.query; // optional param
-    const baseDir = path.join(process.cwd(), 'public/images/product');
 
-    const png = path.join(baseDir, `${itemCode}.png`);
-    const jpg = path.join(baseDir, `${itemCode}.jpg`);
-    const jpeg = path.join(baseDir, `${itemCode}.jpeg`);
-    const fallback = path.join(baseDir, 'no-image.png');
+    const baseDir = path.resolve(process.cwd(), 'public/images/product');
+    const fallback = path.resolve(baseDir, 'no-image.png');
+    const extensions = ['.png', '.jpg', '.jpeg'];
 
-    // cek file asli
-    if (fs.existsSync(png)) return res.sendFile(png);
-    if (fs.existsSync(jpg)) return res.sendFile(jpg);
-    if (fs.existsSync(jpeg)) return res.sendFile(jpeg);
+    for (const ext of extensions) {
+      const targetPath = path.resolve(baseDir, `${itemCodeStr}${ext}`);
+
+      if (!targetPath.startsWith(baseDir)) {
+        res.status(403).json({ message: 'Akses folder tidak diizinkan' });
+        return;
+      }
+
+      if (fs.existsSync(targetPath)) {
+        return res.sendFile(targetPath);
+      }
+    }
 
     if (nofallback === '1') {
       res.json({ exists: false });
@@ -41,7 +48,7 @@ export const image = async (req: Request, res: Response) => {
     res.sendFile(fallback);
   } catch (error) {
     console.error(error);
-    const fallback = path.join(process.cwd(), 'public/images/product/no-image.png');
+    const fallback = path.resolve(process.cwd(), 'public/images/product/no-image.png');
     res.sendFile(fallback);
   }
 };
@@ -49,35 +56,36 @@ export const image = async (req: Request, res: Response) => {
 // Delete image
 export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { itemCode } = req.params;
-    if (!isSafeItemCode(itemCode)) {
+    const itemCodeStr = String(req.params.itemCode);
+
+    if (!isSafeItemCode(itemCodeStr)) {
       res.status(400).json({ message: 'Invalid item code' });
       return;
     }
-    const baseDir = path.join(process.cwd(), 'public/images/product');
 
-    const png = path.join(baseDir, `${itemCode}.png`);
-    const jpg = path.join(baseDir, `${itemCode}.jpg`);
-    const jpeg = path.join(baseDir, `${itemCode}.jpeg`);
+    const safeItemCode = path.basename(itemCodeStr);
+    const baseDir = path.resolve(process.cwd(), 'public/images/product');
+    const extensions = ['.png', '.jpg', '.jpeg'];
     let fileDeleted = false;
-    // cek file asli dan hapus jika ada
-    if (fs.existsSync(png)) {
-      fs.unlinkSync(png);
-      fileDeleted = true;
-    }
-    if (fs.existsSync(jpg)) {
-      fs.unlinkSync(jpg);
-      fileDeleted = true;
-    }
-    if (fs.existsSync(jpeg)) {
-      fs.unlinkSync(jpeg);
-      fileDeleted = true;
+
+    for (const ext of extensions) {
+      const targetPath = path.resolve(baseDir, `${safeItemCode}${ext}`);
+
+      if (!targetPath.startsWith(baseDir)) {
+        res.status(403).json({ message: 'Forbidden' });
+        return;
+      }
+
+      if (fs.existsSync(targetPath)) {
+        fs.unlinkSync(targetPath);
+        fileDeleted = true;
+      }
     }
     if (fileDeleted) {
       activityLogger({
         req,
         actionType: "Product",
-        description: `Product image deleted: ${itemCode}`,
+        description: `Product image deleted: ${safeItemCode}`,
         status: "SUCCESS",
       });
 
@@ -97,61 +105,57 @@ export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
 
 export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const baseDir = path.join(process.cwd(), 'public/images/product');
+    const baseDir = path.resolve(process.cwd(), 'public/images/product');
 
-    const { itemCode } = req.params;
+    const itemCodeStr = String(req.params.itemCode);
 
-    if (!itemCode) {
-      res.status(400).json({ message: 'itemCode required' });
-      return;
-    }
-
-    // Canonicalize and validate itemCode to prevent path traversal/injection
-    const safeItemCode = itemCode.replace(/[^A-Za-z0-9_-]/g, '');
-    if (!safeItemCode || safeItemCode !== itemCode) {
+    if (!isSafeItemCode(itemCodeStr)) {
       res.status(400).json({ message: 'Invalid itemCode format' });
       return;
     }
+
+    const safeItemCode = path.basename(itemCodeStr);
 
     if (!req.files || Object.keys(req.files).length === 0) {
       res.status(400).json({ message: 'No file uploaded' });
       return;
     }
 
-    // ambil file pertama
     const firstKey = Object.keys(req.files)[0];
     const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
     const ext = path.extname(imageFile.name).toLowerCase();
     const allowedExt = new Set(['.png', '.jpg', '.jpeg', '.webp']);
+
     if (!allowedExt.has(ext)) {
       res.status(400).json({ message: 'Invalid file extension' });
       return;
     }
 
     const fileName = `${safeItemCode}${ext}`;
-    const resolvedBaseDir = path.resolve(baseDir);
-    const resolvedFilePath = path.resolve(resolvedBaseDir, fileName);
+    const resolvedFilePath = path.resolve(baseDir, fileName);
 
-    if (
-      resolvedFilePath !== resolvedBaseDir &&
-      !resolvedFilePath.startsWith(resolvedBaseDir + path.sep)
-    ) {
+    if (!resolvedFilePath.startsWith(baseDir)) {
       res.status(400).json({ message: 'Invalid file path' });
       return;
     }
 
-    // Hapus semua file lama dengan nama itemCode.*
-    const filesInDir = fs.readdirSync(baseDir);
-    filesInDir.forEach((f) => {
-      if (f.startsWith(safeItemCode + '.')) {
-        fs.unlinkSync(path.join(baseDir, f));
+    if (fs.existsSync(baseDir)) {
+      const filesInDir = fs.readdirSync(baseDir);
+      for (const f of filesInDir) {
+        if (f.startsWith(safeItemCode + '.')) {
+          const oldFilePath = path.resolve(baseDir, f);
+          if (oldFilePath.startsWith(baseDir) && fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+          }
+        }
       }
-    });
+    }
 
-    // Simpan file baru via temporary server-generated path, then move to final validated path
-    const tmpDir = fs.mkdtempSync(path.join(resolvedBaseDir, '.upload-'));
-    const tmpPath = path.join(tmpDir, `upload-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    const tmpDir = fs.mkdtempSync(path.resolve(baseDir, '.upload-'));
+    const tmpPath = path.resolve(tmpDir, `upload-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+
     await imageFile.mv(tmpPath);
+
     fs.renameSync(tmpPath, resolvedFilePath);
     fs.rmdirSync(tmpDir);
 
