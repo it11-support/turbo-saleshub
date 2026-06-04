@@ -118,7 +118,7 @@ export default function CustomerTable() {
   // 5. Data Mapping untuk UI
   const customers = data?.data?.items || []
   const totalRecords = data?.data?.totalRecords || 0
-
+  const totalPages = data?.data?.totalPages || 0
   const groupOptions = data?.groupNames?.map((name: string) => ({ label: name, value: name })) || []
   const subGroupOptions =
     data?.subGroupNames?.map((name: string) => ({ label: name, value: name })) || []
@@ -147,6 +147,11 @@ export default function CustomerTable() {
       className={getClass(row.rfm?.segment)}
     />
   )
+
+  const preloadCustomers = (page: number) => {
+    const cacheKey = createUrl('customers', { ...payload, page })
+    preload(cacheKey, fetcher)
+  }
 
   const headers = [
     { field: 'CardName', header: 'Name', sortable: true },
@@ -277,6 +282,31 @@ export default function CustomerTable() {
         onRowClick={(e) => router.push(`/customers/${e.data.id}`)}
         rowsPerPageOptions={[10, 20, 25, 50]}
         onRowMouseEnter={rowHoverHandler}
+        pt={{
+          paginator: {
+            pageButton: () => ({
+              onMouseEnter: async (e: React.MouseEvent<HTMLButtonElement>) => {
+                const text = e.currentTarget.textContent
+                if (text) {
+                  const pageNumber = parseInt(text, 10)
+                  preloadCustomers(pageNumber)
+                }
+              },
+            }),
+            firstPageButton: () => ({
+              onMouseEnter: () => preloadCustomers(1),
+            }),
+            prevPageButton: () => ({
+              onMouseEnter: () => preloadCustomers(filters.page - 1),
+            }),
+            nextPageButton: () => ({
+              onMouseEnter: () => preloadCustomers(filters.page + 1),
+            }),
+            lastPageButton: () => ({
+              onMouseEnter: () => preloadCustomers(totalPages),
+            }),
+          },
+        }}
       >
         {visibleHeaders.map((col) => {
           if (col.field === 'CardName') {

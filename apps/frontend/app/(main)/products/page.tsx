@@ -20,11 +20,11 @@ import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { Editor } from 'primereact/editor'
 import { InputText } from 'primereact/inputtext'
-import { Paginator } from 'primereact/paginator'
+import { Paginator, PaginatorTemplateOptions } from 'primereact/paginator'
 import { Toast } from 'primereact/toast'
 import Quill from 'quill'
 import { useEffect, useRef, useState } from 'react'
-import useSWR from 'swr'
+import useSWR, { preload } from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { useAuth } from '@/layout/context/AuthContext'
@@ -298,8 +298,6 @@ const ProductList = () => {
 
         {/* 4. Bersihkan Format */}
         <button className="ql-clean" type="button" title="Hapus Format"></button>
-
-        {/* JANGAN MASUKKAN <button className="ql-image"></button> DI SINI */}
       </span>
     )
   }
@@ -309,6 +307,78 @@ const ProductList = () => {
     const productInfo = currentProductInfo
     await updateProductInfo(Number(productId), productInfo as string)
     setShowInfoDialog(false)
+  }
+
+  const handleHoverPageLink = (page: number) => {
+    const cacheKey = createUrl('product', { ...payload, page })
+    preload(cacheKey, fetcher)
+  }
+
+  const paginatorTemplate: PaginatorTemplateOptions = {
+    layout: 'FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink',
+
+    PageLinks: (options) => (
+      <button
+        type="button"
+        className={options.className}
+        onClick={options.onClick}
+        onMouseEnter={() => {
+          handleHoverPageLink(options.page + 1)
+        }}
+      >
+        {options.page + 1}
+      </button>
+    ),
+    NextPageLink: (options) => (
+      <button
+        type="button"
+        className={options.className}
+        onClick={options.onClick}
+        onMouseEnter={() => {
+          handleHoverPageLink(filters.page + 1)
+        }}
+      >
+        <i className="pi pi-angle-right"></i>
+      </button>
+    ),
+    LastPageLink: (options) => (
+      <button
+        type="button"
+        className={options.className}
+        onClick={options.onClick}
+        onMouseEnter={() => {
+          handleHoverPageLink(totalPages)
+        }}
+      >
+        <i className="pi pi-angle-double-right"></i>
+      </button>
+    ),
+    FirstPageLink: (options) => (
+      <button
+        type="button"
+        className={options.className}
+        onClick={options.onClick}
+        onMouseEnter={() => {
+          handleHoverPageLink(1)
+        }}
+      >
+        <i className="pi pi-angle-double-left"></i>
+      </button>
+    ),
+    PrevPageLink(options) {
+      return (
+        <button
+          type="button"
+          className={options.className}
+          onClick={options.onClick}
+          onMouseEnter={() => {
+            handleHoverPageLink(filters.page - 1)
+          }}
+        >
+          <i className="pi pi-angle-left"></i>
+        </button>
+      )
+    },
   }
 
   const header = renderHeader()
@@ -490,10 +560,10 @@ const ProductList = () => {
             className="paginator border-0"
             first={first}
             rows={filters.limit}
-            totalRecords={totalRecords} // total dari backend
-            rowsPerPageOptions={[10, 20, 30]} // dropdown rows per page
+            totalRecords={totalRecords}
+            rowsPerPageOptions={[10, 20, 30]}
             onPageChange={onPageChange}
-            template="FirstPageLink PrevPageLink  PageLinks  NextPageLink  LastPageLink CurrentPageReport  RowsPerPageDropdown"
+            template={paginatorTemplate}
             currentPageReportTemplate={`Page ${filters.page} of ${totalPages}`}
           />
         </div>
