@@ -7,7 +7,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always",
-      "source.fixAll.eslint": "always",
+      "source.fixAll.eslint": "always"
     },
     "editor.formatOnSave": true
   },
@@ -17,14 +17,14 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always",
-      "source.fixAll.eslint": "always",
+      "source.fixAll.eslint": "always"
     },
     "editor.formatOnSave": true
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-   "editor.codeActionsOnSave": {
+  "editor.codeActionsOnSave": {
     "source.organizeImports": "always",
-    "source.fixAll.eslint": "always",
+    "source.fixAll.eslint": "always"
   },
   "editor.formatOnSave": true
 }
