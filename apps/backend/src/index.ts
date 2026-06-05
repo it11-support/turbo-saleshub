@@ -16,7 +16,14 @@ const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
 app.set('trust proxy', 2);
-app.use(helmet())
+app.use(helmet(
+  {
+    crossOriginResourcePolicy: {
+      policy: 'cross-origin'
+    },
+    crossOriginEmbedderPolicy: false
+  }
+))
 app.use(defaultLimiter)
 
 // snyk:ignore:javascript/cleartext-transmission
