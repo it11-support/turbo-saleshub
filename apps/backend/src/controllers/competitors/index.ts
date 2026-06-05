@@ -30,6 +30,13 @@ export const syncCompetitors = async (req: Request, res: Response) => {
     const { id } = req.params;
     const competitors = req.body;
 
+    if (!Array.isArray(competitors)) {
+      return res.status(400).json({
+        message: 'competitors must be an array',
+      })
+    }
+
+
     if (Array.isArray(id) || !id) {
       res.status(400).json({ message: "Invalid ID parameter" });
       return;
