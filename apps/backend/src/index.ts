@@ -5,7 +5,6 @@ import fileUpload from 'express-fileupload'
 import { startRfmScheduler } from './scheduler/index.js'
 import { createServer } from 'http'
 import { initSocket } from './libs/socket-io.js'
-import { authLimiter } from './utils/limiter.js'
 
 (BigInt.prototype as any).toJSON = function () {
   return Number(this);
@@ -14,7 +13,6 @@ import { authLimiter } from './utils/limiter.js'
 const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
-app.use(authLimiter)
 const httpServer = createServer(app)
 
 initSocket(httpServer)

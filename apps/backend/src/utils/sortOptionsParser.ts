@@ -41,15 +41,11 @@ export const sortOptionsParser = (sort_options: unknown): SortOption[] => {
 
   if (Array.isArray(sort_options)) {
     parsed = sort_options
-  } else if (
-    typeof sort_options === 'object' &&
-    sort_options !== null
-  ) {
+  } else if (typeof sort_options === 'object' && sort_options !== null) {
     parsed = Object.values(sort_options)
   } else if (typeof sort_options === 'string') {
     try {
-      const result = JSON.parse(sort_options)
-      parsed = Array.isArray(result) ? result : []
+      parsed = JSON.parse(sort_options)
     } catch {
       parsed = []
     }

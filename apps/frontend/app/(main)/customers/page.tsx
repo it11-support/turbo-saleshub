@@ -194,6 +194,7 @@ export default function CustomerTable() {
 
         <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
+            inputId="group-filter"
             value={filters.groups}
             onChange={(e) => setFilters({ groups: e.value, page: 1 })}
             options={groupOptions}
@@ -204,6 +205,7 @@ export default function CustomerTable() {
 
         <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
+            inputId="subgroup-filter"
             value={filters.subgroups}
             onChange={(e) => setFilters({ subgroups: e.value, page: 1 })}
             options={subGroupOptions}
@@ -215,6 +217,7 @@ export default function CustomerTable() {
         {isAdmin && (
           <div className="col-12 sm:col-6 md:col-3">
             <MultiSelect
+              inputId="salesperson-filter"
               value={filters.salesPersons}
               onChange={(e) => setFilters({ salesPersons: e.value, page: 1 })}
               options={salesPersonOptions}
@@ -226,6 +229,7 @@ export default function CustomerTable() {
 
         <div className="col-12 sm:col-6 md:col-3">
           <MultiSelect
+            inputId="loyalty-level-filter"
             value={filters.loyaltyLevel}
             onChange={(e) => setFilters({ loyaltyLevel: e.value, page: 1 })}
             options={loyaltyLevelOptions}
