@@ -6,7 +6,9 @@ import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
+import { promises as fsAsync } from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 export type ImageResponseType = never;
 
@@ -103,9 +105,15 @@ export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
+export const imageUpload = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    const baseDir = path.resolve(process.cwd(), 'public/images/product');
+    const baseDir = path.resolve(
+      process.cwd(),
+      'public/images/product'
+    );
 
     const itemCode = String(req.params.itemCode);
 
@@ -124,27 +132,31 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
     const firstKey = Object.keys(req.files)[0];
     const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
 
-    const ext = path.extname(imageFile.name).toLowerCase();
+    const mimeToExt: Record<string, string> = {
+      'image/png': '.png',
+      'image/jpeg': '.jpg',
+      'image/webp': '.webp',
+    };
 
-    const allowedExt = new Set([
-      '.png',
-      '.jpg',
-      '.jpeg',
-      '.webp',
-    ]);
+    const ext = mimeToExt[imageFile.mimetype];
 
-    if (!allowedExt.has(ext)) {
+    if (!ext) {
       return res.status(400).json({
-        message: 'Invalid file extension',
+        message: 'Invalid file type',
       });
     }
 
     const fileName = `${itemCode}${ext}`;
 
-    const destinationPath = path.resolve(baseDir, fileName);
+    const destinationPath = path.resolve(
+      baseDir,
+      fileName
+    );
 
-    // Prevent path traversal
-    const relativePath = path.relative(baseDir, destinationPath);
+    const relativePath = path.relative(
+      baseDir,
+      destinationPath
+    );
 
     if (
       relativePath.startsWith('..') ||
@@ -155,36 +167,70 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    fs.mkdirSync(baseDir, { recursive: true });
+    await fsAsync.mkdir(baseDir, {
+      recursive: true,
+    });
 
-    // Hapus file lama
-    for (const file of fs.readdirSync(baseDir)) {
-      if (file.startsWith(`${itemCode}.`)) {
-        const oldPath = path.resolve(baseDir, file);
+    const files = await fsAsync.readdir(baseDir);
 
-        const rel = path.relative(baseDir, oldPath);
-
-        if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
-          fs.rmSync(oldPath, { force: true });
-        }
+    for (const file of files) {
+      if (!file.startsWith(`${itemCode}.`)) {
+        continue;
       }
+
+      const oldPath = path.resolve(baseDir, file);
+
+      const rel = path.relative(
+        baseDir,
+        oldPath
+      );
+
+      if (
+        rel.startsWith('..') ||
+        path.isAbsolute(rel)
+      ) {
+        continue;
+      }
+
+      await fsAsync.rm(oldPath, {
+        force: true,
+      });
     }
 
-    const tempDir = fs.mkdtempSync(
+    const tempDir = await fsAsync.mkdtemp(
       path.join(baseDir, '.upload-')
     );
 
     try {
-      const tempFile = path.join(
+      const tempFile = path.resolve(
         tempDir,
-        `upload-${Date.now()}${ext}`
+        `${crypto.randomUUID()}${ext}`
       );
+
+      const tempRel = path.relative(
+        tempDir,
+        tempFile
+      );
+
+      if (
+        tempRel.startsWith('..') ||
+        path.isAbsolute(tempRel)
+      ) {
+        throw new Error(
+          'Invalid temporary file path'
+        );
+      }
 
       await imageFile.mv(tempFile);
 
-      fs.renameSync(tempFile, destinationPath);
+      await fsAsync.copyFile(
+        tempFile,
+        destinationPath
+      );
+
+      await fsAsync.unlink(tempFile);
     } finally {
-      fs.rmSync(tempDir, {
+      await fsAsync.rm(tempDir, {
         recursive: true,
         force: true,
       });
@@ -344,8 +390,45 @@ export const bulkUploadProducts = async (req: AuthenticatedRequest, res: Respons
       const originalName = imageFile.name;
       const ext = path.extname(originalName).toLowerCase();
       const itemCode = path.parse(originalName).name;
+
+      if (!/^[A-Za-z0-9_-]+$/.test(itemCode)) {
+        invalidFiles.push({
+          filename: originalName,
+          reason: 'Invalid filename',
+        });
+        continue;
+      }
+
+      const allowedExt = new Set([
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.webp',
+      ]);
+
+      if (!allowedExt.has(ext)) {
+        invalidFiles.push({
+          filename: originalName,
+          reason: 'Invalid extension',
+        });
+        continue;
+      }
+
       const fileName = `${itemCode}${ext}`;
-      const filePath = path.join(baseDir, fileName);
+      const destinationPath = path.resolve(baseDir, fileName);
+
+      const relativePath = path.relative(baseDir, destinationPath);
+
+      if (
+        relativePath.startsWith('..') ||
+        path.isAbsolute(relativePath)
+      ) {
+        invalidFiles.push({
+          filename: originalName,
+          reason: 'Invalid path',
+        });
+        continue;
+      }
 
       // max 5MB
       if (imageFile.size > 5 * 1024 * 1024) {
@@ -365,11 +448,17 @@ export const bulkUploadProducts = async (req: AuthenticatedRequest, res: Respons
       // hapus file lama
       fs.readdirSync(baseDir).forEach((f) => {
         if (f.startsWith(itemCode + '.')) {
-          fs.unlinkSync(path.join(baseDir, f));
+          const oldPath = path.resolve(baseDir, f);
+
+          const rel = path.relative(baseDir, oldPath);
+
+          if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+            fs.rmSync(oldPath, { force: true });
+          }
         }
       });
 
-      await imageFile.mv(filePath);
+      await imageFile.mv(destinationPath);
 
       uploaded.push({
         itemCode,
