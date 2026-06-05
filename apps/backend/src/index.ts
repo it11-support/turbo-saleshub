@@ -15,6 +15,9 @@ const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
 app.use(defaultLimiter)
+
+// snyk:ignore:javascript/cleartext-transmission
+// Reason: SSL termination is handled by the upstream reverse proxy in production. Internal traffic is safe.
 const httpServer = createServer(app)
 
 initSocket(httpServer)
