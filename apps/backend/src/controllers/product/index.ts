@@ -107,73 +107,108 @@ export const imageUpload = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const baseDir = path.resolve(process.cwd(), 'public/images/product');
 
-    const itemCodeStr = String(req.params.itemCode);
+    const itemCode = String(req.params.itemCode);
 
-    if (!isSafeItemCode(itemCodeStr)) {
-      res.status(400).json({ message: 'Invalid itemCode format' });
-      return;
+    if (!/^[A-Za-z0-9_-]+$/.test(itemCode)) {
+      return res.status(400).json({
+        message: 'Invalid itemCode format',
+      });
     }
 
-    const safeItemCode = path.basename(itemCodeStr);
-
     if (!req.files || Object.keys(req.files).length === 0) {
-      res.status(400).json({ message: 'No file uploaded' });
-      return;
+      return res.status(400).json({
+        message: 'No file uploaded',
+      });
     }
 
     const firstKey = Object.keys(req.files)[0];
     const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
+
     const ext = path.extname(imageFile.name).toLowerCase();
-    const allowedExt = new Set(['.png', '.jpg', '.jpeg', '.webp']);
+
+    const allowedExt = new Set([
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.webp',
+    ]);
 
     if (!allowedExt.has(ext)) {
-      res.status(400).json({ message: 'Invalid file extension' });
-      return;
+      return res.status(400).json({
+        message: 'Invalid file extension',
+      });
     }
 
-    const fileName = `${safeItemCode}${ext}`;
-    const resolvedFilePath = path.resolve(baseDir, fileName);
+    const fileName = `${itemCode}${ext}`;
 
-    if (!resolvedFilePath.startsWith(baseDir)) {
-      res.status(400).json({ message: 'Invalid file path' });
-      return;
+    const destinationPath = path.resolve(baseDir, fileName);
+
+    // Prevent path traversal
+    const relativePath = path.relative(baseDir, destinationPath);
+
+    if (
+      relativePath.startsWith('..') ||
+      path.isAbsolute(relativePath)
+    ) {
+      return res.status(400).json({
+        message: 'Invalid file path',
+      });
     }
 
-    if (fs.existsSync(baseDir)) {
-      const filesInDir = fs.readdirSync(baseDir);
-      for (const f of filesInDir) {
-        if (f.startsWith(safeItemCode + '.')) {
-          const oldFilePath = path.resolve(baseDir, f);
-          if (oldFilePath.startsWith(baseDir) && fs.existsSync(oldFilePath)) {
-            fs.unlinkSync(oldFilePath);
-          }
+    fs.mkdirSync(baseDir, { recursive: true });
+
+    // Hapus file lama
+    for (const file of fs.readdirSync(baseDir)) {
+      if (file.startsWith(`${itemCode}.`)) {
+        const oldPath = path.resolve(baseDir, file);
+
+        const rel = path.relative(baseDir, oldPath);
+
+        if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+          fs.rmSync(oldPath, { force: true });
         }
       }
     }
 
-    const tmpDir = fs.mkdtempSync(path.resolve(baseDir, '.upload-'));
-    const tmpPath = path.resolve(tmpDir, `upload-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    const tempDir = fs.mkdtempSync(
+      path.join(baseDir, '.upload-')
+    );
 
-    await imageFile.mv(tmpPath);
+    try {
+      const tempFile = path.join(
+        tempDir,
+        `upload-${Date.now()}${ext}`
+      );
 
-    fs.renameSync(tmpPath, resolvedFilePath);
-    fs.rmdirSync(tmpDir);
+      await imageFile.mv(tempFile);
+
+      fs.renameSync(tempFile, destinationPath);
+    } finally {
+      fs.rmSync(tempDir, {
+        recursive: true,
+        force: true,
+      });
+    }
 
     activityLogger({
       req,
-      actionType: "Product",
+      actionType: 'Product',
       description: `Product image uploaded: ${fileName}`,
-      status: "SUCCESS",
+      status: 'SUCCESS',
     });
-    res.json({
+
+    return res.json({
       message: 'Upload successful',
       url: `/images/product/${fileName}`,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Failed to upload image' });
+
+    return res.status(500).json({
+      message: 'Failed to upload image',
+    });
   }
-};
+}
 
 export const fetchProducts = async (req: Request, res: Response) => {
   try {
