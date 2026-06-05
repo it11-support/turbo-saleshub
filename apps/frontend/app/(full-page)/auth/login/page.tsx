@@ -27,7 +27,7 @@ const schema = yup.object().shape({
       const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/
       return emailRegex.test(value) || usernameRegex.test(value)
     }),
-  password: yup
+  pass: yup
     .string()
     .required('Password is required')
     .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
@@ -64,7 +64,7 @@ const LoginPage = () => {
         method: 'POST',
         body: {
           username: credentials.username,
-          password: credentials.password,
+          pass: credentials.pass,
           remember: credentials.remember,
         },
       })
@@ -73,8 +73,8 @@ const LoginPage = () => {
 
       if (data?.errors) {
         Object.entries(data.errors).forEach(([key, value]) => {
-          if (['username', 'password', 'remember'].includes(key)) {
-            setError(key as 'username' | 'password' | 'remember', {
+          if (['username', 'pass', 'remember'].includes(key)) {
+            setError(key as 'username' | 'pass' | 'remember', {
               type: 'server',
               message: value as string,
             })
@@ -137,7 +137,7 @@ const LoginPage = () => {
                 </label>
 
                 <Controller
-                  name="password"
+                  name="pass"
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
@@ -147,14 +147,12 @@ const LoginPage = () => {
                       placeholder="Password"
                       toggleMask
                       // feedback={false} // hilangkan strength meter kalau tidak perlu
-                      className={`w-full md:w-30rem mb-2 ${errors.password ? 'p-invalid' : ''}`}
+                      className={`w-full md:w-30rem mb-2 ${errors.pass ? 'p-invalid' : ''}`}
                       inputClassName="w-full p-3 md:w-30rem"
                     />
                   )}
                 />
-                {errors.password && (
-                  <small className="p-error block mb-3">{errors.password.message}</small>
-                )}
+                {errors.pass && <small className="p-error block mb-3">{errors.pass.message}</small>}
                 <div className="flex align-items-center justify-content-between mb-5 gap-5">
                   <div className="flex align-items-center">
                     <Controller

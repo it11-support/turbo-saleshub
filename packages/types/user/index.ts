@@ -104,7 +104,7 @@ export type IUserPayload = Omit<IUser, 'role'> & {
 
 export type Credentials = {
   username: string
-  password: string
+  pass: string
   remember: boolean
 }
 

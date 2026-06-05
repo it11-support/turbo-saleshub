@@ -11,7 +11,7 @@ export type LoginResponse = {
     user?: Partial<IUser>;
     errors?: {
       username?: string;
-      password?: string;
+      pass?: string;
       remember?: string;
     }
   };
@@ -19,7 +19,7 @@ export type LoginResponse = {
 };
 export type LoginRequest = {
   username: string;
-  password: string;
+  pass: string;
   remember: boolean;
 };
 
@@ -34,13 +34,13 @@ export const comparePassword = async (password: string, hashed: string) => {
 
 export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Response<LoginResponse>) => {
 
-  const { username, password, remember } = req.body;
+  const { username, pass, remember } = req.body;
 
   try {
 
-    if (!username || !password) {
+    if (!username || !pass) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Username or password are required', status: 'FAILED', username });
-      res.status(200).json({ message: 'Username and password are required', data: { errors: { username: !username ? 'Username is required' : undefined, password: !password ? 'Password is required' : undefined } } });
+      res.status(200).json({ message: 'Username and password are required', data: { errors: { username: !username ? 'Username is required' : undefined, pass: !pass ? 'Password is required' : undefined } } });
       return;
     }
 
@@ -57,12 +57,12 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
       return;
     }
 
-    const isMatch = await comparePassword(password, user?.password);
+    const isMatch = await comparePassword(pass, user?.password);
     if (!isMatch) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Password incorrect', status: 'FAILED', username });
       // snyk:ignore:NoHardcodedPasswords
       // Reason: False Positive. This is a validation error response for the client.
-      res.status(200).json({ message: 'Password incorrect', data: { errors: { password: 'Password is incorrect.' } } });
+      res.status(200).json({ message: 'Password incorrect', data: { errors: { pass: 'Password is incorrect.' } } });
       return;
     }
 
