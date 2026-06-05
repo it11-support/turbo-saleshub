@@ -16,7 +16,27 @@ const isSafePath = (path: string): boolean => {
         !FORBIDDEN_KEYS.has(part)
     )
 }
-export function sortOptionsParser(sort_options: unknown): SortOption[] {
+
+const assertSafeKey = (key: string): void => {
+  if (FORBIDDEN_KEYS.has(key)) {
+    throw new Error(`Forbidden sort key: ${key}`)
+  }
+}
+
+const isSortOption = (value: unknown): value is SortOption => {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const sort = value as Record<string, unknown>
+
+  return (
+    typeof sort.key === 'string' &&
+    (sort.order === 'asc' || sort.order === 'desc')
+  )
+}
+
+export const sortOptionsParser = (sort_options: unknown): SortOption[] => {
   let parsed: unknown[] = []
 
   if (Array.isArray(sort_options)) {
@@ -34,28 +54,27 @@ export function sortOptionsParser(sort_options: unknown): SortOption[] {
       parsed = []
     }
   }
-
-  return parsed.filter(
-    (s): s is SortOption =>
-      typeof s === 'object' &&
-      s !== null &&
-      typeof (s as SortOption).key === 'string' &&
-      ((s as SortOption).order === 'asc' ||
-        (s as SortOption).order === 'desc')
-  )
+  return parsed.filter(isSortOption)
 }
 
-export function convertToPrismaOrderBy(sortOptions: SortOption[]): any[] {
-  return sortOptions
-    .filter((sort) => isSafePath(sort.key))
-    .map((sort) => {
-      const keys = sort.key.split('.')
+export function convertToPrismaOrderBy(sortOptions: SortOption[]): Record<string, unknown>[] {
+  return sortOptions.map((sort) => {
+    const keys = sort.key.split('.')
 
-      return keys.reduceRight((acc: any, key: string, idx: number) => {
-        if (idx === keys.length - 1) {
-          return { [key]: sort.order }
-        }
-        return { [key]: acc }
-      }, {})
-    })
+    return keys.reduceRight<Record<string, unknown>>(
+      (acc, key, index) => {
+        assertSafeKey(key)
+
+        const obj = Object.create(null) as Record<string, unknown>
+
+        obj[key] =
+          index === keys.length - 1
+            ? sort.order
+            : acc
+
+        return obj
+      },
+      Object.create(null) as Record<string, unknown>
+    )
+  })
 }
