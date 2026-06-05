@@ -15,6 +15,7 @@ import helmet from 'helmet'
 const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
+app.set('trust proxy', true);
 app.use(helmet())
 app.use(defaultLimiter)
 
