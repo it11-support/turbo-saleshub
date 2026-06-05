@@ -2,7 +2,7 @@ import rateLimit from "express-rate-limit";
 
 export const defaultLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -14,7 +14,7 @@ export const defaultLimiter = rateLimit({
 
 export const imageReadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 3000,
   message: {
     message: 'Too many image requests, please try again after an hour',
   },
