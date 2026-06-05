@@ -17,7 +17,29 @@ interface FetchActivityLogsQuery {
 
 export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLogsQuery>, res: Response) => {
   try {
-    const { page, per_page, search, salesPersonId, type, dates, sort, order } = req.query
+    const q = req.query;
+
+    const page: number = Number(q.page) || 1;
+    const per_page: number = Number(q.per_page) || 10;
+
+    const search: string | undefined = typeof q.search === 'string' ? q.search : undefined;
+
+    const salesPersonId: number | null = q.salesPersonId && !isNaN(Number(q.salesPersonId))
+      ? Number(q.salesPersonId)
+      : null;
+
+    const type: string | null = typeof q.type === 'string' ? q.type : null;
+
+    // Mengamankan input array untuk dates
+    let dates: string[] | undefined = undefined;
+    if (Array.isArray(q.dates)) {
+      dates = q.dates.map(d => String(d));
+    } else if (typeof q.dates === 'string') {
+      dates = [q.dates];
+    }
+
+    const sort: string | null = typeof q.sort === 'string' ? q.sort : null;
+    const order: string | null = typeof q.order === 'string' ? q.order : null;
 
     const sort_options = sort
       ? [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }]
