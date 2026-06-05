@@ -4,20 +4,20 @@ import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsPa
 import dayjs from "dayjs";
 import { Request, Response } from "express";
 
-export const fetchActivityLogs = async (req: Request, res: Response) => {
+interface FetchActivityLogsQuery {
+  page: number;
+  per_page: number;
+  search?: string;
+  salesPersonId: number | null;
+  type: string | null;
+  dates?: string[];
+  sort: string | null;
+  order: string | null;
+}
+
+export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLogsQuery>, res: Response) => {
   try {
-
-    const page = Number(req.query.page) || 1;
-    const per_page = Number(req.query.per_page) || 10;
-    const search = typeof req.query.search === 'string' ? req.query.search : '';
-    const salesPersonId = Number(req.query.salesPersonId) || null;
-    const type = req.query.type as string | null;
-    const dates = req.query.dates as string[] | undefined;
-
-
-
-    const sort = req.query.sort || null;
-    const order = req.query.order || null;
+    const { page, per_page, search, salesPersonId, type, dates, sort, order } = req.query
 
     const sort_options = sort
       ? [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }]
