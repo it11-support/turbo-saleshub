@@ -6,6 +6,7 @@ import { startRfmScheduler } from './scheduler/index.js'
 import { createServer } from 'http'
 import { initSocket } from './libs/socket-io.js'
 import { defaultLimiter } from './utils/limiter.js'
+import helmet from 'helmet'
 
 (BigInt.prototype as any).toJSON = function () {
   return Number(this);
@@ -14,6 +15,7 @@ import { defaultLimiter } from './utils/limiter.js'
 const PORT = Number(process.env.PORT) || 4000
 
 const app = express()
+app.use(helmet())
 app.use(defaultLimiter)
 
 // snyk:ignore:javascript/cleartext-transmission
