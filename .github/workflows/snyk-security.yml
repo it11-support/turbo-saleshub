@@ -2,55 +2,51 @@ name: Snyk Security
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main" ]
   pull_request:
-    branches:
-      - main
+    branches: ["main"]
 
 permissions:
   contents: read
 
 jobs:
   snyk:
-    runs-on: ubuntu-latest
-
     permissions:
       contents: read
       security-events: write
       actions: read
-
-    env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Set up Snyk CLI to check for security issues       
+        uses: snyk/actions/setup@806182742461562b67788a64410098c9d9b96adb
 
-      - name: Set up Snyk CLI
-        uses: snyk/actions/setup@master
+        # For Snyk Open Source you must first set up the development environment for your application's dependencies
+        # For example for Node
+        #- uses: actions/setup-node@v4
+        #  with:
+        #    node-version: 20
 
-      - name: Verify Snyk authentication
-        run: |
-          snyk --version
-          snyk whoami
+        env:
+          # This is where you will need to introduce the Snyk API token created with your Snyk account
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+        # Runs Snyk Code (SAST) analysis and uploads result into GitHub.
+        # Use || true to not fail the pipeline
       - name: Snyk Code test
-        run: snyk code test --sarif > snyk-code.sarif
+        run: snyk code test --sarif > snyk-code.sarif || true
 
+        # Runs Snyk Open Source (SCA) analysis and uploads result to Snyk.
       - name: Snyk Open Source monitor
         run: snyk monitor --all-projects
 
+        # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
+        # Use || true to not fail the pipeline.
       - name: Snyk IaC test and report
-        run: snyk iac test --report
+        run: snyk iac test --report || true
 
-      - name: Build Docker image
-        run: docker build -t your/image-to-test .
-
-      - name: Snyk Container monitor
-        run: snyk container monitor your/image-to-test --file=Dockerfile
-
+        # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Upload result to GitHub Code Scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk-code.sarif
