@@ -1,3 +1,4 @@
+import { defaultLimiter } from '@/utils/limiter.js';
 import {
   createNewCategory,
   createNewStatus,
@@ -17,10 +18,10 @@ router.use(authMiddleware);
 
 router.get('/', fetchConcernCategories);
 router.get('/statuses', fetchConcernStatuses);
-router.post('/statuses', createNewStatus);
+router.post('/statuses',defaultLimiter , createNewStatus);
 router.put('/statuses/:id', updateConcernStatus);
 router.delete('/statuses/:id', deleteConcernStatus);
-router.post('/', createNewCategory);
+router.post('/', defaultLimiter, createNewCategory);
 router.put('/:id', updateConcernCategory);
 router.delete('/:id', deleteConcernCategory);
 

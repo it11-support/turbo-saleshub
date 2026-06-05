@@ -1,3 +1,4 @@
+import { defaultLimiter } from '@/utils/limiter.js';
 import { createVisitRules, syncVisitRules, visitRules } from '../controllers/index.js';
 import { authMiddleware, roleMiddleware } from '../middlewares/index.js';
 
@@ -7,8 +8,8 @@ const router = Router();
 
 router.use(authMiddleware);
 
-router.post('/create', roleMiddleware('admin'), createVisitRules);
+router.post('/create', roleMiddleware('admin'), defaultLimiter, createVisitRules);
 router.get('/', visitRules);
-router.post('/sync', syncVisitRules);
+router.post('/sync', defaultLimiter, syncVisitRules);
 
 export default router;
