@@ -1,4 +1,3 @@
-import { defaultLimiter } from '@/utils/limiter.js';
 import {
   closeItems,
   completeSalesVisit,
@@ -16,12 +15,12 @@ const router = Router();
 
 router.use(authMiddleware);
 
-router.post('/follow-up', defaultLimiter, followUpVisit);
+router.post('/follow-up', followUpVisit);
 router.get('/:id', fetchSalesVisit);
-router.post('/:id', defaultLimiter, syncSalesVisit);
-router.post('/:id/complete', defaultLimiter, completeSalesVisit);
+router.post('/:id', syncSalesVisit);
+router.post('/:id/complete', completeSalesVisit);
 router.get('/:id/details', visitDetails);
-router.post('/:id/start', defaultLimiter, startVisit);
-router.post('/:id/close-items', defaultLimiter, closeItems);
+router.post('/:id/start', startVisit);
+router.post('/:id/close-items', closeItems);
 
 export default router;

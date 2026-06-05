@@ -1,4 +1,3 @@
-import { defaultLimiter } from '@/utils/limiter.js';
 import { createVisitSchedule, generateScheduleByRules, getScheduleByDate } from '../controllers/index.js';
 import { authMiddleware } from '../middlewares/index.js';
 
@@ -8,8 +7,8 @@ const router = Router();
 
 router.use(authMiddleware);
 
-router.post('/create', defaultLimiter, createVisitSchedule)
+router.post('/create', createVisitSchedule)
 router.get('/', getScheduleByDate);
-router.post('/generate', defaultLimiter, generateScheduleByRules);
+router.post('/generate', generateScheduleByRules);
 
 export default router;
