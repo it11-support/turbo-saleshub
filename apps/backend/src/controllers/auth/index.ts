@@ -60,7 +60,7 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
     const isMatch = await comparePassword(password, user?.password);
     if (!isMatch) {
       activityLogger({ req, actionType: 'Login', description: 'User Login Failed: Password incorrect', status: 'FAILED', username });
-      // snyk:ignore:javascript/hardcoded-password
+      // snyk:ignore:javascript/NoHardcodedPasswords
       // Reason: False Positive. This is a validation error response for the client.
       res.status(200).json({ message: 'Password incorrect', data: { errors: { password: 'Password is incorrect.' } } });
       return;

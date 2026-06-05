@@ -21,24 +21,39 @@ export const getInquiries = async (req: Request, res: Response) => {
 export const syncInquiries = async (req: AuthenticatedRequest, res: Response) => {
   const { inquiries, visit_id } = req.body
 
+  const parsedVisitId = Number(visit_id);
+  if (!visit_id || isNaN(parsedVisitId)) {
+    res.status(400).json({
+      message: 'Invalid visit_id',
+      errors: { visit_id: 'visit_id should be a valid number' }
+    });
+  }
+
+  if (!Array.isArray(inquiries)) {
+    res.status(400).json({
+      message: 'Invalid inquiries',
+      errors: { inquiries: 'inquiries should be an array.' }
+    });
+  }
+
   await prisma.$transaction(async (tx) => {
     // hapus lama
     await tx.inquiries.deleteMany({
-      where: { visit_id: Number(visit_id) },
+      where: { visit_id: parsedVisitId },
     })
 
     // insert baru
     await tx.inquiries.createMany({
       data: inquiries.map((item: IInquiry) => ({
-        visit_id: Number(visit_id),
-        product_id: item.product_id,
-        product_name: item.product_name,
-        notes: item.notes,
+        visit_id: parsedVisitId,
+        product_id: Number(item?.product_id) || 0,
+        product_name: String(item?.product_name || ''),
+        notes: item?.notes ? String(item.notes) : null,
       })),
     })
   })
   const result = await prisma.inquiries.findMany({
-    where: { visit_id: Number(visit_id) }
+    where: { visit_id: parsedVisitId }
   })
 
   activityLogger({

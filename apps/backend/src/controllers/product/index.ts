@@ -613,8 +613,10 @@ export const productDevelopment = async (req: AuthenticatedRequest, res: Respons
       },
     });
 
+    const safeSubgroupIds = Array.isArray(subgroupIds) ? subgroupIds : [];
+
     await prisma.product_developments.createMany({
-      data: subgroupIds.map((subgroupId: number) => ({
+      data: safeSubgroupIds.map((subgroupId: number) => ({
         product_id: productId,
         subgroup_id: subgroupId,
       })),

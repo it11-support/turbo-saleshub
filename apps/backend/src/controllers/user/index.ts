@@ -79,7 +79,7 @@ export const userList = async (
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error', data: {items: [], totalRecords: 0} });
+    res.status(500).json({ message: 'Internal server error', data: { items: [], totalRecords: 0 } });
   }
 };
 
@@ -118,7 +118,7 @@ export const updateUser = async (req: AuthenticatedRequest<{ id: string }>, res:
     const { password, ...rest } = req.body;
     const dataToUpdate: any = { ...rest };
 
-    if (password && password.trim() !== '') {
+    if (password && typeof password === 'string' && password.trim() !== '') {
       const hashedPassword = await bcrypt.hash(password, 12);
       dataToUpdate.password = hashedPassword;
     }
@@ -147,7 +147,7 @@ export const createUser = async (req: AuthenticatedRequest, res: Response) => {
     const { password, ...rest } = req.body;
     const data: any = { ...rest };
 
-    if (password && password.trim() !== '') {
+    if (password && typeof password === 'string' && password.trim() !== '') {
       const hashedPassword = await bcrypt.hash(password, 12);
       data.password = hashedPassword;
     }
