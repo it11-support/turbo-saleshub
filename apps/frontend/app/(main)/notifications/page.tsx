@@ -92,6 +92,13 @@ const NotificationPage = () => {
     }
     setSelectedNotification(null)
   }
+  const messageTemplateBody = (data: INotification) => {
+    return (
+      <div style={{ whiteSpace: 'pre-line' }}>
+        <div>{data.message}</div>
+      </div>
+    )
+  }
 
   return (
     <div className="card p-4">
@@ -168,7 +175,7 @@ const NotificationPage = () => {
       >
         <Column field="title" header="Title" sortable />
         <Column field="type" header="Type" sortable />
-        <Column field="message" header="Message" sortable />
+        <Column field="message" header="Message" body={messageTemplateBody} sortable />
         <Column
           field="created_at"
           header="Date"

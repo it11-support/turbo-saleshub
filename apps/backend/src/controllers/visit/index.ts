@@ -328,12 +328,10 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
     const lastFollowUp = result.visit_item_concerns.follow_ups[result.visit_item_concerns.follow_ups.length - 1]
 
     const messageContent =
-      `A follow-up has been updated for customer ${customerName}.\n` +
+      `Customer: ${customerName}.\n` +
       `Product: ${productName}\n` +
-      `Topic: ${result.visit_item_concerns.category.name}\n` +
       `Current Status: ${lastFollowUp.concern_status.status}\n` +
-      `Admin notes: ${lastFollowUp.notes}\n` +
-      `Visit Reference ID: ${visitId}`;
+      `Admin notes: ${lastFollowUp.notes}\n`;
 
     const where: visitsWhereInput = {
       visit_items: {
