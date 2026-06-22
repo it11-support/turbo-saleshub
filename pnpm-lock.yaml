@@ -229,8 +229,8 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       node-cron:
-        specifier: ^4.4.1
-        version: 4.4.1
+        specifier: ^4.5.0
+        version: 4.5.0
       prisma-extension-pagination:
         specifier: ^0.7.6
         version: 0.7.6(@prisma/client@7.8.0(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3))(typescript@6.0.3))
@@ -3552,8 +3552,8 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
-  node-cron@4.4.1:
-    resolution: {integrity: sha512-1e4Gku1qeKx1ywNnMoA0o5hiZ8iA4klH84TIszTHZAME68xVIjLkiBo5KrtowbcOJn8MQqJG/yWHjC/dFdMWyQ==}
+  node-cron@4.5.0:
+    resolution: {integrity: sha512-4Trh+kjvbXokyJkwQumvD5YAgeJfgHLR/sKyu71uSmxfCR5QMO1hldpvmFZOICN5pLgNY+J5Y8+ar3XKo5/4tQ==}
     engines: {node: '>=20'}
 
   node-exports-info@1.6.0:
@@ -7866,7 +7866,7 @@ snapshots:
   node-addon-api@7.1.1:
     optional: true
 
-  node-cron@4.4.1: {}
+  node-cron@4.5.0: {}
 
   node-exports-info@1.6.0:
     dependencies:
