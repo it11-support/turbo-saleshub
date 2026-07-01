@@ -59,7 +59,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "dayjs": "^1.11.21",
-    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-import-x": "^4.17.1",
     "express-rate-limit": "^8.5.2",
     "helmet": "^8.2.0",
     "install": "^0.13.0",
