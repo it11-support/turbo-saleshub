@@ -16,7 +16,7 @@
     "@types/node": "25.9.4",
     "chart.js": "4.5.1",
     "cookies-next": "^6.1.0",
-    "next": "16.2.9",
+    "next": "16.2.10",
     "ofetch": "^1.5.1",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
@@ -35,7 +35,7 @@
     "@typescript-eslint/eslint-plugin": "8.62.1",
     "@typescript-eslint/parser": "8.62.1",
     "eslint": "10.6.0",
-    "eslint-config-next": "^16.2.9",
+    "eslint-config-next": "^16.2.10",
     "prettier": "^3.9.4",
     "sass": "^1.101.0"
   }
