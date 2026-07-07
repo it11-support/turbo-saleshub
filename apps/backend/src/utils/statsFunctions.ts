@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import prisma from '@/libs/prisma.js'
-import { ICalcNetRevParams } from "@saleshub-tsm/types";
+import { CustomerInsightPeriod, ICalcNetRevParams } from "@saleshub-tsm/types";
+import { CUSTOMER_INSIGHT_PERIODS } from "@/constants/index.js";
 
 export const calcMTD = (current: number, last: number) => {
   const growth = ((current - last) / last) * 100
@@ -29,86 +30,84 @@ export const getMtdDates = () => {
   }
 }
 
-export const getCRR = async (salesFilter: any) => {
-  const currentStart = dayjs().subtract(2, 'month').startOf('month').toDate();
-  const currentEnd = dayjs().endOf('month').toDate();
+export const getCRR = async (
+  salesFilter: any,
+  period: CustomerInsightPeriod,
+) => {
+  const currentEnd = dayjs().endOf('month');
 
-  const baseStart = dayjs(currentStart).subtract(3, 'month').toDate();
-  const baseEnd = dayjs(currentStart).subtract(1, 'day').endOf('day').toDate();
+  const currentStart = currentEnd
+    .subtract(period - 1, 'month')
+    .startOf('month');
+
+  const baseEnd = currentStart
+    .subtract(1, 'day')
+    .endOf('day');
+
+  const baseStart = baseEnd
+    .subtract(period - 1, 'month')
+    .startOf('month');
 
   const baseCustomers = await prisma.orders.groupBy({
     by: ['CardCode'],
     where: {
-      DocDate: { gte: baseStart, lte: baseEnd },
+      DocDate: {
+        gte: baseStart.toDate(),
+        lte: baseEnd.toDate(),
+      },
       ...salesFilter,
     },
   });
 
   const baseCodes = baseCustomers.map(c => c.CardCode);
-  const S = baseCodes.length;
 
-  if (S === 0) return 0;
+  if (!baseCodes.length) {
+    return {
+      retention: 0,
+      baseCustomers: 0,
+      retainedCustomers: 0,
+    };
+  }
 
-  const retainedCount = await prisma.orders.groupBy({
+  const retainedCustomers = await prisma.orders.groupBy({
     by: ['CardCode'],
     where: {
-      DocDate: { gte: currentStart, lte: currentEnd },
-      CardCode: { in: baseCodes },
+      DocDate: {
+        gte: currentStart.toDate(),
+        lte: currentEnd.toDate(),
+      },
+      CardCode: {
+        in: baseCodes,
+      },
       ...salesFilter,
     },
   });
 
-  const xretained = retainedCount.length;
-  const xCRR = (xretained / S) * 100;
+  return {
+    retention: Number(
+      ((retainedCustomers.length / baseCodes.length) * 100).toFixed(2),
+    ),
+    baseCustomers: baseCodes.length,
+    retainedCustomers: retainedCustomers.length,
+  };
+};
 
-  return Number(xCRR.toFixed(2));
-}
 
-
-export const getRPR = async (salesFilter: any) => {
-  const now = dayjs();
-  const threeMonthStart = now.subtract(2, 'month').startOf('month').toDate();
-  const threeMonthEnd = now.endOf('day').toDate();
-
-  const rawRepeatCustomer = await prisma.orders.groupBy({
-    by: ['CardCode'],
-    where: {
-      DocDate: { gte: threeMonthStart, lte: threeMonthEnd },
-      ...salesFilter,
-    },
-    _count: {
-      DocNum: true
-    },
-  });
-
-  const totalCustomers = rawRepeatCustomer.length;
-  if (totalCustomers === 0) return 0;
-
-  const repeatCustomersCount = rawRepeatCustomer.filter(
-    (r) => Number(r._count.DocNum) >= 2
-  ).length;
-
-  const RPR = (repeatCustomersCount / totalCustomers) * 100;
-
-  return Number(RPR.toFixed(2));
-}
-
-export const getRFM = async (salesFilter: any) => {
-  const now = dayjs();
-  const fromDate = now.startOf('month').toDate();
-
+export const getRFM = async (
+  salesFilter: any,
+  periodMonth: typeof CUSTOMER_INSIGHT_PERIODS[number] = 1
+) => {
   const rfmGroups = await prisma.customer_rfm.groupBy({
     by: ['segment'],
     where: {
-      lastCalculated: { gte: fromDate },
-      ...salesFilter, // Pastikan salesFilter sesuai dengan kolom di customer_rfm
+      period_month: periodMonth,
+      ...salesFilter,
     },
     _count: {
       segment: true,
     },
   });
 
-  // Struktur default agar segmen tetap urut dan muncul meski 0
   const defaultCounts: Record<string, number> = {
     VIP: 0,
     LOYAL: 0,
@@ -118,15 +117,11 @@ export const getRFM = async (salesFilter: any) => {
   };
 
   rfmGroups.forEach((group) => {
-    const segmentName = group.segment?.toUpperCase();
-
-    if (segmentName && Object.prototype.hasOwnProperty.call(defaultCounts, segmentName)) {
-      defaultCounts[segmentName] = Number(group._count.segment);
+    if (group.segment) {
+      defaultCounts[group.segment] = Number(group._count.segment);
     }
   });
 
-
-  // Kembalikan dalam format Array agar mudah di-map di Frontend (misal untuk Chart)
   return Object.entries(defaultCounts).map(([segment, count]) => ({
     segment,
     count,

@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
-import { getCRR, getMtdDates, getRFM, getRPR } from '@/utils/statsFunctions.js'
+import { getCRR, getMtdDates, getRFM } from '@/utils/statsFunctions.js'
 import { getActiveCustomers, getNooVsExisting, getPeriodRange, getSalesSummary } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
+import { CUSTOMER_INSIGHT_PERIODS } from '@/constants/index.js'
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
@@ -314,7 +315,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // RESPONSE
     // =====================
-     res.status(200).json({
+    res.status(200).json({
       message: 'Success',
       data: {
         slpRevenue,
@@ -332,7 +333,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
 
 export const customerLoyalty = async (req: Request, res: Response) => {
   try {
-    const { salesPersonId } = req.query
+    const { salesPersonId } = req.query;
 
     const salesFilter = salesPersonId
       ? {
@@ -342,29 +343,54 @@ export const customerLoyalty = async (req: Request, res: Response) => {
           },
         },
       }
-      : {}
+      : {};
 
-    const [CRR, nooVsExisting, RPR, RFM] = await Promise.all([
-      getCRR(salesFilter),
-      getNooVsExisting(salesPersonId ? Number(salesPersonId) : null),
-      getRPR(salesFilter),
-      getRFM(salesFilter),
-    ])
+    const [retentionIndex, nooVsExisting, rfmResults] = await Promise.all([
+      Promise.all(
+        CUSTOMER_INSIGHT_PERIODS.map(async (period) => ({
+          period,
+          data: await getCRR(salesFilter, period),
+        })),
+      ),
+
+      Promise.all(
+        CUSTOMER_INSIGHT_PERIODS.map(async (period) => ({
+          period,
+          data: await getNooVsExisting(
+            salesPersonId ? Number(salesPersonId) : null,
+            period,
+          ),
+        })),
+      ),
+
+      Promise.all(
+        CUSTOMER_INSIGHT_PERIODS.map(async (period) => ({
+          period,
+          data: await getRFM(salesFilter, period),
+        })),
+      ),
+    ]);
+
+    const CRR = Object.fromEntries(
+      retentionIndex.map(({ period, data }) => [period, data])
+    );
+    const RFM = Object.fromEntries(
+      rfmResults.map(({ period, data }) => [period, data])
+    );
+
     res.status(200).json({
       message: 'Success',
       data: {
         CRR,
         nooVsExisting,
-        RPR,
-        RFM
+        RFM,
       },
-    })
-
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
-}
+};
 
 export const fetchActiveCustomers = async (req: Request, res: Response) => {
   const { salesPersonId } = req.query

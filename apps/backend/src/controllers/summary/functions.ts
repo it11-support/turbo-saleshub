@@ -120,7 +120,15 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
 }
 
 
-export const getNooVsExisting = async (salesPersonId: number | null) => {
+export const getNooVsExisting = async (
+  salesPersonId: number | null,
+  period: number,
+) => {
+  const start = dayjs()
+    .startOf('month')
+    .subtract(period - 1, 'month')
+    .toDate()
+
   const result = await prisma.$queryRaw<any[]>`
     WITH first_purchase AS (
       SELECT
@@ -128,68 +136,31 @@ export const getNooVsExisting = async (salesPersonId: number | null) => {
         MIN(date) AS first_date
       FROM daily_sales_summary_view
       GROUP BY CardCode
-    ),
-
-    base AS (
-      SELECT DISTINCT
-        CardCode,
-        date,
-        sales_person_id
-      FROM daily_sales_summary_view
-      WHERE date IS NOT NULL
     )
 
     SELECT
-      -- ================= MTD =================
       COUNT(DISTINCT CASE
-        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-         AND fp.first_date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
-        THEN b.CardCode END) AS mtd_new,
+        WHEN fp.first_date >= ${start}
+        THEN s.CardCode
+      END) AS new_customer,
 
       COUNT(DISTINCT CASE
-        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-         AND fp.first_date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
-         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
-        THEN b.CardCode END) AS mtd_existing,
+        WHEN fp.first_date < ${start}
+        THEN s.CardCode
+      END) AS existing_customer
 
-      -- ================= YTD =================
-      COUNT(DISTINCT CASE
-        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
-         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-         AND fp.first_date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
-         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
-        THEN b.CardCode END) AS ytd_new,
+    FROM daily_sales_summary_view s
+    JOIN first_purchase fp
+      ON fp.CardCode = s.CardCode
 
-      COUNT(DISTINCT CASE
-        WHEN b.date >= DATE_FORMAT(CURDATE(), '%Y-01-01')
-         AND b.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-         AND fp.first_date < DATE_FORMAT(CURDATE(), '%Y-01-01')
-         AND (${salesPersonId} IS NULL OR b.sales_person_id = ${salesPersonId})
-        THEN b.CardCode END) AS ytd_existing
-
-    FROM base b
-    JOIN first_purchase fp ON fp.CardCode = b.CardCode;
+    WHERE s.date >= ${start}
+      AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+      AND (${salesPersonId} IS NULL OR s.sales_person_id = ${salesPersonId})
   `
 
-  const row = result[0] ?? {}
-
-  const mtdNew = Number(row.mtd_new ?? 0)
-  const mtdExisting = Number(row.mtd_existing ?? 0)
-  const ytdNew = Number(row.ytd_new ?? 0)
-  const ytdExisting = Number(row.ytd_existing ?? 0)
-
   return {
-    mtd: {
-      newCustomer: mtdNew,
-      existingCustomer: mtdExisting,
-    },
-    ytd: {
-      newCustomer: ytdNew,
-      existingCustomer: ytdExisting,
-    }
+    newCustomer: Number(result[0].new_customer),
+    existingCustomer: Number(result[0].existing_customer),
   }
 }
 

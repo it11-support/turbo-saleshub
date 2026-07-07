@@ -85,6 +85,13 @@ export interface ISalesSummaryState {
   setMonth: (val: number) => void
 }
 
+export interface IRFMSegment {
+  segment: string
+  count: number
+}
+
+export type IRFMPeriod = Record<number, IRFMSegment[]>
+
 export interface IDashboardData {
   data: {
     monthlyTrend: IMonthlySummary[];
@@ -95,7 +102,7 @@ export interface IDashboardData {
     summary: Summary;
     CRR: number;
     RPR: number;
-    RFM: { segment: string; count: number }[];
+    RFM: IRFMPeriod;
     monthList: { value: number; label: string }[];
     month: number;
     salesSummary: {
@@ -103,15 +110,12 @@ export interface IDashboardData {
       yoy: Record<string, Partial<ISalesSummary>[]>;
     };
     nooVsExisting: {
-      mtd: {
+      period: number;
+      data: {
         newCustomer: number;
         existingCustomer: number;
       };
-      ytd: {
-        newCustomer: number;
-        existingCustomer: number;
-      };
-    },
+    }[];
     activeCustomers: {
       baseCustomer: {
         total: number,

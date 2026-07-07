@@ -92,6 +92,10 @@ const Dashboard = () => {
 
   return (
     <>
+      <div className="mb-3">
+        <h2 className="text-2xl font-bold">Sales Overview</h2>
+      </div>
+
       <div className="flex flex-wrap gap-3 my-2">
         <div className="flex align-items-center">
           <SelectButton
@@ -111,20 +115,24 @@ const Dashboard = () => {
           />
         </div>
       </div>
+
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
+
       <CustomerLoyaltyCard
         isCustomerLoyaltyValidating={isCustomerLoyaltyValidating}
         customerLoyaltyData={customerLoyaltyData}
-        period={period}
       />
+
       <CustomerByItemRange
         isValidating={isCustomerByItemRangeValidating}
         customersByRangeItem={customerByRangeItem}
       />
+
       <ActiveCustomerCard
         isActiveCustomersValidating={isActiveCustomersValidating}
         activeCustomersData={activeCustomersData}
       />
+
       <TrendChart isValidating={isValidating} data={data} />
 
       <TopPerformingChart isValidating={isValidating} data={data} />
