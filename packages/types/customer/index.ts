@@ -120,3 +120,5 @@ export interface ICustomerState {
 
   createNewCustomer: () => Promise<ICustomer | null>
 }
+
+export type CustomerInsightPeriod = 1 |2 | 3 | 6 | 12

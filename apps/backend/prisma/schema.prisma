@@ -80,6 +80,7 @@ model customer_rfm {
   id             BigInt   @id @default(autoincrement())
   customerId     BigInt   @unique @map("customer_id")
 
+  period_month   Int      @default(1) @db.TinyInt
   recency        Int
   frequency      Int?
   monetary       Decimal? @db.Decimal(20, 6)
@@ -95,6 +96,8 @@ model customer_rfm {
 
   // Relation
   customer       customers @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  @@unique([customerId, period_month], name: "uk_customer_period")
+  @@index([customerId], name: "idx_customer_id")
 
 }
 model subgroups {

@@ -1,3 +1,4 @@
+import { CUSTOMER_INSIGHT_PERIODS } from "@/constants/index.js"
 import { CustomerSegment } from "@/generated/prisma/enums.js"
 import prisma from "@/libs/prisma.js"
 import { CustomerScoreMap } from "@saleshub-tsm/types"
@@ -36,12 +37,11 @@ export const getSegment = (r: number, f: number, m: number): CustomerSegment => 
 }
 
 
-export const calculateRFM = async () => {
+export const calculateRFM = async (periodMonth: typeof CUSTOMER_INSIGHT_PERIODS[number]) => {
 
   // === CONFIG ===
-  const MONTH_RANGE = 3
   const fromDate = dayjs()
-    .subtract(MONTH_RANGE, 'month')
+    .subtract(periodMonth, 'month')
     .startOf('month')
     .toDate()
 
@@ -173,42 +173,36 @@ export const calculateRFM = async () => {
 
 
     await prisma.customer_rfm.upsert({
-
       where: {
-        customerId
+        uk_customer_period: {
+          customerId: customerId,
+          period_month: periodMonth,
+        },
       },
-
       update: {
         recency: c.recency,
         frequency: c.frequency,
         monetary: c.monetary,
-
         rScore,
         fScore,
         mScore,
-
         rfmScore,
         segment,
-
-        lastCalculated: now
+        lastCalculated: now,
       },
-
       create: {
-        customerId,
-
+        customerId: customerId,
+        period_month: periodMonth,
         recency: c.recency,
         frequency: c.frequency,
         monetary: c.monetary,
-
         rScore,
         fScore,
         mScore,
-
         rfmScore,
         segment,
-
-        lastCalculated: now
-      }
+        lastCalculated: now,
+      },
     })
   }
 

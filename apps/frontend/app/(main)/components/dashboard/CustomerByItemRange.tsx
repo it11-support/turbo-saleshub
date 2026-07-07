@@ -140,7 +140,7 @@ const CustomerByItemRange = (props: CustomerByItemRangeProp) => {
   const headerTitle = (
     <div className="flex align-items-center justify-content-between flex-wrap">
       <div>
-        <h3 className="m-0">Customers By Item Range</h3>
+        <h2 className="text-2xl font-bold">Customers By Item Range</h2>
         <small className="text-color-secondary">
           Display customer count by item range and period
         </small>
