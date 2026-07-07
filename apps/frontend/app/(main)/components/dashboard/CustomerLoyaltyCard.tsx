@@ -59,7 +59,7 @@ const CustomerLoyaltyCard = ({
               </div>
               <div
                 style={{
-                  width: '240px',
+                  width: '80%',
                   height: '200px',
                   margin: '0 auto',
                 }}
@@ -140,7 +140,7 @@ const CustomerLoyaltyCard = ({
               </div>
               <div
                 style={{
-                  width: '240px',
+                  width: '80%',
                   height: '200px',
                   margin: '0 auto',
                 }}
@@ -236,7 +236,7 @@ const CustomerLoyaltyCard = ({
               </div>
               <div
                 style={{
-                  width: '240px',
+                  width: '80%',
                   height: '200px',
                   margin: '0 auto',
                 }}
