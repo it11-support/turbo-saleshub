@@ -134,7 +134,7 @@ const CustomerLoyaltyCard = ({
         ) : (
           <div className="col-12 lg:col-6 xl:col-4">
             <Card className="text-center">
-              <h5>Rentention Index</h5>
+              <h5>Retention Index</h5>
               <div className="text-xs italic mb-2">
                 <i>Customer retention by period</i>
               </div>
