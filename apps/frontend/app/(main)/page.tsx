@@ -2,6 +2,7 @@
 import ActiveCustomerCard from './components/dashboard/ActiveCustomerCard'
 import CustomerByItemRange from './components/dashboard/CustomerByItemRange'
 import CustomerLoyaltyCard from './components/dashboard/CustomerLoyaltyCard'
+import RevenueByProductCategory from './components/dashboard/RevenueByProductCategory'
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
 import TrendChart from './components/dashboard/TrendChart'
 import YoySummary from './components/dashboard/YoySummary'
@@ -86,6 +87,17 @@ const Dashboard = () => {
       revalidateOnReconnect: true,
     })
 
+  const apiRevenueByCategory = createUrl('summary/revenue-by-category')
+
+  const { data: revenueByCategoryData, isValidating: isRevenueByCategoryValidating } =
+    useSWR<IDashboardData>(apiRevenueByCategory, fetcher, {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    })
+
   const { summary } = data?.data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
@@ -117,7 +129,11 @@ const Dashboard = () => {
       </div>
 
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
-
+      <RevenueByProductCategory
+        revenueByCategoryData={revenueByCategoryData}
+        period={period}
+        isValidating={isRevenueByCategoryValidating}
+      />
       <CustomerLoyaltyCard
         isCustomerLoyaltyValidating={isCustomerLoyaltyValidating}
         customerLoyaltyData={customerLoyaltyData}

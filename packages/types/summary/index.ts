@@ -27,6 +27,12 @@ export type MtdResult = {
   growth: GrowthValue
 }
 
+export type RevenueByCategory = {
+  category: string
+  mtd: number
+  ytd: number
+}
+
 export interface ICalcNetRevParams {
   DocNum: number
   TotalSales: Decimal | null

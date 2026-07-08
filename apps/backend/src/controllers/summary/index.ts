@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { getCRR, getMtdDates, getRFM } from '@/utils/statsFunctions.js'
-import { getActiveCustomers, getNooVsExisting, getPeriodRange, getSalesSummary } from './functions.js'
+import { getActiveCustomers, getNooVsExisting, getPeriodRange, getRevenueByCategory, getSalesSummary } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 import { CUSTOMER_INSIGHT_PERIODS } from '@/constants/index.js'
 
@@ -427,6 +427,21 @@ export const fetchCustomersByRangeItem = async (req: Request, res: Response) => 
       message: 'Success',
       data: {
         customersByRangeItem
+      },
+    })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export const fetchRevenueByCategory = async (req: Request, res: Response) => {
+  try {
+    const revenueByCategory = await getRevenueByCategory()
+    res.status(200).json({
+      message: 'Success',
+      data: {
+        revenueByCategory
       },
     })
   } catch (error) {

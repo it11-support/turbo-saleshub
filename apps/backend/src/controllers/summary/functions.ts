@@ -2,7 +2,7 @@
 
 import prisma from '@/libs/prisma.js'
 import { calcGrowth } from '@/utils/statsFunctions.js'
-import { SummaryResult } from '@saleshub-tsm/types'
+import { RevenueByCategory, SummaryResult } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 
 
@@ -256,4 +256,88 @@ export const getPeriodRange = (months = 12) => {
 
     end: dayjs().format('YYYY-MM'),
   }
+}
+
+export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
+  const mtdStart = dayjs().startOf('month').toDate()
+  const mtdEnd = dayjs().toDate()
+  const ytdStart = dayjs().startOf('year').toDate()
+
+  const [mtdSales, mtdRetur, ytdSales, ytdRetur] = await Promise.all([
+    prisma.$queryRaw<any[]>`
+      SELECT
+        p.ProductCategory,
+        SUM(s.TotalSales) AS revenue
+      FROM sales_invoices s
+      JOIN products p ON p.ItemCode = s.ItemCode
+      WHERE s.DocDate >= ${mtdStart}
+        AND s.DocDate <= ${mtdEnd}
+        AND p.ProductCategory IS NOT NULL
+      GROUP BY p.ProductCategory
+    `,
+
+    prisma.$queryRaw<any[]>`
+      SELECT
+        p.ProductCategory,
+        SUM(r.TotalSales) AS revenue
+      FROM retur_invoices r
+      JOIN products p ON p.ItemCode = r.ItemCode
+      WHERE r.DocDate >= ${mtdStart}
+        AND r.DocDate <= ${mtdEnd}
+        AND p.ProductCategory IS NOT NULL
+      GROUP BY p.ProductCategory
+    `,
+
+    prisma.$queryRaw<any[]>`
+      SELECT
+        p.ProductCategory,
+        SUM(s.TotalSales) AS revenue
+      FROM sales_invoices s
+      JOIN products p ON p.ItemCode = s.ItemCode
+      WHERE s.DocDate >= ${ytdStart}
+        AND s.DocDate <= ${mtdEnd}
+        AND p.ProductCategory IS NOT NULL
+      GROUP BY p.ProductCategory
+    `,
+
+    prisma.$queryRaw<any[]>`
+      SELECT
+        p.ProductCategory,
+        SUM(r.TotalSales) AS revenue
+      FROM retur_invoices r
+      JOIN products p ON p.ItemCode = r.ItemCode
+      WHERE r.DocDate >= ${ytdStart}
+        AND r.DocDate <= ${mtdEnd}
+        AND p.ProductCategory IS NOT NULL
+      GROUP BY p.ProductCategory
+    `
+  ])
+
+  const mapCategory = (rows: any[]) => {
+    const map = new Map<string, number>()
+    rows.forEach(r => {
+      map.set(r.ProductCategory, Number(r.revenue ?? 0))
+    })
+    return map
+  }
+
+  const mtdSalesMap = mapCategory(mtdSales)
+  const mtdReturMap = mapCategory(mtdRetur)
+  const ytdSalesMap = mapCategory(ytdSales)
+  const ytdReturMap = mapCategory(ytdRetur)
+
+  const categories = new Set([
+    ...mtdSalesMap.keys(),
+    ...mtdReturMap.keys(),
+    ...ytdSalesMap.keys(),
+    ...ytdReturMap.keys()
+  ])
+
+  const result = Array.from(categories).map(category => ({
+    category,
+    mtd: Number(((mtdSalesMap.get(category) || 0) + (mtdReturMap.get(category) || 0)).toFixed(2)),
+    ytd: Number(((ytdSalesMap.get(category) || 0) + (ytdReturMap.get(category) || 0)).toFixed(2))
+  }))
+
+  return result
 }
