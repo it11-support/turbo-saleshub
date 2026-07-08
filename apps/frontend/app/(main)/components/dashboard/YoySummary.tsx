@@ -70,7 +70,7 @@ const YoySummary = ({ isValidating, summary, period }: YoYSummaryProps) => {
                 <div className="flex justify-content-between mb-3">
                   <div>
                     <span className="block text-500 font-medium mb-3">{itemKey.toUpperCase()}</span>
-                    <div className="text-900 font-medium text-xl">
+                    <div className="text-color-secondary font-medium text-xl">
                       {formatCurrency(Number(mappedSummary[itemKey]?.current), true, isMoney)}
                     </div>
                   </div>

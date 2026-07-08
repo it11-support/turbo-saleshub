@@ -1,4 +1,4 @@
-import { customerLoyalty, fetchActiveCustomers, fetchCustomersByRangeItem, mtdSummary } from '../controllers/summary/index.js';
+import { customerLoyalty, fetchActiveCustomers, fetchCustomersByRangeItem, fetchRevenueByCategory, mtdSummary } from '../controllers/summary/index.js';
 import { authMiddleware } from '../middlewares/index.js';
 
 import { Router } from 'express';
@@ -11,5 +11,6 @@ router.get('/', mtdSummary);
 router.get('/customer-loyalty', customerLoyalty)
 router.get('/active-customers', fetchActiveCustomers)
 router.get('/customer-by-range-item', fetchCustomersByRangeItem)
+router.get('/revenue-by-category', fetchRevenueByCategory)
 
 export default router;

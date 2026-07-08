@@ -107,7 +107,7 @@ const ActiveCustomerCard = ({
                       <span className="text-500 font-medium mb-2 uppercase">Base Customers</span>
                       <div className="flex align-items-center">
                         <i className="pi pi-users text-blue-500 text-3xl mr-3" />
-                        <span className="text-900 font-bold text-4xl">
+                        <span className="text-color-secondary font-bold text-4xl">
                           {baseCustomers?.total ?? 0}
                         </span>
                       </div>
@@ -122,7 +122,9 @@ const ActiveCustomerCard = ({
                       </span>
                       <div className="flex align-items-center">
                         <i className="pi pi-times-circle text-red-500 text-3xl mr-3" />
-                        <span className="text-900 font-bold text-4xl">{nonActive?.total ?? 0}</span>
+                        <span className="text-color-secondary font-bold text-4xl">
+                          {nonActive?.total ?? 0}
+                        </span>
                       </div>
                       <div className="flex align-items-center mt-2"></div>
                     </div>
@@ -133,7 +135,7 @@ const ActiveCustomerCard = ({
                       <span className="text-500 font-medium mb-2 uppercase">Active This Month</span>
                       <div className="flex align-items-center">
                         <i className="pi pi-check-circle text-green-500 text-3xl mr-3" />
-                        <span className="text-900 font-bold text-4xl">
+                        <span className="text-color-secondary font-bold text-4xl">
                           {activeThisMonth?.total ?? 0}
                         </span>
                       </div>
