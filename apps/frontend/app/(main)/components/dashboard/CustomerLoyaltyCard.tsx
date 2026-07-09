@@ -1,9 +1,12 @@
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import { IDashboardData } from '@saleshub-tsm/types'
 import { TooltipItem } from 'chart.js'
-import ChartDataLabels from 'chartjs-plugin-datalabels'
+import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
+import { useContext } from 'react'
+
+import { LayoutContext } from '@/layout/context/layoutcontext'
 
 type CustomerLoyaltyCardProps = {
   isCustomerLoyaltyValidating: boolean
@@ -13,32 +16,11 @@ const CustomerLoyaltyCard = ({
   isCustomerLoyaltyValidating,
   customerLoyaltyData,
 }: CustomerLoyaltyCardProps) => {
-  const colors = {
-    VIP: '#2E7D32',
-    LOYAL: '#66BB6A',
-    POTENTIAL: '#C5E1A5',
-    AT_RISK: '#FFB74D',
-    LOST: '#D32F2F',
-  }
+  const { layoutConfig } = useContext(LayoutContext)
 
   const CRR = customerLoyaltyData?.data?.CRR ?? []
   const nooVsExisting = customerLoyaltyData?.data?.nooVsExisting ?? []
-  const RFM = customerLoyaltyData?.data?.RFM ?? []
-
-  const rfmLabels = RFM[1]?.map((x) => x.segment) ?? []
-
-  const rfmPeriods = Object.keys(RFM)
-    .map((key) => Number(key))
-    .sort((a, b) => a - b)
-
-  const rfmDatasets = rfmLabels.map((segment) => ({
-    label: segment.replace('_', ' '),
-    data: rfmPeriods.map((period) => RFM[period]?.find((x) => x.segment === segment)?.count ?? 0),
-    backgroundColor: colors[segment as keyof typeof colors],
-    borderRadius: 2,
-    borderSkipped: false,
-    maxBarThickness: 45,
-  }))
+  const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
 
   return (
     <div className="mt-4">
@@ -47,92 +29,11 @@ const CustomerLoyaltyCard = ({
       </div>
       <div className="grid mt-2">
         {isCustomerLoyaltyValidating ? (
-          <div className="col-12 lg:col-6 xl:col-4">
+          <div className="col-12 lg:col-6 xl:col-6">
             <SkeletonLoader type="circle" />
           </div>
         ) : (
-          <div className="col-12 lg:col-6 xl:col-4">
-            <Card className="text-center">
-              <h5>Loyalty Benchmarking</h5>
-              <div className="text-xs italic mb-2">
-                <i>Customer Stability & Engagement Health Score</i>
-              </div>
-              <div
-                style={{
-                  width: '80%',
-                  height: '200px',
-                  margin: '0 auto',
-                }}
-              >
-                <Chart
-                  type="bar"
-                  data={{
-                    labels: rfmPeriods.map((p) => `${p} Mon`),
-                    datasets: rfmDatasets,
-                  }}
-                  options={{
-                    maintainAspectRatio: false,
-                    responsive: true,
-                    animation: {
-                      duration: 1000,
-                      easing: 'easeOutQuart',
-                    },
-                    scales: {
-                      x: {
-                        stacked: true,
-                        grid: {
-                          display: false,
-                        },
-                        title: {
-                          display: false,
-                        },
-                      },
-                      y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        title: {
-                          display: true,
-                          text: 'Customers',
-                        },
-                      },
-                    },
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                      tooltip: {
-                        callbacks: {
-                          label: (ctx: TooltipItem<'bar'>) => {
-                            const total = ctx.chart.data.datasets.reduce(
-                              (sum, ds) => sum + Number(ds.data[ctx.dataIndex]),
-                              0
-                            )
-                            const value = Number(ctx.raw)
-                            const pct = ((value / total) * 100).toFixed(1)
-
-                            return `${ctx.dataset.label}: ${value} (${pct}%)`
-                          },
-                        },
-                      },
-                      datalabels: {
-                        display: false,
-                      },
-                    },
-                  }}
-                  plugins={[ChartDataLabels]}
-                  style={{ width: '100%', height: '200px' }}
-                />
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {isCustomerLoyaltyValidating ? (
-          <div className="col-12 lg:col-6 xl:col-4">
-            <SkeletonLoader type="circle" />
-          </div>
-        ) : (
-          <div className="col-12 lg:col-6 xl:col-4">
+          <div className="col-12 lg:col-6 xl:col-6">
             <Card className="text-center">
               <h5>Retention Index</h5>
               <div className="text-xs italic mb-2">
@@ -151,17 +52,26 @@ const CustomerLoyaltyCard = ({
                     labels: Object.keys(CRR).map((p) => `${p} Mon`),
                     datasets: [
                       {
-                        label: 'Retention (%)',
-                        data: Object.values(CRR).map((x) => x.retention),
+                        label: 'Base Customers',
+                        data: Object.values(CRR).map((x) => x.baseCustomers),
                         borderColor: '#1F78FF',
-                        backgroundColor: 'rgba(31, 120, 255, 0.2)',
+                        backgroundColor: 'rgba(31, 120, 255, 0.15)',
                         fill: true,
-                        tension: 0.4, // smooth line
+                        tension: 0.4,
                         pointRadius: 4,
                         pointHoverRadius: 6,
                         pointBackgroundColor: '#1F78FF',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                      },
+                      {
+                        label: 'Retained Customers',
+                        data: Object.values(CRR).map((x) => x.retainedCustomers),
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#22C55E',
                       },
                     ],
                   }}
@@ -181,16 +91,19 @@ const CustomerLoyaltyCard = ({
                         grid: {
                           display: false,
                         },
+                        title: {
+                          display: false,
+                          text: 'Period',
+                        },
                       },
                       y: {
                         beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                          callback: (value: string | number) => `${value}%`,
-                        },
                         title: {
                           display: true,
-                          text: 'Retention (%)',
+                          text: 'Customers',
+                        },
+                        ticks: {
+                          precision: 0,
                         },
                       },
                     },
@@ -200,19 +113,30 @@ const CustomerLoyaltyCard = ({
                       },
                       tooltip: {
                         callbacks: {
-                          label: (ctx: TooltipItem<'line'>) => {
-                            const item = Object.values(CRR)[ctx.dataIndex]
+                          afterBody: (items: TooltipItem<'line'>[]) => {
+                            const item = Object.values(CRR)[items[0].dataIndex]
 
                             return [
-                              `Retention : ${item.retention}%`,
-                              `Base Customers : ${item.baseCustomers}`,
-                              `Retained Customers : ${item.retainedCustomers}`,
+                              '─────────────────',
+                              `Retention : ${item.retention.toFixed(1)}%`,
                             ]
                           },
                         },
                       },
                       datalabels: {
-                        display: false,
+                        display: (ctx: Context) => ctx.datasetIndex === 1,
+                        anchor: 'end',
+                        align: 'bottom',
+                        offset: 6,
+                        color: baseColor,
+                        font: {
+                          weight: 'bold',
+                          size: 10,
+                        },
+                        formatter: (_: number, context: Context) => {
+                          const item = Object.values(CRR)[context.dataIndex]
+                          return `${item.retention.toFixed(1)}%`
+                        },
                       },
                     },
                   }}
@@ -224,11 +148,11 @@ const CustomerLoyaltyCard = ({
           </div>
         )}
         {isCustomerLoyaltyValidating ? (
-          <div className="col-12 lg:col-6 xl:col-4">
+          <div className="col-12 lg:col-6 xl:col-6">
             <SkeletonLoader type="circle" />
           </div>
         ) : (
-          <div className="col-12 lg:col-6 xl:col-4">
+          <div className="col-12 lg:col-6 xl:col-46">
             <Card className="text-center">
               <h5>New vs Existing</h5>
               <div className="text-xs italic mb-2">
@@ -242,27 +166,32 @@ const CustomerLoyaltyCard = ({
                 }}
               >
                 <Chart
-                  type="bar"
+                  type="line"
                   data={{
                     labels: nooVsExisting.map((x) => `${x.period} Mon`),
                     datasets: [
                       {
                         label: 'New Customer',
                         data: nooVsExisting.map((x) => x.data.newCustomer),
-                        backgroundColor: '#22C55E',
-                        borderRadius: 2,
-                        borderSkipped: false,
-                        stack: 'customers',
-                        maxBarThickness: 40,
+
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#22C55E',
                       },
                       {
                         label: 'Existing Customer',
                         data: nooVsExisting.map((x) => x.data.existingCustomer),
-                        backgroundColor: '#2563EB',
-                        borderRadius: 2,
-                        borderSkipped: false,
-                        stack: 'customers',
-                        maxBarThickness: 40,
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#2563EB',
                       },
                     ],
                   }}
@@ -303,12 +232,23 @@ const CustomerLoyaltyCard = ({
                             const index = items[0].dataIndex
                             const item = nooVsExisting[index]
 
-                            return `Total : ${item.data.newCustomer + item.data.existingCustomer}`
+                            return [
+                              '─────────────────',
+                              `Total : ${item.data.newCustomer + item.data.existingCustomer}`,
+                            ]
                           },
                         },
                       },
                       datalabels: {
-                        display: false,
+                        display: true,
+                        anchor: 'end',
+                        align: 'bottom',
+                        offset: 6,
+                        color: baseColor,
+                        font: {
+                          weight: 'bold',
+                          size: 10,
+                        },
                       },
                     },
                   }}

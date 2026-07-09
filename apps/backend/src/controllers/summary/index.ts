@@ -197,7 +197,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
         FROM daily_sales_summary_view s
         JOIN customers c ON c.CardCode = s.CardCode
         JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
-        WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 11 MONTH), '%Y-%m-01')
+        WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 23 MONTH), '%Y-%m-01')
           AND s.date <= LAST_DAY(CURDATE())
           AND (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
         GROUP BY YEAR(s.date), MONTH(s.date)
@@ -304,14 +304,28 @@ export const mtdSummary = async (req: Request, res: Response) => {
       orders: i.count,
     })).sort((a, b) => b.revenue - a.revenue)
 
-    const monthlyTrend = monthlyTrendRaw.map(r => ({
-      year: r.year,
-      month: r.month,
+    const monthlyTrendData = monthlyTrendRaw.map(r => ({
+      year: Number(r.year),
+      month: Number(r.month),
       revenue: Number(r.revenue ?? 0),
       orders: Number(r.orders ?? 0),
       customers: Number(r.customers ?? 0),
     }))
 
+    const monthlyTrends = Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1
+
+      const result: Record<string | number, any> = {}
+      monthlyTrendData
+        .filter(x => x.month === month)
+        .forEach(({ year, month: _month, ...rest }) => {
+          result[year] = rest
+        })
+
+      return {
+        [month]: result
+      }
+    })
     // =====================
     // RESPONSE
     // =====================
@@ -321,8 +335,8 @@ export const mtdSummary = async (req: Request, res: Response) => {
         slpRevenue,
         productRevenueDistributor,
         productRevenueGrocery,
-        monthlyTrend,
         summary,
+        monthlyTrends
       },
     })
   } catch (error) {

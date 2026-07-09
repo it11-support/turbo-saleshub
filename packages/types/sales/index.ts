@@ -45,6 +45,15 @@ export interface IMonthlySummary {
   customers: number
 }
 
+export interface ITrendData {
+  customers: number
+  orders: number
+  revenue: number
+}
+
+export type IYearTrend = Record<number, ITrendData>
+export type IMonthlyTrend = Record<number, IYearTrend>
+
 export type TRevenueSummary = {
   current: number
   last: number
@@ -60,7 +69,6 @@ export type Summary = {
   [key: string]: SummaryResult
 }
 export interface ISalesSummaryState {
-  monthlyTrend: IMonthlySummary[]
   customerTrend: { period: string, activeCustomers: number }[],
   slpRevenue: { slp: string, revenue: number }[],
   productRevenueDistributor: { ItemName: string, orders: number, revenue: number }[],
@@ -94,7 +102,7 @@ export type IRFMPeriod = Record<number, IRFMSegment[]>
 
 export interface IDashboardData {
   data: {
-    monthlyTrend: IMonthlySummary[];
+    monthlyTrends: IMonthlyTrend[];
     customerTrend: { period: string; activeCustomers: number }[];
     slpRevenue: { slp: string; revenue: number }[];
     productRevenueDistributor: { ItemName: string; orders: number; revenue: number }[];

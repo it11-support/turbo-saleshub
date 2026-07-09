@@ -28,9 +28,7 @@ const ActiveCustomerCard = ({
 }: ActiveCustomerCardProps) => {
   const { isAdmin } = useAuth()
   const activeCustomers = activeCustomersData?.data?.activeCustomers
-  const baseCustomers = activeCustomers?.baseCustomer
   const nonActive = activeCustomers?.nonActive
-  const activeThisMonth = activeCustomers?.activeThisMonth
   const [showExport, setShowExport] = useState(false)
   const [selectedSlp, setSelectedSlp] = useState<number | null | undefined>(-1)
 
@@ -71,8 +69,8 @@ const ActiveCustomerCard = ({
   const headerTitle = (
     <div className="flex align-items-center justify-content-between flex-wrap px-4 py-2">
       <div>
-        <h3 className="m-0">Non Active Customers</h3>
-        <small className="text-color-secondary">{`Non Active Customers This Month (Total: ${nonActive?.total})`}</small>
+        <h3 className="m-0">List Of Lagged Transaction Customers</h3>
+        <small className="text-color-secondary">{`Lagged Transaction Customers This Month (Total: ${nonActive?.total})`}</small>
       </div>
       {isAdmin && (
         <div className="flex gap-2">
@@ -97,77 +95,6 @@ const ActiveCustomerCard = ({
           </div>
         ) : (
           <div className="grid my-3">
-            {/* ROW 1: CARD SUMMARY LEBAR (Full Width) */}
-            <div className="col-12">
-              <Card pt={{ root: { style: { borderRadius: '12px', border: '' } } }}>
-                <div className="grid align-items-center">
-                  {/* Base Customers */}
-                  <div className="col-12 md:col-3 border-right-1 surface-border">
-                    <div className="flex flex-column align-items-center md:align-items-start p-3">
-                      <span className="text-500 font-medium mb-2 uppercase">Base Customers</span>
-                      <div className="flex align-items-center">
-                        <i className="pi pi-users text-blue-500 text-3xl mr-3" />
-                        <span className="text-color-secondary font-bold text-4xl">
-                          {baseCustomers?.total ?? 0}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Active This Month */}
-                  <div className="col-12 md:col-3 border-right-1 surface-border">
-                    <div className="flex flex-column align-items-center md:align-items-start p-3">
-                      <span className="text-500 font-medium mb-2 uppercase">
-                        No Transaction Customers
-                      </span>
-                      <div className="flex align-items-center">
-                        <i className="pi pi-times-circle text-red-500 text-3xl mr-3" />
-                        <span className="text-color-secondary font-bold text-4xl">
-                          {nonActive?.total ?? 0}
-                        </span>
-                      </div>
-                      <div className="flex align-items-center mt-2"></div>
-                    </div>
-                  </div>
-
-                  <div className="col-12 md:col-3 border-right-1 surface-border">
-                    <div className="flex flex-column align-items-center md:align-items-start p-3">
-                      <span className="text-500 font-medium mb-2 uppercase">Active This Month</span>
-                      <div className="flex align-items-center">
-                        <i className="pi pi-check-circle text-green-500 text-3xl mr-3" />
-                        <span className="text-color-secondary font-bold text-4xl">
-                          {activeThisMonth?.total ?? 0}
-                        </span>
-                      </div>
-                      <div className="flex align-items-center mt-2"></div>
-                    </div>
-                  </div>
-
-                  {/* Penetration & Progress */}
-                  <div className="col-12 md:col-3">
-                    <div className="flex flex-column p-3">
-                      <div className="flex justify-content-between align-items-center mb-2">
-                        <span className="text-500 font-medium uppercase">Penetration Rate</span>
-                        <span className="text-purple-600 font-bold text-2xl">
-                          {activeThisMonth?.penetration.toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 border-round" style={{ height: '12px' }}>
-                        <div
-                          className="bg-purple-500 border-round transition-all duration-1000"
-                          style={{
-                            width: `${activeThisMonth?.penetration}%`,
-                            height: '100%',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* ROW 2: NON ACTIVE CUSTOMERS TABLE */}
             <div className="col-12 mt-4">
               <Card
                 header={headerTitle}

@@ -62,7 +62,7 @@ export const menuConfig: MenuSection[] = [
   },
 
   {
-    label: 'Visits',
+    label: ' Visit Status',
     roles: ['admin', 'sales'],
     items: [
       {
@@ -78,12 +78,12 @@ export const menuConfig: MenuSection[] = [
         roles: ['admin'],
       },
       {
-        label: 'Visit Schedules',
+        label: 'Daily Visit Schedule',
         icon: 'pi pi-fw pi-calendar',
         to: '/visit-schedules',
       },
       {
-        label: 'Visits',
+        label: ' Visit Status',
         icon: 'pi pi-fw pi-briefcase',
         to: '/visits',
       },

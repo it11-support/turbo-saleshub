@@ -26,7 +26,9 @@ const RevenueByProductCategory = ({
   const sorted = [...(revenueByCategory ?? [])].sort((a, b) => b[period] - a[period])
   const total = sorted.reduce((acc, item) => acc + item[period], 0)
   const chartData = {
-    labels: sorted.map((item) => item.category),
+    labels: sorted.map((item) =>
+      item.category === 'GROCERIES' ? 'NON DISTRIBUTOR PRODUCT' : item.category
+    ),
     datasets: [
       {
         data: sorted.map((item) => item[period]),
@@ -84,10 +86,9 @@ const RevenueByProductCategory = ({
   const headerTitle = (
     <div className="flex align-items-center justify-content-between flex-wrap">
       <div>
-        <h2 className="text-2xl font-bold">Revenue by Product Category</h2>
-        <small className="text-color-secondary">
-          Display revenue by product category and contribution percentage for the selected period
-        </small>
+        <h2 className="text-2xl font-bold">
+          Revenue by Distributor Product & Non Dist. Product (Trading)
+        </h2>
       </div>
     </div>
   )

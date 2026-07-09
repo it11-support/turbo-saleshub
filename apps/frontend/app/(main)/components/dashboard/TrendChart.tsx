@@ -1,9 +1,9 @@
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
-import { IDashboardData } from '@saleshub-tsm/types'
-import { TooltipItem } from 'chart.js'
+import { IDashboardData, ITrendData } from '@saleshub-tsm/types'
+import { Context } from 'chartjs-plugin-datalabels'
+import dayjs from 'dayjs'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
-import React from 'react'
 
 import { formatCurrency } from '@/lib/formatter'
 
@@ -11,15 +11,109 @@ type TrendChartProps = {
   isValidating: boolean
   data?: IDashboardData
 }
-const TrendChart = ({ isValidating, data }: TrendChartProps) => {
-  const { monthlyTrend } = data?.data || {}
 
-  const trendLabel = monthlyTrend?.map(
-    (item) => `${item.year}-${item.month.toString().padStart(2, '0')}`
-  )
-  const revenueData = monthlyTrend?.map((item) => item.revenue)
-  const customerData = monthlyTrend?.map((item) => item.customers)
-  const trendData = monthlyTrend?.map((item) => item.orders)
+const monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
+
+const TrendChart = ({ isValidating, data }: TrendChartProps) => {
+  const { monthlyTrends } = data?.data || {}
+
+  const chartData =
+    monthlyTrends?.map((item: any) => {
+      const month = Number(Object.keys(item)[0])
+      const years = Object.values(item)[0] as Record<number, ITrendData>
+
+      return {
+        month,
+        yearKeys: Object.keys(years)
+          .map(Number)
+          .sort((a, b) => a - b),
+        years,
+      }
+    }) ?? []
+
+  const currentMonth = dayjs().month() + 1
+
+  const startIndex = chartData.findIndex((x) => x.month === (currentMonth % 12) + 1)
+
+  const orderedChartData =
+    startIndex >= 0
+      ? [...chartData.slice(startIndex), ...chartData.slice(0, startIndex)]
+      : chartData
+
+  const trendLabels = orderedChartData.map((x) => monthNames[x.month - 1])
+
+  const chartSeries = [0, 1].map((datasetIndex) => {
+    const revenue: number[] = []
+    const orders: number[] = []
+
+    orderedChartData.forEach((item) => {
+      const year = item.yearKeys[datasetIndex]
+
+      revenue.push(year ? item.years[year].revenue : 0)
+      orders.push(year ? item.years[year].orders : 0)
+    })
+
+    return {
+      label: datasetIndex === 0 ? 'Previous' : 'Current',
+      year: orderedChartData[0]?.yearKeys[datasetIndex],
+
+      borderColor: datasetIndex === 0 ? '#2563EB' : '#22C55E',
+      backgroundColor: datasetIndex === 0 ? 'rgba(37,99,235,.15)' : 'rgba(34,197,94,.15)',
+
+      revenue,
+      orders,
+    }
+  })
+
+  const revenueDatasets = chartSeries.map((item) => ({
+    label: String(item.year),
+    data: item.revenue,
+    borderColor: item.borderColor,
+    backgroundColor: item.backgroundColor,
+    fill: true,
+    tension: 0.4,
+    cubicInterpolationMode: 'monotone',
+    borderWidth: 3,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    pointBorderWidth: 2,
+    pointBackgroundColor: item.borderColor,
+  }))
+
+  const orderDatasets = chartSeries.map((item) => ({
+    label: String(item.year),
+    data: item.orders,
+    borderColor: item.borderColor,
+    backgroundColor: item.backgroundColor,
+    fill: true,
+    tension: 0.4,
+    cubicInterpolationMode: 'monotone',
+    borderWidth: 3,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    pointBorderWidth: 2,
+    pointBackgroundColor: item.borderColor,
+  }))
+
+  const revenueValues = chartSeries.flatMap((x) => x.revenue)
+  const orderValues = chartSeries.flatMap((x) => x.orders)
+
+  const revenueMax = Math.ceil(Math.max(...revenueValues) / 1_000_000_000) * 1_000_000_000
+
+  const orderMax = Math.ceil(Math.max(...orderValues) / 1000) * 1000
 
   return (
     <div className="grid mt-4 ">
@@ -30,55 +124,77 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
       ) : (
         <div className="col-12 lg:col-12 xl:col-6">
           <Card>
-            <Chart
-              type="bar"
-              data={{
-                labels: trendLabel,
-                datasets: [{ data: revenueData, label: 'Revenue Trend' }],
-              }}
-              options={{
-                plugins: {
-                  tooltip: {
-                    callbacks: {
-                      label: function (context: TooltipItem<'bar'>) {
-                        return formatCurrency(context.parsed.y, true, true)
-                      },
-                      title: function (context: TooltipItem<'bar'>[]) {
-                        const rawX = context[0]?.parsed?.x
-                        if (rawX === undefined || rawX === null) return ''
+            <h5>Revenue Trend</h5>
+            <div>
+              <Chart
+                type="line"
+                data={{
+                  labels: trendLabels,
+                  datasets: revenueDatasets,
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart',
+                  },
+                  elements: {
+                    line: {
+                      tension: 0.4,
+                    },
+                  },
+                  interaction: {
+                    mode: 'index',
+                    intersect: false,
+                  },
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      callbacks: {
+                        title: (ctx: Context[]) => trendLabels[ctx[0].dataIndex],
 
-                        const date = new Date(rawX)
-                        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
+                        label: (ctx: Context) => {
+                          const item = orderedChartData[ctx.dataIndex]
+                          const year = item.yearKeys[ctx.datasetIndex]
+
+                          return `${year}: ${formatCurrency(item.years[year].revenue, true, true)}`
+                        },
                       },
                     },
                   },
-                },
-                scales: {
-                  x: {
-                    grid: {
-                      display: false,
+
+                  scales: {
+                    x: {
+                      stacked: false,
+                      grid: {
+                        display: false,
+                      },
+                      ticks: {
+                        autoSkip: false,
+                      },
+                      categoryPercentage: 0.7,
+                      barPercentage: 0.9,
                     },
-                    type: 'time',
-                    time: {
-                      unit: 'month',
-                      displayFormats: {
-                        month: 'MMM yyyy',
+                    y: {
+                      min: 0,
+                      max: revenueMax,
+                      beginAtZero: true,
+                      grid: {
+                        display: true,
+                      },
+                      ticks: {
+                        callback: (value: string | number) =>
+                          formatCurrency(Number(value), false, true),
                       },
                     },
                   },
-                  y: {
-                    grid: {
-                      display: false,
-                    },
-                    ticks: {
-                      callback: function (value: string) {
-                        return formatCurrency(value, false, true)
-                      },
-                    },
-                  },
-                },
-              }}
-            />
+                }}
+                style={{ width: '100%', height: '350px' }}
+              />
+            </div>
           </Card>
         </div>
       )}
@@ -90,113 +206,77 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
       ) : (
         <div className="col-12 lg:col-12 xl:col-6">
           <Card>
-            <Chart
-              type="bar"
-              data={{
-                labels: trendLabel,
-                datasets: [{ data: trendData, label: 'Order Trend' }],
-              }}
-              options={{
-                plugins: {
-                  tooltip: {
-                    callbacks: {
-                      label: function (context: TooltipItem<'bar'>) {
-                        return formatCurrency(context.parsed.y, true, false)
-                      },
-                      title: function (context: TooltipItem<'bar'>[]) {
-                        const rawX = context[0]?.parsed?.x
-                        if (rawX === undefined || rawX === null) return ''
-                        const date = new Date(rawX)
-                        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
-                      },
+            <h5>Order Trend</h5>
+            <div>
+              <Chart
+                type="line"
+                data={{
+                  labels: trendLabels,
+                  datasets: orderDatasets,
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart',
+                  },
+                  elements: {
+                    line: {
+                      tension: 0.4,
                     },
                   },
-                },
-                scales: {
-                  x: {
-                    grid: {
+                  interaction: {
+                    mode: 'index',
+                    intersect: false,
+                  },
+                  plugins: {
+                    legend: {
                       display: false,
                     },
-                    type: 'time',
-                    time: {
-                      unit: 'month',
-                      displayFormats: {
-                        month: 'MMM yyyy',
-                      },
-                    },
-                  },
-                  y: {
-                    grid: {
-                      display: false,
-                    },
-                    ticks: {
-                      callback: function (value: string) {
-                        return formatCurrency(value, false, false)
-                      },
-                    },
-                  },
-                },
-              }}
-            />
-          </Card>
-        </div>
-      )}
+                    tooltip: {
+                      callbacks: {
+                        title: (ctx: Context[]) => trendLabels[ctx[0].dataIndex],
 
-      {isValidating ? (
-        <div className="col-12 lg:col-12 xl:col-6">
-          <SkeletonLoader type="chart-vertical" />
-        </div>
-      ) : (
-        <div className="col-12 lg:col-12 xl:col-6">
-          <Card>
-            <Chart
-              type="bar"
-              data={{
-                labels: trendLabel,
-                datasets: [{ data: customerData, label: 'Customer Trend' }],
-              }}
-              options={{
-                plugins: {
-                  tooltip: {
-                    callbacks: {
-                      label: function (context: TooltipItem<'bar'>) {
-                        return formatCurrency(context.parsed.y, true, false)
-                      },
-                      title: function (context: TooltipItem<'bar'>[]) {
-                        const rawX = context[0]?.parsed?.x
-                        if (rawX === undefined || rawX === null) return ''
-                        const date = new Date(rawX)
-                        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
+                        label: (ctx: Context) => {
+                          const item = orderedChartData[ctx.dataIndex]
+                          const year = item.yearKeys[ctx.datasetIndex]
+
+                          return `${year}: ${item.years[year].orders.toLocaleString()} Orders`
+                        },
                       },
                     },
                   },
-                },
-                scales: {
-                  x: {
-                    grid: {
-                      display: false,
+
+                  scales: {
+                    x: {
+                      stacked: false,
+                      grid: {
+                        display: false,
+                      },
+                      ticks: {
+                        autoSkip: false,
+                      },
+                      categoryPercentage: 0.7,
+                      barPercentage: 0.9,
                     },
-                    type: 'time',
-                    time: {
-                      unit: 'month',
-                      displayFormats: {
-                        month: 'MMM yyyy',
+                    y: {
+                      min: 0,
+                      max: orderMax,
+                      beginAtZero: true,
+                      grid: {
+                        display: true,
+                      },
+                      ticks: {
+                        callback: (value: string | number) =>
+                          formatCurrency(Number(value), false, false),
                       },
                     },
                   },
-                  y: {
-                    grid: {
-                      display: false,
-                    },
-                    ticks: {
-                      callback: function (value: string) {
-                        return formatCurrency(value, false, false)
-                      },
-                    },
-                  },
-                },
-              }}
-            />
+                }}
+                style={{ width: '100%', height: '350px' }}
+              />
+            </div>
           </Card>
         </div>
       )}

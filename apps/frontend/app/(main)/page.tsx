@@ -1,6 +1,5 @@
 'use client'
 import ActiveCustomerCard from './components/dashboard/ActiveCustomerCard'
-import CustomerByItemRange from './components/dashboard/CustomerByItemRange'
 import CustomerLoyaltyCard from './components/dashboard/CustomerLoyaltyCard'
 import RevenueByProductCategory from './components/dashboard/RevenueByProductCategory'
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
@@ -65,19 +64,6 @@ const Dashboard = () => {
 
   const apiActiveCustomers = createUrl('summary/active-customers')
 
-  const customerByItemRangeUrl = createUrl('summary/customer-by-range-item')
-
-  const { data: customerByItemRange, isValidating: isCustomerByItemRangeValidating } =
-    useSWR<IDashboardData>(customerByItemRangeUrl, fetcher, {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    })
-
-  const customerByRangeItem = customerByItemRange?.data.customersByRangeItem || []
-
   const { data: activeCustomersData, isValidating: isActiveCustomersValidating } =
     useSWR<IDashboardData>(apiActiveCustomers, fetcher, {
       revalidateOnFocus: false,
@@ -137,11 +123,6 @@ const Dashboard = () => {
       <CustomerLoyaltyCard
         isCustomerLoyaltyValidating={isCustomerLoyaltyValidating}
         customerLoyaltyData={customerLoyaltyData}
-      />
-
-      <CustomerByItemRange
-        isValidating={isCustomerByItemRangeValidating}
-        customersByRangeItem={customerByRangeItem}
       />
 
       <ActiveCustomerCard
