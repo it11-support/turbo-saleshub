@@ -1,4 +1,5 @@
 import { SummaryResult } from '../common'
+import { CustomerTrendResult } from '../summary'
 import { ICustomer } from '../customer'
 import { IProduct } from '../product'
 import { IReturInvoices } from '../retur'
@@ -69,7 +70,7 @@ export type Summary = {
   [key: string]: SummaryResult
 }
 export interface ISalesSummaryState {
-  customerTrend: { period: string, activeCustomers: number }[],
+  customerTrend: CustomerTrendResult,
   slpRevenue: { slp: string, revenue: number }[],
   productRevenueDistributor: { ItemName: string, orders: number, revenue: number }[],
   productRevenueGrocery: { ItemName: string, orders: number, revenue: number }[],
@@ -103,7 +104,7 @@ export type IRFMPeriod = Record<number, IRFMSegment[]>
 export interface IDashboardData {
   data: {
     monthlyTrends: IMonthlyTrend[];
-    customerTrend: { period: string; activeCustomers: number }[];
+    customerTrend: CustomerTrendResult;
     slpRevenue: { slp: string; revenue: number }[];
     productRevenueDistributor: { ItemName: string; orders: number; revenue: number }[];
     productRevenueGrocery: { ItemName: string; orders: number; revenue: number }[];

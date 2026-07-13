@@ -69,8 +69,8 @@ const ActiveCustomerCard = ({
   const headerTitle = (
     <div className="flex align-items-center justify-content-between flex-wrap px-4 py-2">
       <div>
-        <h3 className="m-0">List Of Lagged Transaction Customers</h3>
-        <small className="text-color-secondary">{`Lagged Transaction Customers This Month (Total: ${nonActive?.total})`}</small>
+        <h3 className="m-0">List Of Lagged Transactions</h3>
+        <small className="text-color-secondary">{`Lagged Transactions This Month (Total: ${nonActive?.total})`}</small>
       </div>
       {isAdmin && (
         <div className="flex gap-2">

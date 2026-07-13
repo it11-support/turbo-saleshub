@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { getCRR, getMtdDates, getRFM } from '@/utils/statsFunctions.js'
-import { getActiveCustomers, getNooVsExisting, getPeriodRange, getRevenueByCategory, getSalesSummary } from './functions.js'
+import { getActiveCustomers, getCustomerTrend, getNooVsExisting, getPeriodRange, getRevenueByCategory, getSalesSummary } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 import { CUSTOMER_INSIGHT_PERIODS } from '@/constants/index.js'
 
@@ -198,7 +198,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
         JOIN customers c ON c.CardCode = s.CardCode
         JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
         WHERE s.date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 23 MONTH), '%Y-%m-01')
-          AND s.date <= LAST_DAY(CURDATE())
+          AND s.date <= CASE
+            WHEN YEAR(s.date) = YEAR(CURDATE()) - 1
+             AND MONTH(s.date) = MONTH(CURDATE())
+            THEN DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            ELSE LAST_DAY(s.date)
+          END
           AND (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
         GROUP BY YEAR(s.date), MONTH(s.date)
         ORDER BY YEAR(s.date), MONTH(s.date)
@@ -441,6 +446,26 @@ export const fetchCustomersByRangeItem = async (req: Request, res: Response) => 
       message: 'Success',
       data: {
         customersByRangeItem
+      },
+    })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export const customerTrend = async (req: Request, res: Response) => {
+  try {
+    const { salesPersonId } = req.query
+
+    const trend = await getCustomerTrend(
+      salesPersonId ? Number(salesPersonId) : null
+    )
+
+    res.status(200).json({
+      message: 'Success',
+      data: {
+        customerTrend: trend
       },
     })
   } catch (error) {

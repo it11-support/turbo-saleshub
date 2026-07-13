@@ -1,5 +1,6 @@
 'use client'
 import ActiveCustomerCard from './components/dashboard/ActiveCustomerCard'
+import CustomerGrowth from './components/dashboard/CustomerGrowth'
 import CustomerLoyaltyCard from './components/dashboard/CustomerLoyaltyCard'
 import RevenueByProductCategory from './components/dashboard/RevenueByProductCategory'
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
@@ -84,6 +85,19 @@ const Dashboard = () => {
       revalidateOnReconnect: true,
     })
 
+  const apiCustomerTrend = createUrl('summary/customer-trend', payload)
+
+  const { data: customerTrendData, isValidating: isCustomerTrendValidating } =
+    useSWR<IDashboardData>(apiCustomerTrend, fetcher, {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    })
+
+  console.log('customerTrend', customerTrendData?.data?.customerTrend, isCustomerTrendValidating)
+
   const { summary } = data?.data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
@@ -131,7 +145,10 @@ const Dashboard = () => {
       />
 
       <TrendChart isValidating={isValidating} data={data} />
-
+      <CustomerGrowth
+        isValidating={isCustomerTrendValidating}
+        customerTrendData={customerTrendData}
+      />
       <TopPerformingChart isValidating={isValidating} data={data} />
     </>
   )
