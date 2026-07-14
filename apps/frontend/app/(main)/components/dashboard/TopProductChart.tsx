@@ -42,8 +42,8 @@ const TopProductChart = (props: TopProductChartProps) => {
             datasets: [
               {
                 data: values,
-                backgroundColor: '#E8F9EF',
-                borderColor: '#22C55E',
+                backgroundColor: 'rgba(59, 130, 246, 0.18)',
+                borderColor: '#3B82F6',
                 borderWidth: 1,
                 borderRadius: 2,
               },
