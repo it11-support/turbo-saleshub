@@ -96,8 +96,6 @@ const Dashboard = () => {
       revalidateOnReconnect: true,
     })
 
-  console.log('customerTrend', customerTrendData?.data?.customerTrend, isCustomerTrendValidating)
-
   const { summary } = data?.data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')

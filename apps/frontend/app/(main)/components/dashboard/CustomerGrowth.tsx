@@ -13,7 +13,6 @@ type CustomerGrowthProps = {
 const CustomerGrowth = (props: CustomerGrowthProps) => {
   const { isValidating, customerTrendData } = props
 
-  console.log('customerTrendData', customerTrendData)
   const customerTrend = customerTrendData?.data?.customerTrend
 
   const yearly = customerTrend?.yearly || {}
