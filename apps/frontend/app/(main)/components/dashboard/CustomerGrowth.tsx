@@ -88,6 +88,10 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         labels: {
           usePointStyle: true,
           pointStyle: 'line',
+          font: {
+            size: 10,
+            weight: 'bold',
+          },
         },
       },
       tooltip: {
@@ -265,6 +269,10 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         labels: {
           usePointStyle: true,
           pointStyle: 'line',
+          font: {
+            size: 10,
+            weight: 'bold',
+          },
         },
       },
       tooltip: {
