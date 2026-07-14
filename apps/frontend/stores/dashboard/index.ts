@@ -2,7 +2,7 @@ import { ISalesSummaryState, Summary } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 export const useDashboardStore = create<ISalesSummaryState>()((set, _get) => ({
-  customerTrend: [],
+  customerTrend: { yearly: {}, monthly: {} },
   productRevenueDistributor: [],
   productRevenueGrocery: [],
   slpRevenue: [],

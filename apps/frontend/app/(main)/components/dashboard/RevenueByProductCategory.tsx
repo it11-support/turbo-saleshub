@@ -23,11 +23,16 @@ const RevenueByProductCategory = ({
   const revenueByCategory = revenueByCategoryData?.data.revenueByCategory
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
 
-  const sorted = [...(revenueByCategory ?? [])].sort((a, b) => b[period] - a[period])
+  const sorted = [...(revenueByCategory ?? [])].sort((a, b) => {
+    if (a.category === 'GROCERIES') return -1
+    if (b.category === 'GROCERIES') return 1
+
+    return b[period] - a[period]
+  })
   const total = sorted.reduce((acc, item) => acc + item[period], 0)
   const chartData = {
     labels: sorted.map((item) =>
-      item.category === 'GROCERIES' ? 'NON DISTRIBUTOR PRODUCT' : item.category
+      item.category === 'GROCERIES' ? 'NON DIST. PRODUCT' : item.category
     ),
     datasets: [
       {
@@ -128,7 +133,7 @@ const RevenueByProductCategory = ({
                 },
               }}
             >
-              <div className="w-full lg:w-6">
+              <div className="w-full xl:w-6">
                 <PrimeChart
                   type="bar"
                   data={chartData}

@@ -130,32 +130,49 @@ export const getNooVsExisting = async (
     .toDate()
 
   const result = await prisma.$queryRaw<any[]>`
-    WITH first_purchase AS (
-      SELECT
-        CardCode,
-        MIN(date) AS first_date
-      FROM daily_sales_summary_view
+    WITH all_invoices AS (
+      SELECT s.CardCode, s.DocDate
+      FROM sales_invoices s
+      LEFT JOIN customers c ON c.CardCode = s.CardCode
+      LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+      WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+    ),
+
+    first_purchase AS (
+      SELECT CardCode, MIN(DocDate) AS first_date
+      FROM all_invoices
       GROUP BY CardCode
+    ),
+
+    qualifying_invoices AS (
+      SELECT s.CardCode, s.DocNum, s.DocDate
+      FROM sales_invoices s
+      LEFT JOIN retur_invoices r
+        ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
+      LEFT JOIN customers c ON c.CardCode = s.CardCode
+      LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+      WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+      GROUP BY s.CardCode, s.DocNum, s.DocDate
+      HAVING SUM(COALESCE(s.QtyKg, 0) - COALESCE(r.QtyKg, 0)) > 0
     )
 
     SELECT
       COUNT(DISTINCT CASE
         WHEN fp.first_date >= ${start}
-        THEN s.CardCode
+        THEN qi.CardCode
       END) AS new_customer,
 
       COUNT(DISTINCT CASE
         WHEN fp.first_date < ${start}
-        THEN s.CardCode
+        THEN qi.CardCode
       END) AS existing_customer
 
-    FROM daily_sales_summary_view s
+    FROM qualifying_invoices qi
     JOIN first_purchase fp
-      ON fp.CardCode = s.CardCode
+      ON fp.CardCode = qi.CardCode
 
-    WHERE s.date >= ${start}
-      AND s.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-      AND (${salesPersonId} IS NULL OR s.sales_person_id = ${salesPersonId})
+    WHERE qi.DocDate >= ${start}
+      AND qi.DocDate < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
   `
 
   return {
@@ -247,6 +264,190 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
   };
 };
 
+
+export const getCustomerTrend = async (salesPersonId: number | null) => {
+  const [yearlyRaw, monthlyRaw] = await Promise.all([
+    // =====================
+    // YEARLY: NOO vs Existing per tahun
+    // (2025 penuh, 2026 dihitung sampai CURDATE / YTD)
+    // =====================
+    prisma.$queryRaw<any[]>`
+      WITH RECURSIVE all_invoices AS (
+        SELECT s.CardCode, s.DocDate
+        FROM sales_invoices s
+        LEFT JOIN customers c ON c.CardCode = s.CardCode
+        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+      ),
+
+      first_purchase AS (
+        SELECT CardCode, MIN(DocDate) AS first_date
+        FROM all_invoices
+        GROUP BY CardCode
+      ),
+
+      qualifying_invoices AS (
+        SELECT s.CardCode, s.DocNum, s.DocDate
+        FROM sales_invoices s
+        LEFT JOIN retur_invoices r
+          ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
+        LEFT JOIN customers c ON c.CardCode = s.CardCode
+        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+        GROUP BY s.CardCode, s.DocNum, s.DocDate
+        HAVING SUM(COALESCE(s.TotalSales, 0) + COALESCE(r.TotalSales, 0)) > 0
+      ),
+
+      years AS (
+        SELECT YEAR(CURDATE()) - 2 AS yr
+        UNION ALL
+        SELECT yr + 1 FROM years WHERE yr < YEAR(CURDATE())
+      ),
+
+      windowed AS (
+        SELECT
+          y.yr AS yr,
+          qi.CardCode,
+          fp.first_date
+        FROM years y
+        JOIN qualifying_invoices qi
+          ON qi.DocDate >= MAKEDATE(y.yr, 1)
+         AND qi.DocDate <= LEAST(MAKEDATE(y.yr + 1, 1) - INTERVAL 1 DAY, CURDATE())
+        JOIN first_purchase fp
+          ON fp.CardCode = qi.CardCode
+        GROUP BY y.yr, qi.CardCode, fp.first_date
+      )
+
+      SELECT
+        yr,
+        COUNT(DISTINCT CASE
+          WHEN first_date >= MAKEDATE(yr, 1)
+           AND first_date <= LEAST(MAKEDATE(yr + 1, 1) - INTERVAL 1 DAY, CURDATE())
+          THEN CardCode
+        END) AS noo,
+
+        COUNT(DISTINCT CASE
+          WHEN first_date < MAKEDATE(yr, 1)
+          THEN CardCode
+        END) AS existing
+
+      FROM windowed
+      GROUP BY yr
+      ORDER BY yr
+    `,
+
+    // =====================
+    // MONTHLY: MTD NOO vs Existing per bulan
+    // membandingkan tahun berjalan (2026) vs sebelumnya (2025)
+    // selama 12 bulan (Jan - Des)
+    // =====================
+    prisma.$queryRaw<any[]>`
+      WITH RECURSIVE all_invoices AS (
+        SELECT s.CardCode, s.DocDate
+        FROM sales_invoices s
+        LEFT JOIN customers c ON c.CardCode = s.CardCode
+        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+      ),
+
+      first_purchase AS (
+        SELECT CardCode, MIN(DocDate) AS first_date
+        FROM all_invoices
+        GROUP BY CardCode
+      ),
+
+      qualifying_invoices AS (
+        SELECT s.CardCode, s.DocNum, s.DocDate
+        FROM sales_invoices s
+        LEFT JOIN retur_invoices r
+          ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
+        LEFT JOIN customers c ON c.CardCode = s.CardCode
+        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+        GROUP BY s.CardCode, s.DocNum, s.DocDate
+        HAVING SUM(COALESCE(s.TotalSales, 0) + COALESCE(r.TotalSales, 0)) > 0
+      ),
+
+      months AS (
+        SELECT MAKEDATE(YEAR(CURDATE()) - 1, 1) AS m_start
+        UNION ALL
+        SELECT DATE_ADD(m_start, INTERVAL 1 MONTH)
+        FROM months
+        WHERE m_start < MAKEDATE(YEAR(CURDATE()) + 1, 1)
+      ),
+
+      windowed AS (
+        SELECT
+          YEAR(m.m_start) AS yr,
+          MONTH(m.m_start) AS mo,
+          m.m_start AS m_start,
+          CASE
+            WHEN YEAR(m.m_start) = YEAR(CURDATE()) - 1
+             AND MONTH(m.m_start) = MONTH(CURDATE())
+            THEN LEAST(LAST_DAY(m.m_start), DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+            ELSE LEAST(LAST_DAY(m.m_start), CURDATE())
+          END AS m_end,
+          qi.CardCode,
+          fp.first_date
+        FROM months m
+        JOIN qualifying_invoices qi
+          ON qi.DocDate >= m.m_start
+         AND qi.DocDate <= CASE
+            WHEN YEAR(m.m_start) = YEAR(CURDATE()) - 1
+             AND MONTH(m.m_start) = MONTH(CURDATE())
+            THEN LEAST(LAST_DAY(m.m_start), DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
+            ELSE LEAST(LAST_DAY(m.m_start), CURDATE())
+          END
+        JOIN first_purchase fp
+          ON fp.CardCode = qi.CardCode
+        GROUP BY yr, mo, m_start, m_end, qi.CardCode, fp.first_date
+      )
+
+      SELECT
+        yr,
+        mo,
+        COUNT(DISTINCT CASE
+          WHEN first_date >= m_start AND first_date <= m_end
+          THEN CardCode
+        END) AS noo,
+
+        COUNT(DISTINCT CASE
+          WHEN first_date < m_start
+          THEN CardCode
+        END) AS existing
+
+      FROM windowed
+      GROUP BY yr, mo
+      ORDER BY yr, mo
+    `,
+  ])
+
+  const yearly: Record<number, { noo: number; existing: number }> = {}
+  yearlyRaw.forEach(r => {
+    yearly[Number(r.yr)] = {
+      noo: Number(r.noo ?? 0),
+      existing: Number(r.existing ?? 0),
+    }
+  })
+
+  const monthly: Record<number, Record<number, { noo: number; existing: number }>> = {}
+  monthlyRaw.forEach(r => {
+    const yr = Number(r.yr)
+    const mo = Number(r.mo)
+
+    if (!monthly[yr]) monthly[yr] = {}
+
+    monthly[yr][mo] = {
+      noo: Number(r.noo ?? 0),
+      existing: Number(r.existing ?? 0),
+    }
+  })
+
+  return {
+    yearly,
+    monthly,
+  }
+}
 
 export const getPeriodRange = (months = 12) => {
   return {

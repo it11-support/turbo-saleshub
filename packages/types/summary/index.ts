@@ -33,6 +33,19 @@ export type RevenueByCategory = {
   ytd: number
 }
 
+export type CustomerTrendResult = {
+  yearly: Record<string, { noo: number; existing: number }>
+  monthly: Record<
+    string,
+    Record<
+      string,
+      {
+        noo: number
+        existing: number
+      }
+    >
+  >
+}
 export interface ICalcNetRevParams {
   DocNum: number
   TotalSales: Decimal | null

@@ -1,6 +1,7 @@
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import { IDashboardData, ITrendData } from '@saleshub-tsm/types'
 import { Context } from 'chartjs-plugin-datalabels'
+import ChartDataLabels from 'chartjs-plugin-datalabels'
 import dayjs from 'dayjs'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
@@ -124,7 +125,6 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
       ) : (
         <div className="col-12 lg:col-12 xl:col-6">
           <Card>
-            <h5>Revenue Trend</h5>
             <div>
               <Chart
                 type="line"
@@ -149,6 +149,26 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                     intersect: false,
                   },
                   plugins: {
+                    title: {
+                      display: true,
+                      text: 'Revenue Trend',
+                      font: {
+                        size: 16,
+                        weight: 'bold',
+                      },
+                    },
+                    subtitle: {
+                      display: true,
+                      text: 'YoY Growth (vs Same Month Previous Year)',
+                      color: '#64748B',
+                      font: {
+                        size: 11,
+                      },
+                      padding: {
+                        bottom: 10,
+                      },
+                    },
+
                     legend: {
                       display: false,
                     },
@@ -162,6 +182,50 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
 
                           return `${year}: ${formatCurrency(item.years[year].revenue, true, true)}`
                         },
+                      },
+                    },
+                    datalabels: {
+                      display: (ctx: Context) => ctx.datasetIndex > 0,
+                      align: 'bottom',
+                      anchor: 'end',
+                      offset: 25,
+                      font: {
+                        size: 10,
+                        weight: 'bold',
+                      },
+                      color: (ctx: Context) => {
+                        const item = orderedChartData[ctx.dataIndex]
+
+                        const currentYear = item.yearKeys[ctx.datasetIndex]
+                        const previousYear = item.yearKeys[ctx.datasetIndex - 1]
+
+                        if (!previousYear) return '#6B7280'
+
+                        const current = item.years[currentYear].revenue
+                        const previous = item.years[previousYear].revenue
+
+                        const growth = ((current - previous) / previous) * 100
+
+                        return growth >= 0 ? '#16A34A' : '#DC2626'
+                      },
+                      formatter: (_: number, ctx: Context) => {
+                        const item = orderedChartData[ctx.dataIndex]
+
+                        const currentYear = item.yearKeys[ctx.datasetIndex]
+                        const previousYear = item.yearKeys[ctx.datasetIndex - 1]
+
+                        if (!previousYear) return ''
+
+                        const current = item.years[currentYear].revenue
+                        const previous = item.years[previousYear].revenue
+
+                        if (!previous) return ''
+
+                        const growth = ((current - previous) / previous) * 100
+
+                        const arrow = growth >= 0 ? '▲' : '▼'
+
+                        return `${arrow} ${Math.abs(growth).toFixed(1)}%`
                       },
                     },
                   },
@@ -193,6 +257,7 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                   },
                 }}
                 style={{ width: '100%', height: '350px' }}
+                plugins={[ChartDataLabels]}
               />
             </div>
           </Card>
@@ -206,7 +271,6 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
       ) : (
         <div className="col-12 lg:col-12 xl:col-6">
           <Card>
-            <h5>Order Trend</h5>
             <div>
               <Chart
                 type="line"
@@ -231,6 +295,25 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                     intersect: false,
                   },
                   plugins: {
+                    title: {
+                      display: true,
+                      text: 'Order Trend',
+                      font: {
+                        size: 16,
+                        weight: 'bold',
+                      },
+                    },
+                    subtitle: {
+                      display: true,
+                      text: 'YoY Growth (vs Same Month Previous Year)',
+                      color: '#64748B',
+                      font: {
+                        size: 11,
+                      },
+                      padding: {
+                        bottom: 10,
+                      },
+                    },
                     legend: {
                       display: false,
                     },
@@ -244,6 +327,50 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
 
                           return `${year}: ${item.years[year].orders.toLocaleString()} Orders`
                         },
+                      },
+                    },
+                    datalabels: {
+                      display: (ctx: Context) => ctx.datasetIndex > 0,
+                      align: 'bottom',
+                      anchor: 'end',
+                      offset: 25,
+                      font: {
+                        size: 10,
+                        weight: 'bold',
+                      },
+                      color: (ctx: Context) => {
+                        const item = orderedChartData[ctx.dataIndex]
+
+                        const currentYear = item.yearKeys[ctx.datasetIndex]
+                        const previousYear = item.yearKeys[ctx.datasetIndex - 1]
+
+                        if (!previousYear) return '#6B7280'
+
+                        const current = item.years[currentYear].orders
+                        const previous = item.years[previousYear].orders
+
+                        if (previous <= 0) return '#6B7280'
+
+                        const growth = ((current - previous) / previous) * 100
+
+                        return growth >= 0 ? '#16A34A' : '#DC2626'
+                      },
+                      formatter: (_: number, ctx: Context) => {
+                        const item = orderedChartData[ctx.dataIndex]
+
+                        const currentYear = item.yearKeys[ctx.datasetIndex]
+                        const previousYear = item.yearKeys[ctx.datasetIndex - 1]
+
+                        if (!previousYear) return ''
+
+                        const current = item.years[currentYear].orders
+                        const previous = item.years[previousYear].orders
+
+                        if (previous <= 0) return ''
+
+                        const growth = ((current - previous) / previous) * 100
+
+                        return `${growth >= 0 ? '▲' : '▼'} ${Math.abs(growth).toFixed(1)}%`
                       },
                     },
                   },
@@ -275,6 +402,7 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
                   },
                 }}
                 style={{ width: '100%', height: '350px' }}
+                plugins={[ChartDataLabels]}
               />
             </div>
           </Card>
