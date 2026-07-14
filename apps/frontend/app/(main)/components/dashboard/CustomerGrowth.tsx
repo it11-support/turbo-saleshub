@@ -298,9 +298,9 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
 
         align: (ctx: Context) => (ctx.dataset.label === 'Existing Customers' ? 'top' : 'bottom'),
 
-        anchor: (ctx: Context) => (ctx.dataset.label === 'Existing Customers' ? 'end' : 'start'),
+        anchor: (ctx: Context) => (ctx.dataset.label === 'Existing Customers' ? 'start' : 'end'),
 
-        offset: 8,
+        offset: -15,
 
         font: {
           size: 10,
@@ -344,6 +344,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
           display: true,
           text: 'Existing Customers',
         },
+        max: Math.ceil(yearKeys.reduce((max, yr) => Math.max(max, yearly[yr].existing), 0) * 1.05),
         ticks: {
           callback: (value: string | number) => Number(value).toLocaleString(),
         },
@@ -354,6 +355,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         grid: {
           drawOnChartArea: false,
         },
+        max: Math.ceil(yearKeys.reduce((max, yr) => Math.max(max, yearly[yr].noo), 0) * 1.05),
         title: {
           display: true,
           text: 'NOO',
