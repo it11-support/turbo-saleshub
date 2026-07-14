@@ -6,6 +6,8 @@ import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 
+import { MONTH_SHORT } from '@/lib/constants'
+
 type CustomerGrowthProps = {
   isValidating: boolean
   customerTrendData?: IDashboardData
@@ -17,20 +19,6 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
 
   const yearly = customerTrend?.yearly || {}
   const monthly = customerTrend?.monthly || {}
-  const MONTHS = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ]
 
   const years = Object.keys(monthly).sort()
   const latestYear = years[years.length - 1]
@@ -39,7 +27,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
   // bulan terakhir yang ada di tahun berjalan
   const latestMonth = Math.max(...Object.keys(monthly[latestYear] ?? {}).map(Number))
 
-  const timeline = MONTHS.slice(0, latestMonth).map((monthName, index) => {
+  const timeline = MONTH_SHORT.slice(0, latestMonth).map((monthName, index) => {
     const monthKey = String(index + 1)
 
     return {

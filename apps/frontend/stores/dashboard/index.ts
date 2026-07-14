@@ -1,6 +1,8 @@
 import { ISalesSummaryState, Summary } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
+import { MONTH_LONG } from '@/lib/constants'
+
 export const useDashboardStore = create<ISalesSummaryState>()((set, _get) => ({
   customerTrend: { yearly: {}, monthly: {} },
   productRevenueDistributor: [],
@@ -15,20 +17,7 @@ export const useDashboardStore = create<ISalesSummaryState>()((set, _get) => ({
     mom: {},
     yoy: {},
   },
-  monthList: [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ].map((label, index) => ({
+  monthList: MONTH_LONG.map((label, index) => ({
     label,
     value: index + 1,
   })),
