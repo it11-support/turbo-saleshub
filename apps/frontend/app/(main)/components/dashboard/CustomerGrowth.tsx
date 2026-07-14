@@ -276,7 +276,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
       legend: {
         position: 'bottom',
         labels: {
-          usePointStyle: true,
+          usePointStyle: false,
         },
       },
       tooltip: {
