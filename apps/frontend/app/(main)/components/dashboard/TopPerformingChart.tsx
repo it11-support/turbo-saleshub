@@ -44,7 +44,7 @@ const TopPerformingChart = ({ isValidating, data }: TopPerformingChartProps) => 
                   datasets: [
                     {
                       data: productRevenueDistributorData,
-                      label: 'Top Performing Distributor Product',
+                      label: 'Top Performing Distributor Products',
                     },
                   ],
                 }}
@@ -111,7 +111,7 @@ const TopPerformingChart = ({ isValidating, data }: TopPerformingChartProps) => 
                   datasets: [
                     {
                       data: productRevenueGroceryData,
-                      label: 'Top Performing Grocery Product',
+                      label: 'Top Performing Trading Products',
                     },
                   ],
                 }}
