@@ -71,9 +71,9 @@ export type Summary = {
 }
 export interface ISalesSummaryState {
   customerTrend: CustomerTrendResult,
-  slpRevenue: { slp: string, revenue: number }[],
   productRevenueDistributor: { ItemName: string, orders: number, revenue: number }[],
   productRevenueGrocery: { ItemName: string, orders: number, revenue: number }[],
+  productRevenueAll: { ItemName: string, orders: number, revenue: number }[],
   newVsReturning: { newCustomer: number, returningCustomer: number },
   summary: Summary
   CRR: number,
@@ -105,9 +105,9 @@ export interface IDashboardData {
   data: {
     monthlyTrends: IMonthlyTrend[];
     customerTrend: CustomerTrendResult;
-    slpRevenue: { slp: string; revenue: number }[];
     productRevenueDistributor: { ItemName: string; orders: number; revenue: number }[];
     productRevenueGrocery: { ItemName: string; orders: number; revenue: number }[];
+    productRevenueAll: { ItemName: string; orders: number; revenue: number }[];
     summary: Summary;
     CRR: number;
     RPR: number;

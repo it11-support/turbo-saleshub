@@ -37,7 +37,9 @@ const RevenueByProductCategory = ({
     datasets: [
       {
         data: sorted.map((item) => item[period]),
-        backgroundColor: '#22c55e',
+        backgroundColor: 'rgba(59, 130, 246, 0.18)',
+        borderColor: '#3B82F6',
+        borderWidth: 1,
         borderRadius: 2,
       },
     ],

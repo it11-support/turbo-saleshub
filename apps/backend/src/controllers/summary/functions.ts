@@ -542,3 +542,64 @@ export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
 
   return result
 }
+
+export const normalizeItems = <
+  T extends {
+    ItemCode: string
+    _sum: { TotalSales: unknown }
+    _count: { DocNum: number }
+  }
+>(
+  sales: T[],
+  retur: T[]
+) => {
+  const map = new Map<
+    string,
+    {
+      ItemCode: string
+      sales: number
+      count: number
+    }
+  >()
+
+  for (const item of sales) {
+    map.set(item.ItemCode, {
+      ItemCode: item.ItemCode,
+      sales: Number(item._sum.TotalSales ?? 0),
+      count: item._count.DocNum,
+    })
+  }
+
+  for (const item of retur) {
+    const existing = map.get(item.ItemCode)
+
+    if (existing) {
+      existing.sales += Number(item._sum.TotalSales ?? 0)
+      existing.count += item._count.DocNum
+    } else {
+      map.set(item.ItemCode, {
+        ItemCode: item.ItemCode,
+        sales: Number(item._sum.TotalSales ?? 0),
+        count: item._count.DocNum,
+      })
+    }
+  }
+
+  return [...map.values()].sort((a, b) => b.sales - a.sales)
+}
+
+
+export const buildProductRevenue = (
+  items: {
+    ItemCode: string
+    sales: number
+    count: number
+  }[],
+  productMap: Map<string, string | null>
+) => {
+  return items.map(i => ({
+    ItemName: productMap.get(i.ItemCode) ?? i.ItemCode,
+    revenue: i.sales,
+    orders: i.count,
+  }))
+}

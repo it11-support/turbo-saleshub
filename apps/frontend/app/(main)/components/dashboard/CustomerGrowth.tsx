@@ -160,9 +160,9 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         display: (ctx: Context) => ctx.datasetIndex >= 0,
         align: (ctx: Context) => (ctx.datasetIndex === 0 ? 'top' : 'bottom'),
         anchor: 'end',
-        offset: 20,
+        offset: -25,
         font: {
-          size: 10,
+          size: 9,
           weight: 'bold',
         },
         color: (ctx: Context) => {
@@ -303,7 +303,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         offset: -15,
 
         font: {
-          size: 10,
+          size: 9,
           weight: 'bold',
         },
 
