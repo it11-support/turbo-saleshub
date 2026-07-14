@@ -36,32 +36,22 @@ export const customerList = async (
           ? JSON.parse(sort_options)
           : sort_options
 
-      return parsed.map((s: any) => {
-        if (s.key === 'rfm.segment' || s.key === 'segment') {
-          return {
-            ...s,
-            key: 'rfm.rfmScore',
-          }
-        }
-        return s
-      })
+      return parsed.map((s: any) => s)
     }
 
 
-    const { groups, salesPersons, subgroups, slpCode, itemCount, loyaltyLevel, isNewCustomer } = req.query as {
+    const { groups, salesPersons, subgroups, slpCode, itemCount, isNewCustomer } = req.query as {
       groups?: string | string[];
       salesPersons?: string | string[];
       subgroups?: string | string[];
       slpCode?: number;
       itemCount?: number;
-      loyaltyLevel?: string | string[];
       isNewCustomer?: string | boolean
     };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
     let activeOpts: string[] = [];
     let selectedSalesPersons: string[] = [];
-    let selectedLevel: string[] = [];
 
     const query: any = search
       ? {
@@ -90,13 +80,6 @@ export const customerList = async (
       query.NonActive = activeOpts.length === 1 ? { equals: activeOpts[0] } : { in: activeOpts };
     }
 
-    if (loyaltyLevel) {
-      if (Array.isArray(loyaltyLevel)) {
-        selectedLevel = loyaltyLevel;
-      } else {
-        selectedLevel = [loyaltyLevel];
-      }
-    }
     if (groups) {
       if (Array.isArray(groups)) {
         selectedGroups = groups;
@@ -136,35 +119,6 @@ export const customerList = async (
       };
     }
 
-    if (selectedLevel.length > 0) {
-      const hasLost = selectedLevel.includes('LOST');
-
-      const segments = selectedLevel.filter((v) => v !== 'LOST');
-
-      if (hasLost) {
-        query.OR = [
-          { rfm: null },
-
-          {
-            rfm: {
-              segment:
-                segments.length > 0
-                  ? { in: ['LOST', ...segments] }
-                  : { equals: 'LOST' },
-            },
-          },
-        ];
-      }
-
-      else {
-        query.rfm = {
-          segment:
-            selectedLevel.length === 1
-              ? { equals: selectedLevel[0] }
-              : { in: selectedLevel },
-        };
-      }
-    }
 
     if (salesPersons) {
       if (Array.isArray(salesPersons)) {
@@ -205,7 +159,6 @@ export const customerList = async (
         include: {
           sales_person: true,
           subgroup: true,
-          rfm: true
         },
         orderBy,
       })
@@ -250,17 +203,7 @@ export const customerList = async (
     res.status(200).json({
       message: 'Success',
       data: {
-        items: customers.map((c) => ({
-          ...c,
-          rfm: c.rfm
-            ? {
-              ...c.rfm,
-              monetary: c.rfm.monetary
-                ? Number(c.rfm.monetary)
-                : null,
-            }
-            : null,
-        })),
+        items: customers.map((c) => c),
         totalRecords: meta.totalCount,
         currentPage: meta.currentPage,
         perPage: Number(per_page),

@@ -1,7 +1,6 @@
 'use client'
 
 import { fetcher } from '../lib'
-import { getClass, segmentToStars } from './components/functions'
 import NavButton from './components/NavButton'
 import CustomerCell from '../components/customer/CustomerCell'
 import { DataTableSortMeta, ICustomer } from '@saleshub-tsm/types'
@@ -20,7 +19,6 @@ import { Column } from 'primereact/column'
 import { DataTable, DataTableRowMouseEvent } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
-import { Rating } from 'primereact/rating'
 import { Slider } from 'primereact/slider'
 import { useEffect, useState } from 'react'
 import useSWR, { preload } from 'swr'
@@ -125,27 +123,11 @@ export default function CustomerTable() {
   const salesPersonOptions =
     data?.salesPersonNames?.map((name: string) => ({ label: name, value: name })) || []
 
-  const loyaltyLevelOptions = [
-    { label: 'VIP', value: 'VIP' },
-    { label: 'LOYAL', value: 'LOYAL' },
-    { label: 'POTENTIAL', value: 'POTENTIAL' },
-    { label: 'AT_RISK', value: 'AT_RISK' },
-    { label: 'LOST', value: 'LOST' },
-  ]
-
   // 6. Table Templates & Headers (Logika tetap sama)
   const rowClass = (data: ICustomer) =>
     `cursor-pointer ${data.NonActive === 'Y' ? 'bg-gray-700' : ''}`
   const statusTemplate = (data: ICustomer) => (
     <span>{data.NonActive === 'Y' ? 'Inactive' : 'Active'}</span>
-  )
-  const segmentTemplate = (row: ICustomer) => (
-    <Rating
-      value={segmentToStars(row.rfm?.segment)}
-      readOnly
-      cancel={false}
-      className={getClass(row.rfm?.segment)}
-    />
   )
 
   const preloadCustomers = (page: number) => {
@@ -155,13 +137,6 @@ export default function CustomerTable() {
 
   const headers = [
     { field: 'CardName', header: 'Name', sortable: true },
-    {
-      field: 'rfm.segment',
-      header: 'Loyalty Level',
-      sortable: true,
-      body: segmentTemplate,
-      sortField: 'rfm.rfmScore',
-    },
     { field: 'GroupName', header: 'Group', sortable: true, hideOnMobile: true },
     { field: 'subgroup.IndDesc', header: 'Subgroup', sortable: true },
     { field: 'sales_person.SlpName', header: 'Sales Person', sortable: true, hideOnMobile: true },
@@ -226,17 +201,6 @@ export default function CustomerTable() {
             />
           </div>
         )}
-
-        <div className="col-12 sm:col-6 md:col-3">
-          <MultiSelect
-            inputId="loyalty-level-filter"
-            value={filters.loyaltyLevel}
-            onChange={(e) => setFilters({ loyaltyLevel: e.value, page: 1 })}
-            options={loyaltyLevelOptions}
-            placeholder="Loyalty Levels"
-            className="w-full"
-          />
-        </div>
 
         <div className="col-12 sm:col-6 md:col-3">
           <h6>Item Count &gt; {localItemCount}</h6>
