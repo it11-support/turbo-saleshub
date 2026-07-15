@@ -16,7 +16,7 @@ import {
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { Column } from 'primereact/column'
-import { DataTable, DataTableRowMouseEvent } from 'primereact/datatable'
+import { DataTable } from 'primereact/datatable'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { Slider } from 'primereact/slider'
@@ -60,16 +60,6 @@ export default function CustomerTable() {
   const debouncedLocalSearch = useDebounce(localSearch, 400)
   const [localItemCount, setLocalItemCount] = useState(filters.itemCount)
 
-  const rowHoverHandler = (e: DataTableRowMouseEvent) => {
-    const customerId = e.data?.id
-    if (!customerId) return
-    const cacheKey = `/customers/${customerId}`
-    const suggestionKey = `customers/${customerId}/suggestions`
-    const purchasesKey = `customers/${customerId}/purchases`
-    preload(cacheKey, fetcher)
-    preload(suggestionKey, fetcher)
-    preload(purchasesKey, fetcher)
-  }
   // Update URL hanya saat debounced search berubah
   useEffect(() => {
     setFilters({ search: debouncedLocalSearch, page: 1 })
@@ -247,7 +237,6 @@ export default function CustomerTable() {
         rowClassName={rowClass}
         onRowClick={(e) => router.push(`/customers/${e.data.id}`)}
         rowsPerPageOptions={[10, 20, 25, 50]}
-        onRowMouseEnter={rowHoverHandler}
         pt={{
           paginator: {
             pageButton: () => ({
