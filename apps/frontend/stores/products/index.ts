@@ -64,8 +64,6 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
     } catch (error) {
       console.error(error)
       console.error('Error updating product:', error)
-    } finally {
-      await get().fetchProducts()
     }
   },
 

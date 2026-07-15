@@ -304,6 +304,7 @@ const ProductList = () => {
     const productInfo = currentProductInfo
     await updateProductInfo(Number(productId), productInfo as string)
     setShowInfoDialog(false)
+    mutate()
   }
 
   const handleHoverPageLink = (page: number) => {
