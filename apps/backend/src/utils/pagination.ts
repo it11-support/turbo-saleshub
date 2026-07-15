@@ -3,14 +3,6 @@ import { z } from 'zod'
 import { parsePagination, buildPaginationMeta } from './apiResponse.js'
 import { sortOptionsParser, convertToPrismaOrderBy } from './sortOptionsParser.js'
 
-const SORT_KEY_PATTERN = /^[a-zA-Z0-9_.]+$/
-
-const paginationQuerySchema = z.object({
-  sort: z.string().regex(SORT_KEY_PATTERN).nullable().optional(),
-  order: z.enum(['asc', 'desc']).nullable().optional(),
-  search: z.string().optional(),
-})
-
 export interface PaginatedQuery {
   page?: string | number
   per_page?: string | number
@@ -29,23 +21,33 @@ export interface PaginatedResponse<T> {
   }
 }
 
-export const getPaginatedQuery = (req: Request<{}, {}, {}, PaginatedQuery>) => {
+export const getPaginatedQuery = (
+  req: Request<{}, {}, {}, PaginatedQuery>,
+  allowedSortFields: readonly string[],
+  defaultSort = 'created_at'
+) => {
   const q = req.query
   const { page, perPage } = parsePagination(q)
 
-  const { sort, order, search } = paginationQuerySchema
-    .catch({ sort: null, order: 'desc', search: undefined })
-    .parse({
-      sort: typeof q.sort === 'string' ? q.sort : null,
-      order: typeof q.order === 'string' ? q.order : null,
-      search: typeof q.search === 'string' ? q.search : undefined,
-    })
+  const rawSort = typeof q.sort === 'string' ? q.sort : null
+  const rawOrder = typeof q.order === 'string' ? q.order : 'desc'
+  const rawSearch = typeof q.search === 'string' ? q.search : undefined
 
-  const sort_options: { key: string; order: 'asc' | 'desc' }[] = sort
-    ? [{ key: sort, order: order ?? 'desc' }]
-    : [{ key: 'created_at', order: 'desc' }]
+  const order = z.enum(['asc', 'desc']).catch('desc').parse(rawOrder)
+  const search = z.string().optional().catch(undefined).parse(rawSearch)
 
-  const sortOptions = sortOptionsParser(sort_options)
+  const sort =
+    rawSort && allowedSortFields.includes(rawSort)
+      ? rawSort
+      : defaultSort
+
+  const sortOptions = sortOptionsParser([
+    {
+      key: sort,
+      order,
+    },
+  ])
+
   const orderBy = convertToPrismaOrderBy(sortOptions)
 
   return {
@@ -63,9 +65,8 @@ export const buildPaginatedResult = <T>(
   perPage: number,
   totalCount: number
 ): PaginatedResponse<T> => {
-  const meta = buildPaginationMeta(page, perPage, totalCount)
   return {
     data: items,
-    meta,
+    meta: buildPaginationMeta(page, perPage, totalCount),
   }
 }

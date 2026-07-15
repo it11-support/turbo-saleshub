@@ -1,5 +1,5 @@
 import { IUser, IUserPayload } from "../user";
-import {type Request} from "express";
+import { type Request } from "express";
 export interface ICommonRequestType {
   page?: number
   per_page?: number
@@ -60,8 +60,8 @@ export type SummaryResult = {
   growth: SummaryValue
 }
 
-export type SortOption = {
-  key: string
+export interface SortOption<K extends string = string> {
+  key: K
   order: 'asc' | 'desc'
 }
 
@@ -69,8 +69,8 @@ export type SortOption = {
 export type Nullable<T = void> = T | null | undefined;
 
 export interface DataTableSortMeta {
-    field: string;
-    order: 1 | 0 | -1 | null | undefined;
+  field: string;
+  order: 1 | 0 | -1 | null | undefined;
 }
 
 export interface ISwrResponse {
@@ -121,7 +121,7 @@ export interface FollowUpUpdate {
   updatedAt: Date
 }
 
-export interface  EventInfo {
+export interface EventInfo {
   title: string
   message: string
   severity?: "success" | "info" | "warn" | "error"
