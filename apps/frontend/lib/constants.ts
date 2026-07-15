@@ -122,6 +122,27 @@ export const API_ENDPOINTS = {
   ACTIVITY_LOG: 'activity-log',
 } as const
 
+export const STOCK_STATUS_OPTIONS = [
+  {
+    label: 'Available',
+    value: 'AVAILABLE',
+    icon: 'pi pi-check-circle',
+    color: 'text-green-500',
+  },
+  {
+    label: 'Low',
+    value: 'LOW',
+    icon: 'pi pi-exclamation-triangle',
+    color: 'text-orange-500',
+  },
+  {
+    label: 'Empty',
+    value: 'OUT_OF_STOCK',
+    icon: 'pi pi-times-circle',
+    color: 'text-red-500',
+  },
+]
+
 export const QUERY_KEYS = {
   DASHBOARD: 'dashboard',
   CUSTOMERS: 'customers',

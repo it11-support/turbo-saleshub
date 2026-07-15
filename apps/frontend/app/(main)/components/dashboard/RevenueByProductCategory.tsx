@@ -1,8 +1,8 @@
-import { ChartCard } from '../base'
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import { IDashboardData } from '@saleshub-tsm/types'
 import { useContext } from 'react'
 
+import { ChartCard } from '@/components/base'
 import { LayoutContext } from '@/layout/context/layoutcontext'
 import { CHART_COLORS } from '@/lib/constants'
 import { formatCurrency } from '@/lib/formatter'

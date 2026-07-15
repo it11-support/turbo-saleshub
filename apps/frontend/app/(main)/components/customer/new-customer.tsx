@@ -1,23 +1,17 @@
 'use client'
 
-import { fetcher } from '../../lib'
 import { FormData, IResSingle, ISalesPerson, ISubGroup, IVisit } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
-import { Button } from 'primereact/button'
-import { Dialog } from 'primereact/dialog'
-import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown'
-import { InputText } from 'primereact/inputtext'
-import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 
+import { fetcher } from '@/app/(main)/lib'
+import { BaseDialog, FormDropdown, FormInput, FormTextarea } from '@/components/base'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
-
-type CustomerPhone = 'Phone1' | 'Cellular'
 
 export default function NewCustomerDialog() {
   const { activeDialog, hide } = useScheduleDialog()
@@ -117,24 +111,16 @@ export default function NewCustomerDialog() {
     }
   }, [isAdmin, user])
 
-  const validateInput = (event: React.FormEvent<HTMLInputElement>, validatePattern: boolean) => {
-    const target = event.target as HTMLInputElement
-
-    if (errors[target.id]) {
-      setErrors({ ...errors, [target.id]: '' })
-    }
-
-    if (validatePattern) {
+  const handlePhoneChange =
+    (field: 'Phone1' | 'Cellular') => (e: React.ChangeEvent<HTMLInputElement>) => {
       setNewCustomerForm({
         ...newCustomerForm,
-        [target.id as CustomerPhone]: target.value,
+        [field]: e.target.value,
       })
-
-      return
+      if (errors[field]) {
+        setErrors({ ...errors, [field]: '' })
+      }
     }
-
-    target.value = newCustomerForm[target.id as CustomerPhone] || ''
-  }
 
   useEffect(() => {
     if (activeDialog === 'customer') {
@@ -197,7 +183,7 @@ export default function NewCustomerDialog() {
     }
     return
   }
-  const handleSlpChange = (e: DropdownChangeEvent) => {
+  const handleSlpChange = (e: any) => {
     if (errors.SlpCode) {
       setErrors({ ...errors, SlpCode: '' })
     }
@@ -212,12 +198,14 @@ export default function NewCustomerDialog() {
   }
 
   const salesPersonOptions = useMemo(() => {
-    return salesPersons
-      ?.filter((sp) => sp.user)
-      .map((sp) => ({
-        label: sp.SlpName,
-        value: sp.SlpCode,
-      }))
+    return (
+      salesPersons
+        ?.filter((sp) => sp.user)
+        .map((sp) => ({
+          label: sp.SlpName,
+          value: sp.SlpCode,
+        })) ?? []
+    )
   }, [salesPersons])
 
   const handleCloseDialog = () => {
@@ -230,253 +218,168 @@ export default function NewCustomerDialog() {
   }
 
   return (
-    <Dialog
-      dismissableMask
-      blockScroll
-      header="Add New Customer"
+    <BaseDialog
+      title="Add New Customer"
       visible={activeDialog === 'customer'}
-      style={{ width: '100%', maxWidth: '500px' }}
-      className="mx-auto md:w-30rem"
       onHide={handleCloseDialog}
-      footer={
-        <div className="flex justify-end">
-          <Button
-            outlined
-            icon="pi pi-times"
-            // size="small"
-            severity="danger"
-            className="btn btn-primary mr-2"
-            onClick={handleCloseDialog}
-            label="Cancel"
-          />
-          <Button
-            outlined
-            icon="pi pi-save"
-            // size="small"
-            severity="success"
-            className="btn btn-primary mr-2"
-            onClick={submitHandler}
-            label="Save"
-          />
-        </div>
-      }
+      onConfirm={submitHandler}
+      confirmLabel="Save"
+      cancelLabel="Cancel"
+      className="mx-auto md:w-30rem"
+      style={{ width: '100%', maxWidth: '500px' }}
     >
-      <>
-        <div className="grid">
-          <div className="col-12">
-            <div className="">
-              <div className="p-fluid formgrid grid">
-                <div className="field col-12 md:col-12">
-                  <label htmlFor="CardName" className="block font-bold mb-2 text-secondary">
-                    Customer Name
-                  </label>
-                  <InputText
-                    id="CardName"
-                    value={newCustomerForm.CardName || ''}
-                    onChange={(e) => {
-                      setNewCustomerForm({
-                        ...newCustomerForm,
-                        CardName: e.target.value,
-                      })
-                      if (errors.CardName) {
-                        setErrors({ ...errors, CardName: '' })
-                      }
-                    }}
-                    placeholder="Customer Name"
-                    className={`w-full h-11 ${errors.CardName ? 'p-invalid' : ''}`}
-                  />
-                  {errors.CardName && <small className="p-error">{errors.CardName}</small>}
-                </div>
-                <div className="field col-12 md:col-12">
-                  <label htmlFor="GroupName" className="block font-bold mb-2 text-secondary">
-                    Group
-                  </label>
-                  <Dropdown
-                    clearIcon="pi pi-times"
-                    showClear
-                    filter
-                    filterBy="label"
-                    filterPlaceholder="Search Group"
-                    filterMatchMode="contains"
-                    inputId="GroupName"
-                    value={newCustomerForm.GroupName || null}
-                    onChange={(e) => {
-                      setNewCustomerForm({
-                        ...newCustomerForm,
-                        GroupName: e.value,
-                      })
-                      if (errors.GroupName) {
-                        setErrors({ ...errors, GroupName: '' })
-                      }
-                    }}
-                    options={groupOptions}
-                    placeholder="Select Group"
-                    className={`w-full h-11 flex items-center ${
-                      errors.GroupName ? 'p-invalid' : ''
-                    }`}
-                  />
-                  {errors.GroupName && <small className="p-error">{errors.GroupName}</small>}
-                </div>
-                <div className="field col-12 md:col-12">
-                  <label htmlFor="subgroup" className="block font-bold mb-2 text-secondary">
-                    Subgroup
-                  </label>
-                  <Dropdown
-                    inputId="subgroup"
-                    clearIcon="pi pi-times"
-                    showClear
-                    filter
-                    filterBy="label"
-                    filterPlaceholder="Search Subgroup"
-                    filterMatchMode="contains"
-                    value={newCustomerForm.subgroup || null}
-                    onChange={(e) => {
-                      setNewCustomerForm({
-                        ...newCustomerForm,
-                        subgroup: e.value,
-                      })
-                      if (errors.subgroup) {
-                        setErrors({ ...errors, subgroup: '' })
-                      }
-                    }}
-                    options={subgroupOptions}
-                    optionLabel="IndName"
-                    optionValue="IndCode"
-                    placeholder="Select Subgroup"
-                    className={`w-full h-11 flex items-center ${
-                      errors.subgroup ? 'p-invalid' : ''
-                    }`}
-                  />
-                  {errors.subgroup && <small className="p-error">{errors.subgroup}</small>}
-                </div>
-                <div className="field col-12 md:col-12">
-                  <label htmlFor="CntctPrsn" className="block font-bold mb-2 text-secondary">
-                    Contact Person
-                  </label>
-                  <InputText
-                    id="CntctPrsn"
-                    value={newCustomerForm.CntctPrsn || ''}
-                    onChange={(e) => {
-                      setNewCustomerForm({
-                        ...newCustomerForm,
-                        CntctPrsn: e.target.value,
-                      })
-                      if (errors.CntctPrsn) {
-                        setErrors({ ...errors, CntctPrsn: '' })
-                      }
-                    }}
-                    placeholder="Contact Person"
-                    className={`w-full h-11 ${errors.CntctPrsn ? 'p-invalid' : ''}`}
-                  />
-                  {errors.CntctPrsn && <small className="p-error">{errors.CntctPrsn}</small>}
-                </div>
-                <div className="field col-12 md:col-6">
-                  <label htmlFor="Phone1" className="block font-bold mb-2 text-secondary">
-                    Phone
-                  </label>
-                  <InputText
-                    id="Phone1"
-                    keyfilter={/^[+]?(\d{1,12})?$/}
-                    validateOnly
-                    value={newCustomerForm.Phone1 || ''}
-                    onInput={validateInput}
-                    placeholder="Phone"
-                    className={`w-full h-11 ${errors.Phone1 ? 'p-invalid' : ''}`}
-                  />
-                  {errors.Phone1 && <small className="p-error">{errors.Phone1}</small>}
-                </div>
+      <div className="grid">
+        <FormInput
+          id="CardName"
+          label="Customer Name"
+          value={newCustomerForm.CardName || ''}
+          onChange={(e) => {
+            setNewCustomerForm({
+              ...newCustomerForm,
+              CardName: e.target.value,
+            })
+            if (errors.CardName) {
+              setErrors({ ...errors, CardName: '' })
+            }
+          }}
+          placeholder="Customer Name"
+          error={errors.CardName || undefined}
+        />
 
-                <div className="field col-12 md:col-6">
-                  <label htmlFor="Cellular" className="block font-bold mb-2 text-secondary">
-                    Cellular
-                  </label>
-                  <InputText
-                    id="Cellular"
-                    validateOnly
-                    value={newCustomerForm.Cellular || ''}
-                    keyfilter={/^[+]?(\d{1,14})?$/}
-                    onInput={validateInput}
-                    placeholder="Cellular"
-                    className={`w-full h-11 ${errors.Cellular ? 'p-invalid' : ''}`}
-                  />
-                  {errors.Cellular && <small className="p-error">{errors.Cellular}</small>}
-                </div>
-                {isAdmin && (
-                  <div className="field col-12 md:col-12">
-                    <label htmlFor="SalesPerson" className="block font-bold mb-2 text-secondary">
-                      Sales Person
-                    </label>
-                    <Dropdown
-                      clearIcon="pi pi-times"
-                      showClear
-                      filter
-                      filterBy="label"
-                      filterPlaceholder="Search Sales Person"
-                      filterMatchMode="contains"
-                      inputId="SalesPerson"
-                      value={newCustomerForm.SlpCode || null}
-                      onChange={handleSlpChange}
-                      onClick={() => {
-                        if (isAdmin && salesPersons?.length === 0) {
-                          mutateSalesPerson()
-                        }
-                      }}
-                      options={salesPersonOptions}
-                      placeholder="Select Sales Person"
-                      className={`w-full h-11 flex items-center ${
-                        errors.SlpCode ? 'p-invalid' : ''
-                      }`}
-                    />
-                    {errors.SlpCode && <small className="p-error">{errors.SlpCode}</small>}
-                  </div>
-                )}
-                <div className="field col-12 md:col-12">
-                  <label htmlFor="City" className="block font-bold mb-2 text-secondary">
-                    City
-                  </label>
-                  <InputText
-                    id="City"
-                    value={newCustomerForm.City || ''}
-                    onChange={(e) => {
-                      setNewCustomerForm({
-                        ...newCustomerForm,
-                        City: e.target.value,
-                      })
-                      if (errors.City) {
-                        setErrors({ ...errors, City: '' })
-                      }
-                    }}
-                    className={`w-full h-11 ${errors.City ? 'p-invalid' : ''}`}
-                  />
-                  {errors.City && <small className="p-error">{errors.City}</small>}
-                </div>
+        <FormDropdown
+          id="GroupName"
+          label="Group"
+          value={newCustomerForm.GroupName || null}
+          onChange={(e) => {
+            setNewCustomerForm({
+              ...newCustomerForm,
+              GroupName: e.value,
+            })
+            if (errors.GroupName) {
+              setErrors({ ...errors, GroupName: '' })
+            }
+          }}
+          options={groupOptions}
+          placeholder="Select Group"
+          showClear
+          filter
+          filterBy="label"
+          filterPlaceholder="Search Group"
+          filterMatchMode="contains"
+          error={errors.GroupName || undefined}
+        />
 
-                <div className="field col-12">
-                  <label htmlFor="Address" className="block font-bold mb-2 text-secondary">
-                    Address
-                  </label>
-                  <InputTextarea
-                    id="Address"
-                    rows={2}
-                    value={newCustomerForm.Address || ''}
-                    onChange={(e) => {
-                      setNewCustomerForm({
-                        ...newCustomerForm,
-                        Address: e.target.value,
-                      })
-                      if (errors.Address) {
-                        setErrors({ ...errors, Address: '' })
-                      }
-                    }}
-                    className={`${errors.Address ? 'p-invalid' : ''}`}
-                  />
-                  {errors.Address && <small className="p-error">{errors.Address}</small>}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    </Dialog>
+        <FormDropdown
+          id="subgroup"
+          label="Subgroup"
+          value={newCustomerForm.subgroup || null}
+          onChange={(e) => {
+            setNewCustomerForm({
+              ...newCustomerForm,
+              subgroup: e.value,
+            })
+            if (errors.subgroup) {
+              setErrors({ ...errors, subgroup: '' })
+            }
+          }}
+          options={subgroupOptions}
+          optionLabel="IndName"
+          optionValue="IndCode"
+          placeholder="Select Subgroup"
+          showClear
+          filter
+          filterBy="label"
+          filterPlaceholder="Search Subgroup"
+          filterMatchMode="contains"
+          error={errors.subgroup || undefined}
+        />
+
+        <FormInput
+          id="CntctPrsn"
+          label="Contact Person"
+          value={newCustomerForm.CntctPrsn || ''}
+          onChange={(e) => {
+            setNewCustomerForm({
+              ...newCustomerForm,
+              CntctPrsn: e.target.value,
+            })
+            if (errors.CntctPrsn) {
+              setErrors({ ...errors, CntctPrsn: '' })
+            }
+          }}
+          placeholder="Contact Person"
+          error={errors.CntctPrsn || undefined}
+        />
+
+        <FormInput
+          id="Phone1"
+          label="Phone"
+          value={newCustomerForm.Phone1 || ''}
+          onChange={handlePhoneChange('Phone1')}
+          placeholder="Phone"
+          error={errors.Phone1 || undefined}
+        />
+
+        <FormInput
+          id="Cellular"
+          label="Cellular"
+          value={newCustomerForm.Cellular || ''}
+          onChange={handlePhoneChange('Cellular')}
+          placeholder="Cellular"
+          error={errors.Cellular || undefined}
+        />
+
+        {isAdmin && (
+          <FormDropdown
+            id="SalesPerson"
+            label="Sales Person"
+            value={newCustomerForm.SlpCode || null}
+            onChange={handleSlpChange}
+            options={salesPersonOptions}
+            placeholder="Select Sales Person"
+            showClear
+            filter
+            filterBy="label"
+            filterPlaceholder="Search Sales Person"
+            filterMatchMode="contains"
+            error={errors.SlpCode || undefined}
+          />
+        )}
+
+        <FormInput
+          id="City"
+          label="City"
+          value={newCustomerForm.City || ''}
+          onChange={(e) => {
+            setNewCustomerForm({
+              ...newCustomerForm,
+              City: e.target.value,
+            })
+            if (errors.City) {
+              setErrors({ ...errors, City: '' })
+            }
+          }}
+          error={errors.City || undefined}
+        />
+
+        <FormTextarea
+          id="Address"
+          label="Address"
+          value={newCustomerForm.Address || ''}
+          onChange={(e) => {
+            setNewCustomerForm({
+              ...newCustomerForm,
+              Address: e.target.value,
+            })
+            if (errors.Address) {
+              setErrors({ ...errors, Address: '' })
+            }
+          }}
+          rows={4}
+          className="w-full"
+          error={errors.Address || undefined}
+        />
+      </div>
+    </BaseDialog>
   )
 }

@@ -1,6 +1,5 @@
 'use client'
 
-import { BaseCard, StatusIcon } from '../../components/base'
 import { VisitSchedule, VisitStatus } from '@saleshub-tsm/types'
 import { isToday } from 'date-fns'
 import Link from 'next/link'
@@ -8,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from 'primereact/button'
 import { Divider } from 'primereact/divider'
 
+import { BaseCard, StatusIcon } from '@/components/base'
 import { formatDate } from '@/lib/dateUtils'
 import { formatPhoneNumber } from '@/lib/phoneParser'
 import { useScheduleStore } from '@/stores'

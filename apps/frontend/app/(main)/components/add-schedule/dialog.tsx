@@ -1,13 +1,11 @@
-import { fetcher } from '../../lib'
+'use client'
+
 import { FormData, IResSingle, ISalesPerson, IVisit } from '@saleshub-tsm/types'
-import { AutoComplete } from 'primereact/autocomplete'
-import { Button } from 'primereact/button'
-import { Calendar } from 'primereact/calendar'
-import { Dialog } from 'primereact/dialog'
-import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 
+import { fetcher } from '@/app/(main)/lib'
+import { BaseDialog, FormAutoComplete, FormCalendar, FormDropdown } from '@/components/base'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { useScheduleDialog, useScheduleStore } from '@/stores'
@@ -120,6 +118,15 @@ export default function AddScheduleDialog() {
       setErrors((prev) => ({ ...prev, customer: 'Customer not found' }))
     }
   }, [customers, localSearch])
+
+  const salesPersonOptions =
+    salesPersons
+      ?.filter((sp) => sp.user)
+      .map((sp: ISalesPerson) => ({
+        label: sp.SlpName,
+        value: sp.id,
+      })) ?? []
+
   const handleCreateSchedule = async () => {
     if (validateForm()) {
       try {
@@ -139,112 +146,68 @@ export default function AddScheduleDialog() {
   }
 
   return (
-    <Dialog
-      dismissableMask
-      blockScroll
-      header="Add Visit Schedule"
+    <BaseDialog
+      title="Add Visit Schedule"
       visible={activeDialog === 'schedule'}
-      style={{ width: '100%', maxWidth: '500px' }}
-      className="mx-auto md:w-30rem"
       onHide={hide}
-      footer={
-        <div className="flex justify-end">
-          <Button
-            outlined
-            icon="pi pi-times"
-            // size="small"
-            severity="danger"
-            className="btn btn-primary mr-2"
-            onClick={hide}
-            label="Cancel"
-          />
-          <Button
-            outlined
-            icon="pi pi-save"
-            // size="small"
-            severity="success"
-            className="btn btn-primary mr-2"
-            onClick={handleCreateSchedule}
-            label="Save"
-          />
-        </div>
-      }
+      onConfirm={handleCreateSchedule}
+      confirmLabel="Save"
+      cancelLabel="Cancel"
     >
-      <>
+      <div className="grid">
         {isAdmin && (
-          <div className="inline-flex flex-column gap-2 w-full my-2">
-            <label htmlFor="slpCode" className="text-primary-400 font-semibold">
-              Sales Person
-            </label>
-            <Dropdown
-              inputId="slpCode"
-              value={formData.salesPersonId}
-              options={salesPersons
-                ?.filter((sp) => sp.user)
-                .map((sp: ISalesPerson) => ({
-                  label: sp.SlpName,
-                  value: sp.id,
-                }))}
-              onChange={(e) => {
-                setFormData({ ...formData, salesPersonId: e.value, customer: null })
-                if (errors.salesPersonId) setErrors({ ...errors, salesPersonId: '' })
-              }}
-              clearIcon="pi pi-times "
-              className={`${errors.salesPersonId ? 'p-invalid' : ''}`}
-              showClear
-            />
-            {errors.salesPersonId && <small className="p-error">{errors.salesPersonId}</small>}
-          </div>
+          <FormDropdown
+            id="salesPersonId"
+            label="Sales Person"
+            value={formData.salesPersonId}
+            options={salesPersonOptions}
+            onChange={(e) => {
+              setFormData({ ...formData, salesPersonId: e.value, customer: null })
+              if (errors.salesPersonId) setErrors({ ...errors, salesPersonId: '' })
+            }}
+            error={errors.salesPersonId || undefined}
+            showClear
+          />
         )}
 
-        <div className="inline-flex flex-column gap-2 w-full my-2">
-          <label htmlFor="customer" className="text-primary-400 font-semibold">
-            Select Customer
-          </label>
-          <AutoComplete
-            disabled={!formData.salesPersonId}
-            inputId="customer"
-            value={formData.customer}
-            suggestions={customers}
-            completeMethod={(e) => setLocalSearch(e.query ?? '')}
-            onDropdownClick={(e) => {
-              setLocalSearch(e.query ?? '')
-              fetchCustomers()
-            }}
-            onChange={(e) => {
-              setFormData({ ...formData, customer: e.value })
-              if (e.value && typeof e.value !== 'string') {
-                setErrors((prev) => ({ ...prev, customer: '' }))
-              }
-            }}
-            field="CardName"
-            dropdown
-            virtualScrollerOptions={{ itemSize: 38 }}
-            className={`${errors.customer ? 'p-invalid' : ''}`}
-          />
-          {errors.customer && <small className="p-error">{errors.customer}</small>}
-        </div>
+        <FormAutoComplete
+          id="customer"
+          label="Select Customer"
+          value={formData.customer}
+          suggestions={customers}
+          completeMethod={(e) => setLocalSearch(e.query ?? '')}
+          onDropdownClick={(e) => {
+            setLocalSearch(e.query ?? '')
+            fetchCustomers()
+          }}
+          onChange={(e) => {
+            setFormData({ ...formData, customer: e.value })
+            if (e.value && typeof e.value !== 'string') {
+              setErrors((prev) => ({ ...prev, customer: '' }))
+            }
+          }}
+          field="CardName"
+          dropdown
+          virtualScrollerOptions={{ itemSize: 38 }}
+          disabled={!formData.salesPersonId}
+          error={errors.customer || undefined}
+        />
 
-        <div className="inline-flex flex-column gap-2 w-full my-2">
-          <label htmlFor="scheduledDate" className="text-primary-400 font-semibold">
-            Set Visit Date
-          </label>
-          <Calendar
-            inputId="scheduledDate"
-            value={formData.scheduleDate}
-            minDate={minDate}
-            onChange={(e) => {
-              setFormData({ ...formData, scheduleDate: e.value as Date })
-              if (errors.scheduleDate) setErrors({ ...errors, scheduleDate: '' })
-            }}
-            showIcon
-            required
-            showButtonBar
-            className={`${errors.scheduleDate ? 'p-invalid' : ''}`}
-          />
-          {errors.scheduleDate && <small className="p-error">{errors.scheduleDate}</small>}
-        </div>
-      </>
-    </Dialog>
+        <FormCalendar
+          id="scheduledDate"
+          label="Set Visit Date"
+          value={formData.scheduleDate}
+          minDate={minDate}
+          onChange={(e) => {
+            setFormData({ ...formData, scheduleDate: e.value as Date })
+            if (errors.scheduleDate) setErrors({ ...errors, scheduleDate: '' })
+          }}
+          showIcon
+          required
+          showButtonBar
+          error={errors.scheduleDate || undefined}
+        />
+      </div>
+    </BaseDialog>
   )
 }
