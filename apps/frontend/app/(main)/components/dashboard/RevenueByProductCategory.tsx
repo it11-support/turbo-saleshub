@@ -1,11 +1,10 @@
+import { ChartCard } from '../base'
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import { IDashboardData } from '@saleshub-tsm/types'
-import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { Card } from 'primereact/card'
-import { Chart as PrimeChart } from 'primereact/chart'
 import { useContext } from 'react'
 
 import { LayoutContext } from '@/layout/context/layoutcontext'
+import { CHART_COLORS } from '@/lib/constants'
 import { formatCurrency } from '@/lib/formatter'
 
 type RevenueByCategoryProps = {
@@ -37,8 +36,8 @@ const RevenueByProductCategory = ({
     datasets: [
       {
         data: sorted.map((item) => item[period]),
-        backgroundColor: 'rgba(59, 130, 246, 0.18)',
-        borderColor: '#3B82F6',
+        backgroundColor: CHART_COLORS.blueLight,
+        borderColor: CHART_COLORS.blue,
         borderWidth: 1,
         borderRadius: 2,
       },
@@ -100,56 +99,30 @@ const RevenueByProductCategory = ({
     </div>
   )
 
-  return (
-    <>
+  if (isValidating) {
+    return (
       <div className="mt-2">
-        {isValidating ? (
-          <div className="col-12 flex flex-column px-0 gap-3">
-            <SkeletonLoader type="rect" />
-            <SkeletonLoader type="chart-horizontal" />
-          </div>
-        ) : (
-          <div className="col-12 p-0 my-4">
-            <Card
-              header={headerTitle}
-              pt={{
-                root: {
-                  style: {
-                    borderRadius: '12px',
-                    // height: '450px',
-                    padding: '1rem',
-                  },
-                },
-                body: {
-                  style: {
-                    height: '100%',
-                    padding: '0.5rem',
-                    paddingBottom: '2rem',
-                  },
-                },
-                content: {
-                  style: {
-                    padding: '0.5rem',
-                    height: '100%',
-                  },
-                },
-              }}
-            >
-              <div className="w-full xl:w-6">
-                <PrimeChart
-                  type="bar"
-                  data={chartData}
-                  options={options}
-                  plugins={[ChartDataLabels]}
-                  className="w-full"
-                  style={{ height: '350px' }}
-                />
-              </div>
-            </Card>
-          </div>
-        )}
+        <div className="col-12 flex flex-column px-0 gap-3">
+          <SkeletonLoader type="rect" />
+          <SkeletonLoader type="chart-horizontal" />
+        </div>
       </div>
-    </>
+    )
+  }
+
+  return (
+    <div className="mt-2">
+      <div className="col-12 p-0 my-4">
+        <ChartCard
+          header={headerTitle}
+          chartType="bar"
+          chartData={chartData}
+          chartOptions={options}
+          chartHeight="350px"
+          className="w-full"
+        />
+      </div>
+    </div>
   )
 }
 

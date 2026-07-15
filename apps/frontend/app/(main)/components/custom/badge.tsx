@@ -1,13 +1,16 @@
 import { EFollowUpStatus } from '@saleshub-tsm/types'
 import { Badge } from 'primereact/badge'
 
+import { variantColors } from '@/lib/constants'
+
 type Props = {
   value: string
+  className?: string
 }
-const CustomBadge = (porps: Props) => {
-  const { value } = porps
+const CustomBadge = (props: Props) => {
+  const { value, className } = props
 
-  const severity = () => {
+  const getSeverity = (): 'success' | 'warning' | 'danger' | 'info' | 'secondary' => {
     switch (value) {
       case EFollowUpStatus.FollowUp:
       case EFollowUpStatus.Pending:
@@ -21,7 +24,19 @@ const CustomBadge = (porps: Props) => {
     }
   }
 
-  return <Badge value={value} severity={severity()} />
+  const getColor = (): string | undefined => {
+    const normalizedValue = value.toLowerCase()
+    return variantColors[normalizedValue]
+  }
+
+  return (
+    <Badge
+      value={value}
+      severity={getSeverity()}
+      className={className}
+      style={getColor() ? { backgroundColor: getColor() } : undefined}
+    />
+  )
 }
 
 export default CustomBadge

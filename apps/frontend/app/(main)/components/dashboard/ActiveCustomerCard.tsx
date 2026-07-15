@@ -1,13 +1,12 @@
 import { exportToExcel } from './functions'
 import { fetcher } from '../../lib'
+import { BaseDataTable } from '../base'
 import CustomerCell from '../customer/CustomerCell'
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
-import { IDashboardData, IResSingle, ISalesPerson } from '@saleshub-tsm/types'
+import { ICustomerExtended, IDashboardData, IResSingle, ISalesPerson } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
-import { Column } from 'primereact/column'
-import { DataTable } from 'primereact/datatable'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useMemo, useState } from 'react'
@@ -63,7 +62,7 @@ const ActiveCustomerCard = ({
   }, [nonActive?.customers, selectedSlp])
 
   const headerTitle = (
-    <div className="flex align-items-center justify-content-between flex-wrap px-4 py-2">
+    <div className="flex align-items-center justify-content-between flex-wrap py-2">
       <div>
         <h3 className="m-0">List Of Lagged Transactions</h3>
         <small className="text-color-secondary">{`Lagged Transactions This Month (Total: ${nonActive?.total})`}</small>
@@ -81,6 +80,55 @@ const ActiveCustomerCard = ({
     </div>
   )
 
+  const columns = [
+    {
+      field: 'CardCode',
+      header: 'Code',
+      sortable: true,
+      filter: true,
+      style: { width: '15%' },
+    },
+    {
+      field: 'CardName',
+      header: 'Customer Name',
+      sortable: true,
+      filter: true,
+      body: (row: ICustomerExtended) => <CustomerCell rowData={row} />,
+      style: { width: '35%' },
+    },
+    {
+      field: 'avgRevenuePerMonth',
+      header: 'AVG Revenue/Month',
+      sortable: true,
+      filter: true,
+      body: (row: ICustomerExtended) => formatCurrency(Number(row.avgRevenuePerMonth), true, true),
+      style: { width: '15%' },
+    },
+    {
+      field: 'totalItems',
+      header: 'Total Items',
+      sortable: true,
+      filter: true,
+      body: (row: ICustomerExtended) => `${row.totalItems} items`,
+      style: { width: '15%' },
+    },
+    {
+      field: 'lastTransactionDate',
+      header: 'Last Transaction',
+      sortable: true,
+      filter: true,
+      style: { width: '20%' },
+      body: (row: ICustomerExtended) => formatDate(row.lastTransactionDate, ' MMMM d, yyyy'),
+    },
+    {
+      field: 'SalesName',
+      header: 'Sales Person',
+      sortable: true,
+      filter: true,
+      style: { width: '30%' },
+    },
+  ]
+
   return (
     <>
       <div className="mt-2">
@@ -92,60 +140,18 @@ const ActiveCustomerCard = ({
         ) : (
           <div className="grid my-3">
             <div className="col-12 mt-4">
-              <Card
-                header={headerTitle}
-                pt={{ root: { style: { borderRadius: '12px', padding: '1rem' } } }}
-              >
-                <DataTable
+              <Card>
+                <BaseDataTable<ICustomerExtended>
                   value={nonActive?.customers}
+                  columns={columns}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
                   className="p-datatable-sm"
                   filterDisplay="menu"
                   emptyMessage="All customers are active."
-                >
-                  <Column field="CardCode" header="Code" sortable filter style={{ width: '15%' }} />
-                  <Column
-                    field="CardName"
-                    header="Customer Name"
-                    sortable
-                    filter
-                    body={(row) => <CustomerCell rowData={row} />}
-                    style={{ width: '35%' }}
-                  />
-                  <Column
-                    field="avgRevenuePerMonth"
-                    header="AVG Revenue/Month"
-                    sortable
-                    filter
-                    body={(row) => formatCurrency(row.avgRevenuePerMonth, true, true)}
-                    style={{ width: '15%' }}
-                  />
-                  <Column
-                    field="totalItems"
-                    header="Total Items"
-                    sortable
-                    filter
-                    body={(row) => `${row.totalItems} items`}
-                    style={{ width: '15%' }}
-                  />
-                  <Column
-                    field="lastTransactionDate"
-                    header="Last Transaction"
-                    sortable
-                    filter
-                    style={{ width: '20%' }}
-                    body={(row) => formatDate(row.lastTransactionDate, ' MMMM d, yyyy')}
-                  />
-                  <Column
-                    field="SalesName"
-                    header="Sales Person"
-                    sortable
-                    filter
-                    style={{ width: '30%' }}
-                  />
-                </DataTable>
+                  header={headerTitle}
+                />
               </Card>
             </div>
           </div>

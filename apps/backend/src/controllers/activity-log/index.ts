@@ -1,9 +1,9 @@
 import { user_activityWhereInput } from "@/generated/prisma/models.js";
 import prisma from "@/libs/prisma.js";
-import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsParser.js";
 import dayjs from "dayjs";
 import { Request, Response } from "express";
-import { handleApiError } from "@/utils/apiResponse.js";
+import { handleApiError, buildSuccessResponse } from "@/utils/apiResponse.js";
+import { getPaginatedQuery } from "@/utils/pagination.js";
 
 interface FetchActivityLogsQuery {
   page: number;
@@ -18,12 +18,9 @@ interface FetchActivityLogsQuery {
 
 export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLogsQuery>, res: Response) => {
   try {
-    const q = req.query;
+    const q = req.query
 
-    const page: number = Number(q.page) || 1;
-    const per_page: number = Number(q.per_page) || 10;
-
-    const search: string | undefined = typeof q.search === 'string' ? q.search : undefined;
+    const { page, perPage, orderBy, search } = getPaginatedQuery(req)
 
     const salesPersonId: number | null = q.salesPersonId && !isNaN(Number(q.salesPersonId))
       ? Number(q.salesPersonId)
@@ -31,20 +28,12 @@ export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLo
 
     const type: string | null = typeof q.type === 'string' ? q.type : null;
 
-    // Mengamankan input array untuk dates
     let dates: string[] | undefined = undefined;
     if (Array.isArray(q.dates)) {
       dates = q.dates.map(d => String(d));
     } else if (typeof q.dates === 'string') {
       dates = [q.dates];
     }
-
-    const sort: string | null = typeof q.sort === 'string' ? q.sort : null;
-    const order: string | null = typeof q.order === 'string' ? q.order : null;
-
-    const sort_options = sort
-      ? [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }]
-      : [{ key: 'created_at', order: 'desc' }]
 
     const where: user_activityWhereInput = {
       ...(salesPersonId ? { user: { sales_person_id: salesPersonId } } : {}),
@@ -99,9 +88,6 @@ export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLo
       }
     }
 
-    const sortOptions = sortOptionsParser(sort_options);
-    const orderBy = convertToPrismaOrderBy(sortOptions);
-
     const [activityLogs, meta] = await prisma.user_activity
       .paginate({
         where,
@@ -116,25 +102,15 @@ export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLo
       })
       .withPages({
         page: Number(page),
-        limit: Number(per_page),
+        limit: Number(perPage),
         includePageCount: true,
-      });
+      })
 
-    const result = {
-      data: {
-        items: activityLogs,
-        totalRecords: meta.totalCount,
-        currentPage: page,
-        perPage: per_page,
-        totalPages: meta.pageCount
-      }
-    }
-
-    res.status(200).json({ message: 'Success', ...result });
+    buildSuccessResponse(res, activityLogs, page, perPage, meta.totalCount)
   } catch (error) {
     return handleApiError(error, res)
   }
-};
+}
 
 
 export const fetchActivityActionTypes = async (req: Request, res: Response) => {
