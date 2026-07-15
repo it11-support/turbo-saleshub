@@ -38,9 +38,20 @@ export const getPaginatedQuery = (
 ) => {
   const { page, perPage } = parsePagination(req.query)
 
-  const rawSort = getNullableString(req.query.sort)
-  const rawOrder = getString(req.query.order)
-  const rawSearch = getString(req.query.search)
+  let rawSort: string | null = null
+  if (req.query.sort != null && typeof req.query.sort === 'string') {
+    rawSort = req.query.sort
+  }
+
+  let rawOrder: string | undefined
+  if (req.query.order != null && typeof req.query.order === 'string') {
+    rawOrder = req.query.order
+  }
+
+  let rawSearch: string | undefined
+  if (req.query.search != null && typeof req.query.search === 'string') {
+    rawSearch = req.query.search
+  }
 
   const sort =
     rawSort === null
