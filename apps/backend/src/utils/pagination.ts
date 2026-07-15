@@ -9,6 +9,12 @@ const sortSchema = z.string().regex(SORT_KEY_PATTERN).nullable()
 const orderSchema = z.enum(['asc', 'desc'])
 const searchSchema = z.string().optional()
 
+const getString = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined
+
+const getNullableString = (value: unknown): string | null =>
+  typeof value === 'string' ? value : null
+
 export interface PaginatedQuery {
   page?: string | number
   per_page?: string | number
@@ -32,37 +38,31 @@ export const getPaginatedQuery = (
 ) => {
   const { page, perPage } = parsePagination(req.query)
 
-  let sort: string | null = null
-  let order: 'asc' | 'desc' = 'desc'
-  let search: string | undefined
+  const rawSort = getNullableString(req.query.sort)
+  const rawOrder = getString(req.query.order)
+  const rawSearch = getString(req.query.search)
 
-  if (typeof req.query.sort === 'string') {
-    sort = sortSchema.catch(null).parse(req.query.sort)
-  }
+  const sort =
+    rawSort === null
+      ? null
+      : sortSchema.catch(null).parse(rawSort)
 
-  if (typeof req.query.order === 'string') {
-    order = orderSchema.catch('desc').parse(req.query.order)
-  }
+  const order =
+    rawOrder === undefined
+      ? 'desc'
+      : orderSchema.catch('desc').parse(rawOrder)
 
-  if (typeof req.query.search === 'string') {
-    search = searchSchema.catch(undefined).parse(req.query.search)
-  }
+  const search =
+    rawSearch === undefined
+      ? undefined
+      : searchSchema.catch(undefined).parse(rawSearch)
 
-  const sortOptions = sortOptionsParser(
-    sort
-      ? [
-        {
-          key: sort,
-          order,
-        },
-      ]
-      : [
-        {
-          key: 'created_at',
-          order: 'desc',
-        },
-      ]
-  )
+  const sortOptions = sortOptionsParser([
+    {
+      key: sort ?? 'created_at',
+      order,
+    },
+  ])
 
   const orderBy = convertToPrismaOrderBy(sortOptions)
 
