@@ -5,15 +5,13 @@ import { sortOptionsParser, convertToPrismaOrderBy } from './sortOptionsParser.j
 
 const SORT_KEY_PATTERN = /^[a-zA-Z0-9_.]+$/
 
-const sortSchema = z.string().regex(SORT_KEY_PATTERN).nullable()
-const orderSchema = z.enum(['asc', 'desc'])
-const searchSchema = z.string().optional()
-
-const getString = (value: unknown): string | undefined =>
-  typeof value === 'string' ? value : undefined
-
-const getNullableString = (value: unknown): string | null =>
-  typeof value === 'string' ? value : null
+const querySchema = z.object({
+  page: z.union([z.string(), z.number()]).optional(),
+  per_page: z.union([z.string(), z.number()]).optional(),
+  sort: z.string().regex(SORT_KEY_PATTERN).nullable().optional(),
+  order: z.enum(['asc', 'desc']).optional(),
+  search: z.string().optional(),
+}).strip()
 
 export interface PaginatedQuery {
   page?: string | number
@@ -36,42 +34,24 @@ export interface PaginatedResponse<T> {
 export const getPaginatedQuery = (
   req: Request<{}, {}, {}, PaginatedQuery>
 ) => {
-  const { page, perPage } = parsePagination(req.query)
+  const parsed = querySchema.safeParse(req.query)
 
-  let rawSort: string | null = null
-  if (req.query.sort != null && typeof req.query.sort === 'string') {
-    rawSort = req.query.sort
-  }
+  const query = parsed.success
+    ? parsed.data
+    : {
+      page: undefined,
+      per_page: undefined,
+      sort: null,
+      order: 'desc' as const,
+      search: undefined,
+    }
 
-  let rawOrder: string | undefined
-  if (req.query.order != null && typeof req.query.order === 'string') {
-    rawOrder = req.query.order
-  }
-
-  let rawSearch: string | undefined
-  if (req.query.search != null && typeof req.query.search === 'string') {
-    rawSearch = req.query.search
-  }
-
-  const sort =
-    rawSort === null
-      ? null
-      : sortSchema.catch(null).parse(rawSort)
-
-  const order =
-    rawOrder === undefined
-      ? 'desc'
-      : orderSchema.catch('desc').parse(rawOrder)
-
-  const search =
-    rawSearch === undefined
-      ? undefined
-      : searchSchema.catch(undefined).parse(rawSearch)
+  const { page, perPage } = parsePagination(query)
 
   const sortOptions = sortOptionsParser([
     {
-      key: sort ?? 'created_at',
-      order,
+      key: query.sort ?? 'created_at',
+      order: query.order ?? 'desc',
     },
   ])
 
@@ -82,7 +62,7 @@ export const getPaginatedQuery = (
     perPage,
     sortOptions,
     orderBy,
-    search,
+    search: query.search,
   }
 }
 
