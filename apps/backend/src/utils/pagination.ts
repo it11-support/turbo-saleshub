@@ -1,6 +1,15 @@
 import { Request } from 'express'
+import { z } from 'zod'
 import { parsePagination, buildPaginationMeta } from './apiResponse.js'
 import { sortOptionsParser, convertToPrismaOrderBy } from './sortOptionsParser.js'
+
+const SORT_KEY_PATTERN = /^[a-zA-Z0-9_.]+$/
+
+const paginationQuerySchema = z.object({
+  sort: z.string().regex(SORT_KEY_PATTERN).nullable().optional(),
+  order: z.enum(['asc', 'desc']).nullable().optional(),
+  search: z.string().optional(),
+})
 
 export interface PaginatedQuery {
   page?: string | number
@@ -23,14 +32,17 @@ export interface PaginatedResponse<T> {
 export const getPaginatedQuery = (req: Request<{}, {}, {}, PaginatedQuery>) => {
   const q = req.query
   const { page, perPage } = parsePagination(q)
-  const rawSort = typeof q.sort === 'string' ? q.sort : null
-  const sort = rawSort && /^[a-zA-Z0-9_.]+$/.test(rawSort) ? rawSort : null
-  const order: 'asc' | 'desc' =
-    typeof q.order === 'string' && q.order === 'asc' ? 'asc' : 'desc'
-  const search = typeof q.search === 'string' ? q.search : undefined
+
+  const { sort, order, search } = paginationQuerySchema
+    .catch({ sort: null, order: 'desc', search: undefined })
+    .parse({
+      sort: typeof q.sort === 'string' ? q.sort : null,
+      order: typeof q.order === 'string' ? q.order : null,
+      search: typeof q.search === 'string' ? q.search : undefined,
+    })
 
   const sort_options: { key: string; order: 'asc' | 'desc' }[] = sort
-    ? [{ key: sort, order }]
+    ? [{ key: sort, order: order ?? 'desc' }]
     : [{ key: 'created_at', order: 'desc' }]
 
   const sortOptions = sortOptionsParser(sort_options)
