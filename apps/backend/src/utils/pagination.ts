@@ -23,12 +23,14 @@ export interface PaginatedResponse<T> {
 export const getPaginatedQuery = (req: Request<{}, {}, {}, PaginatedQuery>) => {
   const q = req.query
   const { page, perPage } = parsePagination(q)
-  const sort = typeof q.sort === 'string' ? q.sort : null
-  const order = typeof q.order === 'string' ? q.order : 'desc'
+  const rawSort = typeof q.sort === 'string' ? q.sort : null
+  const sort = rawSort && /^[a-zA-Z0-9_.]+$/.test(rawSort) ? rawSort : null
+  const order: 'asc' | 'desc' =
+    typeof q.order === 'string' && q.order === 'asc' ? 'asc' : 'desc'
   const search = typeof q.search === 'string' ? q.search : undefined
 
-  const sort_options = sort
-    ? [{ key: sort, order: order === 'asc' ? 'asc' : 'desc' }]
+  const sort_options: { key: string; order: 'asc' | 'desc' }[] = sort
+    ? [{ key: sort, order }]
     : [{ key: 'created_at', order: 'desc' }]
 
   const sortOptions = sortOptionsParser(sort_options)
