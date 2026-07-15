@@ -25,9 +25,44 @@ const isSortOption = (value: unknown): value is SortOption => {
   )
 }
 
+const isOrder = (value: unknown): value is 'asc' | 'desc' =>
+  value === 'asc' || value === 'desc'
+
+const toSortOption = (value: unknown): SortOption | null => {
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+
+  const item = value as {
+    key?: unknown
+    order?: unknown
+  }
+
+  if (typeof item.key !== 'string') {
+    return null
+  }
+
+  if (!isOrder(item.order)) {
+    return null
+  }
+
+  return {
+    key: item.key,
+    order: item.order,
+  }
+}
+
 export const sortOptionsParser = (
-  sortOptions: readonly SortOption[]
-): SortOption[] => sortOptions.filter(isSortOption)
+  sortOptions: unknown
+): SortOption[] => {
+  if (!Array.isArray(sortOptions)) {
+    return []
+  }
+
+  return sortOptions
+    .map(toSortOption)
+    .filter((item): item is SortOption => item !== null)
+}
 
 export function convertToPrismaOrderBy<K extends string>(
   sortOptions: readonly SortOption<K>[]
