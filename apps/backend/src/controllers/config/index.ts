@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export type ConfigRequstType = {
   userId: string;
@@ -45,8 +46,7 @@ export const userConfig = async (
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -72,7 +72,6 @@ export const updateConfig = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: 'Success', data: configs });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(err, res)
   }
 };

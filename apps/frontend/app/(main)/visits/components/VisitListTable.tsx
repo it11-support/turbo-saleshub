@@ -52,10 +52,7 @@ const VisitListTable = () => {
 
   const fromUrl = `visits${serialize(filters)}`
 
-  const { data: visitData, isValidating } = useSWR<IResPaginated<IVisit>>(visitsUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: visitData, isValidating } = useSWR<IResPaginated<IVisit>>(visitsUrl, fetcher)
 
   const data = visitData?.data.items || []
   const totalRecords = visitData?.data.totalRecords || 0

@@ -4,6 +4,7 @@ import { getCRR, getMtdDates, getRFM } from '@/utils/statsFunctions.js'
 import { buildProductRevenue, getActiveCustomers, getCustomerTrend, getNooVsExisting, getPeriodRange, getRevenueByCategory, getSalesSummary, normalizeItems } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 import { CUSTOMER_INSIGHT_PERIODS } from '@/constants/index.js'
+import { handleApiError } from '@/utils/apiResponse.js'
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
@@ -192,8 +193,7 @@ export const mtdSummary = async (req: Request, res: Response) => {
       },
     })
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : error })
+    return handleApiError(error, res, 'Internal server error', [])
   }
 }
 
@@ -253,8 +253,7 @@ export const customerLoyalty = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -269,8 +268,7 @@ export const fetchActiveCustomers = async (req: Request, res: Response) => {
       },
     })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 
 }
@@ -296,8 +294,7 @@ export const fetchCustomersByRangeItem = async (req: Request, res: Response) => 
       },
     })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }
 
@@ -316,8 +313,7 @@ export const customerTrend = async (req: Request, res: Response) => {
       },
     })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }
 
@@ -331,7 +327,6 @@ export const fetchRevenueByCategory = async (req: Request, res: Response) => {
       },
     })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }

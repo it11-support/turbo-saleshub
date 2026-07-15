@@ -46,11 +46,7 @@ const VisitSchedules = () => {
 
   const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
     isAdmin ? apiSalesPerson : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const payload = {
@@ -64,11 +60,7 @@ const VisitSchedules = () => {
 
   const { data: scheduleData } = useSWR<VisitScheduleData>(
     filters.salesPersonId ? scheduleApi : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const schedules = scheduleData?.data.data || []

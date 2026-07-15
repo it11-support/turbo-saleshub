@@ -1,5 +1,6 @@
 import { notificationsWhereInput } from "@/generated/prisma/models.js";
 import prisma from "@/libs/prisma.js";
+import { handleApiError } from "@/utils/apiResponse.js";
 import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsParser.js";
 import { Request, Response } from "express";
 
@@ -46,8 +47,7 @@ export const fetchNotifications = async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -61,8 +61,7 @@ export const unreadNotifications = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: "Success", data: notifications });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -83,7 +82,6 @@ export const updateReadStatus = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: "Success", data: notification });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }

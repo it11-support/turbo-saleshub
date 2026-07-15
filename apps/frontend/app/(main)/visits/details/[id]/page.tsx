@@ -35,14 +35,10 @@ const VisitDetailsPage = () => {
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   const apiDetailUrl = createUrl(`visit/${id}/details`)
-  const { data: visitDetailsData } = useSWR(apiDetailUrl, fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data: visitDetailsData } = useSWR(apiDetailUrl, fetcher)
 
   const apiInquiryUrl = createUrl(`inquiry/${id}`)
-  const { data: inquiriesData } = useSWR(apiInquiryUrl, fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data: inquiriesData } = useSWR(apiInquiryUrl, fetcher)
 
   const salesVisit = visitDetailsData?.data || {}
 

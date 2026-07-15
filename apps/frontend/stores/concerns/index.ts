@@ -2,6 +2,7 @@ import { IConcernState, IConcernStatus } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { withLoading } from '@/lib/storeHelper'
 
 export const useConcernStore = create<IConcernState>()((set, get) => ({
   concernCategory: null,
@@ -13,154 +14,177 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
   description: '',
   setConcernStatus: (status: IConcernStatus) => set({ concernStatus: status }),
   createCategory: async (data) => {
-    try {
-      const { concernCategories } = get()
-      set({ loading: true })
-      const url = createUrl('concern-categories')
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      set({ loading: false })
-      const payload = res?.data ?? res
-      const newCategory = payload?.data ?? payload?.category ?? payload
-      if (!newCategory) return null
+    return withLoading(
+      set,
+      async () => {
+        const { concernCategories } = get()
 
-      const newCategories = [...concernCategories, newCategory]
-      set({ concernCategories: newCategories })
-      return newCategory
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
-      return null
-    }
+        const url = createUrl('concern-categories')
+        const res = await $api<any>(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+
+        console.log(res.data)
+
+        const payload = res?.data ?? res
+        const newCategory = payload?.data ?? payload?.category ?? payload
+
+        if (!newCategory) return null
+
+        set({
+          concernCategories: [...concernCategories, newCategory],
+        })
+
+        return newCategory
+      },
+      (error) => {
+        console.error(error)
+      }
+    )
   },
   createStatus: async (data) => {
     try {
-      set({ loading: true })
+      return withLoading(
+        set,
+        async () => {
+          const url = createUrl('concern-categories/statuses')
 
-      const url = createUrl('concern-categories/statuses')
+          const res = await $api<any>(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          })
 
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+          const payload = res?.data ?? res
+          const newStatus = payload
 
-      set({ loading: false })
+          if (!newStatus) return null
 
-      const payload = res?.data ?? res
-      const newStatus = payload
+          set((state) => ({
+            concernStatuses: [...state.concernStatuses, newStatus],
+          }))
 
-      if (!newStatus) return null
-
-      set((state) => ({
-        concernStatuses: [...state.concernStatuses, newStatus],
-      }))
-
-      return newStatus
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          return newStatus
+        },
+        (error) => {
+          console.error(error)
+        }
+      )
+    } catch {
       return null
     }
   },
   updateStatus: async (id, data) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`concern-categories/statuses/${id}`)
-      const res = await $api<any>(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      set({ loading: false })
+      return withLoading(
+        set,
+        async () => {
+          const url = createUrl(`concern-categories/statuses/${id}`)
 
-      const payload = res?.data ?? res
-      const updatedStatus = payload
+          const res = await $api<any>(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          })
 
-      if (!updatedStatus) return null
+          const updatedStatus = res?.data ?? res
 
-      set({
-        concernStatuses: get().concernStatuses.map((status) =>
-          Number(status?.id) === id ? updatedStatus : status
-        ),
-      })
+          if (!updatedStatus) return null
 
-      return updatedStatus
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          set((state) => ({
+            concernStatuses: state.concernStatuses.map((status) =>
+              Number(status.id) === id ? updatedStatus : status
+            ),
+          }))
+
+          return updatedStatus
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   deleteStatus: async (id) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`concern-categories/statuses/${id}`)
-      $api<any>(url, {
-        method: 'DELETE',
-      })
-      set({ loading: false })
-      set({
-        concernStatuses: get().concernStatuses.filter((status) => Number(status?.id) !== id),
-      })
-      return true
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`concern-categories/statuses/${id}`)
+
+          await $api(url, {
+            method: 'DELETE',
+          })
+
+          set((state) => ({
+            concernStatuses: state.concernStatuses.filter((status) => Number(status.id) !== id),
+          }))
+
+          return true
+        },
+        console.error
+      )
+    } catch {
       return false
     }
   },
 
   updateCategory: async (id, data) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`concern-categories/${id}`)
-      const res = await $api<any>(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`concern-categories/${id}`)
 
-      const payload = res?.data ?? res
-      const updatedCategory = payload?.data ?? payload?.category ?? payload
-      if (!updatedCategory) return null
+          const res = await $api<any>(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          })
 
-      set({
-        concernCategories: get().concernCategories.map((category) =>
-          Number(category?.id) === id ? updatedCategory : category
-        ),
-      })
+          const payload = res?.data ?? res
+          const updatedCategory = payload?.data ?? payload?.category ?? payload
 
-      return updatedCategory
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          if (!updatedCategory) return null
+
+          set((state) => ({
+            concernCategories: state.concernCategories.map((category) =>
+              Number(category.id) === id ? updatedCategory : category
+            ),
+          }))
+
+          return updatedCategory
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   deleteCategory: async (id) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`concern-categories/${id}`)
-      await $api<any>(url, {
-        method: 'DELETE',
-      })
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`concern-categories/${id}`)
 
-      set({
-        concernCategories: get().concernCategories.filter(
-          (category) => Number(category?.id) !== id
-        ),
-      })
+          await $api(url, {
+            method: 'DELETE',
+          })
 
-      return true
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          set((state) => ({
+            concernCategories: state.concernCategories.filter(
+              (category) => Number(category.id) !== id
+            ),
+          }))
+
+          return true
+        },
+        console.error
+      )
+    } catch {
       return false
     }
   },

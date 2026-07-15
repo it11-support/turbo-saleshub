@@ -102,10 +102,7 @@ const ProductList = () => {
     IResPaginated<IProduct> & {
       data: { categories?: { ItmsGrpCod: number; ItmsGrpNam: string }[] }
     }
-  >(apiUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  >(apiUrl, fetcher)
 
   const products = data?.data.items || []
   const categories = data?.data.categories || []

@@ -6,6 +6,7 @@ import { PER_PAGE } from '@/constants/index.js';
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
 import { activityLogger } from '@/services/logs/index.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 
 export const userList = async (
@@ -78,8 +79,7 @@ export const userList = async (
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error', data: { items: [], totalRecords: 0 } });
+    return handleApiError(error, res, 'Internal server error', { items: [], totalRecords: 0 });
   }
 };
 
@@ -107,8 +107,7 @@ export const me = async (req: Request, res: Response<ProfileResponseType>) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -137,8 +136,7 @@ export const updateUser = async (req: AuthenticatedRequest<{ id: string }>, res:
 
     res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -165,8 +163,7 @@ export const createUser = async (req: AuthenticatedRequest, res: Response) => {
 
     res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -185,7 +182,6 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
     });
     res.status(200).json({ message: 'Success', data: { user } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };

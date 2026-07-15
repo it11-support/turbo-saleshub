@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { Response } from 'express';
 import prisma from '@/libs/prisma.js';
 import { activityLogger } from '@/services/logs/index.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export type LoginResponse = {
   data?: {
@@ -95,7 +96,6 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
       },
     });
   } catch (error) {
-    console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     activityLogger({
@@ -105,6 +105,6 @@ export const login = async (req: AuthenticatedRequest<LoginRequest>, res: Respon
       status: 'FAILED'
     });
 
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };

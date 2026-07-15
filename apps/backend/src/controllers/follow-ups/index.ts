@@ -1,6 +1,7 @@
 import { PER_PAGE } from "@/constants/index.js";
 import { visitsWhereInput } from "@/generated/prisma/models.js";
 import prisma from "@/libs/prisma.js";
+import { handleApiError } from "@/utils/apiResponse.js";
 import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsParser.js";
 import dayjs from "dayjs";
 import { Request, Response } from "express";
@@ -135,7 +136,6 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error', data: { items: [], totalRecords: 0 } });
+    return handleApiError(error, res, "Failed to fetch visit with follow up", { items: [], totalRecords: 0 });
   }
 };

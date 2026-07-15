@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { getParetoProducts } from './functions.js';
 import { generateLocalCode } from '@/utils/localCode.js';
 import { activityLogger } from '@/services/logs/index.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export type CustomerRequestType = {
   active?: string[];
@@ -214,8 +215,7 @@ export const customerList = async (
       subGroupNames,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -258,8 +258,7 @@ export const customerSummary = async (req: Request<{ id: string }>, res: Respons
 
     res.status(200).json({ message: 'Success', data: customerWithNetSales });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -274,8 +273,7 @@ export const itemSuggestions = async (req: Request, res: Response) => {
       data: { distributor, groceries },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -388,8 +386,7 @@ export const purchaseHistory = async (req: Request, res: Response) => {
       data: { customer, lastPurchase, ordersByRange, invoiceCountByRange },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -520,8 +517,7 @@ export const fetchSubgroups = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: 'Subgroups fetched successfully', data: subgroups });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -535,8 +531,7 @@ export const fetchGroups = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: 'Groups fetched successfully', data: groups });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -585,7 +580,7 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
     })
     res.status(200).json({ message: 'Customer created successfully', data: { newCustomer } });
   } catch (error) {
-    console.error(error);
+
     const errorMessage = (error as Error).message;
     activityLogger({
       req,
@@ -593,6 +588,6 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
       description: `Create customer failed: ${errorMessage}`,
       status: 'FAILED'
     })
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }

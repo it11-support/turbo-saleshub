@@ -1,15 +1,16 @@
 'use client'
 import { LayoutProvider } from '../layout/context/layoutcontext'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
-import { PrimeReactProvider } from 'primereact/api'
-import { Suspense } from 'react'
 import 'primeflex/primeflex.css'
 import 'primeflex/themes/primeone-light.css'
 import 'primeicons/primeicons.css'
+import { PrimeReactProvider } from 'primereact/api'
 import 'primereact/resources/primereact.css'
-
+import { Suspense } from 'react'
 import '../styles/demo/Demos.scss'
 import '../styles/layout/layout.scss'
+import { SWRConfig } from 'swr'
+
 import AuthProvider from '@/layout/context/AuthContext'
 import SocketIoProvider from '@/layout/context/SocketIoContext'
 import { ToastProvider } from '@/layout/context/ToastContext'
@@ -32,7 +33,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <SocketIoProvider>
                 <NuqsAdapter>
                   <Suspense fallback={null}>
-                    <LayoutProvider>{children}</LayoutProvider>
+                    <LayoutProvider>
+                      <SWRConfig value={{ keepPreviousData: true, revalidateOnFocus: false }}>
+                        {children}
+                      </SWRConfig>
+                    </LayoutProvider>
                   </Suspense>
                 </NuqsAdapter>
               </SocketIoProvider>

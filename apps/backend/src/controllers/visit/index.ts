@@ -7,6 +7,7 @@ import { AuthenticatedRequest, FollowUpUpdateData, IVisit } from '@saleshub-tsm/
 import { activityLogger } from '@/services/logs/index.js';
 import { socketIoEmitter } from '@/libs/socket-io.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 
 export const fetchSalesVisit = async (req: Request, res: Response) => {
@@ -56,8 +57,7 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
     };
     res.status(200).json({ message: 'Success', data });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -172,8 +172,7 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
 
     res.status(200).json({ message: 'Success', data: updatedVisit });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -200,8 +199,7 @@ export const completeSalesVisit = async (req: AuthenticatedRequest, res: Respons
     })
     res.status(200).json({ message: 'Success' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -255,8 +253,7 @@ export const visitDetails = async (req: Request, res: Response) => {
     );
     res.status(200).json({ message: 'Success', data: { ...salesVisit, suggestedItems } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -390,8 +387,7 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
     res.status(200).json({ message: 'Success', data: result });
 
   } catch (error) {
-    console.error("Error in followUpVisit:", error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -416,8 +412,7 @@ export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
     })
     res.status(200).json({ message: 'Success', data: visitItem });
   } catch (error) {
-    console.error("Error in startVisit:", error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }
 
@@ -481,7 +476,6 @@ export const closeItems = async (req: AuthenticatedRequest, res: Response) => {
     res.status(200).json({ message: 'Success', data: updatedVisit });
 
   } catch (error) {
-    console.error("Error in closeItems:", error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }

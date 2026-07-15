@@ -3,6 +3,7 @@ import prisma from "@/libs/prisma.js";
 import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsParser.js";
 import dayjs from "dayjs";
 import { Request, Response } from "express";
+import { handleApiError } from "@/utils/apiResponse.js";
 
 interface FetchActivityLogsQuery {
   page: number;
@@ -131,8 +132,7 @@ export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLo
 
     res.status(200).json({ message: 'Success', ...result });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -148,6 +148,6 @@ export const fetchActivityActionTypes = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Activity action types fetched successfully', data: activityActionTypes });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }

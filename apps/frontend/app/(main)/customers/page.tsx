@@ -104,8 +104,6 @@ export default function CustomerTable() {
 
   const apiUrl = createUrl('customers', payload)
   const { data, isValidating } = useSWR(apiUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
     onSuccess: (res) => {
       if (res.groupNames) setGroupNames(res.groupNames)
       if (res.salesPersonNames) setSalesPersonNames(res.salesPersonNames)

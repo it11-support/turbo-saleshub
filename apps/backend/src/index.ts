@@ -2,7 +2,6 @@ import express from 'express'
 import routes from './routes/index.js'
 import cors from "cors"
 import fileUpload from 'express-fileupload'
-import { startRfmScheduler } from './scheduler/index.js'
 import { createServer } from 'http'
 import { initSocket } from './libs/socket-io.js'
 import { defaultLimiter } from './utils/limiter.js'

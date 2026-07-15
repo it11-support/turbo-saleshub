@@ -33,18 +33,15 @@ const SettingsPage = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData } = useSWR(statusUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: concernStatusesData, mutate: mutateStatus } = useSWR(statusUrl, fetcher)
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
   const concernCategoriesUrl = createUrl('concern-categories')
-  const { data: concernCategoriesData } = useSWR(concernCategoriesUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: concernCategoriesData, mutate: mutateCategories } = useSWR(
+    concernCategoriesUrl,
+    fetcher
+  )
 
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
 
@@ -133,17 +130,21 @@ const SettingsPage = () => {
     if (modalType === 'category') {
       if (editingCategoryId) {
         await updateCategory(editingCategoryId, data)
+        mutateCategories()
       } else {
         await createCategory(data)
+        mutateCategories()
       }
     }
 
     if (modalType === 'status') {
       if (editingStatusId) {
         await updateStatus(editingStatusId, statusData)
+        mutateStatus()
       } else {
         if (!statusData.status) return
         await createStatus(statusData)
+        mutateStatus()
       }
     }
 
@@ -169,11 +170,14 @@ const SettingsPage = () => {
     if (modalType === 'category') {
       if (deletingId === null) return
       await deleteCategory(deletingId)
+      mutateCategories()
     }
 
     if (modalType === 'status') {
       if (deletingId === null) return
       await deleteStatus(deletingId)
+      mutateStatus()
+      mutateCategories()
     }
 
     setDeletingId(null)

@@ -77,26 +77,16 @@ export default function UserTable() {
     data: userData,
     isValidating,
     mutate,
-  } = useSWR<IResPaginated<IPaginatedData<IUser>>>(apiUrlUser, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  } = useSWR<IResPaginated<IPaginatedData<IUser>>>(apiUrlUser, fetcher)
 
   const users = userData?.data?.items || []
   const totalRecords = userData?.data?.totalRecords || 0
 
-  const { data: roleData } = useSWR<IResSingle<IRole>>(apiUrlRole, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: roleData } = useSWR<IResSingle<IRole>>(apiUrlRole, fetcher)
 
   const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
     apiSalesPerson,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const salesPersons = salesPersonData?.data || []

@@ -116,7 +116,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
       set({ error: err.message, loading: false })
     }
   },
-  async fetchScheduleByDate(sales_person_id: number, date: string) {
+  fetchScheduleByDate: async (sales_person_id: number, date: string) => {
     set({ loading: true, error: null })
     const { page, pageSize, currentDate } = get()
     const selectedDate = date ?? currentDate

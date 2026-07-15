@@ -31,9 +31,7 @@ export default forwardRef(function MobileTopbar(
   const { logout, user } = useAuth()
 
   const apiNotifUrl = createUrl('notifications/unread', { userId: Number(user?.id) })
-  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher)
 
   const notifications = data?.data
   const totalNotifications = notifications?.length

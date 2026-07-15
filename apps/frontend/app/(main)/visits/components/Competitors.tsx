@@ -49,9 +49,7 @@ const Competitors = () => {
   ]
 
   const apiUrl = createUrl(`competitors/${id}`)
-  const { data: competitorData, mutate: mutateCompetitors } = useSWR(apiUrl, fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data: competitorData, mutate: mutateCompetitors } = useSWR(apiUrl, fetcher)
 
   const competitors = competitorData?.data || []
 

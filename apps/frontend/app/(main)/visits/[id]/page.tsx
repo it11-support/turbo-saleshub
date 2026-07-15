@@ -86,11 +86,7 @@ const VisitsPage = () => {
   const concernCategoriesUrl = createUrl('concern-categories')
   const { data: concernCategoriesData, mutate: mutateCategories } = useSWR(
     concernCategoriesUrl,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
@@ -132,10 +128,7 @@ const VisitsPage = () => {
   }
 
   const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData, mutate: mutateStatus } = useSWR(statusUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: concernStatusesData, mutate: mutateStatus } = useSWR(statusUrl, fetcher)
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 

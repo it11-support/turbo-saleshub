@@ -69,11 +69,7 @@ const VisitList = () => {
 
   const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
     isAdmin ? apiSalesPerson : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const salesPersons = salesPersonData?.data || []

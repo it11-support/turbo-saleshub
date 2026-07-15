@@ -23,9 +23,7 @@ export default function CompetitorDialog() {
   const { addCompetitorToVisit, selectedCompetitors, syncCompetitors } = useCompetitorStore()
 
   const apiUrl = createUrl('competitors')
-  const { data: competitorData } = useSWR<IResSingle<Competitor>>(apiUrl, fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data: competitorData } = useSWR<IResSingle<Competitor>>(apiUrl, fetcher)
 
   const competitorOptions = useMemo<Competitor[]>(() => {
     const list = competitorData?.data || []

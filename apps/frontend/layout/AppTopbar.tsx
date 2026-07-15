@@ -24,9 +24,7 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
   const { logout, user } = auth
 
   const apiNotifUrl = createUrl('notifications/unread', { userId: Number(user?.id) })
-  const { data, mutate } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data, mutate } = useSWR(() => (user?.id ? apiNotifUrl : null), fetcher)
 
   useEffect(() => {
     const currentSocket = socket

@@ -9,6 +9,7 @@ import {
   updateStatus
 } from "@/services/index.js";
 import { activityLogger } from "@/services/logs/index.js";
+import { handleApiError } from "@/utils/apiResponse.js";
 import { AuthenticatedRequest } from "@saleshub-tsm/types";
 import { Request, Response } from "express";
 
@@ -17,8 +18,7 @@ export const fetchConcernCategories = async (req: Request, res: Response) => {
     const concernCategories = await getConcerns();
     res.status(200).json({ message: "Concern categories fetched successfully", data: { concernCategories } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -34,7 +34,7 @@ export const createNewCategory = async (req: AuthenticatedRequest, res: Response
     });
     res.status(200).json({ message: "Success", data: category });
   } catch (error) {
-    console.error(error);
+
     const errorMessage = (error as Error).message;
     activityLogger({
       req,
@@ -42,7 +42,7 @@ export const createNewCategory = async (req: AuthenticatedRequest, res: Response
       description: `New category created: ${errorMessage}`,
       status: 'FAILED'
     });
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -64,7 +64,6 @@ export const updateConcernCategory = async (req: AuthenticatedRequest, res: Resp
 
     res.status(200).json({ message: "Success", data: category });
   } catch (error) {
-    console.error(error);
     const errorMessage = (error as Error).message;
     activityLogger({
       req,
@@ -72,7 +71,7 @@ export const updateConcernCategory = async (req: AuthenticatedRequest, res: Resp
       description: `Concern Category Updated: ${errorMessage}`,
       status: 'FAILED'
     });
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 };
 
@@ -94,8 +93,7 @@ export const deleteConcernCategory = async (req: AuthenticatedRequest, res: Resp
 
     res.status(200).json({ message: "Success", data: category });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 };
 
@@ -104,8 +102,7 @@ export const fetchConcernStatuses = async (req: Request, res: Response) => {
     const concernStatuses = await getConcernStatuses();
     res.status(200).json({ message: "Concern statuses fetched successfully", data: { concernStatuses } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -121,7 +118,6 @@ export const createNewStatus = async (req: AuthenticatedRequest, res: Response) 
     });
     res.status(200).json({ message: "Success", data: statusData });
   } catch (error) {
-    console.error(error);
     activityLogger({
       req,
       actionType: 'Concern Status',
@@ -129,7 +125,7 @@ export const createNewStatus = async (req: AuthenticatedRequest, res: Response) 
       status: 'FAILED'
     });
 
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -154,14 +150,14 @@ export const updateConcernStatus = async (req: AuthenticatedRequest, res: Respon
 
     res.status(200).json({ message: "Success", data: newStatus });
   } catch (error) {
-    console.error(error);
+
     activityLogger({
       req,
       actionType: 'Concern Status',
       description: `Failed to update status: ${status} `,
       status: 'FAILED'
     });
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 };
 
@@ -175,8 +171,7 @@ export const deleteConcernStatus = async (req: AuthenticatedRequest, res: Respon
     const status = await deleteStatus(id);
     res.status(200).json({ message: "Success", data: status });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 };
 

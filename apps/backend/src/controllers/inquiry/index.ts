@@ -1,5 +1,6 @@
 import prisma from "@/libs/prisma.js";
 import { activityLogger } from "@/services/logs/index.js";
+import { handleApiError } from "@/utils/apiResponse.js";
 import { AuthenticatedRequest, IInquiry } from "@saleshub-tsm/types";
 import { Request, Response } from "express";
 
@@ -13,8 +14,7 @@ export const getInquiries = async (req: Request, res: Response) => {
     })
     res.status(200).json({ message: "Success", data: { inquiries } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 

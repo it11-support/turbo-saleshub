@@ -1,4 +1,5 @@
 import prisma from "@/libs/prisma.js";
+import { handleApiError } from "@/utils/apiResponse.js";
 import { Request, Response } from "express";
 
 export const fetchCompetitors = async (req: Request, res: Response) => {
@@ -6,8 +7,7 @@ export const fetchCompetitors = async (req: Request, res: Response) => {
     const competitors = await prisma.competitors.findMany();
     res.status(200).json({ message: "Competitors fetched successfully", data: competitors });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -20,8 +20,7 @@ export const fetchCompetitorsById = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: "Competitor fetched successfully", data: competitors });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }
 
@@ -95,7 +94,6 @@ export const syncCompetitors = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Competitors synced successfully', data: result });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    return handleApiError(error, res)
   }
 }

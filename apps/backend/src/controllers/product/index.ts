@@ -9,6 +9,7 @@ import fs from 'fs';
 import { promises as fsAsync } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export type ImageResponseType = never;
 
@@ -96,12 +97,7 @@ export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
       res.status(404).json({ message: 'Image not found' });
     }
   } catch (error) {
-    console.error(error);
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'Internal server error' });
-    }
+    return handleApiError(error, res)
   }
 };
 
@@ -365,8 +361,7 @@ export const fetchProducts = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -646,8 +641,7 @@ export const productDevelopment = async (req: AuthenticatedRequest, res: Respons
       });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -672,8 +666,7 @@ export const removeProductDevelopment = async (req: AuthenticatedRequest, res: R
     });
     res.json({ message: 'Success' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -696,7 +689,6 @@ export const updateInfo = async (req: AuthenticatedRequest, res: Response) => {
 
     res.json(product);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };

@@ -43,9 +43,7 @@ const VisitIssuesPage = () => {
   const [activeProductCode, setActiveProductCode] = useState<string | null>(null)
 
   const visitDetailApi = createUrl(`visit/${id}/details`)
-  const { data, mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data, mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher)
 
   const visitCompetitors: RawVisitCompetitor[] = data?.data?.visit_competitors || []
 
@@ -78,10 +76,7 @@ const VisitIssuesPage = () => {
   }, [salesVisit?.visit_items])
 
   const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData } = useSWR(statusUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: concernStatusesData } = useSWR(statusUrl, fetcher)
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 

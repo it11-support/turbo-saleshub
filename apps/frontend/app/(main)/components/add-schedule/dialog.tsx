@@ -36,11 +36,7 @@ export default function AddScheduleDialog() {
   const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
   const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
     apiSalesPerson,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const salesPersons = salesPersonData?.data

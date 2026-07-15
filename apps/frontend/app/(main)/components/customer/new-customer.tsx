@@ -84,24 +84,14 @@ export default function NewCustomerDialog() {
 
   const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
     apiSalesPerson,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const subGroupsApiUrl = createUrl('customers/subgroups')
-  const { data: subgroupsData } = useSWR<IResSingle<ISubGroup>>(subGroupsApiUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: subgroupsData } = useSWR<IResSingle<ISubGroup>>(subGroupsApiUrl, fetcher)
 
   const groupApiUrl = createUrl('customers/groups')
-  const { data: groupsData } = useSWR<IResSingle<{ GroupName: string }>>(groupApiUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: groupsData } = useSWR<IResSingle<{ GroupName: string }>>(groupApiUrl, fetcher)
   const salesPersons = salesPersonData?.data
 
   const subgroupOptions = subgroupsData?.data || []

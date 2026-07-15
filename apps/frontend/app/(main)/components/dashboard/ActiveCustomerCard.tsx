@@ -36,11 +36,7 @@ const ActiveCustomerCard = ({
 
   const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
     apiSalesPerson,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const salesPersons = salesPersonData?.data

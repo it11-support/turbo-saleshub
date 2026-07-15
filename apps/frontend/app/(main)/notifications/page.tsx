@@ -57,9 +57,7 @@ const NotificationPage = () => {
     data: notificationData,
     isValidating,
     mutate: notificationMutate,
-  } = useSWR<IResPaginated<INotification>>(user?.id ? notificationApiUrl : null, fetcher, {
-    revalidateOnFocus: false,
-  })
+  } = useSWR<IResPaginated<INotification>>(user?.id ? notificationApiUrl : null, fetcher)
 
   const { items } = notificationData?.data ?? {}
   const totalRecords = notificationData?.data.totalRecords ?? 0

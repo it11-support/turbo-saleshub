@@ -39,15 +39,10 @@ const OfferedProduct = (props: Props) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   const visitDetailApi = createUrl(`visit/${id}/details`)
-  const { mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher)
 
   const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData } = useSWR(statusUrl, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: concernStatusesData } = useSWR(statusUrl, fetcher)
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 

@@ -45,8 +45,6 @@ const Dashboard = () => {
   const url = createUrl('summary', payload)
 
   const { data, isValidating } = useSWR<IDashboardData>(url, fetcher, {
-    revalidateOnFocus: false,
-    keepPreviousData: true,
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
@@ -56,8 +54,6 @@ const Dashboard = () => {
 
   const { data: customerLoyaltyData, isValidating: isCustomerLoyaltyValidating } =
     useSWR<IDashboardData>(apiCustomerLoyalty, fetcher, {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
       dedupingInterval: 60000,
       revalidateIfStale: false,
       revalidateOnReconnect: true,
@@ -67,8 +63,6 @@ const Dashboard = () => {
 
   const { data: activeCustomersData, isValidating: isActiveCustomersValidating } =
     useSWR<IDashboardData>(apiActiveCustomers, fetcher, {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
       dedupingInterval: 60000,
       revalidateIfStale: false,
       revalidateOnReconnect: true,
@@ -78,8 +72,6 @@ const Dashboard = () => {
 
   const { data: revenueByCategoryData, isValidating: isRevenueByCategoryValidating } =
     useSWR<IDashboardData>(apiRevenueByCategory, fetcher, {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
       dedupingInterval: 60000,
       revalidateIfStale: false,
       revalidateOnReconnect: true,
@@ -89,8 +81,6 @@ const Dashboard = () => {
 
   const { data: customerTrendData, isValidating: isCustomerTrendValidating } =
     useSWR<IDashboardData>(apiCustomerTrend, fetcher, {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
       dedupingInterval: 60000,
       revalidateIfStale: false,
       revalidateOnReconnect: true,

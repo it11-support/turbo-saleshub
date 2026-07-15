@@ -23,8 +23,6 @@ const CustomerDetailPage = ({ params }: Props) => {
 
   const customerUrl = createUrl(`customers/${id}`)
   const { data: customerData } = useSWR<IResObject<ICustomer>>(id ? customerUrl : null, fetcher, {
-    revalidateOnFocus: false,
-    keepPreviousData: true,
     dedupingInterval: 60000,
   })
 
@@ -33,8 +31,6 @@ const CustomerDetailPage = ({ params }: Props) => {
     id ? suggestionsUrl : null,
     fetcher,
     {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
       dedupingInterval: 60000,
     }
   )
@@ -44,8 +40,6 @@ const CustomerDetailPage = ({ params }: Props) => {
     id ? purchaseHistoryUrl : null,
     fetcher,
     {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
       dedupingInterval: 60000,
     }
   )

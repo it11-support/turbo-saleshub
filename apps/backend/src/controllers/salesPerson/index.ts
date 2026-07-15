@@ -1,6 +1,7 @@
 import { IResSingle, ISalesPerson } from '@saleshub-tsm/types';
 import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export const salesPersons = async (req: Request, res: Response<IResSingle<ISalesPerson>>) => {
   try {
@@ -38,7 +39,6 @@ export const salesPersons = async (req: Request, res: Response<IResSingle<ISales
       .json({ message: 'Sales person data fetched successfully', data: formattedSalesPersons });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error', data: []});
+    return handleApiError(error, res, 'Internal server error', []);
   }
 };

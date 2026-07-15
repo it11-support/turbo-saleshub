@@ -46,10 +46,7 @@ export default function VisitsPage(): JSX.Element {
 
   const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
 
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher)
 
   const salesPersons = salesPersonData?.data || []
 
@@ -57,11 +54,7 @@ export default function VisitsPage(): JSX.Element {
 
   const { data: visitRules, mutate } = useSWR<IResSingle<ISalesVisitRule>>(
     selectedSalesPerson ? visitRulesUrl : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const salesVisitRules = visitRules?.data

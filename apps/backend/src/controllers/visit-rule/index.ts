@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
 import { AuthenticatedRequest, VisitRuleRequestType } from '@saleshub-tsm/types';
 import { activityLogger } from '@/services/logs/index.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export const createVisitRules = async (
   req: AuthenticatedRequest<{}, VisitRuleRequestType>,
@@ -49,8 +50,7 @@ export const createVisitRules = async (
     })
     res.status(200).json({ message: 'Success', data: { visit_rule } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 
@@ -82,8 +82,7 @@ export const visitRules = async (req: Request, res: Response) => {
 
     res.status(200).json({ message: 'Success', data: visit_rules });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 };
 

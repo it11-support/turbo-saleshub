@@ -48,11 +48,7 @@ const FollowUpsPage = () => {
 
   const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
     isAdmin ? apiSalesPerson : null,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
+    fetcher
   )
 
   const salesPersons = salesPersonData?.data || []
@@ -74,9 +70,7 @@ const FollowUpsPage = () => {
 
   const apiFollowupUrl = createUrl('follow-ups', payload)
 
-  const { data: followups, isValidating } = useSWR<IResPaginated<IVisit>>(apiFollowupUrl, fetcher, {
-    revalidateOnFocus: false,
-  })
+  const { data: followups, isValidating } = useSWR<IResPaginated<IVisit>>(apiFollowupUrl, fetcher)
 
   const preloadVisits = (targetPage: number) => {
     const cacheKey = createUrl('follow-ups', { ...payload, page: targetPage })

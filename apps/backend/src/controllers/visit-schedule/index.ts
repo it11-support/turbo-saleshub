@@ -6,6 +6,7 @@ import { dayOfWeeks, offeredStatus, VisitStatus } from '@/generated/prisma/clien
 import prisma from '@/libs/prisma.js';
 import { getSuggestedItems } from '../customer/index.js';
 import { activityLogger } from '@/services/logs/index.js';
+import { handleApiError } from '@/utils/apiResponse.js';
 
 export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
   try {
@@ -588,7 +589,6 @@ export const createVisitSchedule = async (req: AuthenticatedRequest, res: Respon
     })
     res.status(200).json({ message: 'Success', data: visit });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    return handleApiError(error, res)
   }
 }

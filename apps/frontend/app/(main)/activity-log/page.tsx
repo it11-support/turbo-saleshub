@@ -71,31 +71,14 @@ const ActivityLogPage = () => {
 
   const logsApi = createUrl('activity-log', payload)
 
-  const { data: activityLogs, isValidating } = useSWR<IResPaginated<IActivityLog>>(
-    logsApi,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
-  )
+  const { data: activityLogs, isValidating } = useSWR<IResPaginated<IActivityLog>>(logsApi, fetcher)
 
   const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher, {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher)
 
   const actionTypeUrl = createUrl('activity-log/action-types')
 
-  const { data: actionTypes } = useSWR<IResSingle<{ action_type: string }>>(
-    actionTypeUrl,
-    fetcher,
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    }
-  )
+  const { data: actionTypes } = useSWR<IResSingle<{ action_type: string }>>(actionTypeUrl, fetcher)
 
   useEffect(() => {
     if (!isAdmin && user?.sales_person?.id) {
