@@ -43,7 +43,7 @@ app.use(
 app.use(express.json())
 app.use("/api/v1", routes)
 
-startRfmScheduler()
+// startRfmScheduler()
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Express running on ${PORT}`);
