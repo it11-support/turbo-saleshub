@@ -19,7 +19,7 @@ interface RootLayoutProps {
   children: React.ReactNode
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+const RootLayout = ({ children }: RootLayoutProps) => {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -48,3 +48,5 @@ export default function RootLayout({ children }: RootLayoutProps) {
     </html>
   )
 }
+
+export default RootLayout

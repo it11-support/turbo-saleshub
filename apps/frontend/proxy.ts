@@ -31,7 +31,7 @@ const SALES_ONLY_PATHS = menuConfig.flatMap((section) =>
     .map((item) => item.to)
 )
 
-export function proxy(req: NextRequest) {
+export const proxy = (req: NextRequest) => {
   const { pathname } = req.nextUrl
   const token = req.cookies.get('accessToken')?.value
   const isAdmin = req.cookies.get('isAdmin')?.value === 'true'

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-export default function useIsMobile(breakpoint = 768) {
+const useIsMobile = (breakpoint = 768) => {
   // start with a deterministic value so server and initial client render match
   const [isMobile, setIsMobile] = useState<boolean>(false)
 
@@ -31,3 +31,5 @@ export default function useIsMobile(breakpoint = 768) {
 
   return isMobile
 }
+
+export default useIsMobile

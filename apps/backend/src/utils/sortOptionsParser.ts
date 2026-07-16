@@ -51,9 +51,9 @@ export const sortOptionsParser = (
     .filter((item): item is SortOption => item !== null)
 }
 
-export function convertToPrismaOrderBy<K extends string>(
+export const convertToPrismaOrderBy = <K extends string>(
   sortOptions: readonly SortOption<K>[]
-): Record<string, unknown>[] {
+): Record<string, unknown>[] => {
   return sortOptions.map((sort) => {
     const keys = sort.key.split('.')
 

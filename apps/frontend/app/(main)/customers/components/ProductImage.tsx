@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 
-export default function ProductImage({ code, alt }: { code: string; alt: string }) {
+const ProductImage = ({ code, alt }: { code: string; alt: string }) => {
   return (
     <Image
       src={`${process.env.NEXT_PUBLIC_API_BASE_URL}product/image/${code}`}
@@ -12,3 +12,5 @@ export default function ProductImage({ code, alt }: { code: string; alt: string 
     />
   )
 }
+
+export default ProductImage

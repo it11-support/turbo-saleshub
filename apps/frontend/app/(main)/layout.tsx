@@ -50,10 +50,12 @@ export const viewport: Viewport = {
   initialScale: 1.0,
 }
 
-export default function AppLayout({ children }: AppLayoutProps) {
+const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <Layout>
       <ViewportLayoutSwitcher>{children}</ViewportLayoutSwitcher>
     </Layout>
   )
 }
+
+export default AppLayout

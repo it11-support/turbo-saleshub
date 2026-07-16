@@ -29,7 +29,7 @@ import useIsMobile from '@/layout/mobile/useIsMobile'
 import { createUrl } from '@/lib/api'
 import { useCustomerStore } from '@/stores/customers'
 
-export default function CustomerTable() {
+const CustomerTable = () => {
   const isMobile = useIsMobile(768)
   const { isAdmin } = useAuth()
   const router = useRouter()
@@ -279,3 +279,5 @@ export default function CustomerTable() {
     </div>
   )
 }
+
+export default CustomerTable

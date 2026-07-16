@@ -30,7 +30,7 @@ import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { useUserStore } from '@/stores/user'
 
-export default function UserTable() {
+const UserTable = () => {
   const { updateUser, createUser, deleteUser } = useUserStore()
 
   const { user } = useAuth()
@@ -327,3 +327,5 @@ export default function UserTable() {
     </div>
   )
 }
+
+export default UserTable

@@ -14,7 +14,7 @@ import useSWR from 'swr'
 import { createUrl } from '@/lib/api'
 import { useCompetitorStore } from '@/stores/competitor'
 
-export default function CompetitorDialog() {
+const CompetitorDialog = () => {
   const [visible, setVisible] = useState<boolean>(false)
   const [tempValue, setTempValue] = useState<Competitor | string | null>(null)
   const [filteredCompetitors, setFilteredCompetitors] = useState<Competitor[]>([])
@@ -120,3 +120,5 @@ export default function CompetitorDialog() {
     </>
   )
 }
+
+export default CompetitorDialog

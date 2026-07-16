@@ -13,7 +13,7 @@ import { createUrl } from '@/lib/api'
 import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
-export default function NewCustomerDialog() {
+const NewCustomerDialog = () => {
   const { activeDialog, hide } = useScheduleDialog()
   const { isAdmin, user } = useAuth()
   const [localSearch, setLocalSearch] = useState<string>('')
@@ -383,3 +383,5 @@ export default function NewCustomerDialog() {
     </BaseDialog>
   )
 }
+
+export default NewCustomerDialog

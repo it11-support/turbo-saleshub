@@ -13,7 +13,7 @@ type Props = {
   userName?: string
 }
 
-export default function MobileLayout({ children, title, userName }: Props) {
+const MobileLayout = ({ children, title, userName }: Props) => {
   const topbarRef = useRef<{ menubutton?: HTMLButtonElement }>(null)
   const [sidebarVisible, setSidebarVisible] = useState(false)
 
@@ -63,3 +63,5 @@ export default function MobileLayout({ children, title, userName }: Props) {
     </div>
   )
 }
+
+export default MobileLayout

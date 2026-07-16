@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     'SalesHub TSM is a comprehensive sales management tool designed to streamline your sales processes and enhance productivity. With a user-friendly interface, it provides real-time visibility into your sales data, allowing you to make informed decisions and drive success in your sales operations.',
 }
 
-export default function SimpleLayout({ children }: { children: React.ReactNode }) {
+const SimpleLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <React.Fragment>
       {children}
@@ -17,3 +17,5 @@ export default function SimpleLayout({ children }: { children: React.ReactNode }
     </React.Fragment>
   )
 }
+
+export default SimpleLayout

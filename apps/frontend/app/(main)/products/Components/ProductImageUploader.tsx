@@ -32,12 +32,12 @@ const imageCheckFetcher = async (url: string) => {
   }
 }
 
-export default function ProductImageUploader({
+const ProductImageUploader = ({
   code,
   alt,
   width = 120,
   height = 120,
-}: ProductImageUploaderProps) {
+}: ProductImageUploaderProps) => {
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -198,3 +198,5 @@ export default function ProductImageUploader({
     </div>
   )
 }
+
+export default ProductImageUploader

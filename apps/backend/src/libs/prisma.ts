@@ -3,11 +3,11 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient, Prisma } from '../generated/prisma/client.js';
 import { pagination } from "prisma-extension-pagination";
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return Object.prototype.toString.call(value) === "[object Object]";
 }
 
-function convertScalar(value: any): { converted: boolean; value: any } {
+const convertScalar = (value: any): { converted: boolean; value: any } => {
   if (typeof value === "bigint") return { converted: true, value: Number(value) };
 
   if (
@@ -36,7 +36,7 @@ function convertScalar(value: any): { converted: boolean; value: any } {
   return { converted: false, value };
 }
 
-function convertValue(input: any): any {
+const convertValue = (input: any): any => {
   const scalar = convertScalar(input);
   if (scalar.converted) return scalar.value;
 
@@ -122,7 +122,7 @@ const adapter = new PrismaMariaDb({
   connectionLimit: 20
 });
 
-const base  = new PrismaClient({ adapter })
+const base = new PrismaClient({ adapter })
 const prismaWithPagination = base.$extends(pagination());
 
 const prisma = prismaWithPagination.$extends({

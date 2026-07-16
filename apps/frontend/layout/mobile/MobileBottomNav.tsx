@@ -10,7 +10,7 @@ type MenuItems = {
   icon: string
   action?: () => void
 }[]
-export default function MobileBottomNav() {
+const MobileBottomNav = () => {
   const pathname = usePathname?.() || '/'
 
   const items: MenuItems = [
@@ -46,3 +46,5 @@ export default function MobileBottomNav() {
     </nav>
   )
 }
+
+export default MobileBottomNav

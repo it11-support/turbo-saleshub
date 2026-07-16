@@ -23,7 +23,7 @@ type VisitConcernItem = {
   notes: string | null
   due_date?: string | Date
 }
-export default function ScheduleCard({ schedule }: ScheduleCardProps) {
+const ScheduleCard = ({ schedule }: ScheduleCardProps) => {
   const s = schedule
   const c = schedule.rule.customer
   const visit = schedule.visit
@@ -189,3 +189,4 @@ export default function ScheduleCard({ schedule }: ScheduleCardProps) {
     </BaseCard>
   )
 }
+export default ScheduleCard

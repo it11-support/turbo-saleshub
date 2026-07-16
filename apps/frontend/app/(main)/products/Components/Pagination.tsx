@@ -9,13 +9,13 @@ type PaginationProps = {
   totalRecords?: number // opsional kalau mau pakai totalRecords dari API
 }
 
-export default function Pagination({
+const Pagination = ({
   totalPages,
   currentPage,
   onPageChange,
   rowsPerPage = 10,
   totalRecords,
-}: PaginationProps) {
+}: PaginationProps) => {
   if (totalPages <= 1) return null
 
   // Paginator menggunakan 'first' sebagai index item pertama
@@ -40,3 +40,5 @@ export default function Pagination({
     </div>
   )
 }
+
+export default Pagination

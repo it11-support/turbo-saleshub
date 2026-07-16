@@ -30,14 +30,14 @@ type UseDataTableReturn<T> = {
   handleSortChange: (sortMeta: any) => void
 }
 
-export function useDataTable<T>({
+export const useDataTable = <T>({
   endpoint,
   filters,
   setFilters,
   transform,
   debounceSearch = true,
   debounceDelay = 400,
-}: UseDataTableOptions<T>): UseDataTableReturn<T> {
+}: UseDataTableOptions<T>): UseDataTableReturn<T> => {
   const [localSearch, setLocalSearch] = useState(filters.search || '')
   const debouncedSearch = useDebounce(localSearch, debounceDelay)
 
