@@ -2,6 +2,7 @@ import { FollowUpForm, IVisit, IVisitDetails, IVisitState, OfferedItem } from '@
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { jsonBody, withLoading } from '@/lib/storeHelper'
 
 export const useSalesVisit = create<IVisitState>()((set, get) => ({
   visitNote: '',
@@ -16,61 +17,64 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
   error: null,
   fetchSalesVisit: async (rule_id: number) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`visit/${rule_id}`)
-      const res = await $api<any>(url)
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`visit/${rule_id}`)
+          const res = await $api<any>(url)
 
-      set({ loading: false, salesVisit: res.data, visitNote: res.data.notes ?? '' })
-      const offeredItems =
-        res.data.visit_items?.map((item: any) => ({
-          product_id: item.product_id,
-          offered: Boolean(item.offered),
-          notes: item.notes || '',
-        })) || []
+          set({ salesVisit: res.data, visitNote: res.data.notes ?? '' })
+          const offeredItems =
+            res.data.visit_items?.map((item: any) => ({
+              product_id: item.product_id,
+              offered: Boolean(item.offered),
+              notes: item.notes || '',
+            })) || []
 
-      set({ offeredItems })
+          set({ offeredItems })
 
-      return res.data
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          return res.data
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   syncOfferedItems: async (data: IVisitDetails) => {
     try {
-      set({ loading: true })
-      const payload = {
-        visit_items: Object.entries(data).flatMap(([productId, categories]) => ({
-          product_id: Number(productId),
-          visitNote: get().visitNote,
-          concerns: Object.entries(
-            categories as Record<string, { notes: string; statusId: number }>
-          ).map(([categoryId, detail]) => ({
-            concern_id: Number(categoryId),
-            note: detail.notes,
-            status_id: detail.statusId,
-          })),
-        })),
-      }
+      await withLoading(
+        set,
+        async () => {
+          const payload = {
+            visit_items: Object.entries(data).flatMap(([productId, categories]) => ({
+              product_id: Number(productId),
+              visitNote: get().visitNote,
+              concerns: Object.entries(
+                categories as Record<string, { notes: string; statusId: number }>
+              ).map(([categoryId, detail]) => ({
+                concern_id: Number(categoryId),
+                note: detail.notes,
+                status_id: detail.statusId,
+              })),
+            })),
+          }
 
-      const url = createUrl(`visit/${get().salesVisit.id}`)
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const offeredItems =
-        res.data.visit_items?.map((item: any) => ({
-          product_id: item.product_id,
-          offered: Boolean(item.offered),
-          notes: item.notes || '',
-        })) || []
+          const url = createUrl(`visit/${get().salesVisit.id}`)
+          const res = await $api<any>(url, jsonBody(payload))
+          const offeredItems =
+            res.data.visit_items?.map((item: any) => ({
+              product_id: item.product_id,
+              offered: Boolean(item.offered),
+              notes: item.notes || '',
+            })) || []
 
-      set({ offeredItems, loading: false })
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          set({ offeredItems })
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   processItems: async (
@@ -78,101 +82,100 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
     productIds: number[]
   ) => {
     try {
-      set({ loading: true })
+      await withLoading(
+        set,
+        async () => {
+          const payload = {
+            visit_items: [
+              {
+                product_ids: productIds,
+                visitNote: get().visitNote,
+                concerns: Object.entries(data).map(([concernId, detail]) => ({
+                  concernId: Number(concernId),
+                  notes: detail.notes,
+                  statusId: detail.statusId,
+                })),
+              },
+            ],
+          }
 
-      const payload = {
-        visit_items: [
-          {
-            product_ids: productIds,
-            visitNote: get().visitNote,
-            concerns: Object.entries(data).map(([concernId, detail]) => ({
-              concernId: Number(concernId),
-              notes: detail.notes,
-              statusId: detail.statusId,
-            })),
-          },
-        ],
-      }
+          const url = createUrl(`visit/${get().salesVisit.id}/close-items`)
 
-      const url = createUrl(`visit/${get().salesVisit.id}/close-items`)
+          const res = await $api<any>(url, jsonBody(payload))
 
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+          const offeredItems =
+            res.data.visit_items?.map((item: any) => ({
+              product_id: item.product_id,
+              offered: Boolean(item.offered),
+              notes: item.notes || '',
+            })) || []
 
-      const offeredItems =
-        res.data.visit_items?.map((item: any) => ({
-          product_id: item.product_id,
-          offered: Boolean(item.offered),
-          notes: item.notes || '',
-        })) || []
-
-      set({ offeredItems, loading: false })
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          set({ offeredItems })
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   endVisit: async () => {
     try {
-      set({ loading: true })
-
-      const url = createUrl(`visit/${get().salesVisit.id}/complete`)
-      await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: get().visitNote }),
-      })
-      set({ loading: false })
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`visit/${get().salesVisit.id}/complete`)
+          await $api<any>(url, jsonBody({ notes: get().visitNote }))
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   fetchVisitDetails: async (id: number) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`visit/${id}/details`)
-      const res = await $api<any>(url)
-      set({ loading: false, salesVisit: res.data })
-      return res.data
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`visit/${id}/details`)
+          const res = await $api<any>(url)
+          set({ salesVisit: res.data })
+          return res.data
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   addFollowUp: async () => {
     try {
-      set({ loading: true })
-      const url = createUrl('visit/follow-up')
-      await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(get().followUpForm),
-      })
-      set({ loading: false })
-    } catch (error) {
-      set({ loading: false })
-      console.error(error)
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl('visit/follow-up')
+          await $api<any>(url, jsonBody(get().followUpForm))
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   startVisit: async (visitId: number) => {
     try {
-      const { fetchSalesVisit } = get()
-      set({ loading: true })
-      const url = createUrl(`visit/${visitId}/start`)
-      await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-      fetchSalesVisit(visitId)
-      set({ loading: false })
-    } catch (error) {
-      set({ loading: false })
-      console.error(error)
+      await withLoading(
+        set,
+        async () => {
+          const { fetchSalesVisit } = get()
+          const url = createUrl(`visit/${visitId}/start`)
+          await $api<any>(url, jsonBody({}, 'POST'))
+          fetchSalesVisit(visitId)
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
 }))

@@ -29,6 +29,7 @@ import { fetcher } from '@/app/(main)/lib'
 import { useSocket } from '@/layout/context/SocketIoContext'
 import { createUrl } from '@/lib/api'
 import { variantColors } from '@/lib/constants'
+import { formatCurrency } from '@/lib/formatter'
 import { useSalesVisit } from '@/stores'
 
 const VisitIssuesPage = () => {
@@ -275,7 +276,7 @@ const VisitIssuesPage = () => {
 
                                 <div className="flex align-items-center gap-2 flex-wrap">
                                   <div className="font-semibold text-900">
-                                    Rp {Number(product.price).toLocaleString('id-ID')} /{' '}
+                                    {formatCurrency(Number(product.price), true, true)} /{' '}
                                     {product.unit || 'unit'}
                                   </div>
 

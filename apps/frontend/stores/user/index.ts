@@ -3,6 +3,13 @@ import { DataTableSortMeta } from 'primereact/datatable'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import {
+  addItemToArray,
+  jsonBody,
+  removeItemFromArray,
+  updateItemInArray,
+  withLoading,
+} from '@/lib/storeHelper'
 
 export const useUserStore = create<IUserState>()((set, get) => ({
   user: null,
@@ -35,122 +42,116 @@ export const useUserStore = create<IUserState>()((set, get) => ({
     try {
       const { page, limit, search, multiSortMeta, selectedRoles } = get()
 
-      set({ loading: true })
+      await withLoading(
+        set,
+        async () => {
+          const payload = {
+            page,
+            per_page: limit,
+            sort_options: JSON.stringify(
+              (multiSortMeta || []).map((meta) => ({
+                key: meta.field,
+                order: meta.order === 1 ? 'asc' : 'desc',
+              }))
+            ),
+            ...(search ? { search } : {}),
+            ...(selectedRoles && selectedRoles.length > 0 ? { roles: selectedRoles } : {}),
+          }
 
-      const payload = {
-        page,
-        per_page: limit,
-        sort_options: JSON.stringify(
-          (multiSortMeta || []).map((meta) => ({
-            key: meta.field,
-            order: meta.order === 1 ? 'asc' : 'desc',
-          }))
-        ),
-        ...(search ? { search } : {}),
-        ...(selectedRoles && selectedRoles.length > 0 ? { roles: selectedRoles } : {}),
-      }
-
-      const url = createUrl('user', payload)
-      const res = await $api<any>(url)
-      const { data } = res
-      set({ users: data.items, totalRecords: data.totalRecords, loading: false })
-    } catch (error) {
-      console.log(error)
-      set({ loading: false })
+          const url = createUrl('user', payload)
+          const res = await $api<any>(url)
+          const { data } = res
+          set({ users: data.items, totalRecords: data.totalRecords })
+        },
+        console.log
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   fetchUserById: async (id) => {
     try {
-      set({ loading: true })
-      const res = await fetch(`/user/${id}`)
-      if (res.ok) {
-        const data = await res.json()
-        set({ loading: false })
-        return data
-      } else {
-        set({ loading: false })
-        return null
-      }
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`user/${id}`)
+          const res = await $api<any>(url)
+
+          set({ user: res.data })
+          return res.data
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   createUser: async (data) => {
     try {
-      set({ loading: true })
-      const url = createUrl('user')
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
-        const newUser = await res.json()
-        set((state) => ({
-          users: [...state.users, newUser],
-          totalRecords: state.totalRecords + 1,
-          loading: false,
-        }))
-        return newUser
-      } else {
-        set({ loading: false })
-        return null
-      }
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl('user')
+          const res = await $api<any>(url, jsonBody(data))
+
+          const newUser = res.data
+          if (!newUser) return null
+
+          set((state) => ({
+            users: addItemToArray(state.users, newUser),
+            totalRecords: state.totalRecords + 1,
+          }))
+
+          return newUser
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   updateUser: async (id, data) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`user/${id}`)
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`user/${id}`)
 
-      const res = await $api<any>(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      if (res.ok) {
-        const updatedUser = await res.json()
-        set((state) => ({
-          users: state.users.map((user) => (user.id === id ? updatedUser : user)),
-          loading: false,
-        }))
-        return updatedUser
-      } else {
-        set({ loading: false })
-        return null
-      }
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          const res = await $api<any>(url, jsonBody(data, 'PUT'))
+
+          const updatedUser = res.data
+          if (!updatedUser) return null
+
+          set((state) => ({
+            users: updateItemInArray(state.users, id, updatedUser),
+          }))
+
+          return updatedUser
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   deleteUser: async (id) => {
     try {
-      set({ loading: true })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`user/${id}`)
+          await $api<any>(url, { method: 'DELETE' })
 
-      const url = createUrl(`user/${id}`)
-      const res = await $api<any>(url, { method: 'DELETE' })
-      if (res.ok) {
-        set((state) => ({
-          users: state.users.filter((user) => user.id !== id),
-          totalRecords: state.totalRecords - 1,
-          loading: false,
-        }))
-        return true
-      } else {
-        set({ loading: false })
-        return false
-      }
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          set((state) => ({
+            users: removeItemFromArray(state.users, id),
+            totalRecords: state.totalRecords - 1,
+          }))
+
+          return true
+        },
+        console.error
+      )
+    } catch {
       return false
     }
   },

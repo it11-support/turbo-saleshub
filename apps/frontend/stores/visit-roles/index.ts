@@ -2,6 +2,13 @@ import { ISalesVisitRule, IVisitRulesState } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import {
+  addItemToArray,
+  jsonBody,
+  removeItemFromArray,
+  updateItemInArray,
+  withLoading,
+} from '@/lib/storeHelper'
 
 export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
   loading: false,
@@ -17,43 +24,44 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
 
   fetchSalesVisitRules: async (sales_person_id?: number) => {
     try {
-      set({ loading: true })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl('visit-rules', { sales_person_id })
+          const res = await $api<any>(url)
+          set({
+            salesVisitRules: res.data.visit_rules || [],
+          })
 
-      const url = createUrl('visit-rules', { sales_person_id })
-      const res = await $api<any>(url)
-      set({
-        salesVisitRules: res.data.visit_rules || [],
-        loading: false,
-      })
-    } catch (error) {
-      console.log('Error fetchSalesVisitRules:', error)
-      set({ loading: false })
+          return res.data.visit_rules || []
+        },
+        console.log
+      )
+    } catch {
+      return []
     }
   },
 
   createSalesVisitRule: async (data: Partial<ISalesVisitRule>) => {
     try {
-      set({ loading: true })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl('visit-rules/create')
 
-      const url = createUrl('visit-rules/create')
+          const res = await $api<any>(url, jsonBody(data))
 
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+          const newRule = res.data.salesVisitRule
 
-      const newRule = res.data.salesVisitRule
+          set({
+            salesVisitRules: addItemToArray(get().salesVisitRules, newRule),
+          })
 
-      set({
-        salesVisitRules: [...get().salesVisitRules, newRule],
-        loading: false,
-      })
-
-      return newRule
-    } catch (error) {
-      console.error('Error createSalesVisitRule:', error)
-      set({ loading: false })
+          return newRule
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
@@ -61,29 +69,24 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
   // 🟡 Update rule
   updateSalesVisitRule: async (id: number, data: Partial<ISalesVisitRule>) => {
     try {
-      set({ loading: true })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`visit-rules/${id}/update`)
 
-      const url = createUrl(`visit-rules/${id}/update`)
+          const res = await $api<any>(url, jsonBody(data, 'PUT'))
 
-      const res = await $api<any>(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+          const updatedRule = res.data.salesVisitRule
 
-      const updatedRule = res.data.salesVisitRule
+          set({
+            salesVisitRules: updateItemInArray(get().salesVisitRules, id, updatedRule),
+          })
 
-      set({
-        salesVisitRules: get().salesVisitRules.map((rule) =>
-          Number(rule.id) === id ? updatedRule : rule
-        ),
-        loading: false,
-      })
-
-      return updatedRule
-    } catch (error) {
-      console.error('Error updateSalesVisitRule:', error)
-      set({ loading: false })
+          return updatedRule
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
@@ -91,23 +94,24 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
   // 🔴 Delete rule
   deleteSalesVisitRule: async (id: number) => {
     try {
-      set({ loading: true })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`visit-rules/${id}/delete`)
 
-      const url = createUrl(`visit-rules/${id}/delete`)
+          await $api<any>(url, {
+            method: 'DELETE',
+          })
 
-      await $api<any>(url, {
-        method: 'DELETE',
-      })
+          set({
+            salesVisitRules: removeItemFromArray(get().salesVisitRules, id),
+          })
 
-      set({
-        salesVisitRules: get().salesVisitRules.filter((rule) => Number(rule.id) !== id),
-        loading: false,
-      })
-
-      return true
-    } catch (error) {
-      console.error('Error deleteSalesVisitRule:', error)
-      set({ loading: false })
+          return true
+        },
+        console.error
+      )
+    } catch {
       return false
     }
   },

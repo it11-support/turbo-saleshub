@@ -2,6 +2,7 @@ import { ProductStoreState } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { jsonBody, withLoading } from '@/lib/storeHelper'
 
 const initialState = {
   data: [] as any[],
@@ -53,22 +54,13 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
   updateProductInfo: async (product_id, productInfo) => {
     try {
       const url = createUrl('product/info')
-      await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: {
-          product_id,
-          productInfo,
-        },
-      })
+      await $api<any>(url, jsonBody({ product_id, productInfo }))
     } catch (error) {
-      console.error(error)
       console.error('Error updating product:', error)
     }
   },
 
   fetchProducts: async () => {
-    set({ loading: true })
     const {
       page,
       limit,
@@ -80,42 +72,45 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
     } = get()
 
     try {
-      const url = createUrl('product', {
-        page,
-        limit,
-        search,
-        category: selectedCategory,
-        productFocused: isProductFocused,
-        distributor: isDistributor,
-        group: selectedGroup,
-      })
-      const res = await $api<any>(url)
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl('product', {
+            page,
+            limit,
+            search,
+            category: selectedCategory,
+            productFocused: isProductFocused,
+            distributor: isDistributor,
+            group: selectedGroup,
+          })
+          const res = await $api<any>(url)
 
-      const productCategories =
-        res.data.categories?.map((cat: any) => ({
-          value: cat.ItmsGrpCod,
-          label: cat.ItmsGrpNam,
-        })) || []
+          const productCategories =
+            res.data.categories?.map((cat: any) => ({
+              value: cat.ItmsGrpCod,
+              label: cat.ItmsGrpNam,
+            })) || []
 
-      // hitung totalPages jika backend tidak mengirim
-      const totalPages =
-        res.data.totalPages ?? (Math.ceil((res.data.totalRecords || 0) / limit) || 1)
+          // hitung totalPages jika backend tidak mengirim
+          const totalPages =
+            res.data.totalPages ?? (Math.ceil((res.data.totalRecords || 0) / limit) || 1)
 
-      set({
-        data: res.data.items || [],
-        total: res.data.totalRecords || 0,
-        totalPages,
-        categories: productCategories,
-      })
-    } catch (error) {
-      console.error('Error fetching products:', error)
+          set({
+            data: res.data.items || [],
+            total: res.data.totalRecords || 0,
+            totalPages,
+            categories: productCategories,
+          })
+        },
+        console.error
+      )
+    } catch {
       set({
         data: [],
         total: 0,
         totalPages: 1,
       })
-    } finally {
-      set({ loading: false })
     }
   },
 

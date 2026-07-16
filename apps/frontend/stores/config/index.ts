@@ -3,6 +3,7 @@ import { getCookie, setCookie } from 'cookies-next'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { jsonBody, withLoading } from '@/lib/storeHelper'
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
   userId: null,
@@ -29,18 +30,24 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
     // fallback ke API
     try {
-      const url = createUrl('config', { userId: userData.id })
-      const res = await $api<any>(url)
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl('config', { userId: userData.id })
+          const res = await $api<any>(url)
 
-      const list = res.data?.configs || []
-      const configsObj = list.reduce((acc: any, cur: any) => {
-        acc[cur.key] = cur.value
-        return acc
-      }, {})
+          const list = res.data?.configs || []
+          const configsObj = list.reduce((acc: any, cur: any) => {
+            acc[cur.key] = cur.value
+            return acc
+          }, {})
 
-      set({ configs: configsObj, loading: false })
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to load configs', loading: false })
+          set({ configs: configsObj })
+        },
+        (err: any) => set({ error: err?.message || 'Failed to load configs' })
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
 
@@ -49,27 +56,32 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     if (!userId) return
 
     try {
-      const url = createUrl('config')
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl('config')
 
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          configs: payload, // 🔥 kirim object
-        }),
-      })
+          const res = await $api<any>(
+            url,
+            jsonBody({
+              user_id: userId,
+              configs: payload, // 🔥 kirim object
+            })
+          )
 
-      // response: { data: { configs: { key1: val1, key2: val2 } } }
+          // response: { data: { configs: { key1: val1, key2: val2 } } }
 
-      set((state) => ({
-        configs: {
-          ...state.configs,
-          ...res.data.configs, // 🔥 merge semua sekaligus
+          set((state) => ({
+            configs: {
+              ...state.configs,
+              ...res.data.configs, // 🔥 merge semua sekaligus
+            },
+          }))
         },
-      }))
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to update config' })
+        (err: any) => set({ error: err?.message || 'Failed to update config' })
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   getConfig: (key, defaultValue = null) => {

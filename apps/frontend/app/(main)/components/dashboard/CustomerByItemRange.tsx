@@ -3,6 +3,8 @@ import { ChartDataset, TooltipItem } from 'chart.js'
 import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 
+import { formatCurrency } from '@/lib/formatter'
+
 interface CustomBarDataset extends ChartDataset<'bar', number[]> {
   revenueData?: number[]
 }
@@ -94,11 +96,7 @@ const CustomerByItemRange = (props: CustomerByItemRangeProp) => {
             const dataset = context.dataset as CustomBarDataset
             const revenueAmount = dataset.revenueData?.[context.dataIndex] || 0
 
-            const formattedRevenue = new Intl.NumberFormat('id-ID', {
-              style: 'currency',
-              currency: 'IDR',
-              maximumFractionDigits: 0,
-            }).format(revenueAmount)
+            const formattedRevenue = formatCurrency(revenueAmount, true, true)
 
             // Menggunakan padEnd dengan spasi karakter manual agar terhitung di canvas
             return [`${label}: (${customersCount} Customers)`, `${formattedRevenue}`]

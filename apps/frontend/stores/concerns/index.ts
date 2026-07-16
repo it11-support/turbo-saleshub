@@ -2,7 +2,14 @@ import { IConcernState, IConcernStatus } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
-import { withLoading } from '@/lib/storeHelper'
+import {
+  addItemToArray,
+  jsonBody,
+  removeItemFromArray,
+  unwrapData,
+  updateItemInArray,
+  withLoading,
+} from '@/lib/storeHelper'
 
 export const useConcernStore = create<IConcernState>()((set, get) => ({
   concernCategory: null,
@@ -14,63 +21,51 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
   description: '',
   setConcernStatus: (status: IConcernStatus) => set({ concernStatus: status }),
   createCategory: async (data) => {
-    return withLoading(
-      set,
-      async () => {
-        const { concernCategories } = get()
+    try {
+      return await withLoading(
+        set,
+        async () => {
+          const { concernCategories } = get()
 
-        const url = createUrl('concern-categories')
-        const res = await $api<any>(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        })
+          const url = createUrl('concern-categories')
+          const res = await $api<any>(url, jsonBody(data))
 
-        console.log(res.data)
+          const newCategory = unwrapData(res)
 
-        const payload = res?.data ?? res
-        const newCategory = payload?.data ?? payload?.category ?? payload
+          if (!newCategory) return null
 
-        if (!newCategory) return null
+          set({
+            concernCategories: addItemToArray(concernCategories, newCategory),
+          })
 
-        set({
-          concernCategories: [...concernCategories, newCategory],
-        })
-
-        return newCategory
-      },
-      (error) => {
-        console.error(error)
-      }
-    )
+          return newCategory
+        },
+        console.error
+      )
+    } catch {
+      return null
+    }
   },
   createStatus: async (data) => {
     try {
-      return withLoading(
+      return await withLoading(
         set,
         async () => {
           const url = createUrl('concern-categories/statuses')
 
-          const res = await $api<any>(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
+          const res = await $api<any>(url, jsonBody(data))
 
-          const payload = res?.data ?? res
-          const newStatus = payload
+          const newStatus = unwrapData(res)
 
           if (!newStatus) return null
 
           set((state) => ({
-            concernStatuses: [...state.concernStatuses, newStatus],
+            concernStatuses: addItemToArray(state.concernStatuses, newStatus),
           }))
 
           return newStatus
         },
-        (error) => {
-          console.error(error)
-        }
+        console.error
       )
     } catch {
       return null
@@ -78,25 +73,19 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
   },
   updateStatus: async (id, data) => {
     try {
-      return withLoading(
+      return await withLoading(
         set,
         async () => {
           const url = createUrl(`concern-categories/statuses/${id}`)
 
-          const res = await $api<any>(url, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
+          const res = await $api<any>(url, jsonBody(data, 'PUT'))
 
-          const updatedStatus = res?.data ?? res
+          const updatedStatus = unwrapData(res)
 
           if (!updatedStatus) return null
 
           set((state) => ({
-            concernStatuses: state.concernStatuses.map((status) =>
-              Number(status.id) === id ? updatedStatus : status
-            ),
+            concernStatuses: updateItemInArray(state.concernStatuses, id, updatedStatus),
           }))
 
           return updatedStatus
@@ -119,7 +108,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
           })
 
           set((state) => ({
-            concernStatuses: state.concernStatuses.filter((status) => Number(status.id) !== id),
+            concernStatuses: removeItemFromArray(state.concernStatuses, id),
           }))
 
           return true
@@ -138,21 +127,14 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
         async () => {
           const url = createUrl(`concern-categories/${id}`)
 
-          const res = await $api<any>(url, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          })
+          const res = await $api<any>(url, jsonBody(data, 'PUT'))
 
-          const payload = res?.data ?? res
-          const updatedCategory = payload?.data ?? payload?.category ?? payload
+          const updatedCategory = unwrapData(res)
 
           if (!updatedCategory) return null
 
           set((state) => ({
-            concernCategories: state.concernCategories.map((category) =>
-              Number(category.id) === id ? updatedCategory : category
-            ),
+            concernCategories: updateItemInArray(state.concernCategories, id, updatedCategory),
           }))
 
           return updatedCategory
@@ -175,9 +157,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
           })
 
           set((state) => ({
-            concernCategories: state.concernCategories.filter(
-              (category) => Number(category.id) !== id
-            ),
+            concernCategories: removeItemFromArray(state.concernCategories, id),
           }))
 
           return true

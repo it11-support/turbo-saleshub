@@ -66,12 +66,7 @@ const RevenueByProductCategory = ({
       },
       tooltip: {
         callbacks: {
-          label: (ctx: any) =>
-            new Intl.NumberFormat('id-ID', {
-              style: 'currency',
-              currency: 'IDR',
-              maximumFractionDigits: 0,
-            }).format(ctx.raw),
+          label: (ctx: any) => formatCurrency(ctx.raw, true, true),
         },
       },
     },
@@ -79,10 +74,7 @@ const RevenueByProductCategory = ({
       x: {
         ticks: {
           callback(value: any) {
-            return new Intl.NumberFormat('us-US', {
-              notation: 'compact',
-              maximumFractionDigits: 1,
-            }).format(Number(value))
+            return formatCurrency(Number(value), true, true)
           },
         },
       },

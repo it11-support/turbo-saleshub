@@ -6,6 +6,11 @@ import importPlugin from 'eslint-plugin-import-x'
 import unusedImports from 'eslint-plugin-unused-imports'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export default [
   {
@@ -51,6 +56,9 @@ export default [
 
     languageOptions: {
       parser: tseslint.parser,
+      parserOptions: {
+        tsconfigRootDir: __dirname
+      },
       globals: {
         ...globals.browser,
         ...globals.node

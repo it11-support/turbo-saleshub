@@ -266,7 +266,7 @@ export const itemSuggestions = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const { distributor, groceries } = await getSuggestedItems(Number(id), undefined, false);
+    const { distributor, groceries } = await getSuggestedItems(Number(id), false);
 
     res.status(200).json({
       message: 'Success',
@@ -392,7 +392,6 @@ export const purchaseHistory = async (req: Request, res: Response) => {
 
 export const getSuggestedItems = async (
   id: number,
-  limit: number | undefined = 15,
   includeRecentOffered: boolean = false
 ): Promise<{ groceries: any[], distributor: any[] }> => {
   try {

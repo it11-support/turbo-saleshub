@@ -50,7 +50,7 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
     const total = await prisma.sales_visit_schedules.count({ where });
     const schedulesWithSuggestions = await Promise.all(
       schedules.map(async (s) => {
-        const suggestedItems = await getSuggestedItems(Number(s.customer.id), 15);
+        const suggestedItems = await getSuggestedItems(Number(s.customer.id));
         return {
           ...s,
           suggestedItems,

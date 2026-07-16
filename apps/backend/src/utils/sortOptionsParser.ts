@@ -12,19 +12,6 @@ const assertSafeKey = (key: string): void => {
   }
 }
 
-const isSortOption = (value: unknown): value is SortOption => {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-
-  const sort = value as Record<string, unknown>
-
-  return (
-    typeof sort.key === 'string' &&
-    (sort.order === 'asc' || sort.order === 'desc')
-  )
-}
-
 const isOrder = (value: unknown): value is 'asc' | 'desc' =>
   value === 'asc' || value === 'desc'
 

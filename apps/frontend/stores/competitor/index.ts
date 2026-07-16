@@ -7,6 +7,7 @@ import {
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { addItemToArray, jsonBody } from '@/lib/storeHelper'
 
 export const useCompetitorStore = create<VisitCompetitorState>((set, get) => ({
   masterCompetitors: [],
@@ -35,11 +36,7 @@ export const useCompetitorStore = create<VisitCompetitorState>((set, get) => ({
 
       const url = createUrl(`competitors/${visitId}/sync`)
 
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      const res = await $api<any>(url, jsonBody(payload))
 
       if (res.status === 200) {
         resetForm()
@@ -74,7 +71,7 @@ export const useCompetitorStore = create<VisitCompetitorState>((set, get) => ({
       ],
     }
 
-    set({ selectedCompetitors: [...selectedCompetitors, newEntry] })
+    set({ selectedCompetitors: addItemToArray(selectedCompetitors, newEntry) })
   },
 
   removeCompetitorFromVisit: (index: number) => {
@@ -132,7 +129,9 @@ export const useCompetitorStore = create<VisitCompetitorState>((set, get) => ({
   },
 
   setSelectedCompetitor: (competitor: VisitCompetitor) =>
-    set((state) => ({ selectedCompetitors: [...state.selectedCompetitors, competitor] })),
+    set((state) => ({
+      selectedCompetitors: addItemToArray(state.selectedCompetitors, competitor),
+    })),
   setCompetitors: (competitors: VisitCompetitor[]) => set({ selectedCompetitors: competitors }),
 
   resetForm: () => set({ selectedCompetitors: [], currentVisitId: null }),

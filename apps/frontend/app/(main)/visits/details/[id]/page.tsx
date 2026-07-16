@@ -23,6 +23,7 @@ import ProductOfferCard from '@/app/(main)/components/product/ProductOfferCard'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
 import { fetcher } from '@/app/(main)/lib'
 import { createUrl } from '@/lib/api'
+import { formatCurrency } from '@/lib/formatter'
 
 const VisitDetailsPage = () => {
   const { id } = useParams()
@@ -469,7 +470,7 @@ const VisitDetailsPage = () => {
 
                                 <div className="flex align-items-center gap-2 flex-wrap">
                                   <div className="font-semibold text-900">
-                                    Rp {Number(product.price).toLocaleString('id-ID')} /{' '}
+                                    {formatCurrency(Number(product.price), true, true)} /{' '}
                                     {product.unit || 'unit'}
                                   </div>
 

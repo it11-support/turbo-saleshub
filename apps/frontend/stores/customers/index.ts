@@ -3,6 +3,7 @@ import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { jsonBody, withLoading } from '@/lib/storeHelper'
 
 export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   newCustomerForm: {},
@@ -63,101 +64,111 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setLoyaltyLevel: (loyaltyLevel: string[]) => set({ loyaltyLevel }),
   fetchCustomers: async () => {
     try {
-      const userCookie = getCookie('userData')
-      const userData = userCookie ? JSON.parse(String(userCookie)) : null
-      const loginSlpCode = userData?.sales_person?.SlpCode
+      await withLoading(
+        set,
+        async () => {
+          const userCookie = getCookie('userData')
+          const userData = userCookie ? JSON.parse(String(userCookie)) : null
+          const loginSlpCode = userData?.sales_person?.SlpCode
 
-      const {
-        page,
-        limit,
-        search,
-        multiSortMeta,
-        groups,
-        salesPersons,
-        subgroups,
-        itemCount,
-        loyaltyLevel,
-        slpCode,
-        isNewCustomer,
-      } = get()
+          const {
+            page,
+            limit,
+            search,
+            multiSortMeta,
+            groups,
+            salesPersons,
+            subgroups,
+            itemCount,
+            loyaltyLevel,
+            slpCode,
+            isNewCustomer,
+          } = get()
 
-      const finalSlpCode = slpCode ?? loginSlpCode
+          const finalSlpCode = slpCode ?? loginSlpCode
 
-      set({ loading: true })
+          const payload = {
+            page,
+            per_page: limit,
+            sort_options: JSON.stringify(
+              (multiSortMeta || []).map((meta) => ({
+                key: meta.field,
+                order: meta.order === 1 ? 'asc' : 'desc',
+              }))
+            ),
+            ...(search ? { search } : {}),
+            ...(groups && groups.length > 0 ? { groups } : {}),
+            ...(subgroups && subgroups.length > 0 ? { subgroups } : {}),
+            ...(salesPersons && salesPersons.length > 0 ? { salesPersons } : {}),
+            ...(finalSlpCode ? { slpCode: finalSlpCode } : {}),
+            ...(itemCount ? { itemCount } : {}),
+            ...(loyaltyLevel ? { loyaltyLevel } : {}),
+            ...(isNewCustomer ? { isNewCustomer } : {}),
+          }
 
-      const payload = {
-        page,
-        per_page: limit,
-        sort_options: JSON.stringify(
-          (multiSortMeta || []).map((meta) => ({
-            key: meta.field,
-            order: meta.order === 1 ? 'asc' : 'desc',
-          }))
-        ),
-        ...(search ? { search } : {}),
-        ...(groups && groups.length > 0 ? { groups } : {}),
-        ...(subgroups && subgroups.length > 0 ? { subgroups } : {}),
-        ...(salesPersons && salesPersons.length > 0 ? { salesPersons } : {}),
-        ...(finalSlpCode ? { slpCode: finalSlpCode } : {}),
-        ...(itemCount ? { itemCount } : {}),
-        ...(loyaltyLevel ? { loyaltyLevel } : {}),
-        ...(isNewCustomer ? { isNewCustomer } : {}),
-      }
-
-      const url = createUrl('customers', payload)
-      const res = await $api<any>(url)
-      const { data, groupNames, salesPersonNames, subGroupNames } = res
-      set({ groupNames })
-      set({ salesPersonNames })
-      set({ subGroupNames })
-      set({ customers: data.items, totalRecords: data.totalRecords, loading: false })
-    } catch (error) {
-      console.log(error)
-      set({ loading: false })
+          const url = createUrl('customers', payload)
+          const res = await $api<any>(url)
+          const { data, groupNames, salesPersonNames, subGroupNames } = res
+          set({ groupNames })
+          set({ salesPersonNames })
+          set({ subGroupNames })
+          set({ customers: data.items, totalRecords: data.totalRecords })
+        },
+        console.log
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   fetchCustomerSummary: async (id) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`customers/${id}`)
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`customers/${id}`)
 
-      const res = await $api<any>(url)
+          const res = await $api<any>(url)
 
-      set({ customer: res.data.customer })
-      return res.data
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          set({ customer: res.data.customer })
+          return res.data
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
   fetchSuggestedItems: async (id) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`customers/${id}/suggestions`)
-      const res = await $api<any>(url)
-      set({ loading: false })
-      set({ suggestedItems: res.data.suggestions ?? { distributor: [], groceries: [] } })
-      return res.data
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`customers/${id}/suggestions`)
+          const res = await $api<any>(url)
+          set({ suggestedItems: res.data.suggestions ?? { distributor: [], groceries: [] } })
+          return res.data
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
 
   fetchPurchaseHistory: async (id) => {
     try {
-      set({ loading: true })
-      const url = createUrl(`customers/${id}/purchases`)
-      const res = await $api<any>(url)
-      set({ loading: false })
-      set({ invoiceCountByRange: res.data.invoiceCountByRange })
-      set({ ordersByRange: res.data.ordersByRange })
-      set({ lastPurchase: res.data.lastPurchase })
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`customers/${id}/purchases`)
+          const res = await $api<any>(url)
+          set({ invoiceCountByRange: res.data.invoiceCountByRange })
+          set({ ordersByRange: res.data.ordersByRange })
+          set({ lastPurchase: res.data.lastPurchase })
+        },
+        console.error
+      )
+    } catch {
       return null
     }
   },
@@ -193,11 +204,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
     try {
       const { newCustomerForm } = get()
       const url = createUrl('customers')
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCustomerForm),
-      })
+      const res = await $api<any>(url, jsonBody(newCustomerForm))
       return res.data.newCustomer
     } catch (err) {
       console.error('Failed to create new customer:', err)

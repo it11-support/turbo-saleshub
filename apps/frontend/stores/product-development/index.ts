@@ -2,6 +2,13 @@ import { IProduct, IProductDevelopmentList, ProductDevelopmentState } from '@sal
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import {
+  addItemToArray,
+  jsonBody,
+  removeItemFromArray,
+  updateItemInArray,
+  withLoading,
+} from '@/lib/storeHelper'
 
 export const useProductDevelopmentStore = create<ProductDevelopmentState>((set, get) => ({
   loading: false,
@@ -27,43 +34,41 @@ export const useProductDevelopmentStore = create<ProductDevelopmentState>((set, 
   sync: async () => {
     const { activeProduct, subgroupIds } = get()
     if (!activeProduct) return
-    set({ loading: true })
-
     try {
-      const url = createUrl('product/product-development')
-      const payload = { productId: activeProduct.id, subgroupIds }
-      const res = await $api(url, {
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl('product/product-development')
+          const payload = { productId: activeProduct.id, subgroupIds }
+          const res = await $api(url, jsonBody(payload))
 
-      set({
-        subgroupIds: (res.subgroups || []).map((sg: { IndCode: number }) => sg.IndCode),
-      })
-      // update devProducts store
-      set((state) => {
-        const serverSubgroups = res.subgroups || []
+          set({
+            subgroupIds: (res.subgroups || []).map((sg: { IndCode: number }) => sg.IndCode),
+          })
+          // update devProducts store
+          set((state) => {
+            const serverSubgroups = res.subgroups || []
 
-        const updatedDevProduct: IProductDevelopmentList = {
-          id: activeProduct.id,
-          ItemCode: activeProduct.ItemCode,
-          ItemName: activeProduct.ItemName,
-          subgroups: serverSubgroups,
-        }
+            const updatedDevProduct: IProductDevelopmentList = {
+              id: activeProduct.id,
+              ItemCode: activeProduct.ItemCode,
+              ItemName: activeProduct.ItemName,
+              subgroups: serverSubgroups,
+            }
 
-        const exists = state.devProducts.find((p) => p.id === activeProduct.id)
+            const exists = state.devProducts.find((p) => p.id === activeProduct.id)
 
-        return {
-          devProducts: exists
-            ? state.devProducts.map((p) => (p.id === activeProduct.id ? updatedDevProduct : p))
-            : [...state.devProducts, updatedDevProduct],
-        }
-      })
-    } catch (err) {
-      console.error(err)
-    } finally {
-      set({ loading: false })
+            return {
+              devProducts: exists
+                ? updateItemInArray(state.devProducts, activeProduct.id, updatedDevProduct)
+                : addItemToArray(state.devProducts, updatedDevProduct),
+            }
+          })
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
 
@@ -77,20 +82,22 @@ export const useProductDevelopmentStore = create<ProductDevelopmentState>((set, 
       subgroupIds: get().subgroupIds,
     }
     try {
-      const url = createUrl(`product/development/remove`)
-      await $api(url, {
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        body: JSON.stringify(payloads),
-      })
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`product/development/remove`)
+          await $api(url, jsonBody(payloads))
 
-      set((state) => ({
-        devProducts: state.devProducts.filter((p) => p.id !== activeProduct.id),
-      }))
+          set((state) => ({
+            devProducts: removeItemFromArray(state.devProducts, activeProduct.id),
+          }))
 
-      get().clearActive()
-    } catch (err) {
-      console.error(err)
+          get().clearActive()
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   reset: () =>

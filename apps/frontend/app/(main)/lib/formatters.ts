@@ -1,38 +1,6 @@
-import { format, Locale, parseISO } from 'date-fns'
-import { enUS as localeEn } from 'date-fns/locale'
+import { format, parseISO } from 'date-fns'
 
-import {
-  DEFAULT_DATE_FORMAT,
-  DEFAULT_DATETIME_FORMAT,
-  DEFAULT_DATETIME_SECONDS_FORMAT,
-} from '@/lib/constants'
-
-type FormatDateOptions = {
-  withTime?: boolean
-  withSeconds?: boolean
-  locale?: Locale
-  fallback?: string
-  dateFormat?: string
-}
-
-export const formatDate = (date?: string | Date | null, options?: FormatDateOptions): string => {
-  if (!date) return options?.fallback ?? '-'
-
-  const parsed = typeof date === 'string' ? parseISO(date) : date
-
-  if (isNaN(parsed.getTime())) {
-    return options?.fallback ?? '-'
-  }
-
-  const { withTime = false, withSeconds = false, locale = localeEn, dateFormat } = options || {}
-
-  let pattern = dateFormat || DEFAULT_DATE_FORMAT
-
-  if (withTime && withSeconds) pattern = DEFAULT_DATETIME_SECONDS_FORMAT
-  else if (withTime) pattern = DEFAULT_DATETIME_FORMAT
-
-  return format(parsed, pattern, { locale })
-}
+import { formatDate } from '@/lib/dateUtils'
 
 export const formatDateTime = (date?: string | Date | null, fallback = '-'): string => {
   return formatDate(date, { withTime: true, fallback })
@@ -40,11 +8,6 @@ export const formatDateTime = (date?: string | Date | null, fallback = '-'): str
 
 export const formatDateTimeSeconds = (date?: string | Date | null, fallback = '-'): string => {
   return formatDate(date, { withTime: true, withSeconds: true, fallback })
-}
-
-export const normalizeDateToUTC = (date: Date | null): Date | null => {
-  if (!date) return null
-  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
 }
 
 export const isToday = (date?: string | Date | null): boolean => {

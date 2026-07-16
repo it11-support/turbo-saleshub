@@ -4,6 +4,7 @@ import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { withLoading } from '@/lib/storeHelper'
 
 const initialState = {
   data: [],
@@ -71,40 +72,43 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
   setDates: (dates: Nullable<(Date | null)[]>) => set({ dates }),
   setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
   fetchVisits: async () => {
-    set({ loading: true })
     const { page, limit, dates, multiSortMeta, salesPersonId, status, needFollowUp } = get()
 
     try {
-      const sort_options = JSON.stringify(
-        (multiSortMeta || []).map((meta) => ({
-          key: meta.field,
-          order: meta.order === 1 ? 'asc' : 'desc',
-        }))
-      )
-      const url = createUrl('visits', {
-        salesPersonId,
-        page,
-        needFollowUp,
-        status,
-        limit,
-        dates: dates
-          ?.map((date) => (date ? formatDate(date, 'yyyy-MM-dd') : null))
-          .filter((date): date is string => date !== null),
-        sort_options,
-      })
-      const res = await $api<any>(url)
+      await withLoading(
+        set,
+        async () => {
+          const sort_options = JSON.stringify(
+            (multiSortMeta || []).map((meta) => ({
+              key: meta.field,
+              order: meta.order === 1 ? 'asc' : 'desc',
+            }))
+          )
+          const url = createUrl('visits', {
+            salesPersonId,
+            page,
+            needFollowUp,
+            status,
+            limit,
+            dates: dates
+              ?.map((date) => (date ? formatDate(date, 'yyyy-MM-dd') : null))
+              .filter((date): date is string => date !== null),
+            sort_options,
+          })
+          const res = await $api<any>(url)
 
-      set({
-        data: res.data.data,
-        total: res.data.total,
-        totalPages: res.data.totalPages,
-        page,
-        limit,
-        loading: false,
-      })
-    } catch (err) {
-      console.error('fetchVisits error', err)
-      set({ loading: false })
+          set({
+            data: res.data.data,
+            total: res.data.total,
+            totalPages: res.data.totalPages,
+            page,
+            limit,
+          })
+        },
+        console.error
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
 

@@ -2,6 +2,7 @@ import { GenerateResult, IVisit, ScheduleState, VisitScheduleStatus } from '@sal
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
+import { jsonBody, removeItemFromArray, updateItemInArray, withLoading } from '@/lib/storeHelper'
 
 export const useScheduleStore = create<ScheduleState>((set, get) => ({
   currentDate: new Date().toISOString().slice(0, 10),
@@ -18,128 +19,138 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
   setPage: (page: number) => set({ page }),
 
   fetchBySalesPerson: async (sales_person_id: number) => {
-    set({ loading: true, error: null })
     const { page, pageSize } = get()
 
     try {
-      const url = createUrl('schedule', { salesPersonId: sales_person_id, page, pageSize })
-      const res = await $api<any>(url)
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl('schedule', { salesPersonId: sales_person_id, page, pageSize })
+          const res = await $api<any>(url)
 
-      set({ schedules: res.data, loading: false })
-      set({ total: res.total, totalPages: res.totalPages })
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
+          set({ schedules: res.data })
+          set({ total: res.total, totalPages: res.totalPages })
+        },
+        (err: any) => set({ error: err?.message })
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   createVisitSchedule: async (data: Partial<IVisit>) => {
     try {
-      set({ loading: true })
-      const url = createUrl('schedule/create')
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+      return await withLoading(
+        set,
+        async () => {
+          const url = createUrl('schedule/create')
+          const res = await $api<any>(url, jsonBody(data))
 
-      const date = new Date(data.visit_date as string)
-      await get().fetchScheduleByDate(Number(data.sales_person_id), date.toISOString().slice(0, 10))
+          const date = new Date(data.visit_date as string)
+          await get().fetchScheduleByDate(
+            Number(data.sales_person_id),
+            date.toISOString().slice(0, 10)
+          )
 
-      set({ loading: false })
-      return res.data
-    } catch (error) {
-      console.error(error)
-      set({ loading: false })
+          return res.data
+        },
+        console.error
+      )
+    } catch {
+      return null
     }
   },
   generateByRules: async (sales_person_id: number, year: number, month: number) => {
-    set({ loading: true, error: null })
+    return withLoading(
+      set,
+      async () => {
+        const url = createUrl('schedule/generate')
+        const payload = {
+          sales_person_id,
+          year,
+          month,
+        }
+        const res = await $api<any>(url, jsonBody(payload))
 
-    try {
-      const url = createUrl('schedule/generate')
-      const payload = {
-        sales_person_id,
-        year,
-        month,
-      }
-      const res = await $api<any>(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+        // refresh after generating
+        await get().fetchBySalesPerson(sales_person_id)
 
-      // refresh after generating
-      await get().fetchBySalesPerson(sales_person_id)
-
-      set({ loading: false })
-      return res.data as GenerateResult
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
-      throw err
-    }
+        return res.data as GenerateResult
+      },
+      (err: any) => set({ error: err?.message })
+    )
   },
   updateStatus: async (id: number, status: string) => {
-    set({ loading: true })
-
     try {
-      const url = createUrl(`schedule/${id}`)
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`schedule/${id}`)
 
-      const payload = { status }
+          const payload = { status }
 
-      await $api<any>(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+          await $api<any>(url, jsonBody(payload, 'PUT'))
 
-      const schedules = get().schedules.map((item) =>
-        item.id === id ? { ...item, status: status as VisitScheduleStatus } : item
+          set((state) => ({
+            schedules: updateItemInArray(state.schedules, id, {
+              ...state.schedules.find((item) => item.id === id),
+              status: status as VisitScheduleStatus,
+            } as any),
+          }))
+        },
+        (err: any) => set({ error: err?.message })
       )
-
-      set({ schedules, loading: false })
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
+    } catch {
+      // error logged via withLoading onError
     }
   },
   deleteSchedule: async (id: number) => {
-    set({ loading: true })
-
     try {
-      const url = createUrl(`/schedule/${id}`)
-      await $api<any>(url, {
-        method: 'DELETE',
-      })
+      await withLoading(
+        set,
+        async () => {
+          const url = createUrl(`/schedule/${id}`)
+          await $api<any>(url, {
+            method: 'DELETE',
+          })
 
-      const schedules = get().schedules.filter((s) => s.id !== id)
-
-      set({ schedules, loading: false })
-    } catch (err: any) {
-      set({ error: err.message, loading: false })
+          set((state) => ({
+            schedules: removeItemFromArray(state.schedules, id),
+          }))
+        },
+        (err: any) => set({ error: err?.message })
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
   fetchScheduleByDate: async (sales_person_id: number, date: string) => {
-    set({ loading: true, error: null })
     const { page, pageSize, currentDate } = get()
     const selectedDate = date ?? currentDate
 
     try {
-      const payload: Record<string, any> = {
-        salesPersonId: sales_person_id,
-        date: selectedDate,
-        page,
-        pageSize,
-      }
-      const url = createUrl('schedule', payload)
+      await withLoading(
+        set,
+        async () => {
+          const payload: Record<string, any> = {
+            salesPersonId: sales_person_id,
+            date: selectedDate,
+            page,
+            pageSize,
+          }
+          const url = createUrl('schedule', payload)
 
-      const res = await $api<any>(url)
+          const res = await $api<any>(url)
 
-      set({
-        schedules: res.data.data,
-        loading: false,
-        total: res.total,
-        totalPages: res.totalPages,
-      })
-    } catch (err: any) {
-      set({ error: err, loading: false })
+          set({
+            schedules: res.data.data,
+            total: res.total,
+            totalPages: res.totalPages,
+          })
+        },
+        (err: any) => set({ error: err })
+      )
+    } catch {
+      // error logged via withLoading onError
     }
   },
 }))
