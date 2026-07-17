@@ -18,7 +18,7 @@ import { formatCurrency } from '@/lib/formatter'
 
 type ActiveCustomerCardProps = {
   isActiveCustomersValidating: boolean
-  activeCustomersData?: IDashboardData
+  activeCustomersData?: IDashboardData['data']
 }
 
 const ActiveCustomerCard = ({
@@ -26,7 +26,7 @@ const ActiveCustomerCard = ({
   activeCustomersData,
 }: ActiveCustomerCardProps) => {
   const { isAdmin } = useAuth()
-  const activeCustomers = activeCustomersData?.data?.activeCustomers
+  const activeCustomers = activeCustomersData?.activeCustomers
   const nonActive = activeCustomers?.nonActive
   const [showExport, setShowExport] = useState(false)
   const [selectedSlp, setSelectedSlp] = useState<number | null | undefined>(-1)

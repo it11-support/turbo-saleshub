@@ -10,7 +10,7 @@ import { LayoutContext } from '@/layout/context/layoutcontext'
 
 type CustomerLoyaltyCardProps = {
   isCustomerLoyaltyValidating: boolean
-  customerLoyaltyData?: IDashboardData
+  customerLoyaltyData?: IDashboardData['data']
 }
 const CustomerLoyaltyCard = ({
   isCustomerLoyaltyValidating,
@@ -18,8 +18,8 @@ const CustomerLoyaltyCard = ({
 }: CustomerLoyaltyCardProps) => {
   const { layoutConfig } = useContext(LayoutContext)
 
-  const CRR = customerLoyaltyData?.data?.CRR ?? []
-  const nooVsExisting = customerLoyaltyData?.data?.nooVsExisting ?? []
+  const CRR = customerLoyaltyData?.CRR ?? []
+  const nooVsExisting = customerLoyaltyData?.nooVsExisting ?? []
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
 
   return (

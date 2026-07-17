@@ -10,12 +10,12 @@ import { MONTH_SHORT } from '@/lib/constants'
 
 type CustomerGrowthProps = {
   isValidating: boolean
-  customerTrendData?: IDashboardData
+  customerTrendData?: IDashboardData['data']
 }
 const CustomerGrowth = (props: CustomerGrowthProps) => {
   const { isValidating, customerTrendData } = props
 
-  const customerTrend = customerTrendData?.data?.customerTrend
+  const customerTrend = customerTrendData?.customerTrend
 
   const yearly = customerTrend?.yearly || {}
   const monthly = customerTrend?.monthly || {}

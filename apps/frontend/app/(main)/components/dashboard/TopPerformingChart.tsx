@@ -6,10 +6,10 @@ import { LayoutContext } from '@/layout/context/layoutcontext'
 
 type TopPerformingChartProps = {
   isValidating: boolean
-  data?: IDashboardData
+  data?: IDashboardData['data']
 }
 const TopPerformingChart = ({ isValidating, data }: TopPerformingChartProps) => {
-  const { productRevenueDistributor, productRevenueGrocery, productRevenueAll } = data?.data || {}
+  const { productRevenueDistributor, productRevenueGrocery, productRevenueAll } = data || {}
 
   const productRevenueDistributorLabel = productRevenueDistributor?.map((item) => item.ItemName)
   const productRevenueDistributorData = productRevenueDistributor?.map((item) => item.revenue)

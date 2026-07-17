@@ -8,7 +8,7 @@ import { CHART_COLORS } from '@/lib/constants'
 import { formatCurrency } from '@/lib/formatter'
 
 type RevenueByCategoryProps = {
-  revenueByCategoryData?: IDashboardData
+  revenueByCategoryData?: IDashboardData['data']
   period: 'mtd' | 'ytd'
   isValidating?: boolean
 }
@@ -19,7 +19,7 @@ const RevenueByProductCategory = ({
 }: RevenueByCategoryProps) => {
   const { layoutConfig } = useContext(LayoutContext)
 
-  const revenueByCategory = revenueByCategoryData?.data.revenueByCategory
+  const revenueByCategory = revenueByCategoryData?.revenueByCategory
   const baseColor = layoutConfig.colorScheme === 'light' ? '#2d353e' : '#f8f9fa'
 
   const sorted = [...(revenueByCategory ?? [])].sort((a, b) => {

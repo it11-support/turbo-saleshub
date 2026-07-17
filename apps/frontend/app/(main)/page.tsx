@@ -6,15 +6,13 @@ import RevenueByProductCategory from './components/dashboard/RevenueByProductCat
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
 import TrendChart from './components/dashboard/TrendChart'
 import YoySummary from './components/dashboard/YoySummary'
-import { fetcher } from './lib'
 import { LayoutContext } from '../../layout/context/layoutcontext'
 import { IDashboardData } from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { SelectButton } from 'primereact/selectbutton'
 import { useContext, useEffect, useState } from 'react'
-import useSWR from 'swr'
 
-import { createUrl } from '@/lib/api'
+import { useFetchObject } from '@/hooks/useFetch'
 
 import 'chartjs-adapter-date-fns'
 
@@ -38,55 +36,44 @@ const Dashboard = () => {
 
   const salesPersonId = userData?.sales_person?.id
 
-  const payload = {
-    ...(salesPersonId ? { salesPersonId } : {}),
-  }
-
-  const url = createUrl('summary', payload)
-
-  const { data, isValidating } = useSWR<IDashboardData>(url, fetcher, {
+  const { data, isValidating } = useFetchObject<IDashboardData['data']>('summary', undefined, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
   })
 
-  const apiCustomerLoyalty = createUrl('summary/customer-loyalty')
+  const { data: customerLoyaltyData, isValidating: isCustomerLoyaltyValidating } = useFetchObject<
+    IDashboardData['data']
+  >('summary/customer-loyalty', undefined, {
+    dedupingInterval: 60000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: true,
+  })
 
-  const { data: customerLoyaltyData, isValidating: isCustomerLoyaltyValidating } =
-    useSWR<IDashboardData>(apiCustomerLoyalty, fetcher, {
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    })
-
-  const apiActiveCustomers = createUrl('summary/active-customers')
-
-  const { data: activeCustomersData, isValidating: isActiveCustomersValidating } =
-    useSWR<IDashboardData>(apiActiveCustomers, fetcher, {
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    })
-
-  const apiRevenueByCategory = createUrl('summary/revenue-by-category')
+  const { data: activeCustomersData, isValidating: isActiveCustomersValidating } = useFetchObject<
+    IDashboardData['data']
+  >('summary/active-customers', undefined, {
+    dedupingInterval: 60000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: true,
+  })
 
   const { data: revenueByCategoryData, isValidating: isRevenueByCategoryValidating } =
-    useSWR<IDashboardData>(apiRevenueByCategory, fetcher, {
+    useFetchObject<IDashboardData['data']>('summary/revenue-by-category', undefined, {
       dedupingInterval: 60000,
       revalidateIfStale: false,
       revalidateOnReconnect: true,
     })
 
-  const apiCustomerTrend = createUrl('summary/customer-trend', payload)
+  const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetchObject<
+    IDashboardData['data']
+  >('summary/customer-trend', salesPersonId ? { salesPersonId } : {}, {
+    dedupingInterval: 60000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: true,
+  })
 
-  const { data: customerTrendData, isValidating: isCustomerTrendValidating } =
-    useSWR<IDashboardData>(apiCustomerTrend, fetcher, {
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    })
-
-  const { summary } = data?.data || {}
+  const { summary } = data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
 

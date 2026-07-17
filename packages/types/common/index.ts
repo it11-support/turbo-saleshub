@@ -83,6 +83,7 @@ export interface IPaginatedData<T> {
   perPage?: number
   totalPages?: number
   totalRecords?: number
+  page?: number
 }
 
 export interface IResPaginated<T> extends ISwrResponse {

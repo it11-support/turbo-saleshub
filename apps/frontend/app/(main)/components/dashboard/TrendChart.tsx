@@ -6,11 +6,11 @@ import { MONTH_SHORT } from '@/lib/constants'
 
 type TrendChartProps = {
   isValidating: boolean
-  data?: IDashboardData
+  data?: IDashboardData['data']
 }
 
 const TrendChart = ({ isValidating, data }: TrendChartProps) => {
-  const { monthlyTrends } = data?.data || {}
+  const { monthlyTrends } = data || {}
 
   const chartData =
     monthlyTrends?.map((item: any) => {

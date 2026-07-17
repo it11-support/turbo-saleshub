@@ -1,13 +1,6 @@
 'use client'
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
-import {
-  DataTableSortMeta,
-  IActivityLog,
-  IResPaginated,
-  IResSingle,
-  ISalesPerson,
-} from '@saleshub-tsm/types'
+import { DataTableSortMeta, IActivityLog, ISalesPerson } from '@saleshub-tsm/types'
 import { format, formatDate } from 'date-fns'
 import {
   parseAsInteger,
@@ -23,11 +16,10 @@ import { DataTable } from 'primereact/datatable'
 import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFetch, useFetchPaginated } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 
 export const parseAsDateOnly = {
   ...parseAsIsoDateTime,
@@ -66,19 +58,20 @@ const ActivityLogPage = () => {
     type: filters.type,
     dates: filters.dates?.map((date) => formatDate(date, 'yyyy-MM-dd')) ?? [],
     sort: filters.sort,
-    order: filters.order,
+    order: filters.order === 1 ? 'asc' : 'desc',
   }
 
-  const logsApi = createUrl('activity-log', payload)
+  const { data: activityLogs, isValidating: isActivityLogValidating } =
+    useFetchPaginated<IActivityLog>('activity-log', payload, {})
 
-  const { data: activityLogs, isValidating } = useSWR<IResPaginated<IActivityLog>>(logsApi, fetcher)
+  const { data: salesPersonData } = useFetch<ISalesPerson>('sales-persons', {
+    withFilterUser: false,
+  })
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher)
-
-  const actionTypeUrl = createUrl('activity-log/action-types')
-
-  const { data: actionTypes } = useSWR<IResSingle<{ action_type: string }>>(actionTypeUrl, fetcher)
+  const { data: actionTypes } = useFetch<{ action_type: string }>(
+    'activity-log/action-types',
+    undefined
+  )
 
   useEffect(() => {
     if (!isAdmin && user?.sales_person?.id) {
@@ -88,9 +81,9 @@ const ActivityLogPage = () => {
     }
   }, [isAdmin, user])
 
-  const salesPersons = salesPersonData?.data
-  const activityLogsData = activityLogs?.data
-  const totalRecords = activityLogs?.data.totalRecords
+  const salesPersons = salesPersonData
+  const activityLogsData = activityLogs
+  const totalRecords = activityLogs?.totalRecords
   return (
     <div className="card p-4">
       <NavButton />
@@ -124,7 +117,7 @@ const ActivityLogPage = () => {
           <div className="col-12 md:col-3">
             <Dropdown
               value={filters.type}
-              options={actionTypes?.data?.map(({ action_type }) => ({
+              options={actionTypes?.map(({ action_type }) => ({
                 label: action_type,
                 value: action_type,
               }))}
@@ -209,7 +202,7 @@ const ActivityLogPage = () => {
             }
           }}
           dataKey="id"
-          loading={isValidating}
+          loading={isActivityLogValidating}
           emptyMessage="Activity log not found"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
           currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
