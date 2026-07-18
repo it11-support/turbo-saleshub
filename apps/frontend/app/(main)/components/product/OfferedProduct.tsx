@@ -1,9 +1,14 @@
 'use client'
 
 import ProductTag from './ProductTag'
-import { fetcher } from '../../lib'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
-import { EFollowUpType, IConcernStatus, IVisitItem, IVisitItemConcern } from '@saleshub-tsm/types'
+import {
+  EFollowUpType,
+  IConcernStatus,
+  IResObject,
+  IVisitItem,
+  IVisitItemConcern,
+} from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
@@ -13,12 +18,15 @@ import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useEffect, useMemo, useState } from 'react'
-import useSWR from 'swr'
 
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { formatDate, normalizeDateToUTC } from '@/lib/dateUtils'
 import { useSalesVisit } from '@/stores'
+
+interface IConcernStatusesResponse {
+  concernStatuses: IConcernStatus[]
+}
 
 type Props = {
   visitItem: IVisitItem
@@ -38,14 +46,14 @@ const OfferedProduct = (props: Props) => {
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
-  const visitDetailApi = createUrl(`visit/${id}/details`)
-  const { mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher)
+  const { mutate } = useFetch(`visit/${id}/details`, undefined, {
+    enabled: !!id,
+  })
 
-  const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData } = useSWR(statusUrl, fetcher)
-
+  const { data: concernStatusesData } = useFetch<IResObject<IConcernStatusesResponse>>(
+    `concern-categories/statuses`
+  )
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
-
   const onHide = () => {
     setSelectedConcern(null)
     setIsVisible(false)

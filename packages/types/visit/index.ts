@@ -1,4 +1,5 @@
 import { Nullable } from "../common";
+import { RawVisitCompetitor } from "../competitor";
 import { IConcernCategory, IConcernStatus } from "../concerns";
 import { ICustomer } from "../customer";
 import { IInquiry, IProduct, SuggestedItemsGrouped } from "../product";
@@ -21,6 +22,7 @@ export interface IVisit {
   visit_items?: IVisitItem[]
   open_issues?: IVisitItem[]
   inquiries?: IInquiry[]
+  visit_competitors?: RawVisitCompetitor[]
 }
 
 export interface IVisitItemConcern {

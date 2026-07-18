@@ -1,13 +1,11 @@
 'use client'
 import { visitFilters } from './filters'
 import VisitDataTable, { SalesVisit } from '../../components/visits/VisitDataTable'
-import { fetcher } from '../../lib'
 import { EFollowUpStatus, IResPaginated, IVisitItemConcern } from '@saleshub-tsm/types'
 import Link from 'next/link'
 import { createSerializer, useQueryStates } from 'nuqs'
-import useSWR from 'swr'
 
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { buildVisitPayload } from '@/lib/visits'
 
 const VisitListTable = () => {
@@ -15,11 +13,9 @@ const VisitListTable = () => {
   const serialize = createSerializer(visitFilters)
   const payload = buildVisitPayload(filters)
 
-  const visitsUrl = createUrl('visits', payload)
-
   const fromUrl = `visits${serialize(filters)}`
 
-  const { data: visitData, isValidating } = useSWR<IResPaginated<SalesVisit>>(visitsUrl, fetcher)
+  const { data: visitData, isValidating } = useFetch<IResPaginated<SalesVisit>>('visits', payload)
 
   const data = visitData?.data.items || []
   const totalRecords = visitData?.data.totalRecords || 0

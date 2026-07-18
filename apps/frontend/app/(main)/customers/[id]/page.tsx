@@ -1,12 +1,10 @@
 'use client'
-import { fetcher } from '../../lib'
 import { CustomerDetail } from '../components/CustomerDetail'
 import { calculateCustomerSpent } from '../components/functions'
 import { ICustomer, ILastPurchase, IResObject, SuggestedItemsGrouped } from '@saleshub-tsm/types'
 import { use } from 'react'
-import useSWR from 'swr'
 
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -21,25 +19,25 @@ type History = {
 const CustomerDetailPage = ({ params }: Props) => {
   const { id } = use(params)
 
-  const customerUrl = createUrl(`customers/${id}`)
-  const { data: customerData } = useSWR<IResObject<ICustomer>>(id ? customerUrl : null, fetcher, {
+  const { data: customerData } = useFetch<IResObject<ICustomer>>(`customers/${id}`, undefined, {
+    enabled: !!id,
     dedupingInterval: 60000,
   })
 
-  const suggestionsUrl = createUrl(`customers/${id}/suggestions`)
-  const { data: suggestionsData } = useSWR<IResObject<SuggestedItemsGrouped>>(
-    id ? suggestionsUrl : null,
-    fetcher,
+  const { data: suggestionsData } = useFetch<IResObject<SuggestedItemsGrouped>>(
+    `customers/${id}/suggestions`,
+    undefined,
     {
+      enabled: !!id,
       dedupingInterval: 60000,
     }
   )
 
-  const purchaseHistoryUrl = createUrl(`customers/${id}/purchases`)
-  const { data: purchaseHistoryData } = useSWR<IResObject<History>>(
-    id ? purchaseHistoryUrl : null,
-    fetcher,
+  const { data: purchaseHistoryData } = useFetch<IResObject<History>>(
+    `customers/${id}/purchases`,
+    undefined,
     {
+      enabled: !!id,
       dedupingInterval: 60000,
     }
   )

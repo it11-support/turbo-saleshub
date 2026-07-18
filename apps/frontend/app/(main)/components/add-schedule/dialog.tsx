@@ -2,12 +2,10 @@
 
 import { FormData, IResSingle, ISalesPerson, IVisit } from '@saleshub-tsm/types'
 import { useEffect, useRef, useState } from 'react'
-import useSWR from 'swr'
 
-import { fetcher } from '@/app/(main)/lib'
 import { BaseDialog, FormAutoComplete, FormCalendar, FormDropdown } from '@/components/base'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
@@ -31,13 +29,12 @@ const AddScheduleDialog = () => {
     scheduleDate: '',
   })
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
-    apiSalesPerson,
-    fetcher
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    { withFilterUser: false }
   )
 
-  const salesPersons = salesPersonData?.data
+  const salesPersons = salesPersonData?.data || []
 
   const validateForm = () => {
     const newErrors: Record<keyof FormData, string> = {

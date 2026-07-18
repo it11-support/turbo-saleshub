@@ -3,7 +3,13 @@
 import ScheduleCard from './components/ScheduleCard'
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
-import { IResSingle, ISalesPerson, VisitSchedule, VisitStatus } from '@saleshub-tsm/types'
+import {
+  IResObject,
+  IResSingle,
+  ISalesPerson,
+  VisitSchedule,
+  VisitStatus,
+} from '@saleshub-tsm/types'
 import { addDays, format, formatDate, parse } from 'date-fns'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { Accordion, AccordionTab } from 'primereact/accordion'
@@ -11,8 +17,9 @@ import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dropdown } from 'primereact/dropdown'
 import { useState } from 'react'
-import useSWR, { preload } from 'swr'
+import { preload } from 'swr'
 
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { normalizeDateToUTC } from '@/lib/dateUtils'
@@ -42,11 +49,10 @@ const VisitSchedules = () => {
     { shallow: true, history: 'replace' }
   )
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
-    isAdmin ? apiSalesPerson : null,
-    fetcher
+  const { data: salesPersonData } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    { withFilterUser: false },
+    { enabled: !!isAdmin }
   )
 
   const payload = {
@@ -56,14 +62,15 @@ const VisitSchedules = () => {
     salesPersonId: filters.salesPersonId,
   }
 
-  const scheduleApi = createUrl('schedule', payload)
-
-  const { data: scheduleData } = useSWR<VisitScheduleData>(
-    filters.salesPersonId ? scheduleApi : null,
-    fetcher
+  const { data: scheduleData } = useFetch<IResObject<VisitScheduleData['data']>>(
+    'schedule',
+    payload,
+    {
+      enabled: !!filters.salesPersonId,
+    }
   )
 
-  const schedules = scheduleData?.data.data || []
+  const schedules = scheduleData?.data?.data || []
 
   const salesPersons = salesPersonData?.data || []
 

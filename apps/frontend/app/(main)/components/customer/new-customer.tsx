@@ -4,12 +4,10 @@ import { FormData, IResSingle, ISalesPerson, ISubGroup, IVisit } from '@saleshub
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import useSWR from 'swr'
 
-import { fetcher } from '@/app/(main)/lib'
 import { BaseDialog, FormDropdown, FormInput, FormTextarea } from '@/components/base'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
@@ -74,18 +72,15 @@ const NewCustomerDialog = () => {
     return Object.keys(errors).length === 0
   }
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-
-  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
-    apiSalesPerson,
-    fetcher
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    { withFilterUser: false }
   )
 
-  const subGroupsApiUrl = createUrl('customers/subgroups')
-  const { data: subgroupsData } = useSWR<IResSingle<ISubGroup>>(subGroupsApiUrl, fetcher)
+  const { data: subgroupsData } = useFetch<IResSingle<ISubGroup>>('customers/subgroups')
 
-  const groupApiUrl = createUrl('customers/groups')
-  const { data: groupsData } = useSWR<IResSingle<{ GroupName: string }>>(groupApiUrl, fetcher)
+  const { data: groupsData } = useFetch<IResSingle<{ GroupName: string }>>('customers/groups')
+
   const salesPersons = salesPersonData?.data
 
   const subgroupOptions = subgroupsData?.data || []

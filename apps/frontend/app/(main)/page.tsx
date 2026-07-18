@@ -7,14 +7,13 @@ import TopPerformingChart from './components/dashboard/TopPerformingChart'
 import TrendChart from './components/dashboard/TrendChart'
 import YoySummary from './components/dashboard/YoySummary'
 import { LayoutContext } from '../../layout/context/layoutcontext'
-import { IDashboardData } from '@saleshub-tsm/types'
+import { IDashboardData, IResObject } from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { SelectButton } from 'primereact/selectbutton'
 import { useContext, useEffect, useState } from 'react'
 
-import { useFetchObject } from '@/hooks/useFetch'
-
 import 'chartjs-adapter-date-fns'
+import { useFetch } from '@/hooks/useFetch'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -36,44 +35,49 @@ const Dashboard = () => {
 
   const salesPersonId = userData?.sales_person?.id
 
-  const { data, isValidating } = useFetchObject<IDashboardData['data']>('summary', undefined, {
-    dedupingInterval: 60000,
-    revalidateIfStale: false,
-    revalidateOnReconnect: true,
-  })
+  const { data, isValidating } = useFetch<IResObject<IDashboardData['data']>>(
+    'summary',
+    undefined,
+    {
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    }
+  )
 
-  const { data: customerLoyaltyData, isValidating: isCustomerLoyaltyValidating } = useFetchObject<
-    IDashboardData['data']
+  const { data: customerLoyaltyData, isValidating: isCustomerLoyaltyValidating } = useFetch<
+    IResObject<IDashboardData['data']>
   >('summary/customer-loyalty', undefined, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
   })
 
-  const { data: activeCustomersData, isValidating: isActiveCustomersValidating } = useFetchObject<
-    IDashboardData['data']
+  const { data: activeCustomersData, isValidating: isActiveCustomersValidating } = useFetch<
+    IResObject<IDashboardData['data']>
   >('summary/active-customers', undefined, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
   })
 
-  const { data: revenueByCategoryData, isValidating: isRevenueByCategoryValidating } =
-    useFetchObject<IDashboardData['data']>('summary/revenue-by-category', undefined, {
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    })
+  const { data: revenueByCategoryData, isValidating: isRevenueByCategoryValidating } = useFetch<
+    IResObject<IDashboardData['data']>
+  >('summary/revenue-by-category', undefined, {
+    dedupingInterval: 60000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: true,
+  })
 
-  const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetchObject<
-    IDashboardData['data']
+  const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetch<
+    IResObject<IDashboardData['data']>
   >('summary/customer-trend', salesPersonId ? { salesPersonId } : {}, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
   })
 
-  const { summary } = data || {}
+  const { summary } = data?.data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
 
@@ -105,26 +109,26 @@ const Dashboard = () => {
 
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
       <RevenueByProductCategory
-        revenueByCategoryData={revenueByCategoryData}
+        revenueByCategoryData={revenueByCategoryData?.data}
         period={period}
         isValidating={isRevenueByCategoryValidating}
       />
       <CustomerLoyaltyCard
         isCustomerLoyaltyValidating={isCustomerLoyaltyValidating}
-        customerLoyaltyData={customerLoyaltyData}
+        customerLoyaltyData={customerLoyaltyData?.data}
       />
 
       <ActiveCustomerCard
         isActiveCustomersValidating={isActiveCustomersValidating}
-        activeCustomersData={activeCustomersData}
+        activeCustomersData={activeCustomersData?.data}
       />
 
-      <TrendChart isValidating={isValidating} data={data} />
+      <TrendChart isValidating={isValidating} data={data?.data} />
       <CustomerGrowth
         isValidating={isCustomerTrendValidating}
-        customerTrendData={customerTrendData}
+        customerTrendData={customerTrendData?.data}
       />
-      <TopPerformingChart isValidating={isValidating} data={data} />
+      <TopPerformingChart isValidating={isValidating} data={data?.data} />
     </>
   )
 }

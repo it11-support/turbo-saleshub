@@ -1,7 +1,6 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
 import {
   DataTableSortMeta,
   IPaginatedData,
@@ -21,13 +20,12 @@ import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { useEffect, useRef, useState } from 'react'
-import useSWR from 'swr'
 
 import UserForm from '@/app/components/users/UserForm'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFetch } from '@/hooks/useFetch'
 import { useOnlineUsers } from '@/hooks/useOnlineUsers'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { useUserStore } from '@/stores/user'
 
 const UserTable = () => {
@@ -69,24 +67,22 @@ const UserTable = () => {
     order: filters.order,
   }
 
-  const apiUrlUser = createUrl('user', payload)
-  const apiUrlRole = createUrl('roles')
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-
   const {
     data: userData,
     isValidating,
     mutate,
-  } = useSWR<IResPaginated<IPaginatedData<IUser>>>(apiUrlUser, fetcher)
+  } = useFetch<IResPaginated<IPaginatedData<IUser>>>('user', payload)
 
   const users = userData?.data?.items || []
   const totalRecords = userData?.data?.totalRecords || 0
 
-  const { data: roleData } = useSWR<IResSingle<IRole>>(apiUrlRole, fetcher)
+  const { data: roleData } = useFetch<IResSingle<IRole>>('roles')
 
-  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
-    apiSalesPerson,
-    fetcher
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    {
+      withFilterUser: false,
+    }
   )
 
   const salesPersons = salesPersonData?.data || []

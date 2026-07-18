@@ -1,6 +1,12 @@
 'use client'
 import NavButton from '../customers/components/NavButton'
-import { DataTableSortMeta, IActivityLog, ISalesPerson } from '@saleshub-tsm/types'
+import {
+  DataTableSortMeta,
+  IActivityLog,
+  IResPaginated,
+  IResSingle,
+  ISalesPerson,
+} from '@saleshub-tsm/types'
 import { format, formatDate } from 'date-fns'
 import {
   parseAsInteger,
@@ -18,7 +24,7 @@ import { InputText } from 'primereact/inputtext'
 import { useEffect, useState } from 'react'
 
 import { useDebounce } from '@/hooks/useDebounce'
-import { useFetch, useFetchPaginated } from '@/hooks/useFetch'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 
 export const parseAsDateOnly = {
@@ -61,14 +67,15 @@ const ActivityLogPage = () => {
     order: filters.order === 1 ? 'asc' : 'desc',
   }
 
-  const { data: activityLogs, isValidating: isActivityLogValidating } =
-    useFetchPaginated<IActivityLog>('activity-log', payload, {})
+  const { data: activityLogs, isValidating: isActivityLogValidating } = useFetch<
+    IResPaginated<IActivityLog>
+  >('activity-log', payload, {})
 
-  const { data: salesPersonData } = useFetch<ISalesPerson>('sales-persons', {
+  const { data: response } = useFetch<IResSingle<ISalesPerson>>('sales-persons', {
     withFilterUser: false,
   })
 
-  const { data: actionTypes } = useFetch<{ action_type: string }>(
+  const { data: actionTypes } = useFetch<IResSingle<{ action_type: string }>>(
     'activity-log/action-types',
     undefined
   )
@@ -81,9 +88,10 @@ const ActivityLogPage = () => {
     }
   }, [isAdmin, user])
 
-  const salesPersons = salesPersonData
-  const activityLogsData = activityLogs
-  const totalRecords = activityLogs?.totalRecords
+  const salesPersons = response?.data || []
+  const activityLogsData = activityLogs?.data
+  const totalRecords = activityLogs?.data?.totalRecords ?? 0
+
   return (
     <div className="card p-4">
       <NavButton />
@@ -117,7 +125,7 @@ const ActivityLogPage = () => {
           <div className="col-12 md:col-3">
             <Dropdown
               value={filters.type}
-              options={actionTypes?.map(({ action_type }) => ({
+              options={actionTypes?.data?.map(({ action_type }) => ({
                 label: action_type,
                 value: action_type,
               }))}

@@ -46,7 +46,8 @@ export const syncInquiries = async (req: AuthenticatedRequest, res: Response) =>
     await tx.inquiries.createMany({
       data: inquiries.map((item: IInquiry) => ({
         visit_id: parsedVisitId,
-        product_id: Number(item?.product_id) || 0,
+        product_id:
+          item.product_id == null ? null : Number(item.product_id),
         product_name: String(item?.product_name || ''),
         notes: item?.notes ? String(item.notes) : null,
       })),

@@ -3,7 +3,7 @@
 import { fetcher } from '../lib'
 import NavButton from './components/NavButton'
 import CustomerCell from '../components/customer/CustomerCell'
-import { DataTableSortMeta, ICustomer } from '@saleshub-tsm/types'
+import { DataTableSortMeta, ICustomer, IResPaginated } from '@saleshub-tsm/types'
 import { useRouter } from 'next/navigation'
 import {
   parseAsArrayOf,
@@ -21,13 +21,20 @@ import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { Slider } from 'primereact/slider'
 import { useEffect, useState } from 'react'
-import useSWR, { preload } from 'swr'
+import { preload } from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { createUrl } from '@/lib/api'
 import { useCustomerStore } from '@/stores/customers'
+
+interface ICustomerMeta {
+  groupNames: string[]
+  salesPersonNames: string[]
+  subGroupNames: string[]
+}
 
 const CustomerTable = () => {
   const isMobile = useIsMobile(768)
@@ -92,14 +99,17 @@ const CustomerTable = () => {
     ...(filters.isNewCustomer ? { isNewCustomer: filters.isNewCustomer } : {}),
   }
 
-  const apiUrl = createUrl('customers', payload)
-  const { data, isValidating } = useSWR(apiUrl, fetcher, {
-    onSuccess: (res) => {
-      if (res.groupNames) setGroupNames(res.groupNames)
-      if (res.salesPersonNames) setSalesPersonNames(res.salesPersonNames)
-      if (res.subGroupNames) setSubGroupNames(res.subGroupNames)
-    },
-  })
+  const { data, isValidating } = useFetch<IResPaginated<ICustomer, ICustomerMeta>>(
+    'customers',
+    payload,
+    {
+      onSuccess: (res) => {
+        if (res.groupNames) setGroupNames(res.groupNames)
+        if (res.salesPersonNames) setSalesPersonNames(res.salesPersonNames)
+        if (res.subGroupNames) setSubGroupNames(res.subGroupNames)
+      },
+    }
+  )
 
   // 5. Data Mapping untuk UI
   const customers = data?.data?.items || []

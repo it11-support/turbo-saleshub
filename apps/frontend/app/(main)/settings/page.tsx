@@ -1,8 +1,7 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
-import { EFollowUpStatus, IConcernCategory, IConcernStatus } from '@saleshub-tsm/types'
+import { EFollowUpStatus, IConcernCategory, IConcernStatus, IResObject } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
@@ -10,11 +9,18 @@ import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { useState } from 'react'
-import useSWR from 'swr'
 
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { ICON_OPTIONS, variantColors, variantOptions } from '@/lib/constants'
 import { useConcernStore } from '@/stores'
+
+interface IConcernStatusResponse {
+  concernStatuses: IConcernStatus[]
+}
+
+interface IConcernCategoryResponse {
+  concernCategories: IConcernCategory[]
+}
 
 const SettingsPage = () => {
   const concernStore = useConcernStore()
@@ -32,16 +38,14 @@ const SettingsPage = () => {
   const [showFormDialog, setShowFormDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData, mutate: mutateStatus } = useSWR(statusUrl, fetcher)
+  const { data: concernStatusesData, mutate: mutateStatus } = useFetch<
+    IResObject<IConcernStatusResponse>
+  >(`concern-categories/statuses`)
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
-  const concernCategoriesUrl = createUrl('concern-categories')
-  const { data: concernCategoriesData, mutate: mutateCategories } = useSWR(
-    concernCategoriesUrl,
-    fetcher
-  )
+  const { data: concernCategoriesData, mutate: mutateCategories } =
+    useFetch<IResObject<IConcernCategoryResponse>>('concern-categories')
 
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
 

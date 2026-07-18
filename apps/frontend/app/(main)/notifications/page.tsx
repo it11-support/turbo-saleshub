@@ -1,7 +1,6 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
 import { DataTableSortMeta, INotification, IResPaginated } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { useRouter } from 'next/navigation'
@@ -13,9 +12,10 @@ import { Dialog } from 'primereact/dialog'
 import { InputText } from 'primereact/inputtext'
 import { SelectButton } from 'primereact/selectbutton'
 import { useEffect, useState } from 'react'
-import useSWR, { mutate } from 'swr'
+import { mutate } from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import { $api, createUrl } from '@/lib/api'
 
@@ -52,12 +52,11 @@ const NotificationPage = () => {
     order: filters.order,
   }
 
-  const notificationApiUrl = createUrl('notifications', payload)
   const {
     data: notificationData,
     isValidating,
     mutate: notificationMutate,
-  } = useSWR<IResPaginated<INotification>>(user?.id ? notificationApiUrl : null, fetcher)
+  } = useFetch<IResPaginated<INotification>>('notifications', payload, { enabled: !!user?.id })
 
   const { items } = notificationData?.data ?? {}
   const totalRecords = notificationData?.data.totalRecords ?? 0

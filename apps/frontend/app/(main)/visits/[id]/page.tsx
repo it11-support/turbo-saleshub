@@ -3,11 +3,11 @@
 import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
-import { fetcher } from '../../lib'
 import Competitors from '../components/Competitors'
 import {
   IConcernCategory,
   IConcernStatus,
+  IResObject,
   IVisitItem,
   ProductWithFrequency,
 } from '@saleshub-tsm/types'
@@ -25,13 +25,19 @@ import { OverlayPanel } from 'primereact/overlaypanel'
 import { Panel } from 'primereact/panel'
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { useEffect, useRef, useState } from 'react'
-import useSWR from 'swr'
 
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { parsePhone } from '@/lib/phoneParser'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
+
+interface IConcernCategoryResponse {
+  concernCategories: IConcernCategory[]
+}
+interface IConcernStatusResponse {
+  concernStatuses: IConcernStatus[]
+}
 
 const VisitsPage = () => {
   const salesVisitStore = useSalesVisit()
@@ -83,11 +89,8 @@ const VisitsPage = () => {
   const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
     useInquiryStore()
 
-  const concernCategoriesUrl = createUrl('concern-categories')
-  const { data: concernCategoriesData, mutate: mutateCategories } = useSWR(
-    concernCategoriesUrl,
-    fetcher
-  )
+  const { data: concernCategoriesData, mutate: mutateCategories } =
+    useFetch<IResObject<IConcernCategoryResponse>>('concern-categories')
 
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
 
@@ -127,8 +130,9 @@ const VisitsPage = () => {
     })
   }
 
-  const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData, mutate: mutateStatus } = useSWR(statusUrl, fetcher)
+  const { data: concernStatusesData, mutate: mutateStatus } = useFetch<
+    IResObject<IConcernStatusResponse>
+  >('concern-categories/statuses')
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 

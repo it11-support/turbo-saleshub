@@ -6,6 +6,7 @@ import {
   EFollowUpType,
   FollowUpUpdateData,
   IConcernStatus,
+  IResObject,
   IVisit,
   IVisitItem,
   IVisitItemConcern,
@@ -21,17 +22,17 @@ import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { Tag } from 'primereact/tag'
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 
 import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
-import { fetcher } from '@/app/(main)/lib'
+import { useFetch } from '@/hooks/useFetch'
 import { useSocket } from '@/layout/context/SocketIoContext'
-import { createUrl } from '@/lib/api'
 import { variantColors } from '@/lib/constants'
 import { formatCurrency } from '@/lib/formatter'
 import { useSalesVisit } from '@/stores'
-
+interface IConcernStatusesResponse {
+  concernStatuses: IConcernStatus[]
+}
 const VisitIssuesPage = () => {
   const { id } = useParams()
   const socket = useSocket()
@@ -43,8 +44,9 @@ const VisitIssuesPage = () => {
 
   const [activeProductCode, setActiveProductCode] = useState<string | null>(null)
 
-  const visitDetailApi = createUrl(`visit/${id}/details`)
-  const { data, mutate } = useSWR(() => (id ? visitDetailApi : null), fetcher)
+  const { data, mutate } = useFetch<IResObject<IVisit>>(`visit/${id}/details`, undefined, {
+    enabled: !!id,
+  })
 
   const visitCompetitors: RawVisitCompetitor[] = data?.data?.visit_competitors || []
 
@@ -76,8 +78,9 @@ const VisitIssuesPage = () => {
     return () => window.removeEventListener('hashchange', handleHash)
   }, [salesVisit?.visit_items])
 
-  const statusUrl = createUrl(`concern-categories/statuses`)
-  const { data: concernStatusesData } = useSWR(statusUrl, fetcher)
+  const { data: concernStatusesData } = useFetch<IResObject<IConcernStatusesResponse>>(
+    'concern-categories/statuses'
+  )
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 

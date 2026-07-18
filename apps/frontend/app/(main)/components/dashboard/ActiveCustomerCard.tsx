@@ -1,5 +1,4 @@
 import { exportToExcel } from './functions'
-import { fetcher } from '../../lib'
 import CustomerCell from '../customer/CustomerCell'
 import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import { ICustomerExtended, IDashboardData, IResSingle, ISalesPerson } from '@saleshub-tsm/types'
@@ -9,11 +8,10 @@ import { Card } from 'primereact/card'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useMemo, useState } from 'react'
-import useSWR from 'swr'
 
 import { BaseDataTable } from '@/components/base'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
 
 type ActiveCustomerCardProps = {
@@ -31,14 +29,12 @@ const ActiveCustomerCard = ({
   const [showExport, setShowExport] = useState(false)
   const [selectedSlp, setSelectedSlp] = useState<number | null | undefined>(-1)
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-
-  const { data: salesPersonData, mutate: mutateSalesPerson } = useSWR<IResSingle<ISalesPerson>>(
-    apiSalesPerson,
-    fetcher
+  const { data: salesPersonData, mutate: mutateSalesPerson } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    { withFilterUser: false }
   )
 
-  const salesPersons = salesPersonData?.data
+  const salesPersons = salesPersonData?.data || []
 
   const salesPersonOptions = useMemo(() => {
     return (

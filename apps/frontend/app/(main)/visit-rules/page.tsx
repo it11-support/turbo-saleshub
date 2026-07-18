@@ -1,16 +1,15 @@
 'use client'
 
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
 import { ICustomer, IResSingle, ISalesPerson, ISalesVisitRule } from '@saleshub-tsm/types'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { Dropdown } from 'primereact/dropdown'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import useSWR from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import { $api, createUrl } from '@/lib/api'
 
@@ -44,17 +43,16 @@ const VisitsPage = (): JSX.Element => {
 
   const { isAdmin, user } = authStore
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(apiSalesPerson, fetcher)
+  const { data: salesPersonData } = useFetch<IResSingle<ISalesPerson>>('sales-persons', {
+    withFilterUser: false,
+  })
 
   const salesPersons = salesPersonData?.data || []
 
-  const visitRulesUrl = createUrl('visit-rules', { sales_person_id: selectedSalesPerson })
-
-  const { data: visitRules, mutate } = useSWR<IResSingle<ISalesVisitRule>>(
-    selectedSalesPerson ? visitRulesUrl : null,
-    fetcher
+  const { data: visitRules, mutate } = useFetch<IResSingle<ISalesVisitRule>>(
+    'visit-rules',
+    { sales_person_id: selectedSalesPerson },
+    { enabled: !!selectedSalesPerson }
   )
 
   const salesVisitRules = visitRules?.data

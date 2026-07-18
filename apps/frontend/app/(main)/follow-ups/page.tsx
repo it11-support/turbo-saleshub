@@ -2,17 +2,15 @@
 
 import VisitDataTable, { SalesVisit } from '../components/visits/VisitDataTable'
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
 import { visitFilters } from '../visits/components/filters'
 import { EFollowUpStatus, IResPaginated, IResSingle, ISalesPerson } from '@saleshub-tsm/types'
 import Link from 'next/link'
 import { createSerializer, useQueryStates } from 'nuqs'
 import { Calendar } from 'primereact/calendar'
 import { Dropdown } from 'primereact/dropdown'
-import useSWR from 'swr'
 
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { buildVisitPayload } from '@/lib/visits'
 
 const FollowUpsPage = () => {
@@ -20,11 +18,13 @@ const FollowUpsPage = () => {
 
   const salesPersonId = Number(user?.sales_person?.id)
   const [filters, setFilters] = useQueryStates(visitFilters)
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
 
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
-    isAdmin ? apiSalesPerson : null,
-    fetcher
+  const { data: salesPersonData } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    { withFilterUser: false },
+    {
+      enabled: isAdmin,
+    }
   )
 
   const salesPersons = salesPersonData?.data || []
@@ -35,11 +35,9 @@ const FollowUpsPage = () => {
 
   const fromUrl = `follow-ups${serialize(filters)}`
 
-  const apiFollowupUrl = createUrl('follow-ups', payload)
-
-  const { data: followups, isValidating } = useSWR<IResPaginated<SalesVisit>>(
-    apiFollowupUrl,
-    fetcher
+  const { data: followups, isValidating } = useFetch<IResPaginated<SalesVisit>>(
+    'follow-ups',
+    payload
   )
 
   const data = followups?.data.items || []

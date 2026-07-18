@@ -24,9 +24,10 @@ import { Paginator, PaginatorTemplateOptions } from 'primereact/paginator'
 import { Toast } from 'primereact/toast'
 import Quill from 'quill'
 import { useEffect, useRef, useState } from 'react'
-import useSWR, { preload } from 'swr'
+import { preload } from 'swr'
 
 import { useDebounce } from '@/hooks/useDebounce'
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
 import { formatCurrency } from '@/lib/formatter'
@@ -97,20 +98,18 @@ const ProductList = () => {
     ...(filters.group && { group: filters.group }),
   }
 
-  const apiUrl = createUrl('product', payload)
-  const { data, isValidating, mutate } = useSWR<
+  const { data, isValidating, mutate } = useFetch<
     IResPaginated<IProduct> & {
       data: { categories?: { ItmsGrpCod: number; ItmsGrpNam: string }[] }
     }
-  >(apiUrl, fetcher)
+  >('product', payload)
 
   const products = data?.data.items || []
   const categories = data?.data.categories || []
   const totalRecords = data?.data.totalRecords || 0
   const totalPages = data?.data.totalPages || 1
 
-  const subGroupsApiUrl = createUrl('customers/subgroups')
-  const { data: subgroupsData } = useSWR<IResSingle<ISubGroup>>(subGroupsApiUrl, fetcher)
+  const { data: subgroupsData } = useFetch<IResSingle<ISubGroup>>('customers/subgroups')
 
   const subgroupsOptions = subgroupsData?.data || []
   // Group Options

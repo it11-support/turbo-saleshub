@@ -86,17 +86,23 @@ export interface IPaginatedData<T> {
   page?: number
 }
 
-export interface IResPaginated<T> extends ISwrResponse {
-  data: IPaginatedData<T>;
-}
+export type IResSingle<T, TMeta = {}> =
+  ISwrResponse &
+  TMeta & {
+    data?: T[]
+  }
 
-export interface IResSingle<T> extends ISwrResponse {
-  data?: T[];
-}
+export type IResObject<T, TMeta = {}> =
+  ISwrResponse &
+  TMeta & {
+    data?: T
+  }
 
-export interface IResObject<T> extends ISwrResponse {
-  data?: T;
-}
+export type IResPaginated<T, TMeta = {}> =
+  ISwrResponse &
+  TMeta & {
+    data: IPaginatedData<T>
+  }
 
 
 export interface AuthenticatedRequest<

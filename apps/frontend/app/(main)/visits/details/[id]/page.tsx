@@ -3,9 +3,10 @@
 import {
   CompetitorProduct,
   IInquiry,
+  IResObject,
+  IVisit,
   IVisitItem,
   ProductWithFrequency,
-  RawVisitCompetitor,
   VisitCompetitor,
 } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
@@ -16,15 +17,16 @@ import { InputText } from 'primereact/inputtext'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { Tag } from 'primereact/tag'
 import { useEffect, useRef, useState } from 'react'
-import useSWR from 'swr'
 
 import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
 import ProductOfferCard from '@/app/(main)/components/product/ProductOfferCard'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
-import { fetcher } from '@/app/(main)/lib'
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { formatCurrency } from '@/lib/formatter'
 
+interface IInquiryResponse {
+  inquiries: IInquiry[]
+}
 const VisitDetailsPage = () => {
   const { id } = useParams()
   const [suggestedGroup, setSuggestedGroup] = useState('')
@@ -35,17 +37,28 @@ const VisitDetailsPage = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
-  const apiDetailUrl = createUrl(`visit/${id}/details`)
-  const { data: visitDetailsData } = useSWR(apiDetailUrl, fetcher)
+  const { data: visitDetailsData } = useFetch<IResObject<IVisit>>(
+    `visit/${id}/details`,
+    undefined,
+    { enabled: !!id }
+  )
 
-  const apiInquiryUrl = createUrl(`inquiry/${id}`)
-  const { data: inquiriesData } = useSWR(apiInquiryUrl, fetcher)
+  const { data: inquiriesData } = useFetch<IResObject<IInquiryResponse>>(
+    `inquiry/${id}`,
+    undefined,
+    {
+      enabled: !!id,
+    }
+  )
 
-  const salesVisit = visitDetailsData?.data || {}
+  const salesVisit = visitDetailsData?.data as IVisit
 
+  const suggestedItems = salesVisit?.suggestedItems
+  const customer = salesVisit?.customer
   const inquiries = inquiriesData?.data?.inquiries || []
+  const visit_items = salesVisit?.visit_items
 
-  const visitCompetitors: RawVisitCompetitor[] = visitDetailsData?.data?.visit_competitors || []
+  const visitCompetitors = visitDetailsData?.data?.visit_competitors || []
 
   const competitors: VisitCompetitor[] = visitCompetitors.map((vc) => ({
     competitor_id: vc.competitor_id,
@@ -61,7 +74,6 @@ const VisitDetailsPage = () => {
     return () => clearTimeout(timer)
   }, [search])
 
-  const { suggestedItems, customer, visit_items } = salesVisit
   const suggestedGroups = [
     { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
     { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
@@ -155,7 +167,7 @@ const VisitDetailsPage = () => {
     setSelectedCategories(matchedCategories)
   }, [debouncedSearch, isDistributor, activeProductGroup])
 
-  const groupedProduct = salesVisit.visit_items?.reduce(
+  const groupedProduct = salesVisit?.visit_items?.reduce(
     (
       acc: { distributor: { category: string; items: IVisitItem[] }[]; groceries: IVisitItem[] },
       item: IVisitItem
@@ -197,11 +209,11 @@ const VisitDetailsPage = () => {
         <h5 className="ml-2">Product Suggestions</h5>
         <div className="col-12 xl:col-6 md:col-6">
           <div className="">
-            <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
+            <label htmlFor={`itemGroup-${salesVisit?.id}`} className="block mb-2">
               Item Group
             </label>
             <Dropdown
-              id={`itemGroup-${salesVisit.id}`}
+              id={`itemGroup-${salesVisit?.id}`}
               options={suggestedGroups.map((group) => {
                 return { label: group.key.toUpperCase(), value: group.key }
               })}
@@ -336,7 +348,7 @@ const VisitDetailsPage = () => {
         )}
       </div>
 
-      {(offeredDistributor?.length > 0 || offeredGroceries?.length > 0) && (
+      {((offeredDistributor?.length ?? 0) > 0 || (offeredGroceries?.length ?? 0) > 0) && (
         <div className="card p-3">
           <h5 className="ml-2">Offered Items</h5>
 

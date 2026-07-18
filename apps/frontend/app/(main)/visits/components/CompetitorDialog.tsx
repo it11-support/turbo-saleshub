@@ -1,4 +1,3 @@
-import { fetcher } from '../../lib'
 import { Competitor, IResSingle } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import {
@@ -8,10 +7,9 @@ import {
 } from 'primereact/autocomplete'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
-import React, { useMemo, useState } from 'react'
-import useSWR from 'swr'
+import { useMemo, useState } from 'react'
 
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { useCompetitorStore } from '@/stores/competitor'
 
 const CompetitorDialog = () => {
@@ -22,8 +20,7 @@ const CompetitorDialog = () => {
 
   const { addCompetitorToVisit, selectedCompetitors, syncCompetitors } = useCompetitorStore()
 
-  const apiUrl = createUrl('competitors')
-  const { data: competitorData } = useSWR<IResSingle<Competitor>>(apiUrl, fetcher)
+  const { data: competitorData } = useFetch<IResSingle<Competitor>>('competitors')
 
   const competitorOptions = useMemo<Competitor[]>(() => {
     const list = competitorData?.data || []

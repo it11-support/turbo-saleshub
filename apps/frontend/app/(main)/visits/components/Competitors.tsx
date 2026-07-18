@@ -1,6 +1,5 @@
 import CompetitorDialog from './CompetitorDialog'
-import { fetcher } from '../../lib'
-import { CompetitorProduct } from '@saleshub-tsm/types'
+import { CompetitorProduct, IResSingle, RawVisitCompetitor } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Badge } from 'primereact/badge'
 import { Button } from 'primereact/button'
@@ -10,9 +9,8 @@ import { InputText } from 'primereact/inputtext'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { SelectButton, SelectButtonPassThroughMethodOptions } from 'primereact/selectbutton'
 import { useEffect } from 'react'
-import useSWR from 'swr'
 
-import { createUrl } from '@/lib/api'
+import { useFetch } from '@/hooks/useFetch'
 import { useCompetitorStore } from '@/stores/competitor'
 
 const Competitors = () => {
@@ -48,8 +46,9 @@ const Competitors = () => {
     },
   ]
 
-  const apiUrl = createUrl(`competitors/${id}`)
-  const { data: competitorData, mutate: mutateCompetitors } = useSWR(apiUrl, fetcher)
+  const { data: competitorData, mutate: mutateCompetitors } = useFetch<
+    IResSingle<RawVisitCompetitor>
+  >(`competitors/${id}`, undefined, { enabled: !!id })
 
   const competitors = competitorData?.data || []
 

@@ -2,7 +2,6 @@
 import { visitFilters } from './components/filters'
 import VisitListTable from './components/VisitListTable'
 import NavButton from '../customers/components/NavButton'
-import { fetcher } from '../lib'
 import { IResSingle, ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
 import dayjs from 'dayjs'
@@ -13,11 +12,10 @@ import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 import * as XLSX from 'xlsx-js-style'
 
+import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
-import { createUrl } from '@/lib/api'
 import { useVisitsStore } from '@/stores'
 
 type VisitMainRow = {
@@ -65,11 +63,10 @@ const VisitList = () => {
 
   const [filters, setFilters] = useQueryStates(visitFilters)
 
-  const apiSalesPerson = createUrl('sales-persons', { withFilterUser: false })
-
-  const { data: salesPersonData } = useSWR<IResSingle<ISalesPerson>>(
-    isAdmin ? apiSalesPerson : null,
-    fetcher
+  const { data: salesPersonData } = useFetch<IResSingle<ISalesPerson>>(
+    'sales-persons',
+    { withFilterUser: false },
+    { enabled: !!isAdmin }
   )
 
   const salesPersons = salesPersonData?.data || []
