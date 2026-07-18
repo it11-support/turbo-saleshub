@@ -23,10 +23,10 @@ import { InputText } from 'primereact/inputtext'
 import { Paginator, PaginatorTemplateOptions } from 'primereact/paginator'
 import { Toast } from 'primereact/toast'
 import Quill from 'quill'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { preload } from 'swr'
 
-import { useDebounce } from '@/hooks/useDebounce'
+import { useDebouncedFilter } from '@/hooks/useDebouncedFilter'
 import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import { createUrl } from '@/lib/api'
@@ -79,14 +79,11 @@ const ProductList = () => {
   )
 
   const first = (filters.page - 1) * filters.limit
-  const [localSearch, setLocalSearch] = useState(filters.search)
-  const debouncedLocalSearch = useDebounce(localSearch, 400)
-
-  useEffect(() => {
-    if (debouncedLocalSearch !== filters.search) {
-      setFilters({ search: debouncedLocalSearch || null, page: 1 })
-    }
-  }, [debouncedLocalSearch])
+  const { local: localSearch, setLocal: setLocalSearch } = useDebouncedFilter({
+    value: filters.search,
+    setValue: setFilters,
+    clearToNull: true,
+  })
 
   const payload = {
     page: filters.page,

@@ -23,7 +23,7 @@ import { Slider } from 'primereact/slider'
 import { useEffect, useState } from 'react'
 import { preload } from 'swr'
 
-import { useDebounce } from '@/hooks/useDebounce'
+import { useDebouncedFilter } from '@/hooks/useDebouncedFilter'
 import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
@@ -63,19 +63,11 @@ const CustomerTable = () => {
   )
 
   // 2. Handle Search Local (Solusi Blinking/Teks Terhapus)
-  const [localSearch, setLocalSearch] = useState(filters.search)
-  const debouncedLocalSearch = useDebounce(localSearch, 400)
+  const { local: localSearch, setLocal: setLocalSearch } = useDebouncedFilter({
+    value: filters.search,
+    setValue: setFilters,
+  })
   const [localItemCount, setLocalItemCount] = useState(filters.itemCount)
-
-  // Update URL hanya saat debounced search berubah
-  useEffect(() => {
-    setFilters({ search: debouncedLocalSearch, page: 1 })
-  }, [debouncedLocalSearch])
-
-  // Sinkronisasi balik jika URL berubah eksternal (misal: tombol clear)
-  useEffect(() => {
-    setLocalSearch(filters.search)
-  }, [filters.search])
 
   useEffect(() => {
     setLocalItemCount(filters.itemCount)
