@@ -8,9 +8,8 @@ import { Badge } from 'primereact/badge'
 import { forwardRef, useContext, useImperativeHandle, useRef } from 'react'
 import useSWR from 'swr'
 
-import { fetcher } from '@/app/(main)/lib'
 import Logo from '@/app/components/logo/Logo'
-import { createUrl } from '@/lib/api'
+import { createUrl, fetcher } from '@/lib/api'
 import { LayoutState } from '@/types'
 
 type Props = {

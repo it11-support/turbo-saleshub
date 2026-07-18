@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
-import { fetcher } from '@/app/(main)/lib'
 import { useDebounce } from '@/hooks/useDebounce'
-import { createUrl } from '@/lib/api'
+import { createUrl, fetcher } from '@/lib/api'
 
 type UseDataTableOptions<T> = {
   endpoint: string

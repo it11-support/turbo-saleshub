@@ -8,9 +8,8 @@ import { classNames } from 'primereact/utils'
 import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from 'react'
 import useSWR from 'swr'
 
-import { fetcher } from '@/app/(main)/lib'
 import Logo from '@/app/components/logo/Logo'
-import { createUrl } from '@/lib/api'
+import { createUrl, fetcher } from '@/lib/api'
 import { AppTopbarRef, LayoutState } from '@/types'
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {

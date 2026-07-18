@@ -1,8 +1,9 @@
 import { deleteCookie, getCookie } from 'cookies-next'
 import { ofetch } from 'ofetch'
 
-type QueryValue = string | number | boolean | Array<string | number | boolean> | null | undefined
-type QueryParams = Record<string, QueryValue>
+export type QueryValue =
+  string | number | boolean | (string | number | boolean)[] | null | undefined
+export type QueryParams = Record<string, QueryValue>
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL
 
@@ -83,3 +84,73 @@ export const createUrl = (path: string, query?: QueryParams) => {
 
   return url.toString()
 }
+
+export const fetcher = (url: string) => $api(url)
+
+type ApiResponse<T> = {
+  data?: T
+  message?: string
+  error?: string
+}
+
+export const apiClient = {
+  get: async <T>(url: string): Promise<ApiResponse<T>> => {
+    try {
+      const data = await $api(url)
+      return { data }
+    } catch (error: any) {
+      return {
+        error: error?.message || 'An error occurred',
+      }
+    }
+  },
+
+  post: async <T>(url: string, body: any): Promise<ApiResponse<T>> => {
+    try {
+      const data = await $api(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      return { data }
+    } catch (error: any) {
+      return {
+        error: error?.message || 'An error occurred',
+      }
+    }
+  },
+
+  put: async <T>(url: string, body: any): Promise<ApiResponse<T>> => {
+    try {
+      const data = await $api(url, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      return { data }
+    } catch (error: any) {
+      return {
+        error: error?.message || 'An error occurred',
+      }
+    }
+  },
+
+  delete: async <T>(url: string): Promise<ApiResponse<T>> => {
+    try {
+      const data = await $api(url, {
+        method: 'DELETE',
+      })
+      return { data }
+    } catch (error: any) {
+      return {
+        error: error?.message || 'An error occurred',
+      }
+    }
+  },
+}
+
+export type { ApiResponse }

@@ -1,10 +1,8 @@
 import { useMemo } from 'react'
 import useSWR, { SWRConfiguration } from 'swr'
 
-import { fetcher } from '@/app/(main)/lib'
-import { createUrl } from '@/lib/api'
+import { createUrl, fetcher, type QueryValue } from '@/lib/api'
 
-export type QueryValue = string | number | boolean | null | undefined | string[] | number[]
 type QueryParams = Record<string, QueryValue>
 
 const buildKey = (path: string | null | undefined, query?: QueryParams, enabled = true) => {
