@@ -2,7 +2,7 @@ import SkeletonLoader from '../skeleton-loader/SkeletonLoader'
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels'
 import { Chart } from 'primereact/chart'
 
-import { formatCurrency } from '@/lib/formatter'
+import { formatCurrency, formatNumber } from '@/lib/formatter'
 
 type TrendChartProps = {
   title: string
@@ -84,7 +84,7 @@ const TrendChartComponent = (props: TrendChartProps) => {
 
                 return valueType === 'revenue'
                   ? `${year}: ${formatCurrency(value, true, true)}`
-                  : `${year}: ${value.toLocaleString()} Orders`
+                  : `${year}: ${formatNumber(value)} Orders`
               },
             },
           },

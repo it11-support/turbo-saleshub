@@ -7,6 +7,7 @@ import { Card } from 'primereact/card'
 import { Chart } from 'primereact/chart'
 
 import { MONTH_SHORT } from '@/lib/constants'
+import { formatNumber } from '@/lib/formatter'
 
 type CustomerGrowthProps = {
   isValidating: boolean
@@ -110,9 +111,10 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
             if (isExisting) {
               const current = item.current?.existing ?? 0
               const previous = item.previous?.existing ?? 0
+
               return [
-                `${latestYear} Existing : ${current.toLocaleString()}`,
-                `${previousYear} Existing : ${previous.toLocaleString()}`,
+                `${latestYear} Existing : ${formatNumber(current)}`,
+                `${previousYear} Existing : ${formatNumber(previous)}`,
               ]
             }
 
@@ -120,8 +122,8 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
             const previous = item.previous?.noo ?? 0
 
             return [
-              `${latestYear} NOO : ${current.toLocaleString()}`,
-              `${previousYear} NOO : ${previous.toLocaleString()}`,
+              `${latestYear} NOO : ${formatNumber(current)}`,
+              `${previousYear} NOO : ${formatNumber(previous)}`,
             ]
           },
 
@@ -140,8 +142,8 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
 
             return [
               '────────────────────',
-              `${previousYear} Total : ${previousTotal.toLocaleString()}`,
-              `${latestYear} Total : ${currentTotal.toLocaleString()}`,
+              `${previousYear} Total : ${formatNumber(previousTotal)}`,
+              `${latestYear} Total : ${formatNumber(currentTotal)}`,
               `YoY : ${arrow} ${Math.abs(growth).toFixed(1)}%`,
             ]
           },
@@ -204,7 +206,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         },
         max: existingMax + existingPadding,
         ticks: {
-          callback: (value: string | number) => Number(value).toLocaleString(),
+          callback: (value: string | number) => formatNumber(Number(value)),
         },
       },
       y1: {
@@ -281,11 +283,11 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         callbacks: {
           label: (ctx: TooltipItem<'line'>) => {
             const value = Number(ctx.raw)
-            return `${ctx.dataset.label}: ${value.toLocaleString()}`
+            return `${ctx.dataset.label}: ${formatNumber(value)}`
           },
           footer: (items: TooltipItem<'line'>[]) => {
             const total = items.reduce((sum, item) => sum + Number(item.raw), 0)
-            return `Total Customers: ${total.toLocaleString()}`
+            return `Total Customers: ${formatNumber(total)}`
           },
         },
       },
@@ -342,7 +344,7 @@ const CustomerGrowth = (props: CustomerGrowthProps) => {
         },
         max: Math.ceil(yearKeys.reduce((max, yr) => Math.max(max, yearly[yr].existing), 0) * 1.05),
         ticks: {
-          callback: (value: string | number) => Number(value).toLocaleString(),
+          callback: (value: string | number) => formatNumber(Number(value)),
         },
       },
       y1: {
