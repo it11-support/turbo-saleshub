@@ -3,7 +3,7 @@ import { visitsWhereInput } from "@/generated/prisma/models.js";
 import prisma from "@/libs/prisma.js";
 import { handleApiError } from "@/utils/apiResponse.js";
 import { convertToPrismaOrderBy, sortOptionsParser } from "@/utils/sortOptionsParser.js";
-import dayjs from "dayjs";
+import { buildDateRangeFilter } from "@/utils/dateFilters.js";
 import { Request, Response } from "express";
 
 export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
@@ -33,25 +33,9 @@ export const fetchVisitsWithFollowUps = async (req: Request, res: Response) => {
       ...(salesPersonId ? { salesPerson: { id: salesPersonId } } : {}),
     };
 
-    if (Array.isArray(dates)) {
-      const [start, end] = dates;
-      const dateFilters: any[] = [];
-
-      if (start && dayjs(start).isValid()) {
-        dateFilters.push({
-          visit_date: { gte: dayjs(start).startOf('day').toISOString() },
-        });
-      }
-
-      if (end && dayjs(end).isValid()) {
-        dateFilters.push({
-          visit_date: { lte: dayjs(end).endOf('day').toISOString() },
-        });
-      }
-
-      if (dateFilters.length) {
-        where.AND = dateFilters;
-      }
+    const dateFilters = buildDateRangeFilter(dates);
+    if (dateFilters) {
+      where.AND = dateFilters;
     }
 
     const [visitsWithFollowUps, meta] = await prisma.visits

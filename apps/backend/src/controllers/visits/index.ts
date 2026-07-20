@@ -4,6 +4,7 @@ import { VisitStatus } from '@/generated/prisma/enums.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
+import { buildDateRangeFilter } from '@/utils/dateFilters.js';
 
 export const getScheduleList = async (req: Request, res: Response) => {
   try {
@@ -51,26 +52,9 @@ export const getScheduleList = async (req: Request, res: Response) => {
       } : {})
     };
 
-    if (Array.isArray(dates)) {
-      const [start, end] = dates;
-
-      const dateFilters: any[] = [];
-
-      if (start && dayjs(start).isValid()) {
-        dateFilters.push({
-          visit_date: { gte: dayjs(start).startOf('day').toISOString() },
-        });
-      }
-
-      if (end && dayjs(end).isValid()) {
-        dateFilters.push({
-          visit_date: { lte: dayjs(end).endOf('day').toISOString() },
-        });
-      }
-
-      if (dateFilters.length) {
-        where.AND = dateFilters;
-      }
+    const dateFilters = buildDateRangeFilter(dates);
+    if (dateFilters) {
+      where.AND = dateFilters;
     }
 
     const sortOprtions = sortOptionsParser(sort_options);
