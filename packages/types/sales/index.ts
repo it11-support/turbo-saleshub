@@ -101,6 +101,31 @@ export interface IRFMSegment {
 
 export type IRFMPeriod = Record<number, IRFMSegment[]>
 
+export interface IRevenueByAccount {
+  acctName: string
+  revenue: number
+  previous: number
+  growth: number // % vs tahun sebelumnya (YoY)
+}
+export interface IRevenueByAccountMonth {
+  year: number
+  acctName: string
+  revenue: number
+  previous: number
+  growth: number // % vs bulan yang sama tahun lalu (YoY / MTD)
+}
+
+export interface IRevenueByAccountYearly {
+  year: number
+  data: IRevenueByAccount[]
+}
+
+export interface IRevenueByAccountMonthly {
+  month: number
+  data: IRevenueByAccountMonth[]
+}
+
+
 export interface IDashboardData {
   data: {
     monthlyTrends: IMonthlyTrend[];
@@ -140,5 +165,9 @@ export interface IDashboardData {
     },
     revenueByCategory: { category: string, mtd: number, ytd: number }[],
     customersByRangeItem: { period: string, category: string, customers: number, revenue: number }[]
+    revenueByAccountCategory: {
+      yearly: IRevenueByAccountYearly[]
+      monthly: IRevenueByAccountMonthly[]
+    }
   }
 }
