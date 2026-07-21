@@ -2,6 +2,7 @@
 import ActiveCustomerCard from './components/dashboard/ActiveCustomerCard'
 import CustomerGrowth from './components/dashboard/CustomerGrowth'
 import CustomerLoyaltyCard from './components/dashboard/CustomerLoyaltyCard'
+import RevenueByAccountName from './components/dashboard/RevenueByAccountName'
 import RevenueByProductCategory from './components/dashboard/RevenueByProductCategory'
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
 import TrendChart from './components/dashboard/TrendChart'
@@ -14,7 +15,6 @@ import { useContext, useEffect, useState } from 'react'
 
 import 'chartjs-adapter-date-fns'
 import { useFetch } from '@/hooks/useFetch'
-import RevenueByAccountName from './components/dashboard/RevenueByAccountName'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -71,11 +71,15 @@ const Dashboard = () => {
   })
 
   const { data: revenueByAccountCategoryData, isValidating: isRevenueByAccountValidating } =
-    useFetch<IResObject<IDashboardData['data']>>('summary/revenue-by-account', salesPersonId ? { salesPersonId } : {}, {
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    })
+    useFetch<IResObject<IDashboardData['data']>>(
+      'summary/revenue-by-account',
+      salesPersonId ? { salesPersonId } : {},
+      {
+        dedupingInterval: 60000,
+        revalidateIfStale: false,
+        revalidateOnReconnect: true,
+      }
+    )
 
   const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetch<
     IResObject<IDashboardData['data']>
@@ -117,10 +121,6 @@ const Dashboard = () => {
 
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
 
-      <RevenueByAccountName
-        isValidating={isRevenueByAccountValidating}
-        revenueByAccountCategoryData={revenueByAccountCategoryData?.data}
-      />
       <RevenueByProductCategory
         revenueByCategoryData={revenueByCategoryData?.data}
         period={period}
@@ -137,6 +137,10 @@ const Dashboard = () => {
       />
 
       <TrendChart isValidating={isValidating} data={data?.data} />
+      <RevenueByAccountName
+        isValidating={isRevenueByAccountValidating}
+        revenueByAccountCategoryData={revenueByAccountCategoryData?.data}
+      />
       <CustomerGrowth
         isValidating={isCustomerTrendValidating}
         customerTrendData={customerTrendData?.data}

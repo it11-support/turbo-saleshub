@@ -333,10 +333,7 @@ export const fetchRevenueByCategory = async (req: Request, res: Response) => {
 
 export const fetchRevenueByAccountCategory = async (req: Request, res: Response) => {
   try {
-    const { salesPersonId } = req.query
-    const revenueByAccountCategory = await getRevenueByAccountCategory(
-      salesPersonId ? Number(salesPersonId) : null
-    )
+    const revenueByAccountCategory = await getRevenueByAccountCategory()
     res.status(200).json({
       message: 'Success',
       data: {
