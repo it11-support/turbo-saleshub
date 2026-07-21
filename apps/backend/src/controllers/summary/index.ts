@@ -1,7 +1,7 @@
 import prisma from '@/libs/prisma.js'
 import { Request, Response } from 'express'
 import { getCRR, getMtdDates, getRFM } from '@/utils/statsFunctions.js'
-import { buildProductRevenue, getActiveCustomers, getCustomerTrend, getNooVsExisting, getPeriodRange, getRevenueByCategory, getSalesSummary, normalizeItems } from './functions.js'
+import { buildProductRevenue, getActiveCustomers, getCustomerTrend, getNooVsExisting, getPeriodRange, getRevenueByAccountCategory, getRevenueByCategory, getSalesSummary, normalizeItems } from './functions.js'
 import { MonthlySummary } from '@saleshub-tsm/types'
 import { CUSTOMER_INSIGHT_PERIODS } from '@/constants/index.js'
 import { handleApiError } from '@/utils/apiResponse.js'
@@ -324,6 +324,23 @@ export const fetchRevenueByCategory = async (req: Request, res: Response) => {
       message: 'Success',
       data: {
         revenueByCategory
+      },
+    })
+  } catch (error) {
+    return handleApiError(error, res)
+  }
+}
+
+export const fetchRevenueByAccountCategory = async (req: Request, res: Response) => {
+  try {
+    const { salesPersonId } = req.query
+    const revenueByAccountCategory = await getRevenueByAccountCategory(
+      salesPersonId ? Number(salesPersonId) : null
+    )
+    res.status(200).json({
+      message: 'Success',
+      data: {
+        revenueByAccountCategory
       },
     })
   } catch (error) {

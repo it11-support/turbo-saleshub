@@ -14,6 +14,7 @@ import { useContext, useEffect, useState } from 'react'
 
 import 'chartjs-adapter-date-fns'
 import { useFetch } from '@/hooks/useFetch'
+import RevenueByAccountName from './components/dashboard/RevenueByAccountName'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
@@ -69,6 +70,13 @@ const Dashboard = () => {
     revalidateOnReconnect: true,
   })
 
+  const { data: revenueByAccountCategoryData, isValidating: isRevenueByAccountValidating } =
+    useFetch<IResObject<IDashboardData['data']>>('summary/revenue-by-account', salesPersonId ? { salesPersonId } : {}, {
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    })
+
   const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetch<
     IResObject<IDashboardData['data']>
   >('summary/customer-trend', salesPersonId ? { salesPersonId } : {}, {
@@ -108,6 +116,11 @@ const Dashboard = () => {
       </div>
 
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
+
+      <RevenueByAccountName
+        isValidating={isRevenueByAccountValidating}
+        revenueByAccountCategoryData={revenueByAccountCategoryData?.data}
+      />
       <RevenueByProductCategory
         revenueByCategoryData={revenueByCategoryData?.data}
         period={period}

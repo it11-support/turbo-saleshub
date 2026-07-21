@@ -48,22 +48,52 @@ export const ICON_OPTIONS = [
 ]
 
 export const CHART_COLORS = {
+  // Primary
   blue: '#3B82F6',
-  blueLight: 'rgba(59, 130, 246, 0.18)',
-  green: '#22C55E',
-  greenLight: 'rgba(34, 197, 94, 0.15)',
-  orange: '#F97316',
-  orangeLight: 'rgba(249, 115, 22, 0.1)',
+  blueLight: 'rgba(59,130,246,0.16)',
+
+  // Success
+  green: '#10B981',
+  greenLight: 'rgba(16,185,129,0.16)',
+
+  // Warning
+  orange: '#F59E0B',
+  orangeLight: 'rgba(245,158,11,0.16)',
+
+  // Danger
   red: '#EF4444',
-  redLight: 'rgba(239, 68, 68, 0.1)',
-  gray: '#6B7280',
-  grayLight: 'rgba(107, 114, 128, 0.1)',
-  purple: '#A855F7',
-  purpleLight: 'rgba(168, 85, 247, 0.1)',
+  redLight: 'rgba(239,68,68,0.16)',
+
+  // Neutral
+  gray: '#64748B',
+  grayLight: 'rgba(100,116,139,0.12)',
+
+  // Secondary
+  purple: '#8B5CF6',
+  purpleLight: 'rgba(139,92,246,0.16)',
+
+  // Cyan
+  cyan: '#06B6D4',
+  cyanLight: 'rgba(6,182,212,0.16)',
+
+  // Pink
+  pink: '#EC4899',
+  pinkLight: 'rgba(236,72,153,0.16)',
+
+  // Lime
+  lime: '#84CC16',
+  limeLight: 'rgba(132,204,22,0.16)',
+
+  // Indigo
+  indigo: '#6366F1',
+  indigoLight: 'rgba(99,102,241,0.16)',
+
+  // Theme aliases
   primary: '#2563EB',
-  primaryLight: 'rgba(37, 99, 235, 0.15)',
-  success: '#16A34A',
-  danger: '#DC2626',
+  primaryLight: 'rgba(37,99,235,0.16)',
+
+  success: '#10B981',
+  danger: '#EF4444',
 }
 
 export const CHART_DEFAULTS = {
