@@ -357,6 +357,18 @@ model sales_visit_schedules {
   @@index([rule_id])
 }
 
+model revenue_category_daily {
+  date             DateTime             @db.Date
+  acctName         String               @map("acct_name") @db.VarChar(100)
+  revenue          Decimal              @default(0) @db.Decimal(19, 6)
+
+  createdAt        DateTime?            @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime?            @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@id([date, acctName])
+  @@index([date, acctName])
+}
+
 model sales_visit_schedule_items {
 
   id                   BigInt               @id @default(autoincrement())

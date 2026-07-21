@@ -29,13 +29,11 @@ export const useDebouncedFilter = ({
         ...(resetPage ? { page: 1 } : {}),
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounced])
 
   // Sync balik jika value berubah eksternal (clear button, URL change, dll)
   useEffect(() => {
     setLocal(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   return { local, setLocal }

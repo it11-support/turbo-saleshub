@@ -2,6 +2,7 @@
 import ActiveCustomerCard from './components/dashboard/ActiveCustomerCard'
 import CustomerGrowth from './components/dashboard/CustomerGrowth'
 import CustomerLoyaltyCard from './components/dashboard/CustomerLoyaltyCard'
+import RevenueByAccountName from './components/dashboard/RevenueByAccountName'
 import RevenueByProductCategory from './components/dashboard/RevenueByProductCategory'
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
 import TrendChart from './components/dashboard/TrendChart'
@@ -69,6 +70,17 @@ const Dashboard = () => {
     revalidateOnReconnect: true,
   })
 
+  const { data: revenueByAccountCategoryData, isValidating: isRevenueByAccountValidating } =
+    useFetch<IResObject<IDashboardData['data']>>(
+      'summary/revenue-by-account',
+      salesPersonId ? { salesPersonId } : {},
+      {
+        dedupingInterval: 60000,
+        revalidateIfStale: false,
+        revalidateOnReconnect: true,
+      }
+    )
+
   const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetch<
     IResObject<IDashboardData['data']>
   >('summary/customer-trend', salesPersonId ? { salesPersonId } : {}, {
@@ -108,6 +120,7 @@ const Dashboard = () => {
       </div>
 
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
+
       <RevenueByProductCategory
         revenueByCategoryData={revenueByCategoryData?.data}
         period={period}
@@ -124,6 +137,10 @@ const Dashboard = () => {
       />
 
       <TrendChart isValidating={isValidating} data={data?.data} />
+      <RevenueByAccountName
+        isValidating={isRevenueByAccountValidating}
+        revenueByAccountCategoryData={revenueByAccountCategoryData?.data}
+      />
       <CustomerGrowth
         isValidating={isCustomerTrendValidating}
         customerTrendData={customerTrendData?.data}
