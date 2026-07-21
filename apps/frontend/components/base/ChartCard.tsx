@@ -39,7 +39,7 @@ const ChartCard = ({
   pt,
 }: ChartCardProps) => {
   const defaultRootStyle: React.CSSProperties = {
-    borderRadius: '12px',
+    borderRadius: '2px',
     padding: '1rem',
     ...style,
   }

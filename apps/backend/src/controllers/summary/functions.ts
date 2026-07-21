@@ -603,3 +603,181 @@ export const buildProductRevenue = (
     orders: i.count,
   }))
 }
+
+export const getRevenueByAccountCategory = async () => {
+  const [yearlyRaw, monthlyRaw] = await Promise.all([
+    prisma.$queryRaw<any[]>`
+      WITH RECURSIVE years AS (
+        SELECT YEAR(CURDATE()) - 4 AS yr
+        UNION ALL
+        SELECT yr + 1
+        FROM years
+        WHERE yr < YEAR(CURDATE())
+      )
+      SELECT
+        y.yr AS year,
+        d.acct_name AS acctName,
+        COALESCE(SUM(d.revenue), 0) AS revenue
+      FROM years y
+      LEFT JOIN revenue_category_daily d
+        ON YEAR(d.date) = y.yr
+       AND d.date >= MAKEDATE(y.yr, 1)
+       AND d.date <= MAKEDATE(y.yr, DAYOFYEAR(CURDATE()))
+      GROUP BY
+        y.yr,
+        d.acct_name
+      ORDER BY
+        y.yr,
+        d.acct_name
+    `,
+
+    prisma.$queryRaw<any[]>`
+      WITH RECURSIVE months AS (
+        SELECT 1 AS mo
+        UNION ALL
+        SELECT mo + 1
+        FROM months
+        WHERE mo < MONTH(CURDATE())
+      ),
+      years AS (
+        SELECT YEAR(CURDATE()) - 1 AS yr
+        UNION ALL
+        SELECT YEAR(CURDATE())
+      ),
+      categories AS (
+        SELECT DISTINCT AcctName
+        FROM products
+      )
+      SELECT
+        y.yr AS year,
+        m.mo AS month,
+        c.AcctName AS acctName,
+        COALESCE(SUM(d.revenue), 0) AS revenue
+      FROM years y
+      CROSS JOIN months m
+      CROSS JOIN categories c
+      LEFT JOIN revenue_category_daily d
+        ON YEAR(d.date) = y.yr
+       AND MONTH(d.date) = m.mo
+       AND d.acct_name = c.AcctName
+       AND (
+            m.mo < MONTH(CURDATE())
+            OR (
+                m.mo = MONTH(CURDATE())
+                AND DAY(d.date) <= DAY(CURDATE())
+            )
+       )
+      GROUP BY
+        y.yr,
+        m.mo,
+        c.AcctName
+      ORDER BY
+        m.mo,
+        y.yr,
+        c.AcctName
+    `
+  ])
+
+  const yearlyMap = new Map<
+    number,
+    {
+      year: number
+      data: {
+        acctName: string
+        revenue: number
+        previous: number
+        growth: number
+      }[]
+    }
+  >()
+
+  yearlyRaw.forEach(r => {
+    const year = Number(r.year)
+
+    if (!yearlyMap.has(year)) {
+      yearlyMap.set(year, {
+        year,
+        data: [],
+      })
+    }
+
+    yearlyMap.get(year)!.data.push({
+      acctName: r.acctName,
+      revenue: Number(r.revenue ?? 0),
+      previous: 0,
+      growth: 0,
+    })
+  })
+
+  const yearly = [...yearlyMap.values()].sort((a, b) => a.year - b.year)
+
+  // Hitung growth yearly vs tahun sebelumnya (YoY) per akun
+  yearly.forEach((curr, idx) => {
+    const prev = idx > 0 ? yearly[idx - 1] : null
+
+    curr.data.forEach(item => {
+      const prevItem = prev?.data.find(p => p.acctName === item.acctName)
+      const previous = prevItem ? prevItem.revenue : 0
+
+      item.previous = previous
+      item.growth = previous > 0
+        ? parseFloat((((item.revenue - previous) / previous) * 100).toFixed(2))
+        : item.revenue > 0 ? 100 : 0
+    })
+  })
+
+  const monthlyMap = new Map<
+    number,
+    {
+      month: number
+      data: {
+        year: number
+        acctName: string
+        revenue: number
+        previous: number
+        growth: number
+      }[]
+    }
+  >()
+
+  monthlyRaw.forEach(r => {
+    const month = Number(r.month)
+
+    if (!monthlyMap.has(month)) {
+      monthlyMap.set(month, {
+        month,
+        data: [],
+      })
+    }
+
+    monthlyMap.get(month)!.data.push({
+      year: Number(r.year),
+      acctName: r.acctName,
+      revenue: Number(r.revenue ?? 0),
+      previous: 0,
+      growth: 0,
+    })
+  })
+
+  const monthly = [...monthlyMap.values()].sort((a, b) => a.month - b.month)
+
+  // Hitung growth monthly vs bulan yang sama tahun lalu (YoY / MTD) per akun
+  monthly.forEach(curr => {
+    curr.data.forEach(item => {
+      if (item.year !== Math.max(...curr.data.map(d => d.year))) return
+
+      const prevYear = item.year - 1
+      const prevItem = curr.data.find(
+        p => p.year === prevYear && p.acctName === item.acctName
+      )
+      const previous = prevItem ? prevItem.revenue : 0
+
+      item.previous = previous
+      item.growth = previous > 0
+        ? parseFloat((((item.revenue - previous) / previous) * 100).toFixed(2))
+        : item.revenue > 0 ? 100 : 0
+    })
+  })
+
+  return { yearly, monthly }
+}
