@@ -20,8 +20,7 @@
     "ts-node": "^10.9.2",
     "turbo": "^2.10.5",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.65.0",
-    "sharp": ">=0.35.0"
+    "typescript-eslint": "^8.65.0"
   },
   "workspaces": [
     "apps/*",
@@ -80,7 +79,8 @@
     "tailwind-merge": "^3.4.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-latest/xlsx-latest.tgz",
     "xlsx-js-style": "^1.2.0",
-    "zod": "^4.1.13"
+    "zod": "^4.1.13",
+    "sharp": ">=0.35.0"
   },
   "packageManager": "pnpm@10.29.2"
 }
