@@ -26,6 +26,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
   const acctRevenue = new Map<string, number>()
   yearlyData.forEach((y) => {
     y.data.forEach((d) => {
+      if (!d.acctName) return
       acctRevenue.set(d.acctName, (acctRevenue.get(d.acctName) ?? 0) + d.revenue)
     })
   })
@@ -82,6 +83,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
   })
   yearlyData.forEach((y, yi) =>
     y.data.forEach((d) => {
+      if (!d.acctName) return
       byAcct[d.acctName][yi] = d.revenue
       byAcctGrowth[d.acctName][yi] = d.growth ?? 0
     })
@@ -172,6 +174,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
   sortedMonths.forEach((m) => {
     const mi = m.month - 1
     m.data.forEach((d) => {
+      if (!d.acctName) return
       if (d.year !== currentYear) return
       byAcctMonth[d.acctName][mi] = d.revenue
       byAcctMonthGrowth[d.acctName][mi] = d.growth ?? 0
