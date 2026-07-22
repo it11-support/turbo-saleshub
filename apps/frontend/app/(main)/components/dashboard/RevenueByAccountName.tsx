@@ -32,8 +32,8 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
 
   const accts = Array.from(
     new Set([
-      ...yearlyData.flatMap((y) => y.data.map((d) => d.acctName)),
-      ...monthlyData.flatMap((m) => m.data.map((d) => d.acctName)),
+      ...yearlyData.flatMap((y) => y.data.map((d) => d.acctName).filter(Boolean)),
+      ...monthlyData.flatMap((m) => m.data.map((d) => d.acctName).filter(Boolean)),
     ])
   ).sort((a, b) => (acctRevenue.get(b) ?? 0) - (acctRevenue.get(a) ?? 0))
 
