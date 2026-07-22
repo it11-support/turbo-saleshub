@@ -1,4 +1,5 @@
-import { Nullable } from "../common";
+import { Decimal } from "@prisma/client/runtime/client";
+import { IGeoLocation, Nullable } from "../common";
 import { RawVisitCompetitor } from "../competitor";
 import { IConcernCategory, IConcernStatus } from "../concerns";
 import { ICustomer } from "../customer";
@@ -16,6 +17,9 @@ export interface IVisit {
   end_at?: Date | null;
   status: TVisitStatus;
   notes?: string | null;
+  lat?: Decimal | null;
+  lng?: Decimal | null;
+  accuracy?: Decimal | null;
   created_at: string | Date | null;
   updated_at: string | Date | null;
   visit_date: string | Date | null
@@ -178,6 +182,6 @@ export interface IVisitState {
   fetchVisitDetails: (id: number) => Promise<void>
   setVisitNote: (note: string) => void
   addFollowUp: () => Promise<void>
-  startVisit: (visitId: number) => Promise<void>
+  startVisit: (visitId: number, location?: IGeoLocation, mode?: 'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY') => Promise<void>
   processItems: (data: Record<number, { notes: string; statusId: number | null }>, productIds: number[]) => Promise<void>
 }

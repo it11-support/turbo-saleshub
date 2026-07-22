@@ -3,6 +3,7 @@ import { ISalesInvoices } from '../sales'
 import { ISubGroup } from "../subgroups";
 import { CustomerRFM } from "../rfm";
 import { SuggestedItemsGrouped } from "../product";
+import { Decimal } from "@prisma/client/runtime/client";
 
 export interface ICustomer {
   id: bigint;
@@ -33,6 +34,9 @@ export interface ICustomer {
   // Relasi (dari sales_persons)
   sales_person?: ISalesPerson | null;
   rfm?: CustomerRFM | null
+  lat?: Decimal | null
+  lng?: Decimal | null
+  accuracy?: Decimal | null
 }
 export interface CustomerSummary {
   ItemCode: string

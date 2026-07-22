@@ -4,9 +4,11 @@ import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
 import Competitors from '../components/Competitors'
+import ConfirmLocationDialog from '../components/ConfirmLocationDialog'
 import {
   IConcernCategory,
   IConcernStatus,
+  IGeoLocation,
   IResObject,
   IVisitItem,
   ProductWithFrequency,
@@ -27,10 +29,13 @@ import { ProgressSpinner } from 'primereact/progressspinner'
 import { useEffect, useRef, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
+import { calculateDistance, getCurrentLocation } from '@/lib/geolocation'
 import { parsePhone } from '@/lib/phoneParser'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
+
+const DISTANCE_THRESHOLD = 1000
 
 interface IConcernCategoryResponse {
   concernCategories: IConcernCategory[]
@@ -83,7 +88,12 @@ const VisitsPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [markedAs, setMarkedAs] = useState<ProductWithFrequency[]>([])
   const [showBulkOfferDialog, setShowBulkOfferDialog] = useState(false)
-
+  const [dialogVisible, setDialogVisible] = useState(false)
+  const [dialogMode, setDialogMode] = useState<'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY'>(
+    'NO_LOCATION'
+  )
+  const [distance, setDistance] = useState<number>()
+  const [currentLocation, setCurrentLocation] = useState<IGeoLocation | null>(null)
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
@@ -93,6 +103,7 @@ const VisitsPage = () => {
     useFetch<IResObject<IConcernCategoryResponse>>('concern-categories')
 
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
+  const { suggestedItems, customer, visit_items } = salesVisit
 
   useEffect(() => {
     fetchProducts()
@@ -129,6 +140,45 @@ const VisitsPage = () => {
       router.back()
     })
   }
+  const handleStartVisit = async () => {
+    try {
+      const location = await getCurrentLocation()
+      setCurrentLocation(location)
+
+      // GPS kurang akurat
+      if (location.accuracy > DISTANCE_THRESHOLD) {
+        setDialogMode('LOW_ACCURACY')
+        setDialogVisible(true)
+        return
+      }
+
+      const hasLocation = customer?.lat != null && customer?.lng != null
+
+      // Customer belum punya lokasi
+      if (!hasLocation) {
+        setDialogMode('NO_LOCATION')
+        setDialogVisible(true)
+        return
+      }
+
+      const distance = calculateDistance(
+        Number(customer.lat),
+        Number(customer.lng),
+        location.latitude,
+        location.longitude
+      )
+
+      // Customer terlalu jauh
+      if (distance > DISTANCE_THRESHOLD) {
+        setDistance(distance)
+        setDialogMode('DISTANCE_TOO_FAR')
+        setDialogVisible(true)
+        return
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const { data: concernStatusesData, mutate: mutateStatus } = useFetch<
     IResObject<IConcernStatusResponse>
@@ -136,7 +186,6 @@ const VisitsPage = () => {
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
-  const { suggestedItems, customer, visit_items } = salesVisit
   const suggestedGroups = [
     { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
     { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
@@ -342,7 +391,7 @@ const VisitsPage = () => {
               severity="success"
               outlined
               size="small"
-              onClick={() => startVisit(Number(salesVisit.id))}
+              onClick={handleStartVisit}
             />
           </div>
         ) : (
@@ -658,6 +707,20 @@ const VisitsPage = () => {
           </div>
         )}
       </div>
+      <ConfirmLocationDialog
+        visible={dialogVisible}
+        mode={dialogMode}
+        distance={distance}
+        accuracy={currentLocation?.accuracy}
+        onHide={() => setDialogVisible(false)}
+        onSaveLocation={async () => {
+          if (!currentLocation) return
+
+          setDialogVisible(false)
+
+          await startVisit(Number(salesVisit.id), currentLocation, dialogMode)
+        }}
+      />
 
       <Dialog
         modal
@@ -811,7 +874,6 @@ const VisitsPage = () => {
           })}
         </div>
       </Dialog>
-
       <Dialog
         modal
         blockScroll

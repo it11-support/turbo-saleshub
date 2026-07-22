@@ -391,24 +391,70 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
 
 export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const visitId = Number(req.params.id)
+    const { location, mode } = req.body
 
-    const { id } = req.params
-    const visitId = Number(id);
-    const visitItem = await prisma.visits.update({
-      where: { id: visitId, start_at: null },
-      data: {
-        start_at: new Date(),
-        status: VisitStatus.Ongoing
-      },
+    const visitItem = await prisma.$transaction(async (tx) => {
+      const visit = await tx.visits.findUnique({
+        where: { id: visitId },
+        select: {
+          id: true,
+          customer_id: true,
+        },
+      })
+
+      if (!visit) {
+        throw new Error('Visit not found')
+      }
+
+      if (location) {
+        await tx.visits.update({
+          where: {
+            id: visitId,
+            start_at: null,
+          },
+          data: {
+            start_at: new Date(),
+            status: VisitStatus.Ongoing,
+            lat: location.latitude,
+            lng: location.longitude,
+            accuracy: location.accuracy,
+          },
+        })
+
+        if (
+          mode === 'NO_LOCATION' ||
+          mode === 'DISTANCE_TOO_FAR'
+        ) {
+          await tx.customers.update({
+            where: {
+              id: visit.customer_id,
+            },
+            data: {
+              lat: location.latitude,
+              lng: location.longitude,
+              accuracy: location.accuracy,
+            },
+          })
+        }
+      }
+
+      return tx.visits.findUnique({
+        where: { id: visitId },
+      })
     })
 
     activityLogger({
       req,
-      actionType: "Sales Visit",
-      description: `Sales Visit completed : ${process.env.CLIENT_URL}/visits/${visitId}`,
-      status: "SUCCESS",
+      actionType: 'Sales Visit',
+      description: `Sales Visit started : ${process.env.CLIENT_URL}/visits/${visitId}`,
+      status: 'SUCCESS',
     })
-    res.status(200).json({ message: 'Success', data: visitItem });
+
+    res.status(200).json({
+      message: 'Success',
+      data: visitItem,
+    })
   } catch (error) {
     return handleApiError(error, res)
   }

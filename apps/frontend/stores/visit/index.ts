@@ -1,4 +1,11 @@
-import { FollowUpForm, IVisit, IVisitDetails, IVisitState, OfferedItem } from '@saleshub-tsm/types'
+import {
+  FollowUpForm,
+  IGeoLocation,
+  IVisit,
+  IVisitDetails,
+  IVisitState,
+  OfferedItem,
+} from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -162,14 +169,27 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       // error logged via withLoading onError
     }
   },
-  startVisit: async (visitId: number) => {
+  startVisit: async (
+    visitId: number,
+    location?: IGeoLocation,
+    mode?: 'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY'
+  ) => {
     try {
       await withLoading(
         set,
         async () => {
           const { fetchSalesVisit } = get()
           const url = createUrl(`visit/${visitId}/start`)
-          await $api<any>(url, jsonBody({}, 'POST'))
+          await $api(
+            url,
+            jsonBody(
+              {
+                location,
+                mode,
+              },
+              'POST'
+            )
+          )
           fetchSalesVisit(visitId)
         },
         console.error
