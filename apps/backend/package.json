@@ -15,7 +15,7 @@
     "schema": "apps/backend/prisma/schema.prisma"
   },
   "dependencies": {
-    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/adapter-mariadb": "^7.9.0",
     "@prisma/client": "^7.8.0",
     "@saleshub-tsm/types": "workspace:*",
     "@types/cors": "^2.8.19",
