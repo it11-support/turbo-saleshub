@@ -30,7 +30,7 @@ const newWeekFlags = (): WeekFlags => ({ 1: false, 2: false, 3: false, 4: false 
 const cloneWeeks = (src?: WeekFlags): WeekFlags =>
   src ? { 1: src[1], 2: src[2], 3: src[3], 4: src[4] } : newWeekFlags()
 
-const VisitsPage = (): JSX.Element => {
+const VisitsPage = (): React.JSX.Element => {
   const [selectedSalesPerson, setSelectedSalesPerson] = useState<number | null>(null)
   const [visitMatrix, setVisitMatrix] = useState<VisitMatrix>({})
   const [lastChangedDay, setLastChangedDay] = useState<string | null>(null)

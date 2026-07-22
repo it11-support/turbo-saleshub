@@ -26,13 +26,17 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
   const acctRevenue = new Map<string, number>()
   yearlyData.forEach((y) => {
     y.data.forEach((d) => {
+      if (!d.acctName) return
       acctRevenue.set(d.acctName, (acctRevenue.get(d.acctName) ?? 0) + d.revenue)
     })
   })
 
-  const accts = Array.from(new Set(yearlyData.flatMap((y) => y.data.map((d) => d.acctName)))).sort(
-    (a, b) => (acctRevenue.get(b) ?? 0) - (acctRevenue.get(a) ?? 0)
-  )
+  const accts = Array.from(
+    new Set([
+      ...yearlyData.flatMap((y) => y.data.map((d) => d.acctName).filter(Boolean)),
+      ...monthlyData.flatMap((m) => m.data.map((d) => d.acctName).filter(Boolean)),
+    ])
+  ).sort((a, b) => (acctRevenue.get(b) ?? 0) - (acctRevenue.get(a) ?? 0))
 
   const palette = [
     CHART_COLORS.blue,
@@ -79,6 +83,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
   })
   yearlyData.forEach((y, yi) =>
     y.data.forEach((d) => {
+      if (!d.acctName) return
       byAcct[d.acctName][yi] = d.revenue
       byAcctGrowth[d.acctName][yi] = d.growth ?? 0
     })
@@ -169,6 +174,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
   sortedMonths.forEach((m) => {
     const mi = m.month - 1
     m.data.forEach((d) => {
+      if (!d.acctName) return
       if (d.year !== currentYear) return
       byAcctMonth[d.acctName][mi] = d.revenue
       byAcctMonthGrowth[d.acctName][mi] = d.growth ?? 0
@@ -205,11 +211,14 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
           label: (ctx: TooltipItem<'line'>) => {
             const growth = (ctx.dataset as any).growthData?.[ctx.dataIndex] ?? 0
             const arrow = growth >= 0 ? '▲' : '▼'
-            return `${ctx.dataset.label}: ${formatCurrency(Number(ctx.raw), true, true)} (${arrow} ${Math.abs(growth).toFixed(1)}% YoY)`
+            return `${ctx.dataset.label}: ${formatCurrency(Number(ctx.raw), false, true)} (${arrow} ${Math.abs(growth).toFixed(1)}% YoY)`
           },
           footer: (items: TooltipItem<'line'>[]) => {
             const total = items.reduce((sum, item) => sum + Number(item.raw), 0)
-            return `Total: ${formatCurrency(total, true, true)}`
+            return [
+              '_________________________________',
+              `Total: ${formatCurrency(total, false, true)}`,
+            ]
           },
         },
       },
@@ -232,7 +241,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
     scales: {
       x: { grid: { display: false } },
       y: {
-        ticks: { callback: (value: string | number) => formatCurrency(Number(value), true, true) },
+        ticks: { callback: (value: string | number) => formatCurrency(Number(value), false, true) },
       },
     },
   }
