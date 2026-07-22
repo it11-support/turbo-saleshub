@@ -30,9 +30,12 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
     })
   })
 
-  const accts = Array.from(new Set(yearlyData.flatMap((y) => y.data.map((d) => d.acctName)))).sort(
-    (a, b) => (acctRevenue.get(b) ?? 0) - (acctRevenue.get(a) ?? 0)
-  )
+  const accts = Array.from(
+    new Set([
+      ...yearlyData.flatMap((y) => y.data.map((d) => d.acctName)),
+      ...monthlyData.flatMap((m) => m.data.map((d) => d.acctName)),
+    ])
+  ).sort((a, b) => (acctRevenue.get(b) ?? 0) - (acctRevenue.get(a) ?? 0))
 
   const palette = [
     CHART_COLORS.blue,
