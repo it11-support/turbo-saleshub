@@ -211,11 +211,14 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
           label: (ctx: TooltipItem<'line'>) => {
             const growth = (ctx.dataset as any).growthData?.[ctx.dataIndex] ?? 0
             const arrow = growth >= 0 ? '▲' : '▼'
-            return `${ctx.dataset.label}: ${formatCurrency(Number(ctx.raw), true, true)} (${arrow} ${Math.abs(growth).toFixed(1)}% YoY)`
+            return `${ctx.dataset.label}: ${formatCurrency(Number(ctx.raw), false, true)} (${arrow} ${Math.abs(growth).toFixed(1)}% YoY)`
           },
           footer: (items: TooltipItem<'line'>[]) => {
             const total = items.reduce((sum, item) => sum + Number(item.raw), 0)
-            return `Total: ${formatCurrency(total, true, true)}`
+            return [
+              '_________________________________',
+              `Total: ${formatCurrency(total, false, true)}`,
+            ]
           },
         },
       },
@@ -238,7 +241,7 @@ const RevenueByAccountName = (props: RevenueByAccountNameProps) => {
     scales: {
       x: { grid: { display: false } },
       y: {
-        ticks: { callback: (value: string | number) => formatCurrency(Number(value), true, true) },
+        ticks: { callback: (value: string | number) => formatCurrency(Number(value), false, true) },
       },
     },
   }
