@@ -147,9 +147,6 @@ importers:
       '@types/express-fileupload':
         specifier: ^1.5.1
         version: 1.5.1
-      '@types/express-rate-limit':
-        specifier: ^6.0.2
-        version: 6.0.2(express@5.2.1)
       '@types/node':
         specifier: ^25.9.5
         version: 25.9.5
@@ -1836,10 +1833,6 @@ packages:
 
   '@types/express-fileupload@1.5.1':
     resolution: {integrity: sha512-DllImBVI1lCyjl2klky/TEwk60mbNebgXv1669h66g9TfptWSrEFq5a/raHSutaFzjSm1tmn9ypdNfu4jPSixQ==}
-
-  '@types/express-rate-limit@6.0.2':
-    resolution: {integrity: sha512-e1xZLOOlxCDvplAGq7rDcXtbdBu2CWRsMjaIu1LVqGxWtKvwr884YE5mPs3IvHeG/OMDhf24oTaqG5T1bV3rBQ==}
-    deprecated: This is a stub types definition. express-rate-limit provides its own type definitions, so you do not need this installed.
 
   '@types/express-serve-static-core@5.1.1':
     resolution: {integrity: sha512-v4zIMr/cX7/d2BpAEX3KNKL/JrT1s43s96lLvvdTmza1oEvDudCqK9aF/djc/SWgy8Yh0h30TZx5VpzqFCxk5A==}
@@ -6002,13 +5995,6 @@ snapshots:
     dependencies:
       '@types/busboy': 1.5.4
       '@types/express': 5.0.6
-
-  '@types/express-rate-limit@6.0.2(express@5.2.1)':
-    dependencies:
-      express-rate-limit: 8.6.0(express@5.2.1)
-    transitivePeerDependencies:
-      - express
-      - supports-color
 
   '@types/express-serve-static-core@5.1.1':
     dependencies:
