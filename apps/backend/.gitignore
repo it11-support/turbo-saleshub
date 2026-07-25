@@ -10,6 +10,7 @@ node_modules
 
 /prisma/generated/prisma
 /public/images/product
+/public/images/visit
 dist
 
 .turbo

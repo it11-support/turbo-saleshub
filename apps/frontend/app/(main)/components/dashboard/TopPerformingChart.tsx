@@ -3,12 +3,14 @@ import { IDashboardData } from '@saleshub-tsm/types'
 import { useContext } from 'react'
 
 import { LayoutContext } from '@/layout/context/layoutcontext'
+import VisitDistribution from './VisitDistribution'
 
 type TopPerformingChartProps = {
   isValidating: boolean
   data?: IDashboardData['data']
+  visitDistribution?: IDashboardData['data']
 }
-const TopPerformingChart = ({ isValidating, data }: TopPerformingChartProps) => {
+const TopPerformingChart = ({ isValidating, data, visitDistribution }: TopPerformingChartProps) => {
   const { productRevenueDistributor, productRevenueGrocery, productRevenueAll } = data || {}
 
   const productRevenueDistributorLabel = productRevenueDistributor?.map((item) => item.ItemName)
@@ -53,6 +55,9 @@ const TopPerformingChart = ({ isValidating, data }: TopPerformingChartProps) => 
           />
         </div>
       ))}
+      <div key="visitDistribution" className="col-12 lg:col-12 xl:col-6 p-2">
+        <VisitDistribution isValidating={isValidating} data={visitDistribution} />
+      </div>
     </div>
   )
 }

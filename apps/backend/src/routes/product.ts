@@ -2,8 +2,8 @@ import { Router } from 'express';
 import {
   bulkUploadProducts,
   deleteImage,
+  fetchProductImage,
   fetchProducts,
-  image,
   imageUpload,
   productDevelopment,
   removeProductDevelopment,
@@ -14,7 +14,7 @@ import { imageReadLimiter } from '@/utils/limiter.js';
 
 const router = Router();
 
-router.get('/image/:itemCode', imageReadLimiter, image);
+router.get('/image/:itemCode', imageReadLimiter, fetchProductImage);
 router.use(authMiddleware);
 router.post('/image/:itemCode', imageReadLimiter, imageUpload);
 router.post('/images', imageReadLimiter, bulkUploadProducts);

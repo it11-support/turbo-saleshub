@@ -15,7 +15,7 @@ export type ImageResponseType = never;
 
 const isSafeItemCode = (itemCode: string): boolean => /^[A-Za-z0-9_-]+$/.test(itemCode);
 
-export const image = async (req: Request, res: Response) => {
+export const fetchProductImage = async (req: Request, res: Response) => {
   try {
     const itemCodeStr = String(req.params.itemCode);
     const { nofallback } = req.query;

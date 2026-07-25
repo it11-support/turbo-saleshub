@@ -5,6 +5,7 @@ import {
   IVisitDetails,
   IVisitState,
   OfferedItem,
+  StartVisitOptions,
 } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
@@ -13,6 +14,8 @@ import { jsonBody, withLoading } from '@/lib/storeHelper'
 
 export const useSalesVisit = create<IVisitState>()((set, get) => ({
   visitNote: '',
+  location: undefined,
+  setLocation: (location?: IGeoLocation) => set({ location }),
   followUpForm: {} as FollowUpForm,
   setFollowUpForm: (followUpForm: FollowUpForm) => set({ followUpForm }),
   setVisitNote: (note: string) => set({ visitNote: note }),
@@ -22,6 +25,34 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
   setSalesVisit: (salesVisit: IVisit) => set({ salesVisit }),
   loading: false,
   error: null,
+  uploadVisitImage: async (file: File) => {
+    try {
+      await withLoading(
+        set,
+        async () => {
+          const visitId = get().salesVisit.id
+
+          if (!visitId) {
+            throw new Error('Visit ID not found')
+          }
+
+          const formData = new FormData()
+
+          formData.append('image', file)
+
+          const url = createUrl(`visit/${visitId}/images`)
+
+          await $api(url, {
+            method: 'POST',
+            body: formData,
+          })
+        },
+        console.error
+      )
+    } catch {
+      // handled by withLoading
+    }
+  },
   fetchSalesVisit: async (rule_id: number) => {
     try {
       return await withLoading(
@@ -169,16 +200,12 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
       // error logged via withLoading onError
     }
   },
-  startVisit: async (
-    visitId: number,
-    location?: IGeoLocation,
-    mode?: 'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY'
-  ) => {
+  startVisit: async (visitId: number, mode?: StartVisitOptions['mode']) => {
     try {
       await withLoading(
         set,
         async () => {
-          const { fetchSalesVisit } = get()
+          const { fetchSalesVisit, location } = get()
           const url = createUrl(`visit/${visitId}/start`)
           await $api(
             url,

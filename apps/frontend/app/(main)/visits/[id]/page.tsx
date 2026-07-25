@@ -8,7 +8,6 @@ import ConfirmLocationDialog from '../components/ConfirmLocationDialog'
 import {
   IConcernCategory,
   IConcernStatus,
-  IGeoLocation,
   IResObject,
   IVisitItem,
   ProductWithFrequency,
@@ -34,6 +33,7 @@ import { parsePhone } from '@/lib/phoneParser'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
+import CameraCaptureDialog from '../components/CameraCaptureDialog'
 
 const DISTANCE_THRESHOLD = 1000
 
@@ -55,6 +55,9 @@ const VisitsPage = () => {
     endVisit,
     startVisit,
     processItems,
+    location,
+    uploadVisitImage,
+    setLocation,
   } = salesVisitStore
   const { fetchScheduleByDate, currentDate } = useScheduleStore()
   const { id } = useParams()
@@ -89,12 +92,16 @@ const VisitsPage = () => {
   const [markedAs, setMarkedAs] = useState<ProductWithFrequency[]>([])
   const [showBulkOfferDialog, setShowBulkOfferDialog] = useState(false)
   const [dialogVisible, setDialogVisible] = useState(false)
-  const [dialogMode, setDialogMode] = useState<'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY'>(
-    'NO_LOCATION'
-  )
+  const [dialogMode, setDialogMode] = useState<
+    | 'NO_LOCATION'
+    | 'DISTANCE_TOO_FAR'
+    | 'LOW_ACCURACY'
+    | 'PERMISSION_DENIED'
+    | 'POSITION_UNAVAILABLE'
+  >('NO_LOCATION')
   const [distance, setDistance] = useState<number>()
-  const [currentLocation, setCurrentLocation] = useState<IGeoLocation | null>(null)
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
+  const [cameraDialogVisible, setCameraDialogVisible] = useState(false)
 
   const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
     useInquiryStore()
@@ -133,6 +140,14 @@ const VisitsPage = () => {
     }
   }, [showOfferDialog])
 
+  const requestEndVisit = async () => {
+    if (!salesVisit.photo_url) {
+      setCameraDialogVisible(true)
+      return
+    }
+
+    await handleEndVisit()
+  }
   const handleEndVisit = async () => {
     // await syncOfferedItems()
     await endVisit().then(() => {
@@ -142,11 +157,11 @@ const VisitsPage = () => {
   }
   const handleStartVisit = async () => {
     try {
-      const location = await getCurrentLocation()
-      setCurrentLocation(location)
+      const currentLocation = await getCurrentLocation()
+      setLocation(currentLocation)
 
       // GPS kurang akurat
-      if (location.accuracy > DISTANCE_THRESHOLD) {
+      if (currentLocation.accuracy > DISTANCE_THRESHOLD) {
         setDialogMode('LOW_ACCURACY')
         setDialogVisible(true)
         return
@@ -164,8 +179,8 @@ const VisitsPage = () => {
       const distance = calculateDistance(
         Number(customer.lat),
         Number(customer.lng),
-        location.latitude,
-        location.longitude
+        currentLocation.latitude,
+        currentLocation.longitude
       )
 
       // Customer terlalu jauh
@@ -175,8 +190,20 @@ const VisitsPage = () => {
         setDialogVisible(true)
         return
       }
+
+      await startVisit(Number(salesVisit.id))
     } catch (error) {
-      console.error(error)
+      if (error instanceof GeolocationPositionError) {
+        if (error.code === error.PERMISSION_DENIED) {
+          setDialogMode('PERMISSION_DENIED')
+          setDialogVisible(true)
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setDialogMode('POSITION_UNAVAILABLE')
+          setDialogVisible(true)
+        } else {
+          throw error
+        }
+      }
     }
   }
 
@@ -321,6 +348,14 @@ const VisitsPage = () => {
     }
   }
 
+  const handleUploadImage = async (file: File) => {
+    await uploadVisitImage(file)
+
+    setCameraDialogVisible(false)
+
+    await handleEndVisit()
+  }
+
   if (!salesVisit.id)
     return (
       <div
@@ -334,7 +369,7 @@ const VisitsPage = () => {
   return (
     <>
       <div className="card p-3">
-        <NavButton handleEndVisit={handleEndVisit} />
+        <NavButton handleEndVisit={salesVisit.start_at ? requestEndVisit : undefined} />
         <p className="m-0 text-2xl ml-2">{customer?.CardName}</p>
         <div className="flex-1 px-0 py-2">
           {customer?.subgroup && (
@@ -711,15 +746,20 @@ const VisitsPage = () => {
         visible={dialogVisible}
         mode={dialogMode}
         distance={distance}
-        accuracy={currentLocation?.accuracy}
+        accuracy={location?.accuracy}
         onHide={() => setDialogVisible(false)}
         onSaveLocation={async () => {
-          if (!currentLocation) return
+          if (!location) return
 
           setDialogVisible(false)
 
-          await startVisit(Number(salesVisit.id), currentLocation, dialogMode)
+          await startVisit(Number(salesVisit.id), dialogMode)
         }}
+      />
+      <CameraCaptureDialog
+        visible={cameraDialogVisible}
+        onHide={() => setCameraDialogVisible(false)}
+        onSave={handleUploadImage}
       />
 
       <Dialog

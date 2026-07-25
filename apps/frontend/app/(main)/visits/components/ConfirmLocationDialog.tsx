@@ -1,8 +1,10 @@
+import Image from 'next/image'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { Message } from 'primereact/message'
 
-export type ConfirmLocationDialogMode = 'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY'
+export type ConfirmLocationDialogMode =
+  'NO_LOCATION' | 'DISTANCE_TOO_FAR' | 'LOW_ACCURACY' | 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE'
 
 interface ConfirmLocationDialogProps {
   visible: boolean
@@ -21,10 +23,33 @@ export default function ConfirmLocationDialog({
   onHide,
   onSaveLocation,
 }: ConfirmLocationDialogProps) {
-  const footer = (
+  const isError = mode === 'PERMISSION_DENIED' || mode === 'POSITION_UNAVAILABLE'
+
+  const formatDistance = (distance: number) => {
+    if (distance < 1000) {
+      return `±${Math.round(distance)} m`
+    }
+
+    const km = distance / 1000
+
+    return `±${Number(km.toFixed(1))} km`
+  }
+
+  const footer = isError ? (
+    <div className="flex justify-end">
+      <Button
+        label="Close"
+        icon="pi pi-times"
+        severity="secondary"
+        outlined
+        size="small"
+        onClick={onHide}
+      />
+    </div>
+  ) : (
     <div className="flex justify-end gap-2">
       <Button
-        label="Batal"
+        label="Cancel"
         icon="pi pi-times"
         severity="secondary"
         outlined
@@ -32,13 +57,13 @@ export default function ConfirmLocationDialog({
         onClick={onHide}
       />
 
-      <Button label="Simpan Lokasi" icon="pi pi-map" size="small" onClick={onSaveLocation} />
+      <Button label="Save Location" icon="pi pi-map" size="small" onClick={onSaveLocation} />
     </div>
   )
 
   return (
     <Dialog
-      header="Konfirmasi Check-in"
+      header="Confirm Check-in"
       visible={visible}
       style={{ width: '32rem', maxWidth: '95vw' }}
       modal
@@ -50,11 +75,15 @@ export default function ConfirmLocationDialog({
     >
       {mode === 'NO_LOCATION' && (
         <div className="space-y-3">
-          <Message severity="info" className="w-full" text="Lokasi customer belum tersedia." />
+          <Message
+            severity="info"
+            className="w-full"
+            text="Customer location is not available yet."
+          />
 
           <p className="pt-2 leading-6">
-            Proses ini akan menyimpan lokasi customer dan lokasi check-in kunjungan berdasarkan
-            posisi Anda saat ini.
+            This process will save the customer location and visit check-in location based on your
+            current position.
           </p>
         </div>
       )}
@@ -64,14 +93,13 @@ export default function ConfirmLocationDialog({
           <Message
             severity="warn"
             className="w-full"
-            text={`Lokasi Anda berjarak sekitar ${Math.round(
+            text={`You are approximately ${formatDistance(
               distance ?? 0
-            )} meter dari lokasi customer.`}
+            )} away from the customer location.`}
           />
 
           <p className="pt-2 leading-6">
-            Proses ini akan memperbarui lokasi customer dan menyimpan lokasi check-in kunjungan
-            berdasarkan posisi Anda saat ini
+            This process will save the visit check-in location based on your current position
           </p>
         </div>
       )}
@@ -81,16 +109,68 @@ export default function ConfirmLocationDialog({
           <Message
             severity="warn"
             className="w-full"
-            text={`Akurasi GPS rendah (±${Math.round(accuracy ?? 0)} meter).`}
+            text={`Low GPS accuracy (${formatDistance(accuracy ?? 0)}).`}
           />
 
           <p className="pt-2 leading-6">
-            Lokasi saat ini tidak cukup akurat untuk disimpan sebagai referensi lokasi customer.
+            The current location is not accurate enough to be saved as the customer location.
           </p>
 
           <p className="leading-6">
-            Proses ini akan menyimpan lokasi check-in kunjungan berdasarkan posisi Anda saat ini
+            This process will save the visit check-in location based on your current position
           </p>
+        </div>
+      )}
+      {mode === 'PERMISSION_DENIED' && (
+        <div className="space-y-4">
+          <Message
+            severity="warn"
+            className="w-full"
+            text="The app does not have location permission."
+          />
+
+          <Image
+            src="/images/permissions/location-permission.png"
+            alt="How to enable location permission"
+            width={333}
+            height={500}
+            className="mx-auto border rounded-lg max-w-xs w-full h-auto mt-2"
+          />
+
+          <div className="space-y-2 text-sm leading-6">
+            <p>To proceed, please enable location permission on your device</p>
+
+            <ol className="list-decimal pl-5 space-y-2">
+              <li>
+                <p>
+                  {' '}
+                  Click the <strong>Site settings</strong> icon next to the website address (as
+                  shown in the image above).
+                </p>
+              </li>
+              <li>
+                <p>
+                  Select <strong>Location</strong>.
+                </p>
+              </li>
+              <li>
+                <p>
+                  {' '}
+                  Change the permission to <strong>Allow</strong>.
+                </p>
+              </li>
+              <li>
+                <p>Refresh the page, then try checking in again.</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      )}
+      {mode === 'POSITION_UNAVAILABLE' && (
+        <div className="space-y-3">
+          <Message severity="warn" className="w-full" text="Current location is unavailable" />
+
+          <p className="pt-2 leading-6">Please check your GPS and try checking in again.</p>
         </div>
       )}
     </Dialog>

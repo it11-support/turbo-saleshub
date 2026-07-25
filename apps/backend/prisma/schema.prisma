@@ -443,6 +443,7 @@ model visits {
   lat             Decimal?                  @db.Decimal(10,8)
   lng             Decimal?                  @db.Decimal(11,8)
   accuracy        Decimal?                  @db.Decimal(8,2)
+  photo_url       String?                   @db.VarChar(200)
 
   @@unique([customer_id, sales_person_id, rule_id, visit_date], name: "unique_daily_visit")
   @@unique([customer_id, visit_date], name: "customer_id_visit_date")

@@ -3,6 +3,7 @@ import { CustomerTrendResult } from '../summary'
 import { ICustomer } from '../customer'
 import { IProduct } from '../product'
 import { IReturInvoices } from '../retur'
+import { IVisit } from '../visit'
 
 export type ICustomerExtended = ICustomer & {
   avgRevenuePerMonth: string;
@@ -168,6 +169,7 @@ export interface IDashboardData {
     revenueByAccountCategory: {
       yearly: IRevenueByAccountYearly[]
       monthly: IRevenueByAccountMonthly[]
-    }
+    },
+    visitsDistribution: Partial<IVisit>[]
   }
 }

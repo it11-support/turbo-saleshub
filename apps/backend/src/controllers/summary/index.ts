@@ -5,6 +5,9 @@ import { buildProductRevenue, getActiveCustomers, getCustomerTrend, getNooVsExis
 import { MonthlySummary } from '@saleshub-tsm/types'
 import { CUSTOMER_INSIGHT_PERIODS } from '@/constants/index.js'
 import { handleApiError } from '@/utils/apiResponse.js'
+import { VisitStatus } from '@/generated/prisma/enums.js';
+
+import dayjs from 'dayjs'
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
@@ -339,6 +342,51 @@ export const fetchRevenueByAccountCategory = async (req: Request, res: Response)
       data: {
         revenueByAccountCategory
       },
+    })
+  } catch (error) {
+    return handleApiError(error, res)
+  }
+}
+
+export const fetchVisitDistribution = async (req: Request, res: Response) => {
+  try {
+    const endDate = dayjs().endOf('day').toDate()
+    const startDate = dayjs().subtract(30, 'day').startOf('day').toDate()
+    const visitsDistribution = await prisma.visits.findMany({
+      where: {
+        status: VisitStatus.Completed,
+        start_at: {
+          gte: startDate,
+          lte: endDate
+        },
+        lat: {
+          not: null
+        },
+        lng: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        customer_id: true,
+        lat: true,
+        lng: true,
+        start_at: true,
+        end_at: true,
+        salesPerson: true,
+        customer: {
+          select: {
+            CardCode: true,
+            CardName: true,
+            City: true
+          }
+        }
+      }
+    })
+    res.status(200).json({
+      data: {
+        visitsDistribution
+      }
     })
   } catch (error) {
     return handleApiError(error, res)
