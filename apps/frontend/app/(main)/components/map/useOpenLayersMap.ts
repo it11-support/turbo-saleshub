@@ -14,6 +14,7 @@ export const useOpenLayersMap = (
 
   useEffect(() => {
     if (!mapRef.current) return
+    if (mapInstanceRef.current) return
 
     const view = new View({ zoom })
 
@@ -25,7 +26,13 @@ export const useOpenLayersMap = (
 
     mapInstanceRef.current = map
 
+    const observer = new ResizeObserver(() => {
+      map.updateSize()
+    })
+    observer.observe(mapRef.current)
+
     return () => {
+      observer.disconnect()
       map.setTarget(undefined)
       mapInstanceRef.current = null
     }

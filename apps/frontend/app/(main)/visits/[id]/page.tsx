@@ -3,11 +3,13 @@
 import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
+import CameraCaptureDialog from '../components/CameraCaptureDialog'
 import Competitors from '../components/Competitors'
 import ConfirmLocationDialog from '../components/ConfirmLocationDialog'
 import {
   IConcernCategory,
   IConcernStatus,
+  IDashboardData,
   IResObject,
   IVisitItem,
   ProductWithFrequency,
@@ -33,7 +35,6 @@ import { parsePhone } from '@/lib/phoneParser'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
-import CameraCaptureDialog from '../components/CameraCaptureDialog'
 
 const DISTANCE_THRESHOLD = 1000
 
@@ -112,6 +113,16 @@ const VisitsPage = () => {
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
   const { suggestedItems, customer, visit_items } = salesVisit
 
+  const { mutate: mutateVisitDistribution } = useFetch<IResObject<IDashboardData['data']>>(
+    'summary/visits-distribution',
+    undefined,
+    {
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    }
+  )
+
   useEffect(() => {
     fetchProducts()
     fetchInquiries(Number(id))
@@ -152,6 +163,7 @@ const VisitsPage = () => {
     // await syncOfferedItems()
     await endVisit().then(() => {
       fetchScheduleByDate(Number(salesVisit?.sales_person_id), currentDate)
+      mutateVisitDistribution()
       router.back()
     })
   }

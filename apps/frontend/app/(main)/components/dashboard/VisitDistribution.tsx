@@ -71,14 +71,6 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
     onEmptyClick: hideOverlay,
   })
 
-  if (isValidating) {
-    return (
-      <div style={{ height: '500px' }}>
-        <SkeletonLoader type="chart-horizontal" />
-      </div>
-    )
-  }
-
   return (
     <Card title="Visit Distribution" subTitle="Last 30 Days" style={{ height: 556 }}>
       <div
@@ -94,6 +86,12 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
             height: '100%',
           }}
         />
+
+        {isValidating && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <SkeletonLoader type="chart-horizontal" />
+          </div>
+        )}
 
         <div
           ref={popupRef}
