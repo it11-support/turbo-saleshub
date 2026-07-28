@@ -371,6 +371,7 @@ export const fetchVisitDistribution = async (req: Request, res: Response) => {
         customer_id: true,
         lat: true,
         lng: true,
+        accuracy: true,
         start_at: true,
         end_at: true,
         salesPerson: true,

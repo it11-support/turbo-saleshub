@@ -148,6 +148,7 @@ export const CustomerDetail = (props: Props) => {
                 <MapPreview
                   lat={Number(customer.lat)}
                   lng={Number(customer.lng)}
+                  accuracy={Number(customer.accuracy)}
                   className="w-full lg:w-32 h-32"
                   height={120}
                   width={220}

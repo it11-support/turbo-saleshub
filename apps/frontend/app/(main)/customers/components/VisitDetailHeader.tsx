@@ -53,6 +53,7 @@ const VisitDetailHeader = (props: Props) => {
                 <MapPreview
                   lat={Number(customer.lat)}
                   lng={Number(customer.lng)}
+                  accuracy={Number(customer.accuracy)}
                   className="w-full lg:w-32 h-32"
                   height={120}
                   width={220}
@@ -73,9 +74,9 @@ const VisitDetailHeader = (props: Props) => {
       <div className="card mb-2">
         <h5 className="ml-2">Visit Details</h5>
 
-        <div className="grid">
+        <div className="grid px-2">
           {/* Kiri */}
-          <div className="col-12 lg:col-4">
+          <div className="col-12 lg:col-6">
             <p>
               <span className="font-semibold">Started At: </span>
               {formatDate(salesVisit?.start_at, { withTime: true })}
@@ -98,7 +99,7 @@ const VisitDetailHeader = (props: Props) => {
           </div>
 
           {/* Kanan */}
-          <div className="col-12 lg:col-8">
+          <div className="col-12 lg:col-6">
             {salesVisit?.photo_url && (
               <div className="mb-4">
                 <p className="font-semibold mb-2">Visit Photo</p>
@@ -134,6 +135,7 @@ const VisitDetailHeader = (props: Props) => {
                 <MapPreview
                   lat={Number(salesVisit.lat)}
                   lng={Number(salesVisit.lng)}
+                  accuracy={Number(salesVisit.accuracy)}
                   className="w-full"
                   width={500}
                   height={220}

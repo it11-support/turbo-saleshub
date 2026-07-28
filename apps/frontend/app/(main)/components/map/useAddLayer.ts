@@ -4,16 +4,18 @@ import { useEffect } from 'react'
 
 export const useAddLayer = (
   mapInstanceRef: React.RefObject<Map | null>,
-  layer: Layer<any> | null
+  layer: Layer<any> | readonly Layer<any>[] | null
 ) => {
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (!map || !layer) return
+    if (!map) return
 
-    map.addLayer(layer)
+    const layers = Array.isArray(layer) ? layer : layer ? [layer] : []
+
+    layers.forEach((l) => map.addLayer(l))
 
     return () => {
-      map.removeLayer(layer)
+      layers.forEach((l) => map.removeLayer(l))
     }
   }, [mapInstanceRef, layer])
 }
