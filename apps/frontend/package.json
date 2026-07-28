@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.4.0",
+    "@hookform/resolvers": "^5.5.7",
     "@saleshub-tsm/types": "workspace:*",
     "@types/node": "25.9.5",
     "chart.js": "4.5.1",
