@@ -2,7 +2,7 @@ import { ICustomer } from "../customer"
 import { IProduct } from "../product"
 
 export interface IReturInvoices {
-  id: BigInt | number
+  id: bigint | number
   DocNum: number
   DocDate?: Date | string | null
   CardCode?: string | null

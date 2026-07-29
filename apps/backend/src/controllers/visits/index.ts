@@ -124,7 +124,7 @@ export const getScheduleList = async (req: Request, res: Response) => {
 
 export const exportVisits = async (req: Request, res: Response) => {
   let dates = req.query.dates as string[] | undefined;
-  let salesPersonId = req.query.salesPersonId as string | undefined;
+  const salesPersonId = req.query.salesPersonId as string | undefined;
 
   try {
     // Normalisasi dates
