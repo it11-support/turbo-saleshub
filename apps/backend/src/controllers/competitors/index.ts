@@ -1,5 +1,6 @@
 import prisma from "@/libs/prisma.js";
 import { handleApiError } from "@/utils/apiResponse.js";
+import { CompetitorProduct, VisitCompetitor } from "@saleshub-tsm/types";
 import { Request, Response } from "express";
 
 export const fetchCompetitors = async (req: Request, res: Response) => {
@@ -61,7 +62,7 @@ export const syncCompetitors = async (req: Request, res: Response) => {
         }
       })
 
-      const syncData = await Promise.all(competitors.map(async (item: any) => {
+      const syncData = await Promise.all(competitors.map(async (item: VisitCompetitor) => {
         const competitor = await prisma.competitors.upsert({
           where: { name: item.name },
           update: {},
@@ -73,7 +74,7 @@ export const syncCompetitors = async (req: Request, res: Response) => {
             visit_id: Number(id),
             competitor_id: competitor.id,
             competitor_products: {
-              create: item.products.map((product: any) => ({
+              create: item.products.map((product: CompetitorProduct) => ({
                 product_name: product.product_name,
                 brand: product.brand,
                 price: product.price,

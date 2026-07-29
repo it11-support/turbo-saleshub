@@ -1,4 +1,5 @@
 import prisma from "@/libs/prisma.js";
+import { ProductWithSales } from "@saleshub-tsm/types";
 
 export const getParetoProducts = async (
   customerId: number,
@@ -135,7 +136,7 @@ export const getParetoProducts = async (
   // =============================
   // BUILD RESULT
   // =============================
-  const final: any[] = [];
+  const final: ProductWithSales[] = [];
   const used = new Set<string>();
 
   const pushItems = (codes: string[], totalMap: Map<string, number>) => {

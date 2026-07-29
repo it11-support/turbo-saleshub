@@ -59,6 +59,12 @@ export type ProductWithFrequency = IProduct & {
   boughtFrequency: number
 }
 
+export type ProductWithSales = {
+  totalSales: number;
+  isDevelopment: boolean;
+  [key: string]: unknown;
+}
+
 export type SuggestedItemsGrouped = {
   distributor: ProductWithFrequency[];
   groceries: ProductWithFrequency[];
