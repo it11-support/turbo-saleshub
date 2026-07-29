@@ -10,7 +10,7 @@ export type ICustomerExtended = ICustomer & {
 };
 
 export interface ISalesInvoices {
-  id: BigInt | number
+  id: bigint | number
   DocNum: number
   DocDate?: Date | string | null
   CardCode?: string | null

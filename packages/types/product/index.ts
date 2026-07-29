@@ -50,7 +50,7 @@ export interface IProductDevelopment {
   subgroup: ISubGroup
 }
 export interface IProductDevelopmentList {
-  id: BigInt | number
+  id: bigint | number
   ItemCode: string
   ItemName?: string | null
   subgroups: ISubGroup[]
@@ -66,10 +66,10 @@ export type SuggestedItemsGrouped = {
 
 
 export interface IInquiry {
-  id?: BigInt | number
-  visit_id?: BigInt | number
+  id?: bigint | number
+  visit_id?: bigint | number
 
-  product_id?: BigInt | number | null
+  product_id?: bigint | number | null
   product_name?: string | null
 
   notes?: string
@@ -80,7 +80,7 @@ export interface IInquiry {
 
 
 export interface IInquiryForm {
-  product_id: BigInt | number | null
+  product_id: bigint | number | null
   product_name: string
   notes?: string
 }
