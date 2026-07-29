@@ -9,7 +9,7 @@ export interface SortMeta {
 }
 
 export interface IRole {
-  id: BigInt | string | number;
+  id: bigint | string | number;
   role: string;
   description: string | null;
   created_at: Date | null;
@@ -43,10 +43,10 @@ export interface IUser {
   email: string;
   password?: string;
   confirm_password?: string;
-  role_id?: BigInt | number;
+  role_id?: bigint | number;
   roles?: IRole;
   sales_person?: ISalesPerson | null;
-  sales_person_id?: BigInt | number | null;
+  sales_person_id?: bigint | number | null;
 }
 
 export interface IUserState {

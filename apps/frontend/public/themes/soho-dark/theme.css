@@ -683,7 +683,7 @@
   .p-cascadeselect .p-cascadeselect-label {
     background: transparent;
     border: 0 none;
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
   }
   .p-cascadeselect .p-cascadeselect-label.p-placeholder {
     color: rgba(255, 255, 255, 0.6);
@@ -1000,7 +1000,7 @@
     border-top: 1px solid #3e4053;
     border-left: 1px solid #3e4053;
     border-bottom: 1px solid #3e4053;
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     min-width: 3rem;
   }
   .p-inputgroup-addon:last-child {
@@ -1116,7 +1116,7 @@
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.87);
     background: #1d1e27;
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     border: 1px solid #3e4053;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     appearance: none;
@@ -1136,11 +1136,11 @@
   }
   .p-inputtext.p-inputtext-sm {
     font-size: 0.875rem;
-    padding: 0.65625rem 0.65625rem;
+    padding: 0.65625rem;
   }
   .p-inputtext.p-inputtext-lg {
     font-size: 1.25rem;
-    padding: 0.9375rem 0.9375rem;
+    padding: 0.9375rem;
   }
 
   .p-float-label > label {
@@ -1207,12 +1207,12 @@
 
   .p-inputtext-sm .p-inputtext {
     font-size: 0.875rem;
-    padding: 0.65625rem 0.65625rem;
+    padding: 0.65625rem;
   }
 
   .p-inputtext-lg .p-inputtext {
     font-size: 1.25rem;
-    padding: 0.9375rem 0.9375rem;
+    padding: 0.9375rem;
   }
 
   .p-listbox {
@@ -1324,7 +1324,7 @@
     padding-right: 1.75rem;
   }
   .p-multiselect .p-multiselect-label {
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
   .p-multiselect .p-multiselect-label.p-placeholder {
@@ -1359,7 +1359,7 @@
     padding: 0.375rem 0.75rem;
   }
   .p-inputwrapper-filled.p-multiselect.p-multiselect-chip .p-multiselect-label.p-multiselect-items-label {
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
   }
   .p-inputwrapper-filled.p-multiselect.p-multiselect-clearable .p-multiselect-label {
     padding-right: 1.75rem;
@@ -1674,7 +1674,7 @@
     padding-right: 1.75rem;
   }
   .p-treeselect .p-treeselect-label {
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
   .p-treeselect .p-treeselect-label.p-placeholder {
@@ -2672,34 +2672,34 @@
   }
 
   .p-datatable .p-paginator-top {
-    border-width: 1px 0 1px 0;
+    border-width: 1px 0;
     border-radius: 0;
   }
   .p-datatable .p-paginator-bottom {
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     border-radius: 0;
   }
   .p-datatable .p-datatable-header {
     background: #282936;
     color: rgba(255, 255, 255, 0.6);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
   }
   .p-datatable .p-datatable-footer {
     background: #282936;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
   }
   .p-datatable .p-datatable-thead > tr > th {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.87);
     background: #282936;
@@ -2707,9 +2707,9 @@
   }
   .p-datatable .p-datatable-tfoot > tr > td {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.87);
     background: #282936;
@@ -2760,8 +2760,8 @@
   .p-datatable .p-datatable-tbody > tr > td {
     text-align: left;
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
   }
   .p-datatable .p-datatable-tbody > tr > td .p-row-toggler,
 .p-datatable .p-datatable-tbody > tr > td .p-row-editor-init,
@@ -2855,16 +2855,16 @@
     height: 2rem;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-header {
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-footer {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-paginator-top {
-    border-width: 0 1px 0 1px;
+    border-width: 0 1px;
   }
   .p-datatable.p-datatable-gridlines .p-paginator-bottom {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th {
     border-width: 1px 0 1px 1px;
@@ -2876,7 +2876,7 @@
     border-width: 1px 0 0 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-tbody > tr > td:last-child {
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-tbody > tr:last-child > td {
     border-width: 1px 0 1px 1px;
@@ -2888,25 +2888,25 @@
     border-width: 1px 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-tfoot > tr > td:last-child {
-    border-width: 1px 1px 1px 1px;
+    border-width: 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead + .p-datatable-tfoot > tr > td {
     border-width: 0 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead + .p-datatable-tfoot > tr > td:last-child {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-thead):has(.p-datatable-tbody) .p-datatable-tbody > tr > td {
     border-width: 0 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-thead):has(.p-datatable-tbody) .p-datatable-tbody > tr > td:last-child {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-tbody):has(.p-datatable-tfoot) .p-datatable-tbody > tr:last-child > td {
     border-width: 0 0 0 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-tbody):has(.p-datatable-tfoot) .p-datatable-tbody > tr:last-child > td:last-child {
-    border-width: 0 1px 0 1px;
+    border-width: 0 1px;
   }
   .p-datatable.p-datatable-striped .p-datatable-tbody > tr.p-row-odd {
     background: #2b2c38;
@@ -2925,34 +2925,34 @@
     background: #2b2c38;
   }
   .p-datatable.p-datatable-sm .p-datatable-header {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-thead > tr > th {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-tbody > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-tfoot > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-footer {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-header {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-thead > tr > th {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-tbody > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-tfoot > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-footer {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
 
   .p-datatable-drag-selection-helper {
@@ -2960,19 +2960,19 @@
   }
 
   .p-dataview .p-paginator-top {
-    border-width: 1px 0 1px 0;
+    border-width: 1px 0;
     border-radius: 0;
   }
   .p-dataview .p-paginator-bottom {
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     border-radius: 0;
   }
   .p-dataview .p-dataview-header {
     background: #282936;
     color: rgba(255, 255, 255, 0.6);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
   }
   .p-dataview .p-dataview-content {
@@ -2983,14 +2983,14 @@
   }
   .p-dataview.p-dataview-list .p-dataview-content > .p-grid > div {
     border: solid #3e4053;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
   }
   .p-dataview .p-dataview-footer {
     background: #282936;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
@@ -3004,19 +3004,19 @@
   }
 
   .p-datascroller .p-paginator-top {
-    border-width: 1px 0 1px 0;
+    border-width: 1px 0;
     border-radius: 0;
   }
   .p-datascroller .p-paginator-bottom {
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     border-radius: 0;
   }
   .p-datascroller .p-datascroller-header {
     background: #282936;
     color: rgba(255, 255, 255, 0.6);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
   }
   .p-datascroller .p-datascroller-content {
@@ -3027,14 +3027,14 @@
   }
   .p-datascroller.p-datascroller-inline .p-datascroller-list > li {
     border: solid #3e4053;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
   }
   .p-datascroller .p-datascroller-footer {
     background: #282936;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
@@ -3503,34 +3503,34 @@
   }
 
   .p-treetable .p-paginator-top {
-    border-width: 1px 0 1px 0;
+    border-width: 1px 0;
     border-radius: 0;
   }
   .p-treetable .p-paginator-bottom {
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     border-radius: 0;
   }
   .p-treetable .p-treetable-header {
     background: #282936;
     color: rgba(255, 255, 255, 0.6);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
   }
   .p-treetable .p-treetable-footer {
     background: #282936;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
     font-weight: 700;
   }
   .p-treetable .p-treetable-thead > tr > th {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.87);
     background: #282936;
@@ -3538,9 +3538,9 @@
   }
   .p-treetable .p-treetable-tfoot > tr > td {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.87);
     background: #282936;
@@ -3583,8 +3583,8 @@
   .p-treetable .p-treetable-tbody > tr > td {
     text-align: left;
     border: 1px solid #3e4053;
-    border-width: 0 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 0 0 1px;
+    padding: 1rem;
   }
   .p-treetable .p-treetable-tbody > tr > td .p-treetable-toggler {
     width: 2rem;
@@ -3648,16 +3648,16 @@
     height: 2rem;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-header {
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-footer {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-top {
-    border-width: 0 1px 0 1px;
+    border-width: 0 1px;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-bottom {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-thead > tr > th {
     border-width: 1px;
@@ -3685,34 +3685,34 @@
     background: #2b2c38;
   }
   .p-treetable.p-treetable-sm .p-treetable-header {
-    padding: 0.875rem 0.875rem;
+    padding: 0.875rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-thead > tr > th {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-tbody > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-tfoot > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-footer {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-header {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-thead > tr > th {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-tbody > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-tfoot > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-footer {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
 
   .p-timeline .p-timeline-event-marker {
@@ -3812,7 +3812,7 @@
     padding: 1.25rem 0;
   }
   .p-card .p-card-footer {
-    padding: 1.25rem 0 0 0;
+    padding: 1.25rem 0 0;
   }
 
   .p-fieldset {
@@ -3955,15 +3955,15 @@
   .p-tabview .p-tabview-nav {
     background: transparent;
     border: 1px solid #3e4053;
-    border-width: 0 0 2px 0;
+    border-width: 0 0 2px;
   }
   .p-tabview .p-tabview-nav li {
     margin-right: 0;
   }
   .p-tabview .p-tabview-nav li .p-tabview-nav-link {
     border: solid #3e4053;
-    border-width: 0 0 2px 0;
-    border-color: transparent transparent #3e4053 transparent;
+    border-width: 0 0 2px;
+    border-color: transparent transparent #3e4053;
     background: #282936;
     color: rgba(255, 255, 255, 0.6);
     padding: 1.25rem;
@@ -3971,7 +3971,7 @@
     border-top-right-radius: 6px;
     border-top-left-radius: 6px;
     transition: box-shadow 0.2s;
-    margin: 0 0 -2px 0;
+    margin: 0 0 -2px;
   }
   .p-tabview .p-tabview-nav li .p-tabview-nav-link:not(.p-disabled):focus-visible {
     outline: 0 none;
@@ -4035,7 +4035,7 @@
   }
   .p-confirm-popup .p-confirm-popup-footer {
     text-align: right;
-    padding: 0 1.25rem 1.25rem 1.25rem;
+    padding: 0 1.25rem 1.25rem;
   }
   .p-confirm-popup .p-confirm-popup-footer button {
     margin: 0 0.5rem 0 0;
@@ -4114,7 +4114,7 @@
   .p-dialog .p-dialog-content {
     background: #282936;
     color: rgba(255, 255, 255, 0.87);
-    padding: 0 1.5rem 2rem 1.5rem;
+    padding: 0 1.5rem 2rem;
   }
   .p-dialog .p-dialog-content:last-of-type {
     border-bottom-right-radius: 6px;
@@ -4124,7 +4124,7 @@
     border-top: 0 none;
     background: #282936;
     color: rgba(255, 255, 255, 0.87);
-    padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 0 1.5rem 1.5rem;
     text-align: right;
     border-bottom-right-radius: 6px;
     border-bottom-left-radius: 6px;
@@ -4230,7 +4230,7 @@
   .p-tooltip .p-tooltip-text {
     background: #3e4053;
     color: rgba(255, 255, 255, 0.87);
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
     border-radius: 6px;
   }
@@ -4272,7 +4272,7 @@
     height: 0.25rem;
   }
   .p-fileupload .p-fileupload-row > div {
-    padding: 1rem 1rem;
+    padding: 1rem;
   }
   .p-fileupload.p-fileupload-advanced .p-message {
     margin-top: 0;
@@ -4300,7 +4300,7 @@
     color: rgba(255, 255, 255, 0.6);
   }
   .p-breadcrumb .p-breadcrumb-list li.p-menuitem-separator {
-    margin: 0 0.5rem 0 0.5rem;
+    margin: 0 0.5rem;
     color: rgba(255, 255, 255, 0.87);
   }
   .p-breadcrumb .p-breadcrumb-list li:last-child .p-menuitem-text {
@@ -4385,7 +4385,7 @@
   .p-dock .p-dock-list {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
     border-radius: 0.5rem;
   }
   .p-dock .p-dock-item {
@@ -5168,7 +5168,6 @@
   }
 
   .p-steps .p-steps-item .p-menuitem-link {
-    background: transparent;
     transition: box-shadow 0.2s;
     border-radius: 6px;
     background: transparent;
@@ -5215,15 +5214,15 @@
   .p-tabmenu .p-tabmenu-nav {
     background: transparent;
     border: 1px solid #3e4053;
-    border-width: 0 0 2px 0;
+    border-width: 0 0 2px;
   }
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem {
     margin-right: 0;
   }
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
     border: solid #3e4053;
-    border-width: 0 0 2px 0;
-    border-color: transparent transparent #3e4053 transparent;
+    border-width: 0 0 2px;
+    border-color: transparent transparent #3e4053;
     background: #282936;
     color: rgba(255, 255, 255, 0.6);
     padding: 1.25rem;
@@ -5231,7 +5230,7 @@
     border-top-right-radius: 6px;
     border-top-left-radius: 6px;
     transition: box-shadow 0.2s;
-    margin: 0 0 -2px 0;
+    margin: 0 0 -2px;
     height: calc(100% + 2px);
   }
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link .p-menuitem-icon {
@@ -5329,7 +5328,7 @@
   }
 
   .p-inline-message {
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     margin: 0;
     border-radius: 6px;
   }
@@ -5477,7 +5476,7 @@
     opacity: 0.9;
   }
   .p-toast .p-toast-message {
-    margin: 0 0 1rem 0;
+    margin: 0 0 1rem;
     box-shadow: none;
     border-radius: 6px;
   }
@@ -5499,7 +5498,7 @@
     font-weight: 700;
   }
   .p-toast .p-toast-message .p-toast-message-content .p-toast-detail {
-    margin: 0.5rem 0 0 0;
+    margin: 0.5rem 0 0;
   }
   .p-toast .p-toast-message .p-toast-icon-close {
     width: 2rem;
@@ -5845,7 +5844,7 @@
   }
 
   .p-inplace .p-inplace-display {
-    padding: 0.75rem 0.75rem;
+    padding: 0.75rem;
     border-radius: 6px;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
   }

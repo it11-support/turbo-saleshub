@@ -59,7 +59,7 @@ export const customerList = async (
     };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
-    let activeOpts: string[] = [];
+    const activeOpts: string[] = [];
     let selectedSalesPersons: string[] = [];
     let selectedLevel: string[] = [];
 
