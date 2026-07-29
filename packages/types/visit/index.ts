@@ -137,7 +137,7 @@ export interface VisitListState {
 }
 
 export interface FollowUpForm {
-  visit_item_concern_id: BigInt | number
+  visit_item_concern_id: bigint | number
   status: string
   type: EFollowUpType | null
   notes: string

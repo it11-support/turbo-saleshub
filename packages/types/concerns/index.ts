@@ -1,5 +1,5 @@
 export interface IConcernCategory {
-  id?: BigInt | number | null
+  id?: bigint | number | null
   name: string
   description?: string
 }
@@ -13,7 +13,7 @@ export enum EBadgeVariant {
 }
 
 export interface IConcernStatus {
-  id?: BigInt | number | null
+  id?: bigint | number | null
   status: string
   level?: EBadgeVariant | null
   icon?: string
