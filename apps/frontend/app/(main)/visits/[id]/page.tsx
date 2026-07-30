@@ -4,11 +4,12 @@ import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
 import Competitors from '../components/Competitors'
+import { getFilteredProducts } from '../functions/filterProducts'
+import { groupVisitItems } from '../functions/groupVisitItems'
 import {
   IConcernCategory,
   IConcernStatus,
   IResObject,
-  IVisitItem,
   ProductWithFrequency,
 } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
@@ -184,18 +185,11 @@ const VisitsPage = () => {
 
   const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))
 
-  const filteredProducts = activeProductGroup.filter((item) => {
-    const offered = offeredProductIds.has(item.id)
-    if (offered) return false
-
-    const matchCategory =
-      selectedCategories.length === 0 || selectedCategories.includes(item.ProductCategory ?? '')
-
-    const keyword = debouncedSearch.trim().toLowerCase()
-
-    const matchSearch = !keyword || item.ItemName?.toLowerCase().includes(keyword)
-
-    return matchCategory && matchSearch
+  const filteredProducts = getFilteredProducts({
+    activeProductGroup,
+    offeredProductIds,
+    selectedCategories,
+    keyword: debouncedSearch,
   })
 
   useEffect(() => {
@@ -220,37 +214,9 @@ const VisitsPage = () => {
     setSelectedCategories(matchedCategories)
   }, [debouncedSearch, isDistributor, activeProductGroup])
 
-  const groupedProduct = salesVisit.visit_items?.reduce(
-    (acc, item) => {
-      const product = item.product
-      if (!product) return acc
-
-      if (product.Distributor === 'Y') {
-        const category = product.ProductCategory || 'Uncategorized'
-
-        // cari category
-        let group = acc.distributor.find((g) => g.category === category)
-
-        if (!group) {
-          group = { category, items: [] }
-          acc.distributor.push(group)
-        }
-
-        group.items.push(item)
-      } else {
-        acc.groceries.push(item)
-      }
-
-      return acc
-    },
-    {
-      distributor: [] as { category: string; items: IVisitItem[] }[],
-      groceries: [] as IVisitItem[],
-    }
+  const { distributor: offeredDistributor, groceries: offeredGroceries } = groupVisitItems(
+    salesVisit.visit_items ?? []
   )
-
-  const offeredDistributor = groupedProduct?.distributor
-  const offeredGroceries = groupedProduct?.groceries
 
   const isVisitInitated = salesVisit.start_at !== null
 

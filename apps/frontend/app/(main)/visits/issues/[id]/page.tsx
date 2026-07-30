@@ -1,5 +1,6 @@
 'use client'
 
+import { groupVisitItems } from '../../functions/groupVisitItems'
 import {
   CompetitorProduct,
   EBadgeVariant,
@@ -8,7 +9,6 @@ import {
   IConcernStatus,
   IResObject,
   IVisit,
-  IVisitItem,
   IVisitItemConcern,
   RawVisitCompetitor,
   VisitCompetitor,
@@ -143,37 +143,9 @@ const VisitIssuesPage = () => {
     value: t,
   }))
 
-  const groupedProduct = salesVisit?.visit_items?.reduce(
-    (acc, item) => {
-      const product = item.product
-      if (!product) return acc
-
-      if (product.Distributor === 'Y') {
-        const category = product.ProductCategory || 'Uncategorized'
-
-        // cari category
-        let group = acc.distributor.find((g) => g.category === category)
-
-        if (!group) {
-          group = { category, items: [] }
-          acc.distributor.push(group)
-        }
-
-        group.items.push(item)
-      } else {
-        acc.groceries.push(item)
-      }
-
-      return acc
-    },
-    {
-      distributor: [] as { category: string; items: IVisitItem[] }[],
-      groceries: [] as IVisitItem[],
-    }
+  const { distributor: offeredDistributor, groceries: offeredGroceries } = groupVisitItems(
+    salesVisit?.visit_items ?? []
   )
-
-  const offeredDistributor = groupedProduct?.distributor
-  const offeredGroceries = groupedProduct?.groceries
 
   return (
     <>

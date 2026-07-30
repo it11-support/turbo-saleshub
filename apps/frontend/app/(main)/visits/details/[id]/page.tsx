@@ -1,25 +1,19 @@
 'use client'
 
+import { groupVisitItems } from '../../functions/groupVisitItems'
 import {
   CompetitorProduct,
   IInquiry,
   IResObject,
   IVisit,
   IVisitItem,
-  ProductWithFrequency,
   VisitCompetitor,
 } from '@saleshub-tsm/types'
 import { useParams } from 'next/navigation'
 import { Card } from 'primereact/card'
-import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox'
-import { Dropdown } from 'primereact/dropdown'
-import { InputText } from 'primereact/inputtext'
-import { OverlayPanel } from 'primereact/overlaypanel'
 import { Tag } from 'primereact/tag'
-import { useEffect, useRef, useState } from 'react'
 
 import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
-import ProductOfferCard from '@/app/(main)/components/product/ProductOfferCard'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
 import { useFetch } from '@/hooks/useFetch'
 import { formatCurrency } from '@/lib/formatter'
@@ -29,13 +23,6 @@ interface IInquiryResponse {
 }
 const VisitDetailsPage = () => {
   const { id } = useParams()
-  const [suggestedGroup, setSuggestedGroup] = useState('')
-
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [search, setSearch] = useState('')
-  const [activeProductGroup, setActiveProductGroup] = useState<ProductWithFrequency[]>([])
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
 
   const { data: visitDetailsData } = useFetch<IResObject<IVisit>>(
     `visit/${id}/details`,
@@ -53,7 +40,6 @@ const VisitDetailsPage = () => {
 
   const salesVisit = visitDetailsData?.data as IVisit
 
-  const suggestedItems = salesVisit?.suggestedItems
   const customer = salesVisit?.customer
   const inquiries = inquiriesData?.data?.inquiries || []
   const visit_items = salesVisit?.visit_items
@@ -65,288 +51,13 @@ const VisitDetailsPage = () => {
     name: vc.competitors?.name,
     products: vc.competitor_products,
   }))
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [search])
-
-  const suggestedGroups = [
-    { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
-    { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
-  ] as const
-
-  useEffect(() => {
-    if (!suggestedGroup) {
-      setActiveProductGroup([])
-    }
-    setActiveProductGroup(
-      suggestedGroups.find((group) => group.key === suggestedGroup)?.items ?? []
-    )
-  }, [suggestedGroup])
-
-  const handleChangeSuggestedGroup = (value: string) => {
-    setSuggestedGroup(value)
-    setSelectedCategories([])
-
-    const activeGroup = suggestedGroups.find((group) => group.key === value)
-    setActiveProductGroup(activeGroup?.items ?? [])
-    setSearch('')
-  }
-
-  const isDistributor = suggestedGroup === 'distributor'
-  const distributorCategories = isDistributor
-    ? activeProductGroup.reduce(
-        (acc, item) => {
-          const categoryName = item.ProductCategory ?? ''
-
-          const exists = acc.find((option) => option.value === categoryName)
-
-          if (categoryName && !exists) {
-            acc.push({
-              value: categoryName,
-              label: categoryName,
-            })
-          }
-          return acc
-        },
-        [] as { value: string; label: string }[]
-      )
-    : []
-
-  const onCategoryChange = (e: CheckboxChangeEvent) => {
-    let _selected = [...selectedCategories]
-
-    if (e.checked) {
-      _selected.push(e.value)
-    } else {
-      _selected = _selected.filter((category) => category !== e.value)
-    }
-
-    setSelectedCategories(_selected)
-  }
-
-  const offeredProductIds = new Set((visit_items ?? []).map((item: IVisitItem) => item.product_id))
-
-  const filteredProducts = activeProductGroup.filter((item) => {
-    const offered = offeredProductIds.has(item.id)
-    if (offered) return false
-
-    const matchCategory =
-      selectedCategories.length === 0 || selectedCategories.includes(item.ProductCategory ?? '')
-
-    const keyword = debouncedSearch.trim().toLowerCase()
-
-    const matchSearch = !keyword || item.ItemName?.toLowerCase().includes(keyword)
-
-    return matchCategory && matchSearch
-  })
-
-  useEffect(() => {
-    if (!isDistributor) return
-
-    const keyword = debouncedSearch.trim().toLowerCase()
-
-    if (!keyword) {
-      setSelectedCategories([])
-      return
-    }
-
-    const matchedCategories = Array.from(
-      new Set(
-        activeProductGroup
-          .filter((item) => item.ItemName?.toLowerCase().includes(keyword))
-          .map((item) => item.ProductCategory ?? '')
-          .filter(Boolean)
-      )
-    )
-
-    setSelectedCategories(matchedCategories)
-  }, [debouncedSearch, isDistributor, activeProductGroup])
-
-  const groupedProduct = salesVisit?.visit_items?.reduce(
-    (
-      acc: { distributor: { category: string; items: IVisitItem[] }[]; groceries: IVisitItem[] },
-      item: IVisitItem
-    ) => {
-      const product = item.product
-      if (!product) return acc
-
-      if (product.Distributor === 'Y') {
-        const category = product.ProductCategory || 'Uncategorized'
-
-        // cari category
-        let group = acc.distributor.find((g) => g.category === category)
-
-        if (!group) {
-          group = { category, items: [] }
-          acc.distributor.push(group)
-        }
-
-        group.items.push(item)
-      } else {
-        acc.groceries.push(item)
-      }
-
-      return acc
-    },
-    {
-      distributor: [] as { category: string; items: IVisitItem[] }[],
-      groceries: [] as IVisitItem[],
-    }
+  const { distributor: offeredDistributor, groceries: offeredGroceries } = groupVisitItems(
+    visit_items ?? []
   )
-
-  const offeredDistributor = groupedProduct?.distributor
-  const offeredGroceries = groupedProduct?.groceries
 
   return (
     <>
       <VisitDetailHeader customer={customer} salesVisit={salesVisit} />
-      <div className="card mb-2">
-        <h5 className="ml-2">Product Suggestions</h5>
-        <div className="col-12 xl:col-6 md:col-6">
-          <div className="">
-            <label htmlFor={`itemGroup-${salesVisit?.id}`} className="block mb-2">
-              Item Group
-            </label>
-            <Dropdown
-              id={`itemGroup-${salesVisit?.id}`}
-              options={suggestedGroups.map((group) => {
-                return { label: group.key.toUpperCase(), value: group.key }
-              })}
-              value={suggestedGroup}
-              onChange={(e) => handleChangeSuggestedGroup(e.value)}
-              placeholder="Item Group"
-              className="w-full"
-            />
-          </div>
-        </div>
-        {suggestedGroup && (
-          <div className="col-12 xl:col-6 md:col-6 mb-2">
-            <label htmlFor={`search-${salesVisit.id}`} className="block mb-2">
-              Search
-            </label>
-            <InputText
-              id={`search-${salesVisit.id}`}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search Items"
-              className="w-full"
-            />
-          </div>
-        )}
-        {activeProductGroup.length > 0 && (
-          <>
-            <div className="mx-2 mt-3">
-              <h6>SUGGESTED ITEMS {suggestedGroup?.toUpperCase()}</h6>
-              {isDistributor && distributorCategories.length > 0 ? (
-                <div className="flex flex-column gap-3">
-                  <p className="m-0">Pick Categories</p>
-                  {distributorCategories
-                    .filter((cat) => {
-                      const productsInCategory = activeProductGroup.filter(
-                        (item) => item.ProductCategory === cat.value
-                      )
-
-                      // hanya hilangkan jika SEMUA sudah di-offer
-                      return productsInCategory.some((item) => !offeredProductIds.has(item.id))
-                    })
-                    .map((cat) => (
-                      <div key={cat.value}>
-                        <div className="flex align-items-center pb-2">
-                          <Checkbox
-                            inputId={`cat-${cat.value}`}
-                            name="category"
-                            value={cat.value}
-                            onChange={onCategoryChange}
-                            checked={selectedCategories.includes(cat.value)}
-                          />
-                          <label htmlFor={`cat-${cat.value}`} className="ml-2">
-                            {cat.label}
-                          </label>
-                        </div>
-                        <div className="grid">
-                          {selectedCategories.length > 0
-                            ? filteredProducts
-                                .filter((item) => item.ProductCategory === cat.value)
-                                .map((item) => {
-                                  const category = item.ProductCategory
-                                    ? item.ProductCategory.charAt(0) +
-                                      item.ProductCategory.slice(1).toLocaleLowerCase()
-                                    : ''
-                                  const visitItems = visit_items?.find(
-                                    (i: IVisitItem) => i.product_id === item.id
-                                  )
-                                  const visitItemConcerns = visitItems?.visit_item_concerns
-
-                                  return (
-                                    <div
-                                      key={`distributor-${item.ItemCode}`}
-                                      className="col-12 lg:col-6 xl:col-4"
-                                    >
-                                      <ProductOfferCard
-                                        item={item}
-                                        category={category}
-                                        visitItemConcern={visitItemConcerns?.[0]}
-                                        overlayRefs={overlayRefs}
-                                        hideOfferButton
-                                      />
-                                    </div>
-                                  )
-                                })
-                            : null}
-                        </div>
-                      </div>
-                    ))}
-                  {filteredProducts.length === 0 && search && (
-                    <div className="col-12">
-                      <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
-                        <i className="mr-2 pi pi-exclamation-triangle"></i>
-                        <p className="m-0">No Items Found</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="grid">
-                  {filteredProducts.map((item) => {
-                    const category = item.ProductCategory
-                      ? item.ProductCategory.charAt(0) +
-                        item.ProductCategory.slice(1).toLocaleLowerCase()
-                      : ''
-                    const visitItems = visit_items?.find(
-                      (i: IVisitItem) => i.product_id === item.id
-                    )
-                    const visitItemConcerns = visitItems?.visit_item_concerns
-                    return (
-                      <div key={`groceries-${item.ItemCode}`} className="col-12 lg:col-6 xl:col-4">
-                        <ProductOfferCard
-                          item={item}
-                          category={category}
-                          visitItemConcern={visitItemConcerns?.[0]}
-                          overlayRefs={overlayRefs}
-                          hideOfferButton
-                        />
-                      </div>
-                    )
-                  })}
-                  {filteredProducts.length === 0 && (
-                    <div className="col-12">
-                      <div className="flex align-items-center justify-content-start w-full text-sm text-yellow-500">
-                        <i className="mr-2 pi pi-exclamation-triangle"></i>
-                        <p className="m-0">No Items Found</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
 
       {((offeredDistributor?.length ?? 0) > 0 || (offeredGroceries?.length ?? 0) > 0) && (
         <div className="card p-3">
