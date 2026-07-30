@@ -2,9 +2,9 @@ import { ICustomer } from "../customer"
 import { ISalesPerson } from "../user"
 
 export interface ISalesVisitRule {
-  id: BigInt
-  sales_person_id: BigInt
-  customer_id: BigInt
+  id: bigint
+  sales_person_id: bigint
+  customer_id: bigint
   day_of_week: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday"
   visit_weeks: number[]
   max_items_per_visit: number
