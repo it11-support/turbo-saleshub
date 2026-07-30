@@ -4,6 +4,7 @@ import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
 import Competitors from '../components/Competitors'
+import { getFilteredProducts } from '../functions/filterProducts'
 import { groupVisitItems } from '../functions/groupVisitItems'
 import {
   IConcernCategory,
@@ -184,18 +185,11 @@ const VisitsPage = () => {
 
   const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))
 
-  const filteredProducts = activeProductGroup.filter((item) => {
-    const offered = offeredProductIds.has(item.id)
-    if (offered) return false
-
-    const matchCategory =
-      selectedCategories.length === 0 || selectedCategories.includes(item.ProductCategory ?? '')
-
-    const keyword = debouncedSearch.trim().toLowerCase()
-
-    const matchSearch = !keyword || item.ItemName?.toLowerCase().includes(keyword)
-
-    return matchCategory && matchSearch
+  const filteredProducts = getFilteredProducts({
+    activeProductGroup,
+    offeredProductIds,
+    selectedCategories,
+    keyword: debouncedSearch,
   })
 
   useEffect(() => {
