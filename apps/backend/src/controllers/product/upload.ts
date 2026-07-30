@@ -57,9 +57,33 @@ export const saveImage = async (
 
     await imageFile.mv(tempFile)
 
+    const resolvedBaseDir =
+      await fsAsync.realpath(baseDir)
+    const resolvedDestinationPath =
+      path.resolve(destinationPath)
+    const resolvedDestinationDir =
+      await fsAsync.realpath(
+        path.dirname(resolvedDestinationPath)
+      )
+    const canonicalDestinationPath = path.join(
+      resolvedDestinationDir,
+      path.basename(resolvedDestinationPath)
+    )
+
+    if (
+      !isSafeRelativePath(
+        resolvedBaseDir,
+        canonicalDestinationPath
+      )
+    ) {
+      throw new Error(
+        'Invalid destination file path'
+      )
+    }
+
     await fsAsync.copyFile(
       tempFile,
-      destinationPath
+      canonicalDestinationPath
     )
 
     await fsAsync.unlink(tempFile)
