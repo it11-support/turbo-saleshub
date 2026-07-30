@@ -59,15 +59,20 @@ export const saveImage = async (
 
     const resolvedBaseDir =
       await fsAsync.realpath(baseDir)
-    const resolvedDestinationPath =
-      path.resolve(destinationPath)
+    const destinationFileName = path.basename(
+      destinationPath
+    )
+    const resolvedDestinationPath = path.resolve(
+      resolvedBaseDir,
+      destinationFileName
+    )
     const resolvedDestinationDir =
       await fsAsync.realpath(
         path.dirname(resolvedDestinationPath)
       )
     const canonicalDestinationPath = path.join(
       resolvedDestinationDir,
-      path.basename(resolvedDestinationPath)
+      destinationFileName
     )
 
     if (
