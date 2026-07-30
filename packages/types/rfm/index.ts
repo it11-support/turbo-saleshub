@@ -1,6 +1,6 @@
 
 export interface CustomerRFM {
-  customerId: BigInt;
+  customerId: bigint;
   recency: number;
   frequency: number | null;
   monetary: number | null;

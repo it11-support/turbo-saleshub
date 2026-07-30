@@ -5,250 +5,163 @@ import { AuthenticatedRequest, EProductCategory } from '@saleshub-tsm/types';
 import dayjs from 'dayjs';
 import { Request, Response } from 'express';
 import fileUpload from 'express-fileupload';
-import fs from 'fs';
 import { promises as fsAsync } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
 import { handleApiError } from '@/utils/apiResponse.js';
+import { buildDestinationPath } from './path.js';
+import { deleteExistingImages, saveImage } from './upload.js';
+import { validateUploadFile } from './validation.js';
+import { findProductImage, getFallbackImage, processUploadFile } from './image.js';
+import { PRODUCT_IMAGE_DIR } from './constants.js';
 
 export type ImageResponseType = never;
 
 const isSafeItemCode = (itemCode: string): boolean => /^[A-Za-z0-9_-]+$/.test(itemCode);
 
-export const fetchProductImage = async (req: Request, res: Response) => {
+export const image = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const itemCodeStr = String(req.params.itemCode);
-    const { nofallback } = req.query;
+    const itemCode = String(req.params.itemCode)
 
-    if (!isSafeItemCode(itemCodeStr)) {
-      res.status(400).json({ message: 'Invalid item code' });
-      return;
+    if (!isSafeItemCode(itemCode)) {
+      return res.status(400).json({
+        message: 'Invalid item code',
+      })
     }
 
-    const baseDir = path.resolve(process.cwd(), 'public/images/product');
-    const fallback = path.resolve(baseDir, 'no-image.png');
-    const extensions = ['.png', '.jpg', '.jpeg'];
+    const imagePath = findProductImage(itemCode)
 
-    for (const ext of extensions) {
-      const targetPath = path.resolve(baseDir, `${itemCodeStr}${ext}`);
-
-      if (!targetPath.startsWith(baseDir)) {
-        res.status(403).json({ message: 'Akses folder tidak diizinkan' });
-        return;
-      }
-
-      if (fs.existsSync(targetPath)) {
-        return res.sendFile(targetPath);
-      }
+    if (imagePath) {
+      return res.sendFile(imagePath)
     }
 
-    if (nofallback === '1') {
-      res.json({ exists: false });
-      return;
+    if (req.query.nofallback === '1') {
+      return res.json({
+        exists: false,
+      })
     }
 
-    // default fallback lama
-    res.sendFile(fallback);
+    return res.sendFile(getFallbackImage())
   } catch (error) {
-    console.error(error);
-    const fallback = path.resolve(process.cwd(), 'public/images/product/no-image.png');
-    res.sendFile(fallback);
+    console.error(error)
+
+    return res.sendFile(getFallbackImage())
   }
-};
+}
 
 // Delete image
-export const deleteImage = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteImage = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    const itemCodeStr = String(req.params.itemCode);
+    const itemCode = String(req.params.itemCode)
 
-    if (!isSafeItemCode(itemCodeStr)) {
-      res.status(400).json({ message: 'Invalid item code' });
-      return;
+    if (!isSafeItemCode(itemCode)) {
+      return res.status(400).json({
+        message: 'Invalid item code',
+      })
     }
 
-    const safeItemCode = path.basename(itemCodeStr);
-    const baseDir = path.resolve(process.cwd(), 'public/images/product');
-    const extensions = ['.png', '.jpg', '.jpeg'];
-    let fileDeleted = false;
+    const fileDeleted =
+      await deleteExistingImages(
+        PRODUCT_IMAGE_DIR,
+        itemCode
+      )
 
-    for (const ext of extensions) {
-      const targetPath = path.resolve(baseDir, `${safeItemCode}${ext}`);
-
-      if (!targetPath.startsWith(baseDir)) {
-        res.status(403).json({ message: 'Forbidden' });
-        return;
-      }
-
-      if (fs.existsSync(targetPath)) {
-        fs.unlinkSync(targetPath);
-        fileDeleted = true;
-      }
+    if (!fileDeleted) {
+      return res.status(404).json({
+        message: 'Image not found',
+      })
     }
-    if (fileDeleted) {
-      activityLogger({
-        req,
-        actionType: "Product",
-        description: `Product image deleted: ${safeItemCode}`,
-        status: "SUCCESS",
-      });
 
-      res.status(200).json({ message: 'Image deleted' });
-    } else {
-      res.status(404).json({ message: 'Image not found' });
-    }
+    activityLogger({
+      req,
+      actionType: 'Product',
+      description: `Product image deleted: ${itemCode}`,
+      status: 'SUCCESS',
+    })
+
+    return res.status(200).json({
+      message: 'Image deleted',
+    })
   } catch (error) {
     return handleApiError(error, res)
   }
-};
+}
 
 export const imageUpload = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
   try {
-    const baseDir = path.resolve(
-      process.cwd(),
-      'public/images/product'
-    );
+    const itemCode = String(req.params.itemCode)
 
-    const itemCode = String(req.params.itemCode);
-
-    if (!/^[A-Za-z0-9_-]+$/.test(itemCode)) {
+    if (!isSafeItemCode(itemCode)) {
       return res.status(400).json({
-        message: 'Invalid itemCode format',
-      });
+        message: 'Invalid item code',
+      })
     }
 
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({
         message: 'No file uploaded',
-      });
+      })
     }
 
-    const firstKey = Object.keys(req.files)[0];
-    const imageFile = req.files[firstKey] as fileUpload.UploadedFile;
-
-    const mimeToExt: Record<string, string> = {
-      'image/png': '.png',
-      'image/jpeg': '.jpg',
-      'image/webp': '.webp',
-    };
-
-    const ext = mimeToExt[imageFile.mimetype];
-
-    if (!ext) {
-      return res.status(400).json({
-        message: 'Invalid file type',
-      });
-    }
-
-    const fileName = `${itemCode}${ext}`;
-
-    const destinationPath = path.resolve(
-      baseDir,
-      fileName
-    );
-
-    const relativePath = path.relative(
-      baseDir,
-      destinationPath
-    );
-
-    if (
-      relativePath.startsWith('..') ||
-      path.isAbsolute(relativePath)
-    ) {
-      return res.status(400).json({
-        message: 'Invalid file path',
-      });
-    }
-
-    await fsAsync.mkdir(baseDir, {
+    await fsAsync.mkdir(PRODUCT_IMAGE_DIR, {
       recursive: true,
-    });
+    })
 
-    const files = await fsAsync.readdir(baseDir);
+    const firstKey = Object.keys(req.files)[0]
+    const imageFile =
+      req.files[firstKey] as fileUpload.UploadedFile
 
-    for (const file of files) {
-      if (!file.startsWith(`${itemCode}.`)) {
-        continue;
-      }
+    const validation =
+      await validateUploadFile(imageFile)
 
-      const oldPath = path.resolve(baseDir, file);
-
-      const rel = path.relative(
-        baseDir,
-        oldPath
-      );
-
-      if (
-        rel.startsWith('..') ||
-        path.isAbsolute(rel)
-      ) {
-        continue;
-      }
-
-      await fsAsync.rm(oldPath, {
-        force: true,
-      });
+    if (!validation.valid) {
+      return res.status(400).json({
+        message: validation.reason,
+      })
     }
 
-    const tempDir = await fsAsync.mkdtemp(
-      path.join(baseDir, '.upload-')
-    );
+    const ext = validation.ext!
 
-    try {
-      const tempFile = path.resolve(
-        tempDir,
-        `${crypto.randomUUID()}${ext}`
-      );
+    const fileName = `${itemCode}${ext}`
 
-      const tempRel = path.relative(
-        tempDir,
-        tempFile
-      );
+    const destinationPath =
+      buildDestinationPath(
+        PRODUCT_IMAGE_DIR,
+        fileName
+      )
 
-      if (
-        tempRel.startsWith('..') ||
-        path.isAbsolute(tempRel)
-      ) {
-        throw new Error(
-          'Invalid temporary file path'
-        );
-      }
+    await deleteExistingImages(
+      PRODUCT_IMAGE_DIR,
+      itemCode
+    )
 
-      await imageFile.mv(tempFile);
-
-      await fsAsync.copyFile(
-        tempFile,
-        destinationPath
-      );
-
-      await fsAsync.unlink(tempFile);
-    } finally {
-      await fsAsync.rm(tempDir, {
-        recursive: true,
-        force: true,
-      });
-    }
+    await saveImage(
+      imageFile,
+      destinationPath,
+      ext,
+      PRODUCT_IMAGE_DIR
+    )
 
     activityLogger({
       req,
       actionType: 'Product',
       description: `Product image uploaded: ${fileName}`,
       status: 'SUCCESS',
-    });
+    })
 
     return res.json({
       message: 'Upload successful',
       url: `/images/product/${fileName}`,
-    });
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      message: 'Failed to upload image',
-    });
+    })
+  } catch (error) {
+    return handleApiError(error, res)
   }
 }
 
@@ -370,202 +283,52 @@ export const bulkUploadProducts = async (
   res: Response
 ) => {
   try {
-    const baseDir = path.resolve(
-      process.cwd(),
-      'public/images/product'
-    );
-
-    await fsAsync.mkdir(baseDir, {
+    await fsAsync.mkdir(PRODUCT_IMAGE_DIR, {
       recursive: true,
-    });
+    })
 
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({
         status: 'error',
         message: 'No file uploaded',
-      });
+      })
     }
 
     const files =
       req.files.files as
       | fileUpload.UploadedFile[]
-      | fileUpload.UploadedFile;
+      | fileUpload.UploadedFile
 
     const fileArray = Array.isArray(files)
       ? files
-      : [files];
+      : [files]
 
-    const uploaded: Array<{
-      itemCode: string;
-      filename: string;
-      url: string;
-    }> = [];
-
-    const invalidFiles: Array<{
-      filename: string;
-      reason: string;
-    }> = [];
-
-    const mimeToExt: Record<string, string> = {
-      'image/png': '.png',
-      'image/jpeg': '.jpg',
-      'image/webp': '.webp',
-    };
+    const uploaded = []
+    const invalidFiles = []
 
     for (const imageFile of fileArray) {
-      const originalName = imageFile.name;
-
-      const ext = mimeToExt[imageFile.mimetype];
-
-      if (!ext) {
-        invalidFiles.push({
-          filename: originalName,
-          reason: 'Invalid file type',
-        });
-        continue;
-      }
-
-      const itemCode = path.parse(originalName).name;
-
-      if (!/^[A-Za-z0-9_-]+$/.test(itemCode)) {
-        invalidFiles.push({
-          filename: originalName,
-          reason: 'Invalid filename',
-        });
-        continue;
-      }
-
-      if (imageFile.size > 5 * 1024 * 1024) {
-        invalidFiles.push({
-          filename: originalName,
-          reason: 'File exceeds 5MB limit',
-        });
-        continue;
-      }
-
-      const productExist =
-        await prisma.products.findUnique({
-          where: {
-            ItemCode: itemCode,
-          },
-        });
-
-      if (!productExist) {
-        invalidFiles.push({
-          filename: originalName,
-          reason: 'Item code not found',
-        });
-        continue;
-      }
-
-      const safeFileName = `${itemCode}${ext}`;
-
-      if (
-        !/^[A-Za-z0-9_-]+\.(png|jpg|webp)$/i.test(
-          safeFileName
-        )
-      ) {
-        invalidFiles.push({
-          filename: originalName,
-          reason: 'Invalid filename',
-        });
-        continue;
-      }
-
-      const destinationPath = path.resolve(
-        baseDir,
-        safeFileName
-      );
-
-      const relativePath = path.relative(
-        baseDir,
-        destinationPath
-      );
-
-      if (
-        relativePath.startsWith('..') ||
-        path.isAbsolute(relativePath)
-      ) {
-        invalidFiles.push({
-          filename: originalName,
-          reason: 'Invalid path',
-        });
-        continue;
-      }
-
-      const existingFiles =
-        await fsAsync.readdir(baseDir);
-
-      for (const file of existingFiles) {
-        if (!file.startsWith(`${itemCode}.`)) {
-          continue;
-        }
-
-        const oldPath = path.resolve(
-          baseDir,
-          file
-        );
-
-        const rel = path.relative(
-          baseDir,
-          oldPath
-        );
-
-        if (
-          rel.startsWith('..') ||
-          path.isAbsolute(rel)
-        ) {
-          continue;
-        }
-
-        await fsAsync.rm(oldPath, {
-          force: true,
-        });
-      }
-
-      const tempDir = await fsAsync.mkdtemp(
-        path.join(baseDir, '.upload-')
-      );
-
       try {
-        const tempFile = path.resolve(
-          tempDir,
-          `${crypto.randomUUID()}${ext}`
-        );
+        const result =
+          await processUploadFile(imageFile)
 
-        const tempRel = path.relative(
-          tempDir,
-          tempFile
-        );
-
-        if (
-          tempRel.startsWith('..') ||
-          path.isAbsolute(tempRel)
-        ) {
-          throw new Error(
-            'Invalid temporary file path'
-          );
+        if (!result.success) {
+          invalidFiles.push({
+            filename: imageFile.name,
+            reason: result.reason!,
+          })
+          continue
         }
-
-        await imageFile.mv(tempFile);
-
-        await fsAsync.copyFile(
-          tempFile,
-          destinationPath
-        );
-
-        await fsAsync.unlink(tempFile);
 
         uploaded.push({
-          itemCode,
-          filename: safeFileName,
-          url: `/images/product/${safeFileName}`,
-        });
-      } finally {
-        await fsAsync.rm(tempDir, {
-          recursive: true,
-          force: true,
-        });
+          itemCode: result.itemCode!,
+          filename: result.fileName!,
+          url: `/images/product/${result.fileName}`,
+        })
+      } catch {
+        invalidFiles.push({
+          filename: imageFile.name,
+          reason: 'Failed to save image',
+        })
       }
     }
 
@@ -574,7 +337,7 @@ export const bulkUploadProducts = async (
       actionType: 'Product',
       description: `Bulk upload of ${uploaded.length} images completed`,
       status: 'SUCCESS',
-    });
+    })
 
     return res.json({
       status:
@@ -587,17 +350,11 @@ export const bulkUploadProducts = async (
           : 'Images uploaded successfully',
       data: uploaded,
       invalidFiles,
-    });
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      status: 'error',
-      message: 'Bulk upload failed',
-    });
+    })
+  } catch (error) {
+    return handleApiError(error, res)
   }
 }
-
 export const productDevelopment = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { productId, subgroupIds } = req.body;

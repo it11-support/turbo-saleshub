@@ -15,6 +15,11 @@ export type CustomerRequestType = {
   slpCode?: number;
 } & ICommonRequestType;
 
+type SortOption = {
+  field: string
+  order: 'asc' | 'desc'
+}
+
 export type CustomerResponseType = PaginationResult<ICustomer> & {
   groupNames?: (string | null)[];
   salesPersonNames?: (string | null)[];
@@ -29,15 +34,18 @@ export const customerList = async (
   try {
     const { search = '', per_page = 10, page = 1, sort_options = [] } = req.query;
 
-    const sort_options_mapped = () => {
+    const sortOptionsMapped = (): SortOption[] => {
       if (!sort_options) return []
 
-      const parsed =
-        typeof sort_options === 'string'
-          ? JSON.parse(sort_options)
-          : sort_options
+      if (typeof sort_options === 'string') {
+        return JSON.parse(sort_options) as SortOption[]
+      }
 
-      return parsed.map((s: any) => s)
+      if (Array.isArray(sort_options)) {
+        return sort_options as SortOption[]
+      }
+
+      return []
     }
 
 
@@ -51,7 +59,7 @@ export const customerList = async (
     };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
-    let activeOpts: string[] = [];
+    const activeOpts: string[] = [];
     let selectedSalesPersons: string[] = [];
 
     const query: any = search
@@ -151,7 +159,7 @@ export const customerList = async (
       query.CardCode = { in: grouped.map((g) => g.CardCode) };
     }
 
-    const sortOptions = sortOptionsParser(sort_options_mapped());
+    const sortOptions = sortOptionsParser(sortOptionsMapped());
     const orderBy = convertToPrismaOrderBy(sortOptions);
 
     const [customers, meta] = await prisma.customers

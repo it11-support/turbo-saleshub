@@ -1,3 +1,4 @@
+import { Decimal } from "@prisma/client/runtime/client";
 import { IUser, IUserPayload } from "../user";
 import { type Request } from "express";
 export interface ICommonRequestType {
@@ -58,6 +59,66 @@ export type SummaryResult = {
   current: SummaryValue
   previous: SummaryValue
   growth: SummaryValue
+}
+
+export interface SalesSummaryRow {
+  revenue_current: number | null
+  orders_current: number | null
+  customers_current: number | null
+  revenue_previous: number | null
+  orders_previous: number | null
+  customers_previous: number | null
+}
+
+export interface CustomerSummaryRow {
+  new_customer: number | bigint
+  existing_customer: number | bigint
+}
+
+export interface BaseCustomerRow {
+  id: number
+  CardCode: string
+  CardName: string
+  City: string | null
+  SalesName: string | null
+  GroupName: string | null
+  Phone1: string | null
+  Cellular: string | null
+  SlpCode: number | null
+  lastTransactionDate: Date | null
+  avgRevenuePerMonth: number | null
+  totalItems: number | null
+}
+
+export interface YearlyTrendRow {
+  yr: number | bigint
+  noo: number | bigint
+  existing: number | bigint
+}
+
+export interface MonthlyTrendRow {
+  yr: number | bigint
+  mo: number | bigint
+  noo: number | bigint
+  existing: number | bigint
+}
+
+export interface RevenueCategoryRow {
+  ProductCategory: string
+  revenue: Decimal | number | null
+}
+
+export interface RevenueByAccountCategoryYearlyRow {
+  year: number | bigint
+  acctName: string
+  revenue: Decimal | number | null
+}
+
+export interface RevenueByAccountCategoryMonthlyRow {
+  year: number | bigint
+  month: number | bigint
+  acctName: string
+  revenue: Decimal | number | null
 }
 
 export interface SortOption<K extends string = string> {

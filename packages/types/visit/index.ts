@@ -141,12 +141,12 @@ export interface VisitListState {
 }
 
 export interface FollowUpForm {
-  visit_item_concern_id: BigInt | number;
-  status: string;
-  type: EFollowUpType | null;
-  notes: string;
-  action_required: boolean;
-  next_follow_up_date: Date | null;
+  visit_item_concern_id: bigint | number
+  status: string
+  type: EFollowUpType | null
+  notes: string
+  action_required: boolean
+  next_follow_up_date: Date | null
 }
 
 export type OfferedItem = {
