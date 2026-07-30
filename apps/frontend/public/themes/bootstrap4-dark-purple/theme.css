@@ -2664,30 +2664,30 @@
     border-radius: 0;
   }
   .p-datatable .p-paginator-bottom {
-    border-width: 1px 0 0 0;
+    border-width: 1px 0 0;
     border-radius: 0;
   }
   .p-datatable .p-datatable-header {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.6);
     border: solid #3f4b5b;
-    border-width: 1px 0 0 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0 0;
+    padding: 1rem;
     font-weight: 600;
   }
   .p-datatable .p-datatable-footer {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0;
+    padding: 1rem;
     font-weight: 600;
   }
   .p-datatable .p-datatable-thead > tr > th {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 2px 0;
+    border-width: 1px 0 2px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.87);
     background: #2a323d;
@@ -2695,9 +2695,9 @@
   }
   .p-datatable .p-datatable-tfoot > tr > td {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 1px 0;
+    border-width: 1px 0;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.87);
     background: #2a323d;
@@ -2748,8 +2748,8 @@
   .p-datatable .p-datatable-tbody > tr > td {
     text-align: left;
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 0 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0 0;
+    padding: 1rem;
   }
   .p-datatable .p-datatable-tbody > tr > td .p-row-toggler,
 .p-datatable .p-datatable-tbody > tr > td .p-row-editor-init,
@@ -2843,16 +2843,16 @@
     height: 2rem;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-header {
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-footer {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-paginator-top {
-    border-width: 0 1px 0 1px;
+    border-width: 0 1px;
   }
   .p-datatable.p-datatable-gridlines .p-paginator-bottom {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th {
     border-width: 1px 0 1px 1px;
@@ -2864,7 +2864,7 @@
     border-width: 1px 0 0 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-tbody > tr > td:last-child {
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-tbody > tr:last-child > td {
     border-width: 1px 0 1px 1px;
@@ -2876,25 +2876,25 @@
     border-width: 1px 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-tfoot > tr > td:last-child {
-    border-width: 1px 1px 1px 1px;
+    border-width: 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead + .p-datatable-tfoot > tr > td {
     border-width: 0 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines .p-datatable-thead + .p-datatable-tfoot > tr > td:last-child {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-thead):has(.p-datatable-tbody) .p-datatable-tbody > tr > td {
     border-width: 0 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-thead):has(.p-datatable-tbody) .p-datatable-tbody > tr > td:last-child {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-tbody):has(.p-datatable-tfoot) .p-datatable-tbody > tr:last-child > td {
     border-width: 0 0 0 1px;
   }
   .p-datatable.p-datatable-gridlines:has(.p-datatable-tbody):has(.p-datatable-tfoot) .p-datatable-tbody > tr:last-child > td:last-child {
-    border-width: 0 1px 0 1px;
+    border-width: 0 1px;
   }
   .p-datatable.p-datatable-striped .p-datatable-tbody > tr.p-row-odd {
     background: #2f3641;
@@ -2913,34 +2913,34 @@
     background: #2f3641;
   }
   .p-datatable.p-datatable-sm .p-datatable-header {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-thead > tr > th {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-tbody > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-tfoot > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-sm .p-datatable-footer {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-header {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-thead > tr > th {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-tbody > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-tfoot > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-datatable.p-datatable-lg .p-datatable-footer {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
 
   .p-datatable-drag-selection-helper {
@@ -2952,15 +2952,15 @@
     border-radius: 0;
   }
   .p-dataview .p-paginator-bottom {
-    border-width: 1px 0 0 0;
+    border-width: 1px 0 0;
     border-radius: 0;
   }
   .p-dataview .p-dataview-header {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.6);
     border: solid #3f4b5b;
-    border-width: 1px 0 0 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0 0;
+    padding: 1rem;
     font-weight: 600;
   }
   .p-dataview .p-dataview-content {
@@ -2971,14 +2971,14 @@
   }
   .p-dataview.p-dataview-list .p-dataview-content > .p-grid > div {
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 0 0;
+    border-width: 1px 0 0;
   }
   .p-dataview .p-dataview-footer {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0;
+    padding: 1rem;
     font-weight: 600;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
@@ -2996,15 +2996,15 @@
     border-radius: 0;
   }
   .p-datascroller .p-paginator-bottom {
-    border-width: 1px 0 0 0;
+    border-width: 1px 0 0;
     border-radius: 0;
   }
   .p-datascroller .p-datascroller-header {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.6);
     border: solid #3f4b5b;
-    border-width: 1px 0 0 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0 0;
+    padding: 1rem;
     font-weight: 600;
   }
   .p-datascroller .p-datascroller-content {
@@ -3015,14 +3015,14 @@
   }
   .p-datascroller.p-datascroller-inline .p-datascroller-list > li {
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 0 0;
+    border-width: 1px 0 0;
   }
   .p-datascroller .p-datascroller-footer {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0;
+    padding: 1rem;
     font-weight: 600;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
@@ -3495,30 +3495,30 @@
     border-radius: 0;
   }
   .p-treetable .p-paginator-bottom {
-    border-width: 1px 0 0 0;
+    border-width: 1px 0 0;
     border-radius: 0;
   }
   .p-treetable .p-treetable-header {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.6);
     border: solid #3f4b5b;
-    border-width: 1px 0 0 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0 0;
+    padding: 1rem;
     font-weight: 600;
   }
   .p-treetable .p-treetable-footer {
     background: #2a323d;
     color: rgba(255, 255, 255, 0.87);
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 1px 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0;
+    padding: 1rem;
     font-weight: 600;
   }
   .p-treetable .p-treetable-thead > tr > th {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 2px 0;
+    border-width: 1px 0 2px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.87);
     background: #2a323d;
@@ -3526,9 +3526,9 @@
   }
   .p-treetable .p-treetable-tfoot > tr > td {
     text-align: left;
-    padding: 1rem 1rem;
+    padding: 1rem;
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 1px 0;
+    border-width: 1px 0;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.87);
     background: #2a323d;
@@ -3571,8 +3571,8 @@
   .p-treetable .p-treetable-tbody > tr > td {
     text-align: left;
     border: 1px solid #3f4b5b;
-    border-width: 1px 0 0 0;
-    padding: 1rem 1rem;
+    border-width: 1px 0 0;
+    padding: 1rem;
   }
   .p-treetable .p-treetable-tbody > tr > td .p-treetable-toggler {
     width: 2rem;
@@ -3636,16 +3636,16 @@
     height: 2rem;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-header {
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-footer {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-top {
-    border-width: 0 1px 0 1px;
+    border-width: 0 1px;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-bottom {
-    border-width: 0 1px 1px 1px;
+    border-width: 0 1px 1px;
   }
   .p-treetable.p-treetable-gridlines .p-treetable-thead > tr > th {
     border-width: 1px;
@@ -3673,34 +3673,34 @@
     background: #2f3641;
   }
   .p-treetable.p-treetable-sm .p-treetable-header {
-    padding: 0.875rem 0.875rem;
+    padding: 0.875rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-thead > tr > th {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-tbody > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-tfoot > tr > td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-sm .p-treetable-footer {
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-header {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-thead > tr > th {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-tbody > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-tfoot > tr > td {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
   .p-treetable.p-treetable-lg .p-treetable-footer {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem;
   }
 
   .p-timeline .p-timeline-event-marker {
@@ -3825,7 +3825,7 @@
     padding: 1rem 0;
   }
   .p-card .p-card-footer {
-    padding: 1rem 0 0 0;
+    padding: 1rem 0 0;
   }
 
   .p-fieldset {
@@ -3968,7 +3968,7 @@
   .p-tabview .p-tabview-nav {
     background: transparent;
     border: 1px solid #3f4b5b;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
   }
   .p-tabview .p-tabview-nav li {
     margin-right: 0;
@@ -3976,7 +3976,7 @@
   .p-tabview .p-tabview-nav li .p-tabview-nav-link {
     border: solid;
     border-width: 1px;
-    border-color: #2a323d #2a323d #3f4b5b #2a323d;
+    border-color: #2a323d #2a323d #3f4b5b;
     background: #2a323d;
     color: rgba(255, 255, 255, 0.6);
     padding: 0.75rem 1rem;
@@ -3984,7 +3984,7 @@
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
     transition: box-shadow 0.15s;
-    margin: 0 0 -1px 0;
+    margin: 0 0 -1px;
   }
   .p-tabview .p-tabview-nav li .p-tabview-nav-link:not(.p-disabled):focus-visible {
     outline: 0 none;
@@ -3998,7 +3998,7 @@
   }
   .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
     background: #2a323d;
-    border-color: #3f4b5b #3f4b5b #2a323d #3f4b5b;
+    border-color: #3f4b5b #3f4b5b #2a323d;
     color: rgba(255, 255, 255, 0.6);
   }
   .p-tabview .p-tabview-close {
@@ -4048,7 +4048,7 @@
   }
   .p-confirm-popup .p-confirm-popup-footer {
     text-align: right;
-    padding: 0 1.25rem 1.25rem 1.25rem;
+    padding: 0 1.25rem 1.25rem;
   }
   .p-confirm-popup .p-confirm-popup-footer button {
     margin: 0 0.5rem 0 0;
@@ -4285,7 +4285,7 @@
     height: 0.25rem;
   }
   .p-fileupload .p-fileupload-row > div {
-    padding: 1rem 1rem;
+    padding: 1rem;
   }
   .p-fileupload.p-fileupload-advanced .p-message {
     margin-top: 0;
@@ -4313,7 +4313,7 @@
     color: #c298d8;
   }
   .p-breadcrumb .p-breadcrumb-list li.p-menuitem-separator {
-    margin: 0 0.5rem 0 0.5rem;
+    margin: 0 0.5rem;
     color: rgba(255, 255, 255, 0.87);
   }
   .p-breadcrumb .p-breadcrumb-list li:last-child .p-menuitem-text {
@@ -4398,7 +4398,7 @@
   .p-dock .p-dock-list {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 0.5rem;
+    padding: 0.5rem;
     border-radius: 0.5rem;
   }
   .p-dock .p-dock-item {
@@ -5205,7 +5205,6 @@
   }
 
   .p-steps .p-steps-item .p-menuitem-link {
-    background: transparent;
     transition: box-shadow 0.15s;
     border-radius: 4px;
     background: transparent;
@@ -5252,7 +5251,7 @@
   .p-tabmenu .p-tabmenu-nav {
     background: transparent;
     border: 1px solid #3f4b5b;
-    border-width: 0 0 1px 0;
+    border-width: 0 0 1px;
   }
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem {
     margin-right: 0;
@@ -5260,7 +5259,7 @@
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
     border: solid;
     border-width: 1px;
-    border-color: #2a323d #2a323d #3f4b5b #2a323d;
+    border-color: #2a323d #2a323d #3f4b5b;
     background: #2a323d;
     color: rgba(255, 255, 255, 0.6);
     padding: 0.75rem 1rem;
@@ -5268,7 +5267,7 @@
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
     transition: box-shadow 0.15s;
-    margin: 0 0 -1px 0;
+    margin: 0 0 -1px;
     height: calc(100% + 1px);
   }
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link .p-menuitem-icon {
@@ -5286,7 +5285,7 @@
   }
   .p-tabmenu .p-tabmenu-nav .p-tabmenuitem.p-highlight .p-menuitem-link {
     background: #2a323d;
-    border-color: #3f4b5b #3f4b5b #2a323d #3f4b5b;
+    border-color: #3f4b5b #3f4b5b #2a323d;
     color: rgba(255, 255, 255, 0.6);
   }
 
@@ -5514,7 +5513,7 @@
     opacity: 1;
   }
   .p-toast .p-toast-message {
-    margin: 0 0 1rem 0;
+    margin: 0 0 1rem;
     box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
     border-radius: 4px;
   }
@@ -5536,7 +5535,7 @@
     font-weight: 700;
   }
   .p-toast .p-toast-message .p-toast-message-content .p-toast-detail {
-    margin: 0.5rem 0 0 0;
+    margin: 0.5rem 0 0;
   }
   .p-toast .p-toast-message .p-toast-icon-close {
     width: 2rem;
