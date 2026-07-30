@@ -3,16 +3,9 @@
 import { fetcher } from '../lib'
 import NavButton from './components/NavButton'
 import CustomerCell from '../components/customer/CustomerCell'
-import { DataTableSortMeta, ICustomer, IResPaginated } from '@saleshub-tsm/types'
+import { ICustomer, IResPaginated } from '@saleshub-tsm/types'
 import { useRouter } from 'next/navigation'
-import {
-  parseAsArrayOf,
-  parseAsBoolean,
-  parseAsInteger,
-  parseAsJson,
-  parseAsString,
-  useQueryStates,
-} from 'nuqs'
+import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
 import { Column } from 'primereact/column'
@@ -28,6 +21,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { createUrl } from '@/lib/api'
+import { parseAsSortMeta } from '@/lib/sortOptionParser'
 import { useCustomerStore } from '@/stores/customers'
 
 interface ICustomerMeta {
@@ -55,9 +49,7 @@ const CustomerTable = () => {
       loyaltyLevel: parseAsArrayOf(parseAsString).withDefault([]),
       itemCount: parseAsInteger.withDefault(0),
       isNewCustomer: parseAsBoolean.withDefault(false),
-      sort: parseAsJson<DataTableSortMeta[]>((value) => value as DataTableSortMeta[]).withDefault(
-        []
-      ),
+      sort: parseAsSortMeta.withDefault([]),
     },
     { shallow: true, history: 'replace' }
   )
