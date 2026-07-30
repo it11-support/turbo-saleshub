@@ -200,3 +200,9 @@ export interface FollowUpUpdateData<T> {
   item: T
   info: EventInfo
 }
+
+export interface IGeoLocation {
+  latitude: number
+  longitude: number
+  accuracy: number
+}

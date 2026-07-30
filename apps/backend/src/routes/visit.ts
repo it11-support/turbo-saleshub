@@ -1,8 +1,10 @@
+import { imageReadLimiter } from '@/utils/limiter.js';
 import {
   closeItems,
   completeSalesVisit,
   fetchSalesVisit,
   followUpVisit,
+  handleUploadVisitImage,
   startVisit,
   syncSalesVisit,
   visitDetails,
@@ -10,8 +12,10 @@ import {
 import { authMiddleware } from '../middlewares/index.js';
 
 import { Router } from 'express';
+import { fetchVisitImage } from '@/controllers/visit/index.js';
 
 const router = Router();
+router.get('/image/:id/', imageReadLimiter, fetchVisitImage);
 
 router.use(authMiddleware);
 
@@ -22,5 +26,6 @@ router.post('/:id/complete', completeSalesVisit);
 router.get('/:id/details', visitDetails);
 router.post('/:id/start', startVisit);
 router.post('/:id/close-items', closeItems);
+router.post('/:id/images', imageReadLimiter, handleUploadVisitImage);
 
 export default router;

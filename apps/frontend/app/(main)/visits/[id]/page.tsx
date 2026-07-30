@@ -3,12 +3,15 @@
 import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import NavButton from '../../customers/components/NavButton'
+import CameraCaptureDialog from '../components/CameraCaptureDialog'
 import Competitors from '../components/Competitors'
+import ConfirmLocationDialog from '../components/ConfirmLocationDialog'
 import { getFilteredProducts } from '../functions/filterProducts'
 import { groupVisitItems } from '../functions/groupVisitItems'
 import {
   IConcernCategory,
   IConcernStatus,
+  IDashboardData,
   IResObject,
   ProductWithFrequency,
 } from '@saleshub-tsm/types'
@@ -28,10 +31,13 @@ import { ProgressSpinner } from 'primereact/progressspinner'
 import { useEffect, useRef, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
+import { calculateDistance, getCurrentLocation } from '@/lib/geolocation'
 import { parsePhone } from '@/lib/phoneParser'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
+
+const DISTANCE_THRESHOLD = 1000
 
 interface IConcernCategoryResponse {
   concernCategories: IConcernCategory[]
@@ -51,6 +57,9 @@ const VisitsPage = () => {
     endVisit,
     startVisit,
     processItems,
+    location,
+    uploadVisitImage,
+    setLocation,
   } = salesVisitStore
   const { fetchScheduleByDate, currentDate } = useScheduleStore()
   const { id } = useParams()
@@ -84,8 +93,17 @@ const VisitsPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [markedAs, setMarkedAs] = useState<ProductWithFrequency[]>([])
   const [showBulkOfferDialog, setShowBulkOfferDialog] = useState(false)
-
+  const [dialogVisible, setDialogVisible] = useState(false)
+  const [dialogMode, setDialogMode] = useState<
+    | 'NO_LOCATION'
+    | 'DISTANCE_TOO_FAR'
+    | 'LOW_ACCURACY'
+    | 'PERMISSION_DENIED'
+    | 'POSITION_UNAVAILABLE'
+  >('NO_LOCATION')
+  const [distance, setDistance] = useState<number>()
   const overlayRefs = useRef<Record<string, OverlayPanel | null>>({})
+  const [cameraDialogVisible, setCameraDialogVisible] = useState(false)
 
   const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
     useInquiryStore()
@@ -94,6 +112,17 @@ const VisitsPage = () => {
     useFetch<IResObject<IConcernCategoryResponse>>('concern-categories')
 
   const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
+  const { suggestedItems, customer, visit_items } = salesVisit
+
+  const { mutate: mutateVisitDistribution } = useFetch<IResObject<IDashboardData['data']>>(
+    'summary/visits-distribution',
+    undefined,
+    {
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    }
+  )
 
   useEffect(() => {
     fetchProducts()
@@ -123,12 +152,72 @@ const VisitsPage = () => {
     }
   }, [showOfferDialog])
 
+  const requestEndVisit = async () => {
+    if (!salesVisit.photo_url) {
+      setCameraDialogVisible(true)
+      return
+    }
+
+    await handleEndVisit()
+  }
   const handleEndVisit = async () => {
     // await syncOfferedItems()
     await endVisit().then(() => {
       fetchScheduleByDate(Number(salesVisit?.sales_person_id), currentDate)
+      mutateVisitDistribution()
       router.back()
     })
+  }
+  const handleStartVisit = async () => {
+    try {
+      const currentLocation = await getCurrentLocation()
+      setLocation(currentLocation)
+
+      // GPS kurang akurat
+      if (currentLocation.accuracy > DISTANCE_THRESHOLD) {
+        setDialogMode('LOW_ACCURACY')
+        setDialogVisible(true)
+        return
+      }
+
+      const hasLocation = customer?.lat != null && customer?.lng != null
+
+      // Customer belum punya lokasi
+      if (!hasLocation) {
+        setDialogMode('NO_LOCATION')
+        setDialogVisible(true)
+        return
+      }
+
+      const distance = calculateDistance(
+        Number(customer.lat),
+        Number(customer.lng),
+        currentLocation.latitude,
+        currentLocation.longitude
+      )
+
+      // Customer terlalu jauh
+      if (distance > DISTANCE_THRESHOLD) {
+        setDistance(distance)
+        setDialogMode('DISTANCE_TOO_FAR')
+        setDialogVisible(true)
+        return
+      }
+
+      await startVisit(Number(salesVisit.id))
+    } catch (error) {
+      if (error instanceof GeolocationPositionError) {
+        if (error.code === error.PERMISSION_DENIED) {
+          setDialogMode('PERMISSION_DENIED')
+          setDialogVisible(true)
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setDialogMode('POSITION_UNAVAILABLE')
+          setDialogVisible(true)
+        } else {
+          throw error
+        }
+      }
+    }
   }
 
   const { data: concernStatusesData, mutate: mutateStatus } = useFetch<
@@ -137,7 +226,6 @@ const VisitsPage = () => {
 
   const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
 
-  const { suggestedItems, customer, visit_items } = salesVisit
   const suggestedGroups = [
     { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
     { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
@@ -238,6 +326,14 @@ const VisitsPage = () => {
     }
   }
 
+  const handleUploadImage = async (file: File) => {
+    await uploadVisitImage(file)
+
+    setCameraDialogVisible(false)
+
+    await handleEndVisit()
+  }
+
   if (!salesVisit.id)
     return (
       <div
@@ -251,7 +347,7 @@ const VisitsPage = () => {
   return (
     <>
       <div className="card p-3">
-        <NavButton handleEndVisit={handleEndVisit} />
+        <NavButton handleEndVisit={salesVisit.start_at ? requestEndVisit : undefined} />
         <p className="m-0 text-2xl ml-2">{customer?.CardName}</p>
         <div className="flex-1 px-0 py-2">
           {customer?.subgroup && (
@@ -308,7 +404,7 @@ const VisitsPage = () => {
               severity="success"
               outlined
               size="small"
-              onClick={() => startVisit(Number(salesVisit.id))}
+              onClick={handleStartVisit}
             />
           </div>
         ) : (
@@ -624,6 +720,25 @@ const VisitsPage = () => {
           </div>
         )}
       </div>
+      <ConfirmLocationDialog
+        visible={dialogVisible}
+        mode={dialogMode}
+        distance={distance}
+        accuracy={location?.accuracy}
+        onHide={() => setDialogVisible(false)}
+        onSaveLocation={async () => {
+          if (!location) return
+
+          setDialogVisible(false)
+
+          await startVisit(Number(salesVisit.id), dialogMode)
+        }}
+      />
+      <CameraCaptureDialog
+        visible={cameraDialogVisible}
+        onHide={() => setCameraDialogVisible(false)}
+        onSave={handleUploadImage}
+      />
 
       <Dialog
         modal
@@ -777,7 +892,6 @@ const VisitsPage = () => {
           })}
         </div>
       </Dialog>
-
       <Dialog
         modal
         blockScroll
