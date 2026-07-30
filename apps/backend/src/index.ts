@@ -12,9 +12,17 @@ import helmet from 'helmet'
 }
 
 const PORT = Number(process.env.PORT) || 4000
-
+console.log("Client", process.env.CLIENT_URL)
 const app = express()
 app.set('trust proxy', 2);
+
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tunnel-Skip-AntiPhishing']
+}));
+
 app.use(helmet(
   {
     crossOriginResourcePolicy: {
@@ -31,7 +39,7 @@ const httpServer = createServer(app)
 
 initSocket(httpServer)
 
-app.use(cors())
+
 app.use(
   fileUpload({
     createParentPath: true,

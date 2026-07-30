@@ -9,8 +9,8 @@ node_modules
 /../../generated/prisma
 
 /prisma/generated/prisma
-/public/images/*
-
+/public/images/product
+/public/images/visit
 dist
 
 .turbo

@@ -2,8 +2,8 @@ import { Router } from 'express';
 import {
   bulkUploadProducts,
   deleteImage,
-  fetchProducts,
   image,
+  fetchProducts,
   imageUpload,
   productDevelopment,
   removeProductDevelopment,

@@ -89,6 +89,16 @@ const Dashboard = () => {
     revalidateOnReconnect: true,
   })
 
+  const { data: visitDistribution } = useFetch<IResObject<IDashboardData['data']>>(
+    'summary/visits-distribution',
+    undefined,
+    {
+      dedupingInterval: 60000,
+      revalidateIfStale: false,
+      revalidateOnReconnect: true,
+    }
+  )
+
   const { summary } = data?.data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
@@ -145,7 +155,11 @@ const Dashboard = () => {
         isValidating={isCustomerTrendValidating}
         customerTrendData={customerTrendData?.data}
       />
-      <TopPerformingChart isValidating={isValidating} data={data?.data} />
+      <TopPerformingChart
+        isValidating={isValidating}
+        data={data?.data}
+        visitDistribution={visitDistribution?.data}
+      />
     </>
   )
 }
