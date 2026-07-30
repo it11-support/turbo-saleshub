@@ -23,6 +23,7 @@ import ProductOfferCard from '@/app/(main)/components/product/ProductOfferCard'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
 import { useFetch } from '@/hooks/useFetch'
 import { formatCurrency } from '@/lib/formatter'
+import { groupVisitItems } from '../../functions/groupVisitItems'
 
 interface IInquiryResponse {
   inquiries: IInquiry[]
@@ -167,40 +168,9 @@ const VisitDetailsPage = () => {
     setSelectedCategories(matchedCategories)
   }, [debouncedSearch, isDistributor, activeProductGroup])
 
-  const groupedProduct = salesVisit?.visit_items?.reduce(
-    (
-      acc: { distributor: { category: string; items: IVisitItem[] }[]; groceries: IVisitItem[] },
-      item: IVisitItem
-    ) => {
-      const product = item.product
-      if (!product) return acc
-
-      if (product.Distributor === 'Y') {
-        const category = product.ProductCategory || 'Uncategorized'
-
-        // cari category
-        let group = acc.distributor.find((g) => g.category === category)
-
-        if (!group) {
-          group = { category, items: [] }
-          acc.distributor.push(group)
-        }
-
-        group.items.push(item)
-      } else {
-        acc.groceries.push(item)
-      }
-
-      return acc
-    },
-    {
-      distributor: [] as { category: string; items: IVisitItem[] }[],
-      groceries: [] as IVisitItem[],
-    }
+  const { distributor: offeredDistributor, groceries: offeredGroceries } = groupVisitItems(
+    visit_items ?? []
   )
-
-  const offeredDistributor = groupedProduct?.distributor
-  const offeredGroceries = groupedProduct?.groceries
 
   return (
     <>
