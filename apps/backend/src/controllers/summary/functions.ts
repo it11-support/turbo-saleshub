@@ -1,14 +1,15 @@
 
 
+import { Prisma } from '@/generated/prisma/client.js'
 import prisma from '@/libs/prisma.js'
 import { calcGrowth } from '@/utils/statsFunctions.js'
-import { RevenueByCategory, SummaryResult } from '@saleshub-tsm/types'
+import { BaseCustomerRow, CustomerSummaryRow, MonthlyTrendRow, RevenueByAccountCategoryMonthlyRow, RevenueByAccountCategoryYearlyRow, RevenueByCategory, RevenueCategoryRow, SalesSummaryRow, SummaryResult, YearlyTrendRow } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 
 
 export const getSalesSummary = async (salesPersonId?: number | null) => {
   const [mtd, ytd] = await Promise.all([
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<SalesSummaryRow[]>`
       SELECT
         -- CURRENT MTD
         SUM(CASE
@@ -46,7 +47,7 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
       WHERE (${salesPersonId} IS NULL OR s.sales_person_id = ${salesPersonId});
     `,
 
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<SalesSummaryRow[]>`
       SELECT
         -- CURRENT YTD
         SUM(CASE
@@ -85,7 +86,7 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
     `
   ])
 
-  const mapResult = (row: any): SummaryResult => {
+  const mapResult = (row: SalesSummaryRow): SummaryResult => {
     const currentRevenue = Number(row.revenue_current ?? 0)
     const currentOrders = Number(row.orders_current ?? 0)
     const currentCustomers = Number(row.customers_current ?? 0)
@@ -129,7 +130,7 @@ export const getNooVsExisting = async (
     .subtract(period - 1, 'month')
     .toDate()
 
-  const result = await prisma.$queryRaw<any[]>`
+  const result = await prisma.$queryRaw<CustomerSummaryRow[]>`
     WITH all_invoices AS (
       SELECT s.CardCode, s.DocDate
       FROM sales_invoices s
@@ -184,7 +185,7 @@ export const getNooVsExisting = async (
 export const getActiveCustomers = async (salesPersonId: number | null) => {
   const [baseRows, activeRows] = await Promise.all([
     // Query Base: Customer yang pernah transaksi Jan 2025 - Bulan lalu
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<BaseCustomerRow[]>`
       SELECT
         c.id,
         v.CardCode,
@@ -226,7 +227,7 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
       GROUP BY v.CardCode
     `,
     // Query Active: Customer yang transaksi bulan ini (MTD)
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<{ CardCode: string }[]>`
       SELECT v.CardCode
       FROM daily_sales_summary_view v
       LEFT JOIN sales_persons sp
@@ -266,38 +267,44 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
 
 
 export const getCustomerTrend = async (salesPersonId: number | null) => {
+
+  const customerTrendBase = Prisma.sql`
+    WITH RECURSIVE all_invoices AS (
+      SELECT s.CardCode, s.DocDate
+      FROM sales_invoices s
+      LEFT JOIN customers c ON c.CardCode = s.CardCode
+      LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+      WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+    ),
+
+    first_purchase AS (
+      SELECT CardCode, MIN(DocDate) AS first_date
+      FROM all_invoices
+      GROUP BY CardCode
+    ),
+
+    qualifying_invoices AS (
+      SELECT s.CardCode, s.DocNum, s.DocDate
+      FROM sales_invoices s
+      LEFT JOIN retur_invoices r
+        ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
+      LEFT JOIN customers c ON c.CardCode = s.CardCode
+      LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+      WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
+      GROUP BY s.CardCode, s.DocNum, s.DocDate
+      HAVING SUM(COALESCE(s.TotalSales, 0) + COALESCE(r.TotalSales, 0)) > 0
+    ),
+  `
+
   const [yearlyRaw, monthlyRaw] = await Promise.all([
     // =====================
     // YEARLY: NOO vs Existing per tahun
     // (2025 penuh, 2026 dihitung sampai CURDATE / YTD)
     // =====================
-    prisma.$queryRaw<any[]>`
-      WITH RECURSIVE all_invoices AS (
-        SELECT s.CardCode, s.DocDate
-        FROM sales_invoices s
-        LEFT JOIN customers c ON c.CardCode = s.CardCode
-        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
-        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
-      ),
 
-      first_purchase AS (
-        SELECT CardCode, MIN(DocDate) AS first_date
-        FROM all_invoices
-        GROUP BY CardCode
-      ),
 
-      qualifying_invoices AS (
-        SELECT s.CardCode, s.DocNum, s.DocDate
-        FROM sales_invoices s
-        LEFT JOIN retur_invoices r
-          ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
-        LEFT JOIN customers c ON c.CardCode = s.CardCode
-        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
-        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
-        GROUP BY s.CardCode, s.DocNum, s.DocDate
-        HAVING SUM(COALESCE(s.TotalSales, 0) + COALESCE(r.TotalSales, 0)) > 0
-      ),
-
+    prisma.$queryRaw<YearlyTrendRow[]>`
+      ${customerTrendBase}
       years AS (
         SELECT YEAR(CURDATE()) - 2 AS yr
         UNION ALL
@@ -341,33 +348,8 @@ export const getCustomerTrend = async (salesPersonId: number | null) => {
     // membandingkan tahun berjalan (2026) vs sebelumnya (2025)
     // selama 12 bulan (Jan - Des)
     // =====================
-    prisma.$queryRaw<any[]>`
-      WITH RECURSIVE all_invoices AS (
-        SELECT s.CardCode, s.DocDate
-        FROM sales_invoices s
-        LEFT JOIN customers c ON c.CardCode = s.CardCode
-        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
-        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
-      ),
-
-      first_purchase AS (
-        SELECT CardCode, MIN(DocDate) AS first_date
-        FROM all_invoices
-        GROUP BY CardCode
-      ),
-
-      qualifying_invoices AS (
-        SELECT s.CardCode, s.DocNum, s.DocDate
-        FROM sales_invoices s
-        LEFT JOIN retur_invoices r
-          ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
-        LEFT JOIN customers c ON c.CardCode = s.CardCode
-        LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
-        WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
-        GROUP BY s.CardCode, s.DocNum, s.DocDate
-        HAVING SUM(COALESCE(s.TotalSales, 0) + COALESCE(r.TotalSales, 0)) > 0
-      ),
-
+    prisma.$queryRaw<MonthlyTrendRow[]>`
+      ${customerTrendBase}
       months AS (
         SELECT MAKEDATE(YEAR(CURDATE()) - 1, 1) AS m_start
         UNION ALL
@@ -465,7 +447,7 @@ export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
   const ytdStart = dayjs().startOf('year').toDate()
 
   const [mtdSales, mtdRetur, ytdSales, ytdRetur] = await Promise.all([
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<RevenueCategoryRow[]>`
       SELECT
         p.ProductCategory,
         SUM(s.TotalSales) AS revenue
@@ -477,7 +459,7 @@ export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
       GROUP BY p.ProductCategory
     `,
 
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<RevenueCategoryRow[]>`
       SELECT
         p.ProductCategory,
         SUM(r.TotalSales) AS revenue
@@ -489,7 +471,7 @@ export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
       GROUP BY p.ProductCategory
     `,
 
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<RevenueCategoryRow[]>`
       SELECT
         p.ProductCategory,
         SUM(s.TotalSales) AS revenue
@@ -501,7 +483,7 @@ export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
       GROUP BY p.ProductCategory
     `,
 
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<RevenueCategoryRow[]>`
       SELECT
         p.ProductCategory,
         SUM(r.TotalSales) AS revenue
@@ -514,7 +496,7 @@ export const getRevenueByCategory = async (): Promise<RevenueByCategory[]> => {
     `
   ])
 
-  const mapCategory = (rows: any[]) => {
+  const mapCategory = (rows: RevenueCategoryRow[]) => {
     const map = new Map<string, number>()
     rows.forEach(r => {
       map.set(r.ProductCategory, Number(r.revenue ?? 0))
@@ -606,7 +588,7 @@ export const buildProductRevenue = (
 
 export const getRevenueByAccountCategory = async () => {
   const [yearlyRaw, monthlyRaw] = await Promise.all([
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<RevenueByAccountCategoryYearlyRow[]>`
       WITH RECURSIVE years AS (
         SELECT YEAR(CURDATE()) - 4 AS yr
         UNION ALL
@@ -616,7 +598,7 @@ export const getRevenueByAccountCategory = async () => {
       )
       SELECT
         y.yr AS year,
-        d.acct_name AS acctName,
+        COALESCE(d.acct_name, '') AS acctName,
         COALESCE(SUM(d.revenue), 0) AS revenue
       FROM years y
       LEFT JOIN revenue_category_daily d
@@ -631,7 +613,7 @@ export const getRevenueByAccountCategory = async () => {
         d.acct_name
     `,
 
-    prisma.$queryRaw<any[]>`
+    prisma.$queryRaw<RevenueByAccountCategoryMonthlyRow[]>`
       WITH RECURSIVE months AS (
         SELECT 1 AS mo
         UNION ALL
