@@ -1,9 +1,9 @@
 import TopProductChart from './TopProductChart'
+import VisitDistribution from './VisitDistribution'
 import { IDashboardData } from '@saleshub-tsm/types'
 import { useContext } from 'react'
 
 import { LayoutContext } from '@/layout/context/layoutcontext'
-import VisitDistribution from './VisitDistribution'
 
 type TopPerformingChartProps = {
   isValidating: boolean

@@ -2,11 +2,11 @@
 
 import 'ol/ol.css'
 import { useAddLayer } from './useAddLayer'
+import useFeatureInteraction from './useFeatureIntersection'
+import useMapOverlay from './useMapOverlay'
 import { useOpenLayersMap } from './useOpenLayersMap'
 import Feature from 'ol/Feature'
 import { useRef } from 'react'
-import useMapOverlay from './useMapOverlay'
-import useFeatureInteraction from './useFeatureIntersection'
 
 type Props = {
   center?: [number, number]
