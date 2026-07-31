@@ -76,7 +76,7 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
       <div
         className="relative"
         style={{
-          height: '430px',
+          height: '100%',
         }}
       >
         <div
