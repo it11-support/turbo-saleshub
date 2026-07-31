@@ -72,7 +72,19 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
   })
 
   return (
-    <Card title="Visit Distribution" subTitle="Last 30 Days" style={{ height: 556 }}>
+    <Card
+      title="Visit Distribution"
+      subTitle="Last 30 Days"
+      className="h-full"
+      pt={{
+        body: {
+          className: 'flex flex-column h-full',
+        },
+        content: {
+          className: 'flex-1',
+        },
+      }}
+    >
       <div
         className="relative"
         style={{
