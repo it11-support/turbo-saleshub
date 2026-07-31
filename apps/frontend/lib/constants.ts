@@ -106,7 +106,6 @@ export const SALESPERSON_COLORS = [
   '#F6903D', // Orange
   '#008685', // Teal
   '#F08BB4', // Pink
-  '#6DC8EC', // Light Blue
   '#5AD8A6', // Green
   '#FF9D4D', // Soft Orange
   '#B37FEB', // Lavender
@@ -117,6 +116,7 @@ export const SALESPERSON_COLORS = [
   '#73D13D', // Soft Green
   '#FFC069', // Peach
   '#7CB305', // Olive
+  '#6DC8EC', // Light Blue
 ]
 
 export const CHART_DEFAULTS = {

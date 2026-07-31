@@ -1,3 +1,4 @@
+import { IVisit } from '@saleshub-tsm/types'
 import { getMarkerIcon } from './function'
 import Feature from 'ol/Feature'
 import { Point } from 'ol/geom'
@@ -28,6 +29,27 @@ type Props = {
 }
 
 const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Props) => {
+  const iconCache = new Map<string, Icon>()
+  const getCachedIcon = (item: IVisit) => {
+    const src = getMarkerIcon(item)
+
+    let icon = iconCache.get(src)
+
+    if (!icon) {
+      icon = new Icon({
+        src,
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        scale: 1,
+      })
+
+      iconCache.set(src, icon)
+    }
+
+    return icon
+  }
+
   return useMemo(() => {
     if (!items?.length) return null
 
@@ -60,13 +82,7 @@ const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Pro
 
           const styles = [
             new Style({
-              image: new Icon({
-                src: getMarkerIcon(item) || '',
-                anchor: [0.5, 1],
-                anchorXUnits: 'fraction',
-                anchorYUnits: 'fraction',
-                scale: 1,
-              }),
+              image: getCachedIcon(item),
             }),
           ]
 

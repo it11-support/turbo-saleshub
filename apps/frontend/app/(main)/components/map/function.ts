@@ -2,6 +2,7 @@ import { IVisit } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 
 import { SALESPERSON_COLORS } from '@/lib/constants'
+const FACTOR = 13 // Prime number
 
 export const popupContent = (visit: Partial<IVisit>) => {
   return `<div style="font-weight:600;font-size:14px">
@@ -20,20 +21,10 @@ export const popupContent = (visit: Partial<IVisit>) => {
 }
 const getSalesPersonColor = (item?: IVisit | null) => {
   const salesperson = item?.salesPerson
-  const key = String(salesperson?.id ?? salesperson?.SlpCode ?? 'default')
 
-  console.log({
-    id: salesperson?.id,
-    slpCode: salesperson?.SlpCode,
-    key,
-  })
+  const index = (Number(salesperson?.id) * FACTOR) % SALESPERSON_COLORS.length
 
-  let hash = 0
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) >>> 0
-  }
-
-  return SALESPERSON_COLORS[hash % SALESPERSON_COLORS.length] ?? '#ef4444'
+  return SALESPERSON_COLORS[index] ?? '#ef4444'
 }
 
 export const getMarkerIcon = (item?: IVisit | null) => {
