@@ -105,8 +105,17 @@ const TrendChartComponent = (props: TrendChartProps) => {
 
               if (!previousYear) return '#6B7280'
 
-              const current = item.years[currentYear].revenue
-              const previous = item.years[previousYear].revenue
+              const current =
+                valueType === 'revenue'
+                  ? item.years[currentYear].revenue
+                  : item.years[currentYear].orders
+
+              const previous =
+                valueType === 'revenue'
+                  ? item.years[previousYear].revenue
+                  : item.years[previousYear].orders
+
+              if (!previous) return '#6B7280'
 
               const growth = ((current - previous) / previous) * 100
 
