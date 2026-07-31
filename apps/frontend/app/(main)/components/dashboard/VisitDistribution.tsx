@@ -74,11 +74,8 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
     <Card
       title="Visit Distribution"
       subTitle="Last 30 Days"
-      className="h-full"
+      style={{ height: 556, overflow: 'hidden' }}
       pt={{
-        body: {
-          className: 'flex flex-column h-full',
-        },
         content: {
           className: 'flex-1',
         },
@@ -87,7 +84,7 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
       <div
         className="relative"
         style={{
-          height: '100%',
+          height: 'clamp(448px, 45vw, 430px)',
         }}
       >
         <div

@@ -15,10 +15,11 @@ import { useContext, useEffect, useState } from 'react'
 
 import 'chartjs-adapter-date-fns'
 import { useFetch } from '@/hooks/useFetch'
+import { useSocket } from '@/layout/context/SocketIoContext'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
-
+  const socket = useSocket()
   const applyLightTheme = () => {}
 
   const applyDarkTheme = () => {}
@@ -89,19 +90,30 @@ const Dashboard = () => {
     revalidateOnReconnect: true,
   })
 
-  const { data: visitDistribution } = useFetch<IResObject<IDashboardData['data']>>(
-    'summary/visits-distribution',
-    undefined,
-    {
-      dedupingInterval: 60000,
-      revalidateIfStale: false,
-      revalidateOnReconnect: true,
-    }
-  )
+  const { data: visitDistribution, mutate: mutateVisitDistribution } = useFetch<
+    IResObject<IDashboardData['data']>
+  >('summary/visits-distribution', undefined, {
+    dedupingInterval: 60000,
+    revalidateIfStale: false,
+    revalidateOnReconnect: true,
+  })
 
   const { summary } = data?.data || {}
 
   const [period, setPeriod] = useState<'mtd' | 'ytd'>('mtd')
+
+  useEffect(() => {
+    if (!socket) return
+    const refresh = () => {
+      mutateVisitDistribution()
+    }
+
+    socket.on('dashboard:visitCompleted', refresh)
+
+    return () => {
+      socket.off('dashboard:visitCompleted', refresh)
+    }
+  }, [mutateVisitDistribution, socket])
 
   return (
     <>

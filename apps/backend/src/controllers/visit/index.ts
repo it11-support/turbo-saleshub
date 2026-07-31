@@ -10,7 +10,7 @@ import { VisitStatus } from '@/generated/prisma/enums.js';
 import { getSuggestedItems } from '../customer/index.js';
 import { AuthenticatedRequest, FollowUpUpdateData, IVisit } from '@saleshub-tsm/types';
 import { activityLogger } from '@/services/logs/index.js';
-import { socketIoEmitter } from '@/libs/socket-io.js';
+import { socketIoBroadcastEmitter, socketIoEmitter } from '@/libs/socket-io.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
 import { handleApiError } from '@/utils/apiResponse.js';
 import { MAX_IMAGE_SIZE } from '../product/constants.js';
@@ -198,6 +198,8 @@ export const completeSalesVisit = async (req: AuthenticatedRequest, res: Respons
       description: `Sales Visit completed : ${process.env.CLIENT_URL}/visits/${id}`,
       status: 'SUCCESS',
     });
+
+    await socketIoBroadcastEmitter('dashboard:visitCompleted', { id: Number(id) });
     res.status(200).json({ message: 'Success' });
   } catch (error) {
     return handleApiError(error, res);

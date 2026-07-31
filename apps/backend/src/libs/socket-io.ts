@@ -67,6 +67,13 @@ export const initSocket = (httpServer: HttpServer): Server => {
   return io;
 };
 
+export const serialize = <T>(data: T): T =>
+  JSON.parse(
+    JSON.stringify(data, (_, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    )
+  )
+
 export const getIO = (): Server => {
   if (!io) throw new Error("Socket.io not initialized!");
   return io;
@@ -80,11 +87,7 @@ export const socketIoEmitter = async <T>(
     const io = getIO();
 
     // PENTING: Konversi BigInt ke String agar tidak error saat dikirim via JSON
-    const safeData = JSON.parse(
-      JSON.stringify(data, (key, value) =>
-        typeof value === "bigint" ? value.toString() : value
-      )
-    );
+    const safeData = serialize(data);
 
     console.log(`[Socket] Emitting ${event} to room-${targetUserId}`);
     io.to(`room-${targetUserId}`).emit(event, safeData);
@@ -92,3 +95,22 @@ export const socketIoEmitter = async <T>(
     console.error("[Socket Error] socketIoEmitter failed:", error);
   }
 };
+
+export const socketIoBroadcastEmitter = async <T>(
+  event: string,
+  data?: T
+): Promise<void> => {
+  try {
+    const io = getIO()
+
+    if (data === undefined) {
+      io.emit(event)
+      return
+    }
+
+    const safeData = serialize(data)
+    io.emit(event, safeData)
+  } catch (error) {
+    console.error('[Socket Error] socketIoBroadcastEmitter failed:', error)
+  }
+}

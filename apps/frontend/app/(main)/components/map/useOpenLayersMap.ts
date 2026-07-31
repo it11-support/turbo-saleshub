@@ -27,8 +27,19 @@ export const useOpenLayersMap = (
     mapInstanceRef.current = map
 
     const observer = new ResizeObserver(() => {
-      map.updateSize()
+      const el = mapRef.current
+
+      if (!el) return
+
+      if (el.clientHeight <= 0 || el.clientWidth <= 0) {
+        return
+      }
+
+      requestAnimationFrame(() => {
+        map.updateSize()
+      })
     })
+
     observer.observe(mapRef.current)
 
     return () => {
