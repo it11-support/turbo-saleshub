@@ -1,6 +1,6 @@
 'use client'
 
-import { markerIcon, popupContent } from '../map/function'
+import { popupContent } from '../map/function'
 import { useAddLayer } from '../map/useAddLayer'
 import useClusterInteraction from '../map/useClusterInteraction'
 import useClusterLayer from '../map/useClusterLayer'
@@ -43,7 +43,6 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
   const layer = useClusterLayer({
     items: visitsDistribution,
     distance: 20,
-    markerIcon,
     clusterColor: '#2563eb',
   })
 

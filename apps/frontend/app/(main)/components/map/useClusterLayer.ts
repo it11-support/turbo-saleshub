@@ -1,3 +1,4 @@
+import { getMarkerIcon } from './function'
 import Feature from 'ol/Feature'
 import { Point } from 'ol/geom'
 import Circle from 'ol/geom/Circle'
@@ -23,11 +24,10 @@ export type ClusterItem = {
 type Props = {
   items: any[]
   distance?: number
-  markerIcon?: string
   clusterColor?: string
 }
 
-const useClusterLayer = ({ items, distance = 20, markerIcon, clusterColor = '#2563eb' }: Props) => {
+const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Props) => {
   return useMemo(() => {
     if (!items?.length) return null
 
@@ -61,7 +61,7 @@ const useClusterLayer = ({ items, distance = 20, markerIcon, clusterColor = '#25
           const styles = [
             new Style({
               image: new Icon({
-                src: markerIcon || '',
+                src: getMarkerIcon(item) || '',
                 anchor: [0.5, 1],
                 anchorXUnits: 'fraction',
                 anchorYUnits: 'fraction',
@@ -110,7 +110,7 @@ const useClusterLayer = ({ items, distance = 20, markerIcon, clusterColor = '#25
     })
 
     return clusterLayer
-  }, [items, distance, markerIcon, clusterColor])
+  }, [items, distance, clusterColor])
 }
 
 export default useClusterLayer

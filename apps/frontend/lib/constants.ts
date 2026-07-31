@@ -96,6 +96,29 @@ export const CHART_COLORS = {
   danger: '#EF4444',
 }
 
+export const SALESPERSON_COLORS = [
+  '#5B8FF9', // Blue
+  '#61DDAA', // Mint
+  '#F6BD16', // Amber
+  '#7262FD', // Purple
+  '#78D3F8', // Sky
+  '#9661BC', // Violet
+  '#F6903D', // Orange
+  '#008685', // Teal
+  '#F08BB4', // Pink
+  '#6DC8EC', // Light Blue
+  '#5AD8A6', // Green
+  '#FF9D4D', // Soft Orange
+  '#B37FEB', // Lavender
+  '#95DE64', // Lime
+  '#69C0FF', // Azure
+  '#FF85C0', // Rose
+  '#597EF7', // Indigo
+  '#73D13D', // Soft Green
+  '#FFC069', // Peach
+  '#7CB305', // Olive
+]
+
 export const CHART_DEFAULTS = {
   tension: 0.4,
   borderWidth: 3,

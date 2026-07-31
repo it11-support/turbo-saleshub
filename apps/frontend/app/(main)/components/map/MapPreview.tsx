@@ -3,7 +3,7 @@
 import 'ol/ol.css'
 
 import BaseMap from './BaseMap'
-import { markerIcon } from './function'
+import { getMarkerIcon } from './function'
 import Feature from 'ol/Feature'
 import Circle from 'ol/geom/Circle'
 import Point from 'ol/geom/Point'
@@ -34,7 +34,7 @@ const MapPreview = (props: Props) => {
     marker.setStyle(
       new Style({
         image: new Icon({
-          src: markerIcon,
+          src: getMarkerIcon(),
           anchor: [0.5, 1],
           anchorXUnits: 'fraction',
           anchorYUnits: 'fraction',
