@@ -22,6 +22,12 @@ const getSalesPersonColor = (item?: IVisit | null) => {
   const salesperson = item?.salesPerson
   const key = String(salesperson?.id ?? salesperson?.SlpCode ?? 'default')
 
+  console.log({
+    id: salesperson?.id,
+    slpCode: salesperson?.SlpCode,
+    key,
+  })
+
   let hash = 0
   for (let i = 0; i < key.length; i++) {
     hash = (hash * 31 + key.charCodeAt(i)) >>> 0
