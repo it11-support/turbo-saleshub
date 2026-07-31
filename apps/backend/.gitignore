@@ -2,15 +2,9 @@ node_modules
 # Keep environment variables out of version control
 .env
 
-/../../generated/prisma
+/public/images
 
-/../../generated/prisma
-
-/../../generated/prisma
-
-/prisma/generated/prisma
-/public/images/product
-/public/images/visit
+/src/generated/
 dist
 
 .turbo
