@@ -13,6 +13,7 @@ import { activityLogger } from '@/services/logs/index.js';
 import { socketIoEmitter } from '@/libs/socket-io.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
 import { handleApiError } from '@/utils/apiResponse.js';
+import { MAX_IMAGE_SIZE } from '../product/constants.js';
 
 export const fetchSalesVisit = async (req: Request, res: Response) => {
   try {
@@ -563,7 +564,7 @@ export const handleUploadVisitImage = async (req: AuthenticatedRequest, res: Res
       });
     }
 
-    if (imageFile.size > 10 * 1024 * 1024) {
+    if (imageFile.size > MAX_IMAGE_SIZE) {
       return res.status(400).json({
         message: 'Maximum image size is 10 MB',
       });
@@ -647,7 +648,17 @@ export const fetchVisitImage = async (req: Request, res: Response) => {
       const image = fs.readdirSync(visitDir).find((file) => /\.(png|jpe?g|webp)$/i.test(file));
 
       if (image) {
-        return res.sendFile(path.join(visitDir, image));
+        const imagePath = path.join(visitDir, image);
+
+        const stats = fs.statSync(imagePath);
+
+        if (stats.size > MAX_IMAGE_SIZE) {
+          return res.status(413).json({
+            message: 'Image exceeds maximum allowed size',
+          });
+        }
+
+        return res.sendFile(imagePath);
       }
     }
 

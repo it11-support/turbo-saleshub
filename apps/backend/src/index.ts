@@ -43,6 +43,8 @@ initSocket(httpServer)
 app.use(
   fileUpload({
     createParentPath: true,
+    useTempFiles: true,
+    tempFileDir: '/tmp',
     limits: { fileSize: 5 * 1024 * 1024 }, // max 5MB
     abortOnLimit: true,
   })

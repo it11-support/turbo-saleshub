@@ -1,4 +1,4 @@
-import { imageReadLimiter } from '@/utils/limiter.js';
+import { imageReadLimiter, imageUploadLimiter } from '@/utils/limiter.js';
 import {
   closeItems,
   completeSalesVisit,
@@ -26,6 +26,6 @@ router.post('/:id/complete', completeSalesVisit);
 router.get('/:id/details', visitDetails);
 router.post('/:id/start', startVisit);
 router.post('/:id/close-items', closeItems);
-router.post('/:id/images', imageReadLimiter, handleUploadVisitImage);
+router.post('/:id/images', imageUploadLimiter, handleUploadVisitImage);
 
 export default router;
