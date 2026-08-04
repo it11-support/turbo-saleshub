@@ -1,3 +1,5 @@
+import { defaults as defaultControls } from 'ol/control/defaults'
+import FullScreen from 'ol/control/FullScreen'
 import TileLayer from 'ol/layer/Tile'
 import Map from 'ol/Map'
 import { fromLonLat } from 'ol/proj'
@@ -18,10 +20,23 @@ export const useOpenLayersMap = (
 
     const view = new View({ zoom })
 
+    const maximizeIcon = document.createElement('i')
+    maximizeIcon.className = 'pi pi-window-maximize'
+
+    const minimizeIcon = document.createElement('i')
+    minimizeIcon.className = 'pi pi-window-minimize'
+
+    const fullscreenControl = new FullScreen({
+      label: maximizeIcon,
+      labelActive: minimizeIcon,
+      tipLabel: 'Fullscreen',
+    })
+
     const map = new Map({
       target: mapRef.current,
       layers: [new TileLayer({ source: new OSM() })],
       view,
+      controls: defaultControls().extend([fullscreenControl]),
     })
 
     mapInstanceRef.current = map
