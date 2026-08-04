@@ -7,6 +7,21 @@ import { getParetoProducts } from './functions.js';
 import { generateLocalCode } from '@/utils/localCode.js';
 import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
+import { customersWhereInput, productsGetPayload } from '@/generated/prisma/models.js';
+
+type CustomerListQuery = {
+  search?: string
+  per_page?: number | string
+  page?: number | string
+  sort_options?: string | SortOption[]
+
+  groups?: string | string[]
+  salesPersons?: string | string[]
+  subgroups?: string | string[]
+  slpCode?: number
+  itemCount?: number
+  isNewCustomer?: string | boolean
+}
 
 export type CustomerRequestType = {
   active?: string[];
@@ -32,7 +47,18 @@ export const customerList = async (
   res: Response<CustomerResponseType>
 ) => {
   try {
-    const { search = '', per_page = 10, page = 1, sort_options = [] } = req.query;
+    const {
+      search = '',
+      per_page = 10,
+      page = 1,
+      sort_options = [],
+      groups,
+      salesPersons,
+      subgroups,
+      slpCode,
+      itemCount,
+      isNewCustomer,
+    } = req.query as CustomerListQuery;
 
     const sortOptionsMapped = (): SortOption[] => {
       if (!sort_options) return []
@@ -48,21 +74,12 @@ export const customerList = async (
       return []
     }
 
-
-    const { groups, salesPersons, subgroups, slpCode, itemCount, isNewCustomer } = req.query as {
-      groups?: string | string[];
-      salesPersons?: string | string[];
-      subgroups?: string | string[];
-      slpCode?: number;
-      itemCount?: number;
-      isNewCustomer?: string | boolean
-    };
     let selectedGroups: string[] = [];
     let selectedSubgroups: string[] = [];
     const activeOpts: string[] = [];
     let selectedSalesPersons: string[] = [];
 
-    const query: any = search
+    const query: customersWhereInput = search
       ? {
         OR: [
           { CardCode: { contains: search } },
@@ -371,7 +388,13 @@ export const purchaseHistory = async (req: Request, res: Response) => {
       return;
     }
 
-    const grouped: Record<number, any[]> = {};
+    type SalesInvoice = (typeof customer.sales_invoices)[number]
+
+    type GroupedInvoice = SalesInvoice & {
+      hasRetur: boolean
+    }
+
+    const grouped: Record<number, GroupedInvoice[]> = {};
 
     customer.sales_invoices.forEach((inv) => {
       if (!grouped[inv.DocNum]) {
@@ -398,10 +421,19 @@ export const purchaseHistory = async (req: Request, res: Response) => {
   }
 };
 
+type SuggestedProduct = productsGetPayload<{
+  include: {
+    product_developments: true
+  }
+}> & {
+  isDevelopment: boolean
+}
+
+
 export const getSuggestedItems = async (
   id: number,
   includeRecentOffered: boolean = false
-): Promise<{ groceries: any[], distributor: any[] }> => {
+): Promise<{ groceries: SuggestedProduct[], distributor: SuggestedProduct[] }> => {
   try {
 
     // 1. Ambil customer + subgroup
