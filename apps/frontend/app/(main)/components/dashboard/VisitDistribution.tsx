@@ -23,7 +23,7 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
   const visitsDistribution = data?.visitsDistribution ?? []
 
   const avg =
-    visitsDistribution && visitsDistribution.length > 0
+    visitsDistribution.length > 0
       ? visitsDistribution.reduce(
           (acc, visit) => {
             acc.lat += Number(visit.lat)
@@ -57,12 +57,14 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
       const coordinate = (feature.getGeometry() as any).getCoordinates() as [number, number]
 
       showOverlay(coordinate)
+
       if (popupRef.current) {
         popupRef.current.innerHTML = popupContent(visit)
       }
     },
     onClusterClick: (features, coordinate) => {
       showOverlay(coordinate)
+
       if (popupRef.current) {
         popupRef.current.innerHTML = `<div style="font-weight:600">${features.length} visits</div>`
       }
@@ -70,36 +72,30 @@ const VisitDistribution = ({ isValidating, data }: Props) => {
     onEmptyClick: hideOverlay,
   })
 
+  {
+    isValidating && (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <SkeletonLoader type="chart-horizontal" />
+      </div>
+    )
+  }
+
   return (
-    <Card
-      title="Visit Distribution"
-      subTitle="Last 30 Days"
-      style={{ height: 556, overflow: 'hidden' }}
-      pt={{
-        content: {
-          className: 'flex-1',
-        },
-      }}
-    >
+    <Card title="Visit Distribution" subTitle="Last 30 days visit distribution">
       <div
-        className="relative"
         style={{
-          height: 'clamp(448px, 45vw, 430px)',
+          position: 'relative',
+          width: '100%',
+          height: '448px',
         }}
       >
         <div
           ref={mapRef}
           style={{
             width: '100%',
-            height: 460,
+            height: '100%',
           }}
         />
-
-        {isValidating && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <SkeletonLoader type="chart-horizontal" />
-          </div>
-        )}
 
         <div
           ref={popupRef}
