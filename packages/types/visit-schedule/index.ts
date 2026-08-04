@@ -1,4 +1,4 @@
-import { SuggestedItemsGrouped } from "../product";
+import { IProduct, SuggestedItemsGrouped } from "../product";
 import { IVisit, IVisitItem } from "../visit";
 import { ISalesVisitRule } from "../visit-rules";
 
@@ -10,6 +10,8 @@ export type VisitScheduleStatus =
   | 'missed'
   | 'completed';
 
+export type PlannedItem = number | IProduct;
+
 
   export interface VisitSchedule {
     id: number;
@@ -18,7 +20,7 @@ export type VisitScheduleStatus =
     customer_id: number;
     visit_date: string; // YYYY-MM-DD
     status: VisitScheduleStatus;
-    planned_items: any[] | null; // array of items
+    planned_items: PlannedItem[] | null;
     created_at: string;
     updated_at: string;
     suggestedItems?: SuggestedItemsGrouped;
@@ -34,13 +36,13 @@ export interface CreateVisitScheduleDto {
   customer_id: number;
   visit_date: string;
   status?: VisitScheduleStatus;
-  planned_items?: any[]; // recommended array of item ids or objects
+  planned_items?: PlannedItem[];
 }
 
 export interface UpdateVisitScheduleDto {
   status?: VisitScheduleStatus;
   visit_date?: string;
-  planned_items?: any[];
+  planned_items?: PlannedItem[];
 }
 
 
