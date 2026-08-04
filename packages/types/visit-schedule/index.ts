@@ -71,5 +71,24 @@ export interface ScheduleState {
   generateByRules: (sales_person_id: number, year: number, month: number) => Promise<GenerateResult>
   updateStatus: (id: number, status: string) => Promise<void>
   deleteSchedule: (id: number) => Promise<void>
-  createVisitSchedule: (payload: Partial<IVisit>) => Promise<IVisit>
+  createVisitSchedule: (payload: Partial<IVisit>) => Promise<IVisit | null>
+}
+
+export interface ScheduleListResponse {
+  message: string
+  data: {
+    data: VisitSchedule[]
+    total: number
+    weekOfMonth: number
+  }
+}
+
+export interface CreateScheduleResponse {
+  message: string
+  data: IVisit
+}
+
+export interface GenerateScheduleResponse {
+  message: string
+  data: GenerateResult
 }

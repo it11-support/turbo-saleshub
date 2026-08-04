@@ -132,3 +132,10 @@ export interface ISalesPersonResponse {
     salesPersons: ISalesPerson[]
   }
 }
+
+export interface UserActionResponse {
+  message: string
+  data: {
+    user: IUser
+  }
+}

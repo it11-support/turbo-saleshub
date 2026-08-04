@@ -47,3 +47,7 @@ export interface VisitCompetitorState  {
   resetForm: () => void;
   syncCompetitors: (visitId: string | number) => Promise<void>;
 }
+
+export interface SyncCompetitorResponse {
+  success: boolean
+}

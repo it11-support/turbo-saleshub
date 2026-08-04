@@ -1,4 +1,11 @@
-import { IUserState } from '@saleshub-tsm/types'
+import {
+  IRoleResponse,
+  ISalesPersonResponse,
+  IUserResponse,
+  IUserState,
+  ProfileResponseType,
+  UserActionResponse,
+} from '@saleshub-tsm/types'
 import { DataTableSortMeta } from 'primereact/datatable'
 import { create } from 'zustand'
 
@@ -59,7 +66,7 @@ export const useUserStore = create<IUserState>()((set, get) => ({
           }
 
           const url = createUrl('user', payload)
-          const res = await $api<any>(url)
+          const res = await $api<IUserResponse>(url)
           const { data } = res
           set({ users: data.items, totalRecords: data.totalRecords })
         },
@@ -75,10 +82,10 @@ export const useUserStore = create<IUserState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`user/${id}`)
-          const res = await $api<any>(url)
+          const res = await $api<ProfileResponseType>(url)
 
-          set({ user: res.data })
-          return res.data
+          set({ user: res.data?.user ?? null })
+          return res.data?.user ?? null
         },
         console.error
       )
@@ -92,9 +99,9 @@ export const useUserStore = create<IUserState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl('user')
-          const res = await $api<any>(url, jsonBody(data))
+          const res = await $api<UserActionResponse>(url, jsonBody(data))
 
-          const newUser = res.data
+          const newUser = res.data?.user ?? null
           if (!newUser) return null
 
           set((state) => ({
@@ -117,9 +124,9 @@ export const useUserStore = create<IUserState>()((set, get) => ({
         async () => {
           const url = createUrl(`user/${id}`)
 
-          const res = await $api<any>(url, jsonBody(data, 'PUT'))
+          const res = await $api<UserActionResponse>(url, jsonBody(data, 'PUT'))
 
-          const updatedUser = res.data
+          const updatedUser = res.data?.user ?? null
           if (!updatedUser) return null
 
           set((state) => ({
@@ -140,7 +147,7 @@ export const useUserStore = create<IUserState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`user/${id}`)
-          await $api<any>(url, { method: 'DELETE' })
+          await $api<UserActionResponse>(url, { method: 'DELETE' })
 
           set((state) => ({
             users: removeItemFromArray(state.users, id),
@@ -158,7 +165,7 @@ export const useUserStore = create<IUserState>()((set, get) => ({
   fetchRoles: async () => {
     try {
       const url = createUrl('roles')
-      const res = await $api<any>(url)
+      const res = await $api<IRoleResponse>(url)
       const { data } = res
       set({ roles: data.roles })
     } catch (error) {
@@ -168,7 +175,7 @@ export const useUserStore = create<IUserState>()((set, get) => ({
   fetchSalesPersons: async (withFilterUser = true) => {
     try {
       const url = createUrl('sales-persons', { withFilterUser })
-      const res = await $api<any>(url)
+      const res = await $api<ISalesPersonResponse>(url)
       const { data } = res
       set({ salesPersons: data.salesPersons })
     } catch (error) {

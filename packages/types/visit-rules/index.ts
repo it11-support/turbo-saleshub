@@ -35,7 +35,7 @@ export interface IVisitRulesState {
   salesVisitRule: ISalesVisitRule | null
   setSalesVisitRule: (salesVisitRule: ISalesVisitRule | null) => void
 
-  fetchSalesVisitRules: (sales_person_id?: number) => Promise<void>
+  fetchSalesVisitRules: (sales_person_id?: number) => Promise<ISalesVisitRule[]>
 
   createSalesVisitRule: (data: Partial<ISalesVisitRule>) => Promise<ISalesVisitRule | null>
 
@@ -45,4 +45,18 @@ export interface IVisitRulesState {
   ) => Promise<ISalesVisitRule | null>
 
   deleteSalesVisitRule: (id: number) => Promise<boolean>
+}
+
+export interface VisitRulesListResponse {
+  message: string
+  data: {
+    visit_rules: ISalesVisitRule[]
+  }
+}
+
+export interface CreateVisitRuleResponse {
+  message: string
+  data: {
+    visit_rule: ISalesVisitRule
+  }
 }

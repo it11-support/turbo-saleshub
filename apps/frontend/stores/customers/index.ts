@@ -1,4 +1,14 @@
-import { ICustomer, ICustomerState } from '@saleshub-tsm/types'
+import {
+  CreateCustomerResponse,
+  CustomerListResponse,
+  CustomerSuggestionsResponse,
+  CustomerSummaryResponse,
+  GroupResponse,
+  ICustomer,
+  ICustomerState,
+  PurchaseHistoryResponse,
+  SubgroupResponse,
+} from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
 
@@ -107,12 +117,18 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
           }
 
           const url = createUrl('customers', payload)
-          const res = await $api<any>(url)
+          const res = await $api<CustomerListResponse>(url)
           const { data, groupNames, salesPersonNames, subGroupNames } = res
-          set({ groupNames })
-          set({ salesPersonNames })
-          set({ subGroupNames })
-          set({ customers: data.items, totalRecords: data.totalRecords })
+          set({ groupNames: (groupNames ?? []).filter((name): name is string => name !== null) })
+          set({
+            salesPersonNames: (salesPersonNames ?? []).filter(
+              (name): name is string => name !== null
+            ),
+          })
+          set({
+            subGroupNames: (subGroupNames ?? []).filter((name): name is string => name !== null),
+          })
+          set({ customers: data?.items ?? [], totalRecords: data?.totalRecords ?? 0 })
         },
         console.log
       )
@@ -127,10 +143,10 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         async () => {
           const url = createUrl(`customers/${id}`)
 
-          const res = await $api<any>(url)
+          const res = await $api<CustomerSummaryResponse>(url)
 
-          set({ customer: res.data.customer })
-          return res.data
+          set({ customer: res.data ?? null })
+          return res.data ?? null
         },
         console.error
       )
@@ -144,9 +160,10 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`customers/${id}/suggestions`)
-          const res = await $api<any>(url)
-          set({ suggestedItems: res.data.suggestions ?? { distributor: [], groceries: [] } })
-          return res.data
+          const res = await $api<CustomerSuggestionsResponse>(url)
+          const suggestions = res.data ?? { distributor: [], groceries: [] }
+          set({ suggestedItems: suggestions })
+          return suggestions
         },
         console.error
       )
@@ -161,10 +178,22 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`customers/${id}/purchases`)
-          const res = await $api<any>(url)
-          set({ invoiceCountByRange: res.data.invoiceCountByRange })
-          set({ ordersByRange: res.data.ordersByRange })
-          set({ lastPurchase: res.data.lastPurchase })
+          const res = await $api<PurchaseHistoryResponse>(url)
+          set({
+            invoiceCountByRange: res.data?.invoiceCountByRange ?? {
+              current: 0,
+              last3Months: 0,
+              last6Months: 0,
+            },
+          })
+          set({
+            ordersByRange: res.data?.ordersByRange ?? {
+              current: 0,
+              last3Months: 0,
+              last6Months: 0,
+            },
+          })
+          set({ lastPurchase: res.data?.lastPurchase ?? [] })
         },
         console.error
       )
@@ -175,12 +204,13 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   fetchSubgroupOptions: async () => {
     try {
       const url = createUrl('customers/subgroups')
-      const res = await $api<any>(url)
+      const res = await $api<SubgroupResponse>(url)
       set({
-        subgroupOptions: res.data.subgroups.map((sg: any) => ({
-          label: sg.IndName,
-          value: sg.IndCode,
-        })),
+        subgroupOptions:
+          res.data?.map((sg) => ({
+            label: sg.IndName,
+            value: sg.IndCode,
+          })) ?? [],
       })
     } catch (err) {
       console.error(err)
@@ -189,12 +219,13 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   fetchCustomerGroupOptions: async () => {
     try {
       const url = createUrl('customers/groups')
-      const res = await $api<any>(url)
+      const res = await $api<GroupResponse>(url)
       set({
-        groupOptions: res.data.groups.map((g: any) => ({
-          label: g.GroupName,
-          value: g.GroupName,
-        })),
+        groupOptions:
+          res.data?.map((g) => ({
+            label: g.GroupName,
+            value: g.GroupName,
+          })) ?? [],
       })
     } catch (err) {
       console.error(err)
@@ -204,8 +235,8 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
     try {
       const { newCustomerForm } = get()
       const url = createUrl('customers')
-      const res = await $api<any>(url, jsonBody(newCustomerForm))
-      return res.data.newCustomer
+      const res = await $api<CreateCustomerResponse>(url, jsonBody(newCustomerForm))
+      return res.data?.newCustomer ?? null
     } catch (err) {
       console.error('Failed to create new customer:', err)
       return null

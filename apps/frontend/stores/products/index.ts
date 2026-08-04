@@ -1,4 +1,4 @@
-import { ProductStoreState } from '@saleshub-tsm/types'
+import { ProductListResponse, ProductStoreState, ProductUpdateResponse } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -54,7 +54,7 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
   updateProductInfo: async (product_id, productInfo) => {
     try {
       const url = createUrl('product/info')
-      await $api<any>(url, jsonBody({ product_id, productInfo }))
+      await $api<ProductUpdateResponse>(url, jsonBody({ product_id, productInfo }))
     } catch (error) {
       console.error('Error updating product:', error)
     }
@@ -84,15 +84,14 @@ export const useProductsStore = create<ProductStoreState>((set, get) => ({
             distributor: isDistributor,
             group: selectedGroup,
           })
-          const res = await $api<any>(url)
+          const res = await $api<ProductListResponse>(url)
 
           const productCategories =
-            res.data.categories?.map((cat: any) => ({
+            res.data.categories?.map((cat) => ({
               value: cat.ItmsGrpCod,
               label: cat.ItmsGrpNam,
             })) || []
 
-          // hitung totalPages jika backend tidak mengirim
           const totalPages =
             res.data.totalPages ?? (Math.ceil((res.data.totalRecords || 0) / limit) || 1)
 

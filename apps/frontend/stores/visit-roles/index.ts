@@ -1,4 +1,9 @@
-import { ISalesVisitRule, IVisitRulesState } from '@saleshub-tsm/types'
+import {
+  CreateVisitRuleResponse,
+  ISalesVisitRule,
+  IVisitRulesState,
+  VisitRulesListResponse,
+} from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -28,7 +33,7 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl('visit-rules', { sales_person_id })
-          const res = await $api<any>(url)
+          const res = await $api<VisitRulesListResponse>(url)
           set({
             salesVisitRules: res.data.visit_rules || [],
           })
@@ -49,9 +54,9 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
         async () => {
           const url = createUrl('visit-rules/create')
 
-          const res = await $api<any>(url, jsonBody(data))
+          const res = await $api<CreateVisitRuleResponse>(url, jsonBody(data))
 
-          const newRule = res.data.salesVisitRule
+          const newRule = res.data.visit_rule
 
           set({
             salesVisitRules: addItemToArray(get().salesVisitRules, newRule),
@@ -74,9 +79,9 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
         async () => {
           const url = createUrl(`visit-rules/${id}/update`)
 
-          const res = await $api<any>(url, jsonBody(data, 'PUT'))
+          const res = await $api<CreateVisitRuleResponse>(url, jsonBody(data, 'PUT'))
 
-          const updatedRule = res.data.salesVisitRule
+          const updatedRule = res.data.visit_rule
 
           set({
             salesVisitRules: updateItemInArray(get().salesVisitRules, id, updatedRule),
@@ -99,7 +104,7 @@ export const useVisitRulesStore = create<IVisitRulesState>()((set, get) => ({
         async () => {
           const url = createUrl(`visit-rules/${id}/delete`)
 
-          await $api<any>(url, {
+          await $api<CreateVisitRuleResponse>(url, {
             method: 'DELETE',
           })
 

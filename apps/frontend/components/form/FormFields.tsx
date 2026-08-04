@@ -1,5 +1,5 @@
 import { AutoComplete, AutoCompleteProps } from 'primereact/autocomplete'
-import { Calendar, CalendarProps } from 'primereact/calendar'
+import { Calendar, CalendarProps, CalendarSelectionMode } from 'primereact/calendar'
 import { Dropdown, DropdownProps } from 'primereact/dropdown'
 import { InputNumber, InputNumberProps } from 'primereact/inputnumber'
 import { InputSwitch, InputSwitchProps } from 'primereact/inputswitch'
@@ -36,7 +36,7 @@ type FormAutoCompleteProps = FormFieldBaseProps &
     suggestions: any[]
   }
 type FormCalendarProps = FormFieldBaseProps &
-  Omit<CalendarProps<any>, 'value'> & {
+  Omit<CalendarProps<CalendarSelectionMode>, 'value'> & {
     value?: Date | Date[] | null
   }
 

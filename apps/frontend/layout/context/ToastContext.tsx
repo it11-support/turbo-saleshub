@@ -2,7 +2,11 @@
 import { Toast, ToastMessage } from 'primereact/toast'
 import React, { createContext, useCallback, useContext, useRef } from 'react'
 
-const ToastContext = createContext<any>(null)
+interface ToastContextValue {
+  showToast: (options: ToastMessage) => void
+}
+
+const ToastContext = createContext<ToastContextValue>({ showToast: () => {} })
 
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const toastRef = useRef<Toast>(null)

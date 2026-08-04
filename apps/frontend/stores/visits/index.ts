@@ -1,4 +1,4 @@
-import { VisitListState } from '@saleshub-tsm/types'
+import { ExportVisitResponse, VisitListResponse, VisitListState } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
@@ -58,7 +58,7 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
         dates: exportDates?.filter((d): d is Date => !!d).map((d) => formatDate(d, 'yyyy-MM-dd')),
         salesPersonId: salesPersonFilter,
       })
-      const res = await $api(url)
+      const res = await $api<ExportVisitResponse>(url)
       const { data } = res
       setExportData(data)
       setLoadingExport(false)
@@ -95,11 +95,11 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
               .filter((date): date is string => date !== null),
             sort_options,
           })
-          const res = await $api<any>(url)
+          const res = await $api<VisitListResponse>(url)
 
           set({
-            data: res.data.data,
-            total: res.data.total,
+            data: res.data.items.map((item) => item.visits),
+            total: res.data.totalRecords,
             totalPages: res.data.totalPages,
             page,
             limit,

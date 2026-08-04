@@ -78,11 +78,41 @@ export interface IInquiry {
   updated_at?: string
 }
 
+export interface InquiryListResponse {
+  message: string
+  data: {
+    inquiries: IInquiry[]
+  }
+}
+
+export interface InquirySyncResponse {
+  success: boolean
+  data: {
+    inquiries: IInquiry[]
+  }
+}
+
 
 export interface IInquiryForm {
   product_id: bigint | number | null
   product_name: string
   notes?: string
+}
+
+export interface ProductListResponse {
+  message: string
+  data: {
+    items: (IProduct & { unitsSold: number; revenue: number })[]
+    totalRecords: number
+    totalPages: number
+    categories: { ItmsGrpCod: number; ItmsGrpNam: string }[]
+  }
+}
+
+export interface ProductUpdateResponse {
+  id: bigint | number
+  ItemCode: string
+  ProductInfo?: string | null
 }
 
 export interface IProductInquiryState {
@@ -122,7 +152,7 @@ export interface ProductDevelopmentState {
 }
 
 export interface ProductStoreState {
-  data: any[]
+  data: (IProduct & { unitsSold: number; revenue: number })[]
   loading: boolean
   page: number
   total: number

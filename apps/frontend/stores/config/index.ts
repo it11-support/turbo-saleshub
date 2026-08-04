@@ -1,4 +1,4 @@
-import { ConfigState } from '@saleshub-tsm/types'
+import { ApiResponse, ConfigState, IConfig } from '@saleshub-tsm/types'
 import { getCookie, setCookie } from 'cookies-next'
 import { create } from 'zustand'
 
@@ -34,17 +34,17 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         set,
         async () => {
           const url = createUrl('config', { userId: userData.id })
-          const res = await $api<any>(url)
+          const res = await $api<ApiResponse<{ configs: IConfig[] }>>(url)
 
           const list = res.data?.configs || []
-          const configsObj = list.reduce((acc: any, cur: any) => {
+          const configsObj = list.reduce((acc: Record<string, IConfig['value']>, cur: IConfig) => {
             acc[cur.key] = cur.value
             return acc
           }, {})
 
           set({ configs: configsObj })
         },
-        (err: any) => set({ error: err?.message || 'Failed to load configs' })
+        (err) => set({ error: err instanceof Error ? err.message : 'Failed to load configs' })
       )
     } catch {
       // error logged via withLoading onError
@@ -61,7 +61,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         async () => {
           const url = createUrl('config')
 
-          const res = await $api<any>(
+          const res = await $api<ApiResponse<Record<string, IConfig['value']>>>(
             url,
             jsonBody({
               user_id: userId,
@@ -69,16 +69,16 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
             })
           )
 
-          // response: { data: { configs: { key1: val1, key2: val2 } } }
+          // response: { data: { key1: val1, key2: val2 } }
 
           set((state) => ({
             configs: {
               ...state.configs,
-              ...res.data.configs, // 🔥 merge semua sekaligus
+              ...(res.data ?? {}),
             },
           }))
         },
-        (err: any) => set({ error: err?.message || 'Failed to update config' })
+        (err) => set({ error: err instanceof Error ? err.message : 'Failed to update config' })
       )
     } catch {
       // error logged via withLoading onError

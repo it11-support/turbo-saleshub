@@ -58,6 +58,68 @@ export interface ILastPurchase extends ISalesInvoices {
 
 export type INewCustomerForm = Partial<ICustomer>
 
+export interface CustomerListResponse {
+  message: string
+  data?: {
+    items: ICustomer[]
+    totalRecords: number
+    currentPage: number
+    perPage: number
+    totalPages: number
+  }
+  groupNames?: (string | null)[]
+  salesPersonNames?: (string | null)[]
+  subGroupNames?: (string | null)[]
+}
+
+export interface CustomerSummaryResponse {
+  message: string
+  data?: ICustomer & {
+    netSales?: number
+    totalRetur?: number
+  }
+}
+
+export interface CustomerSuggestionsResponse {
+  message: string
+  data?: {
+    distributor: any[]
+    groceries: any[]
+  }
+}
+
+export interface PurchaseHistoryResponse {
+  message: string
+  data?: {
+    customer: ICustomer | null
+    lastPurchase: ILastPurchase[]
+    ordersByRange: { current: number; last3Months: number; last6Months: number }
+    invoiceCountByRange: { current: number; last3Months: number; last6Months: number }
+  }
+}
+
+export interface SubgroupResponse {
+  message: string
+  data?: {
+    IndCode: number
+    IndName: string
+  }[]
+}
+
+export interface GroupResponse {
+  message: string
+  data?: {
+    GroupName: string
+  }[]
+}
+
+export interface CreateCustomerResponse {
+  message: string
+  data?: {
+    newCustomer: ICustomer
+  }
+}
+
 export interface ICustomerState {
   newCustomerForm: INewCustomerForm
   customer: ICustomer | null
@@ -74,7 +136,7 @@ export interface ICustomerState {
   loyaltyLevel: string[] | []
   subGroupNames: string[] | []
   subgroupOptions: { value: number; label: string }[]
-  // groupOptions: { value: number; label: string }[]
+  groupOptions: { value: string; label: string }[]
   slpCode: number | null
   setIsNewCustomer: (isNewCustomer: boolean) => void
   setNewCustomerForm: (form: INewCustomerForm) => void
@@ -100,7 +162,6 @@ export interface ICustomerState {
   setMultiSortMeta: (meta: any[]) => void
   totalRecords: number
   suggestedItems: SuggestedItemsGrouped
-  groupOptions: { value: number; label: string }[]
   fetchCustomers: () => Promise<void>
   fetchCustomerSummary: (id: string) => Promise<ICustomer | null>
   fetchCustomerGroupOptions: () => Promise<void>

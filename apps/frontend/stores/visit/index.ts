@@ -1,11 +1,15 @@
 import {
+  CompleteVisitResponse,
   FollowUpForm,
+  FollowUpVisitResponse,
   IGeoLocation,
   IVisit,
   IVisitDetails,
   IVisitState,
   OfferedItem,
   StartVisitOptions,
+  UploadVisitImageResponse,
+  VisitResponse,
 } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
@@ -42,7 +46,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
 
           const url = createUrl(`visit/${visitId}/images`)
 
-          await $api(url, {
+          await $api<UploadVisitImageResponse>(url, {
             method: 'POST',
             body: formData,
           })
@@ -59,11 +63,11 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`visit/${rule_id}`)
-          const res = await $api<any>(url)
+          const res = await $api<VisitResponse>(url)
 
-          set({ salesVisit: res.data, visitNote: res.data.notes ?? '' })
+          set({ salesVisit: res.data, visitNote: res.data?.notes ?? '' })
           const offeredItems =
-            res.data.visit_items?.map((item: any) => ({
+            res.data?.visit_items?.map((item) => ({
               product_id: item.product_id,
               offered: Boolean(item.offered),
               notes: item.notes || '',
@@ -99,9 +103,9 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
           }
 
           const url = createUrl(`visit/${get().salesVisit.id}`)
-          const res = await $api<any>(url, jsonBody(payload))
+          const res = await $api<VisitResponse>(url, jsonBody(payload))
           const offeredItems =
-            res.data.visit_items?.map((item: any) => ({
+            res.data?.visit_items?.map((item) => ({
               product_id: item.product_id,
               offered: Boolean(item.offered),
               notes: item.notes || '',
@@ -139,10 +143,10 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
 
           const url = createUrl(`visit/${get().salesVisit.id}/close-items`)
 
-          const res = await $api<any>(url, jsonBody(payload))
+          const res = await $api<VisitResponse>(url, jsonBody(payload))
 
           const offeredItems =
-            res.data.visit_items?.map((item: any) => ({
+            res.data?.visit_items?.map((item) => ({
               product_id: item.product_id,
               offered: Boolean(item.offered),
               notes: item.notes || '',
@@ -162,7 +166,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`visit/${get().salesVisit.id}/complete`)
-          await $api<any>(url, jsonBody({ notes: get().visitNote }))
+          await $api<CompleteVisitResponse>(url, jsonBody({ notes: get().visitNote }))
         },
         console.error
       )
@@ -176,7 +180,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl(`visit/${id}/details`)
-          const res = await $api<any>(url)
+          const res = await $api<VisitResponse>(url)
           set({ salesVisit: res.data })
           return res.data
         },
@@ -192,7 +196,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
         set,
         async () => {
           const url = createUrl('visit/follow-up')
-          await $api<any>(url, jsonBody(get().followUpForm))
+          await $api<FollowUpVisitResponse>(url, jsonBody(get().followUpForm))
         },
         console.error
       )
@@ -207,7 +211,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
         async () => {
           const { fetchSalesVisit, location } = get()
           const url = createUrl(`visit/${visitId}/start`)
-          await $api(
+          await $api<VisitResponse>(
             url,
             jsonBody(
               {

@@ -1,4 +1,4 @@
-import { IConcernState, IConcernStatus } from '@saleshub-tsm/types'
+import { IConcernCategory, IConcernState, IConcernStatus } from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -20,7 +20,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
   name: '',
   description: '',
   setConcernStatus: (status: IConcernStatus) => set({ concernStatus: status }),
-  createCategory: async (data) => {
+  createCategory: async (data: Partial<IConcernCategory>) => {
     try {
       return await withLoading(
         set,
@@ -28,7 +28,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
           const { concernCategories } = get()
 
           const url = createUrl('concern-categories')
-          const res = await $api<any>(url, jsonBody(data))
+          const res = await $api<IConcernCategory>(url, jsonBody(data))
 
           const newCategory = unwrapData(res)
 
@@ -46,14 +46,14 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       return null
     }
   },
-  createStatus: async (data) => {
+  createStatus: async (data: Partial<IConcernStatus>) => {
     try {
       return await withLoading(
         set,
         async () => {
           const url = createUrl('concern-categories/statuses')
 
-          const res = await $api<any>(url, jsonBody(data))
+          const res = await $api<IConcernStatus>(url, jsonBody(data))
 
           const newStatus = unwrapData(res)
 
@@ -71,14 +71,14 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       return null
     }
   },
-  updateStatus: async (id, data) => {
+  updateStatus: async (id: number, data: Partial<IConcernStatus>) => {
     try {
       return await withLoading(
         set,
         async () => {
           const url = createUrl(`concern-categories/statuses/${id}`)
 
-          const res = await $api<any>(url, jsonBody(data, 'PUT'))
+          const res = await $api<IConcernStatus>(url, jsonBody(data, 'PUT'))
 
           const updatedStatus = unwrapData(res)
 
@@ -120,14 +120,14 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
     }
   },
 
-  updateCategory: async (id, data) => {
+  updateCategory: async (id: number, data: Partial<IConcernCategory>) => {
     try {
       return await withLoading(
         set,
         async () => {
           const url = createUrl(`concern-categories/${id}`)
 
-          const res = await $api<any>(url, jsonBody(data, 'PUT'))
+          const res = await $api<IConcernCategory>(url, jsonBody(data, 'PUT'))
 
           const updatedCategory = unwrapData(res)
 
@@ -145,7 +145,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
       return null
     }
   },
-  deleteCategory: async (id) => {
+  deleteCategory: async (id: number) => {
     try {
       return await withLoading(
         set,

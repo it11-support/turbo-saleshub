@@ -1,4 +1,9 @@
-import { IInquiry, IProductInquiryState } from '@saleshub-tsm/types'
+import {
+  IInquiry,
+  InquiryListResponse,
+  InquirySyncResponse,
+  IProductInquiryState,
+} from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -46,7 +51,7 @@ export const useInquiryStore = create<IProductInquiryState>()((set, get) => ({
       set,
       async () => {
         const url = createUrl(`inquiry/${id}`) // id => visit_id
-        const res = await $api<any>(url)
+        const res = await $api<InquiryListResponse>(url)
         const { data } = res
         setInquiries(data.inquiries)
       },
@@ -68,7 +73,7 @@ export const useInquiryStore = create<IProductInquiryState>()((set, get) => ({
         }
 
         const url = createUrl(`inquiry`)
-        const res = await $api<any>(url, jsonBody(payload))
+        const res = await $api<InquirySyncResponse>(url, jsonBody(payload))
 
         const { data } = res
         setInquiries(data.inquiries)

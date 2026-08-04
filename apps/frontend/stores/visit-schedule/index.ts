@@ -1,4 +1,11 @@
-import { GenerateResult, IVisit, ScheduleState, VisitScheduleStatus } from '@saleshub-tsm/types'
+import {
+  CreateScheduleResponse,
+  GenerateScheduleResponse,
+  IVisit,
+  ScheduleListResponse,
+  ScheduleState,
+  VisitScheduleStatus,
+} from '@saleshub-tsm/types'
 import { create } from 'zustand'
 
 import { $api, createUrl } from '@/lib/api'
@@ -26,12 +33,12 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
         set,
         async () => {
           const url = createUrl('schedule', { salesPersonId: sales_person_id, page, pageSize })
-          const res = await $api<any>(url)
+          const res = await $api<ScheduleListResponse>(url)
 
-          set({ schedules: res.data })
-          set({ total: res.total, totalPages: res.totalPages })
+          set({ schedules: res.data.data })
+          set({ total: res.data.total })
         },
-        (err: any) => set({ error: err?.message })
+        (err) => set({ error: err instanceof Error ? err.message : null })
       )
     } catch {
       // error logged via withLoading onError
@@ -43,7 +50,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
         set,
         async () => {
           const url = createUrl('schedule/create')
-          const res = await $api<any>(url, jsonBody(data))
+          const res = await $api<CreateScheduleResponse>(url, jsonBody(data))
 
           const date = new Date(data.visit_date as string)
           await get().fetchScheduleByDate(
@@ -69,14 +76,14 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
           year,
           month,
         }
-        const res = await $api<any>(url, jsonBody(payload))
+        const res = await $api<GenerateScheduleResponse>(url, jsonBody(payload))
 
         // refresh after generating
         await get().fetchBySalesPerson(sales_person_id)
 
-        return res.data as GenerateResult
+        return res.data
       },
-      (err: any) => set({ error: err?.message })
+      (err) => set({ error: err instanceof Error ? err.message : null })
     )
   },
   updateStatus: async (id: number, status: string) => {
@@ -88,7 +95,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
 
           const payload = { status }
 
-          await $api<any>(url, jsonBody(payload, 'PUT'))
+          await $api<CreateScheduleResponse>(url, jsonBody(payload, 'PUT'))
 
           set((state) => ({
             schedules: updateItemInArray(state.schedules, id, {
@@ -97,7 +104,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
             } as any),
           }))
         },
-        (err: any) => set({ error: err?.message })
+        (err) => set({ error: err instanceof Error ? err.message : null })
       )
     } catch {
       // error logged via withLoading onError
@@ -109,7 +116,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
         set,
         async () => {
           const url = createUrl(`/schedule/${id}`)
-          await $api<any>(url, {
+          await $api<CreateScheduleResponse>(url, {
             method: 'DELETE',
           })
 
@@ -117,7 +124,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
             schedules: removeItemFromArray(state.schedules, id),
           }))
         },
-        (err: any) => set({ error: err?.message })
+        (err) => set({ error: err instanceof Error ? err.message : null })
       )
     } catch {
       // error logged via withLoading onError
@@ -139,15 +146,14 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
           }
           const url = createUrl('schedule', payload)
 
-          const res = await $api<any>(url)
+          const res = await $api<ScheduleListResponse>(url)
 
           set({
             schedules: res.data.data,
-            total: res.total,
-            totalPages: res.totalPages,
+            total: res.data.total,
           })
         },
-        (err: any) => set({ error: err })
+        (err) => set({ error: err instanceof Error ? err.message : null })
       )
     } catch {
       // error logged via withLoading onError

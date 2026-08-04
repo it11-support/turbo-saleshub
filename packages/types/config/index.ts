@@ -15,3 +15,8 @@ export interface ConfigState {
   getConfig: (key: string, defaultValue?: any) => any
   clearConfigs: () => void
 }
+
+export interface ApiResponse<T> {
+  message: string
+  data?: T
+}

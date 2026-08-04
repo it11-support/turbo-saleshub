@@ -1,6 +1,7 @@
 import {
   Competitor,
   CompetitorProduct,
+  SyncCompetitorResponse,
   VisitCompetitor,
   VisitCompetitorState,
 } from '@saleshub-tsm/types'
@@ -36,9 +37,9 @@ export const useCompetitorStore = create<VisitCompetitorState>((set, get) => ({
 
       const url = createUrl(`competitors/${visitId}/sync`)
 
-      const res = await $api<any>(url, jsonBody(payload))
+      const res = await $api<SyncCompetitorResponse>(url, jsonBody(payload))
 
-      if (res.status === 200) {
+      if (res.success) {
         resetForm()
       }
     } catch (error) {

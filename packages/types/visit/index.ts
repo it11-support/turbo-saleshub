@@ -150,7 +150,7 @@ export interface FollowUpForm {
 }
 
 export type OfferedItem = {
-  product_id: number;
+  product_id: bigint | number;
   offered: boolean;
   notes?: string;
   product?: IProduct;
@@ -186,10 +186,10 @@ export interface IVisitState {
   loading: boolean;
   visitNote: string;
   error: string | null;
-  fetchSalesVisit: (rule_id: number, type?: string) => Promise<void>;
+  fetchSalesVisit: (rule_id: number, type?: string) => Promise<IVisit | null>;
   syncOfferedItems: (data: IVisitDetails) => Promise<void>;
   endVisit: () => Promise<void>;
-  fetchVisitDetails: (id: number) => Promise<void>;
+  fetchVisitDetails: (id: number) => Promise<IVisit | null>;
   setVisitNote: (note: string) => void;
   addFollowUp: () => Promise<void>;
   startVisit: (
@@ -202,4 +202,50 @@ export interface IVisitState {
   ) => Promise<void>;
   location?: IGeoLocation;
   setLocation: (location?: IGeoLocation) => void;
+}
+
+export interface VisitResponse {
+  message: string
+  data: IVisit
+}
+
+export interface CompleteVisitResponse {
+  message: string
+}
+
+export interface FollowUpVisitResponse {
+  message: string
+  data?: any
+}
+
+export interface UploadVisitImageResponse {
+  message: string
+  image: string
+  url: string
+}
+
+export interface VisitListItem {
+  id: number
+  sales_person_id: number
+  customer_id: number
+  visit_date: string | Date | null
+  status: TVisitStatus
+  is_virtual: boolean
+  max_items_per_visit: number | null
+  visits: IVisit
+}
+
+export interface VisitListResponse {
+  message: string
+  data: {
+    items: VisitListItem[]
+    totalRecords: number
+    page: number
+    totalPages: number
+  }
+}
+
+export interface ExportVisitResponse {
+  message: string
+  data: ExportVisit[]
 }

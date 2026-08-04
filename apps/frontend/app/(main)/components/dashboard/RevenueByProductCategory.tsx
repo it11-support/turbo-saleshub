@@ -74,7 +74,7 @@ const RevenueByProductCategory = ({
       x: {
         ticks: {
           callback(value: any) {
-            return formatCurrency(Number(value), true, true)
+            return formatCurrency(Number(value), false, true)
           },
         },
       },
