@@ -30,7 +30,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
           const url = createUrl('concern-categories')
           const res = await $api<IConcernCategory>(url, jsonBody(data))
 
-          const newCategory = unwrapData(res)
+          const newCategory = unwrapData<IConcernCategory>(res)
 
           if (!newCategory) return null
 
@@ -55,7 +55,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
 
           const res = await $api<IConcernStatus>(url, jsonBody(data))
 
-          const newStatus = unwrapData(res)
+          const newStatus = unwrapData<IConcernStatus>(res)
 
           if (!newStatus) return null
 
@@ -80,7 +80,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
 
           const res = await $api<IConcernStatus>(url, jsonBody(data, 'PUT'))
 
-          const updatedStatus = unwrapData(res)
+          const updatedStatus = unwrapData<IConcernStatus>(res)
 
           if (!updatedStatus) return null
 
@@ -129,7 +129,7 @@ export const useConcernStore = create<IConcernState>()((set, get) => ({
 
           const res = await $api<IConcernCategory>(url, jsonBody(data, 'PUT'))
 
-          const updatedCategory = unwrapData(res)
+          const updatedCategory = unwrapData<IConcernCategory>(res)
 
           if (!updatedCategory) return null
 

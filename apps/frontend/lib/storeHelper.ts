@@ -25,23 +25,33 @@ export const withLoading = async <T extends { loading: boolean }, R>(
   }
 }
 
-type IdComparable = { id?: any }
+type NumberLike = string | number | bigint | null | undefined
+type IdComparable = { id?: NumberLike }
 
-const toNumber = (value: any): number => Number(value)
+const toNumber = (value: NumberLike): number => Number(value)
 
-export const sameId = (a: any, b: any): boolean => toNumber(a) === toNumber(b)
+export const sameId = (a: NumberLike, b: NumberLike): boolean => toNumber(a) === toNumber(b)
 
-export const updateItemInArray = <T extends IdComparable>(list: T[], id: any, updated: T): T[] =>
-  list.map((item) => (sameId(item.id, id) ? updated : item))
+export const updateItemInArray = <T extends IdComparable>(
+  list: T[],
+  id: NumberLike,
+  updated: T
+): T[] => list.map((item) => (sameId(item.id, id) ? updated : item))
 
-export const removeItemFromArray = <T extends IdComparable>(list: T[], id: any): T[] =>
+export const removeItemFromArray = <T extends IdComparable>(list: T[], id: NumberLike): T[] =>
   list.filter((item) => !sameId(item.id, id))
 
 export const addItemToArray = <T>(list: T[], item: T): T[] => [...list, item]
 
-export const unwrapData = (res: any): any => {
-  const payload = res?.data ?? res
-  return payload?.data ?? payload?.category ?? payload?.status ?? payload
+export const unwrapData = <T>(res: unknown): T => {
+  const payload = (res as { data?: unknown })?.data ?? res
+
+  return (
+    (payload as { data?: T })?.data ??
+    (payload as { category?: T })?.category ??
+    (payload as { status?: T })?.status ??
+    (payload as T)
+  )
 }
 
 export const jsonBody = (data: unknown, method: string = 'POST') => ({
