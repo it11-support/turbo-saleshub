@@ -57,7 +57,7 @@ const RevenueByProductCategory = ({
         clamp: true,
         formatter: (value: number) => {
           const contribution = (value / total) * 100
-          return `${formatCurrency(value)} (${contribution.toFixed(1)}%)`
+          return `${formatCurrency(value) ?? 0} (${contribution.toFixed(1)}%)`
         },
         font: { size: 11, weight: 'bold' },
       },
