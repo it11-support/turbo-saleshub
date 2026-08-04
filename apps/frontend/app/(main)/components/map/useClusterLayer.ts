@@ -1,5 +1,5 @@
-import { IVisit } from '@saleshub-tsm/types'
 import { getMarkerIcon } from './function'
+import { IVisit } from '@saleshub-tsm/types'
 import Feature from 'ol/Feature'
 import { Point } from 'ol/geom'
 import Circle from 'ol/geom/Circle'
