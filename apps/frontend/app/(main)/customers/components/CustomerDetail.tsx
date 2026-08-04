@@ -93,10 +93,25 @@ export const CustomerDetail = (props: Props) => {
     })
   )
 
+  const tabHeader = (title: string, icon: string) => (
+    <div
+      className="flex align-items-center justify-content-center gap-2"
+      style={{
+        minHeight: 48,
+        lineHeight: 1.2,
+        whiteSpace: 'normal',
+        textAlign: 'center',
+      }}
+    >
+      <span>{title}</span>
+      <i className={icon} />
+    </div>
+  )
+
   return (
     <>
       <TabView>
-        <TabPanel header="Detail" leftIcon="pi pi-building mr-2">
+        <TabPanel header={tabHeader('Detail', 'pi pi-building ml-2')}>
           <div className="flex flex-column lg:flex-row justify-content-between align-items-start gap-3">
             <div>
               {customer?.subgroup && (
@@ -170,7 +185,7 @@ export const CustomerDetail = (props: Props) => {
             </>
           )}
         </TabPanel>
-        <TabPanel header="Active Items" rightIcon="pi pi-shopping-cart ml-2">
+        <TabPanel header={tabHeader('Active Items', 'pi pi-shopping-cart ml-2')}>
           {allTimeActiveItems.length > 0 && (
             <>
               <p className="m-0 text-lg mb-2">Customer Active Items</p>
@@ -287,7 +302,7 @@ export const CustomerDetail = (props: Props) => {
           </Accordion>
         </TabPanel>
 
-        <TabPanel header="Recommended Items" rightIcon="pi pi-star ml-2">
+        <TabPanel header={tabHeader('Recommended Items', 'pi pi-star ml-2')}>
           <Accordion activeIndex={active} onTabChange={(e) => setActive(e.index as number)}>
             {(['distributor', 'groceries'] as const).map((groupKey) => {
               const items = suggestedItems?.[groupKey] ?? []
@@ -324,7 +339,7 @@ export const CustomerDetail = (props: Props) => {
             })}
           </Accordion>
         </TabPanel>
-        <TabPanel header="Purchase History" rightIcon="pi pi-history ml-2 custom-tabview">
+        <TabPanel header={tabHeader('Purchase History', 'pi pi-history ml-2 custom-tabview')}>
           <PurchaseHistory {...{ purchaseHistory }} summary={summary} />
         </TabPanel>
       </TabView>
