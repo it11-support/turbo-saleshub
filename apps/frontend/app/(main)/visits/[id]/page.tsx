@@ -2,6 +2,7 @@
 
 import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
+import { CustomerInfo } from '../../customers/components/CustomerInfo'
 import NavButton from '../../customers/components/NavButton'
 import CameraCaptureDialog from '../components/CameraCaptureDialog'
 import Competitors from '../components/Competitors'
@@ -32,7 +33,6 @@ import { useEffect, useRef, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
 import { calculateDistance, getCurrentLocation } from '@/lib/geolocation'
-import { parsePhone } from '@/lib/phoneParser'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
 import { useProductsStore } from '@/stores/products'
@@ -348,52 +348,13 @@ const VisitsPage = () => {
     <>
       <div className="card p-3">
         <NavButton handleEndVisit={salesVisit.start_at ? requestEndVisit : undefined} />
-        <p className="m-0 text-2xl ml-2">{customer?.CardName}</p>
-        <div className="flex-1 px-0 py-2">
-          {customer?.subgroup && (
-            <div className="p-2">
-              <p className="m-0">
-                <i className="pi pi-tags mr-2" style={{ color: 'var(--teal-500)' }}></i>
-                {customer?.subgroup.IndDesc}
-              </p>
-            </div>
-          )}
-          <div className="p-2">
-            <p className="m-0">
-              {customer?.Address} <span className="font-bold">[{customer?.City}]</span>
-            </p>
-          </div>
-          {customer?.CntctPrsn && (
-            <div className="p-2">
-              <p className="m-0">
-                <i className="pi pi-user mr-2" />
-                {customer?.CntctPrsn}
-              </p>
-            </div>
-          )}
-          {customer?.Phone1 && (
-            <div className="p-2">
-              {parsePhone(customer?.Phone1).map((phone, index) => (
-                <p className="m-0" key={index}>
-                  {phone.number && phone.isMobile && <i className="pi pi-mobile mr-2" />}
-                  {phone.number && !phone.isMobile && <i className="pi pi-phone mr-2" />}
-                  {phone.number}
-                </p>
-              ))}
-            </div>
-          )}
-          {customer?.Cellular && (
-            <div className="p-2">
-              {parsePhone(customer?.Cellular).map((phone, index) => (
-                <p className="m-0" key={index}>
-                  {phone.number && phone.isMobile && <i className="pi pi-mobile mr-2" />}
-                  {phone.number && !phone.isMobile && <i className="pi pi-phone mr-2" />}
-                  {phone.number}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
+        <p className="m-0 text-2xl ml-2 mt-2">{customer?.CardName}</p>
+        <CustomerInfo
+          customer={customer}
+          className="flex-1 px-0 py-2"
+          subgroupIcon="pi pi-tags"
+          subgroupIconColor="var(--teal-500)"
+        />
         <Divider />
 
         {!isVisitInitated ? (

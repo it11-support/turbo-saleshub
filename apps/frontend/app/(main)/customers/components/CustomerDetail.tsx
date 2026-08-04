@@ -1,5 +1,6 @@
 'use client'
 
+import { CustomerInfo } from './CustomerInfo'
 import CustomerRangeMeter from './CustomerRangeMeter'
 import { getMonthlySummary } from './functions'
 import ProductCard from './ProductCard'
@@ -19,7 +20,6 @@ import { useState } from 'react'
 import useIsMobile from '@/layout/mobile/useIsMobile'
 import { getActiveItems } from '@/lib/customers'
 import { formatCurrency } from '@/lib/formatter'
-import { parsePhone } from '@/lib/phoneParser'
 
 export interface Props {
   customer: ICustomer | null
@@ -113,51 +113,7 @@ export const CustomerDetail = (props: Props) => {
       <TabView>
         <TabPanel header={tabHeader('Detail', 'pi pi-building ml-2')}>
           <div className="flex flex-column lg:flex-row justify-content-between align-items-start gap-3">
-            <div>
-              {customer?.subgroup && (
-                <div className="p-2">
-                  <p className="m-0">
-                    <i className="pi pi-shopping-bag mr-2"></i>
-                    {customer?.subgroup.IndDesc}
-                  </p>
-                </div>
-              )}
-              <div className="p-2">
-                <p className="m-0">
-                  {customer?.Address} <span className="font-bold">[{customer?.City}]</span>
-                </p>
-              </div>
-              {customer?.CntctPrsn && (
-                <div className="p-2">
-                  <p className="m-0">
-                    <i className="pi pi-user mr-2" />
-                    {customer?.CntctPrsn}
-                  </p>
-                </div>
-              )}
-              {customer?.Phone1 && (
-                <div className="p-2">
-                  {parsePhone(customer?.Phone1).map((phone, index) => (
-                    <p className="m-0" key={index}>
-                      {phone.number && phone.isMobile && <i className="pi pi-mobile mr-2" />}
-                      {phone.number && !phone.isMobile && <i className="pi pi-phone mr-2" />}
-                      {phone.number}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {customer?.Cellular && (
-                <div className="p-2">
-                  {parsePhone(customer?.Cellular).map((phone, index) => (
-                    <p className="m-0" key={index}>
-                      {phone.number && phone.isMobile && <i className="pi pi-mobile mr-2" />}
-                      {phone.number && !phone.isMobile && <i className="pi pi-phone mr-2" />}
-                      {phone.number}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
+            <CustomerInfo customer={customer} subgroupIcon="pi pi-shopping-bag" />
             <div className="w-full lg:w-auto">
               {customer?.lat && customer?.lng && (
                 <MapPreview
