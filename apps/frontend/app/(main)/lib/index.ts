@@ -1,5 +1,4 @@
 export * from './fetcher'
 export * from './visits'
 export * from './chartOptions'
-export * from './apiClient'
 export * from './formatters'
