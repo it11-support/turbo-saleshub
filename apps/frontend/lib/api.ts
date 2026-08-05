@@ -32,7 +32,7 @@ export const $api = ofetch.create({
     }
   },
 
-  async onResponseError({ request: _request, response, error }) {
+  async onResponseError({ response, error }) {
     if (response?.status === 401 || response?.status === 302) {
       if (isClient) {
         if (!window.location.pathname.includes('/auth/login')) {
