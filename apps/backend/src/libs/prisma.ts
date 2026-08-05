@@ -3,11 +3,13 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient, Prisma } from '../generated/prisma/client.js';
 import { pagination } from "prisma-extension-pagination";
 
+type Container = Record<string | number, unknown>;
+
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return Object.prototype.toString.call(value) === "[object Object]";
 }
 
-const convertScalar = (value: any): { converted: boolean; value: any } => {
+const convertScalar = (value: unknown): { converted: boolean; value: unknown } => {
   if (typeof value === "bigint") return { converted: true, value: Number(value) };
 
   if (
@@ -36,7 +38,7 @@ const convertScalar = (value: any): { converted: boolean; value: any } => {
   return { converted: false, value };
 }
 
-const convertValue = (input: any): any => {
+const convertValue = (input: unknown): unknown => {
   const scalar = convertScalar(input);
   if (scalar.converted) return scalar.value;
 
@@ -44,11 +46,11 @@ const convertValue = (input: any): any => {
     return input;
   }
 
-  const seen = new WeakMap<object, any>();
-  const root = Array.isArray(input) ? [] : {};
+  const seen = new WeakMap<object, Container>();
+  const root: Container = Array.isArray(input) ? ([] as unknown as Container) : ({} as unknown as Container);
   seen.set(input as object, root);
 
-  const stack: Array<{ source: any; target: any }> = [{ source: input, target: root }];
+  const stack: Array<{ source: Container; target: Container }> = [{ source: input as Container, target: root }];
 
   while (stack.length > 0) {
     const current = stack.pop();
@@ -72,10 +74,10 @@ const convertValue = (input: any): any => {
             continue;
           }
 
-          const child = Array.isArray(item) ? [] : {};
+          const child = Array.isArray(item) ? ([] as unknown as Container) : ({} as unknown as Container);
           seen.set(item, child);
           target[i] = child;
-          stack.push({ source: item, target: child });
+          stack.push({ source: item as Container, target: child });
           continue;
         }
 
@@ -98,10 +100,10 @@ const convertValue = (input: any): any => {
           continue;
         }
 
-        const child = Array.isArray(value) ? [] : {};
+        const child = Array.isArray(value) ? ([] as unknown as Container) : ({} as unknown as Container);
         seen.set(value, child);
         target[key] = child;
-        stack.push({ source: value, target: child });
+        stack.push({ source: value as Container, target: child });
         continue;
       }
 

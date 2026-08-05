@@ -7,6 +7,21 @@ import prisma from '@/libs/prisma.js';
 import { getSuggestedItems } from '../customer/index.js';
 import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
+import { sales_visit_schedulesWhereInput, sales_visit_schedulesModel, visit_item_concernsModel } from '@/generated/prisma/models.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+
+type OpenVisitItem = {
+  id: bigint;
+  visit_id: bigint;
+  product_id: bigint;
+  offered: boolean;
+  purchased: boolean;
+  notes: string | null;
+  created_at: Date;
+  updated_at: Date;
+  visit_date: string | null;
+  visit_item_concerns: visit_item_concernsModel[];
+};
 
 export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
   try {
@@ -28,7 +43,7 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
     const perPage = req.query.perPage ? Number(req.query.perPage) : 10;
     const skip = (page - 1) * perPage;
 
-    const where: any = {
+    const where: sales_visit_schedulesWhereInput = {
       sales_person_id: salesPersonId,
       visit_date: {
         gte: new Date(year, month - 1, date),
@@ -79,7 +94,7 @@ export const generateScheduleByRules = async (req: Request, res: Response) => {
       where: { sales_person_id, active: true },
     });
 
-    const insertedSchedules: any[] = [];
+    const insertedSchedules: sales_visit_schedulesModel[] = [];
 
     // 2. Loop setiap rule
     for (const rule of rules) {
@@ -91,9 +106,7 @@ export const generateScheduleByRules = async (req: Request, res: Response) => {
       ];
 
       // Generate tanggal visit
-      const visitWeeks = Array.isArray(rule.visit_weeks)
-        ? rule.visit_weeks
-        : JSON.parse(rule.visit_weeks as any);
+      const visitWeeks = rule.visit_weeks as number[];
 
       const dates = generateVisitDatesFromRule({ ...rule, visit_weeks: visitWeeks }, year, month);
 
@@ -135,8 +148,9 @@ export const generateScheduleByRules = async (req: Request, res: Response) => {
             });
           }
           insertedSchedules.push(scheduleCreated);
-        } catch (err: any) {
-          if (err.code === 'P2002') {
+        } catch (err: unknown) {
+          const error = err as PrismaClientKnownRequestError;
+          if (error.code === 'P2002') {
             continue;
           }
           console.error('Insert error:', err);
@@ -184,9 +198,7 @@ export const deleteSchedule = async (id: number) => {
 };
 
 const generateVisitDatesFromRule = (rule: ISalesVisitRule, year: number, month: number) => {
-  const visitWeeks = Array.isArray(rule.visit_weeks)
-    ? rule.visit_weeks
-    : JSON.parse(rule.visit_weeks as any);
+  const visitWeeks = rule.visit_weeks as number[];
 
   const targetDay = weekdayMap[rule.day_of_week];
 
@@ -382,7 +394,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     });
 
     // ================= FILTER RULE DUPLICATE =================
-    const getKey = (item: any) =>
+    const getKey = (item: { customer_id: bigint; visit_date: string | null }) =>
       `${item.customer_id}-${item.visit_date}`;
     const manualKeys = new Set(dataManual.map(getKey));
     // ================= FOLLOW UP =================
@@ -440,7 +452,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
 
     const rawFollowUps = followUpSchedules.filter(f => !manualKeys.has(getKey(f)))
 
-    const followUpMap = new Map<number, any>();
+    const followUpMap = new Map<number, typeof followUpSchedules[number]>();
 
     rawFollowUps.forEach(f => {
       if (!followUpMap.has(Number(f.customer_id))) {
@@ -495,7 +507,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       },
     });
 
-    const allVisitMaps = new Map<number, any[]>();
+    const allVisitMaps = new Map<number, OpenVisitItem[]>();
 
     allVisits.forEach(visit => {
       const openItems = visit.visit_items.map(item => ({
