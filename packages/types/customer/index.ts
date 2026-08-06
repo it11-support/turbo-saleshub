@@ -2,7 +2,7 @@ import { ISalesPerson } from "../user"
 import { ISalesInvoices } from '../sales'
 import { ISubGroup } from "../subgroups";
 import { CustomerRFM } from "../rfm";
-import { SuggestedItemsGrouped } from "../product";
+import { IProduct, SuggestedItemsGrouped } from "../product";
 import { Decimal } from "@prisma/client/runtime/client";
 
 export interface ICustomer {
@@ -187,3 +187,25 @@ export interface ICustomerState {
 }
 
 export type CustomerInsightPeriod = 1 | 2 | 3 | 6 | 9 | 12
+
+export interface ProductCoverageSummary {
+  summary: {
+    totalItems: number
+    orderedItems: number
+    coverage: number
+    lastPurchaseDate: string | null
+  }
+  items: {
+    product: IProduct
+    revenue: number
+    qtyKg: number
+    orderedThisMonth: boolean
+    lastPurchaseDate: string | null
+    isKeyProduct?: boolean
+  }[]
+}
+
+export interface CustomerRevenueSummary {
+  totalRevenue: number
+  currentRevenue: number
+}

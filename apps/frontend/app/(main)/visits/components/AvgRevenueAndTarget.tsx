@@ -1,5 +1,10 @@
 import SkeletonLoader from '../../components/skeleton-loader/SkeletonLoader'
-import { ICustomer, IResObject } from '@saleshub-tsm/types'
+import {
+  CustomerRevenueSummary,
+  ICustomer,
+  IResObject,
+  ProductCoverageSummary,
+} from '@saleshub-tsm/types'
 import { Chart } from 'primereact/chart'
 
 import { useFetch } from '@/hooks/useFetch'
@@ -7,11 +12,6 @@ import { formatCurrency } from '@/lib/formatter'
 
 const MONTH_RANGE = 12
 const TARGET_MULTIPLIER = 0.23
-
-type CustomerRevenueSummary = {
-  totalRevenue: number
-  currentRevenue: number
-}
 
 type RevenueAndTargetProps = {
   customer?: ICustomer
@@ -39,6 +39,12 @@ const AvgRevenueAndTarget = ({ customer }: RevenueAndTargetProps) => {
   const formatShort = (value: number) => formatCurrency(value, true, true) ?? 'Rp. 0'
 
   const shouldShowSkeleton = !customer || (customer.id != null && !customerRevenueData)
+
+  const { data: productCoverageData } = useFetch<IResObject<ProductCoverageSummary>>(
+    customer?.id ? `customers/${customer.id}/product-coverage` : null
+  )
+
+  console.log(productCoverageData)
 
   const chartData = {
     labels: [''],

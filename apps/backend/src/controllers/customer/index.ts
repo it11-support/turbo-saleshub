@@ -42,6 +42,13 @@ export type CustomerResponseType = PaginationResult<ICustomer> & {
   subGroupNames?: (string | null)[];
 };
 
+type ProductAnalytics = {
+  ItemCode: string
+  revenue: Decimal
+  qtyKg: Decimal
+  orderedThisMonth: boolean
+  lastPurchaseDate: Date | null
+}
 
 type CustomerRevenueResult = {
   totalRevenue: Decimal
@@ -709,5 +716,154 @@ export const fetchCustomerRevenue = async (
     return res.status(500).json({
       message: 'Internal server error',
     })
+  }
+}
+
+export const fetchProductCoverageByCustomer = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+
+    const customerId = Number(req.params.id)
+
+    const customer = await prisma.customers.findUnique({
+      where: { id: customerId },
+      select: {
+        CardCode: true,
+      }
+    })
+
+    if (!customer) {
+      throw new Error('Customer not found')
+    }
+
+    const productAnalytics = await prisma.$queryRaw<ProductAnalytics[]>`
+      WITH retur_summary AS (
+          SELECT
+              DocNum,
+              LineNum,
+              SUM(TotalSales) AS retur_amount
+          FROM retur_invoices
+          GROUP BY
+              DocNum,
+              LineNum
+      )
+
+      SELECT
+          s.ItemCode,
+
+          SUM(
+              s.TotalSales + COALESCE(r.retur_amount, 0)
+          ) AS revenue,
+
+          SUM(s.QtyKg) AS qtyKg,
+
+          MAX(s.DocDate) AS lastPurchaseDate,
+
+          MAX(
+              s.DocDate >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+          ) AS orderedThisMonth
+
+      FROM sales_invoices s
+
+      LEFT JOIN retur_summary r
+            ON r.DocNum = s.DocNum
+            AND r.LineNum = s.LineNum
+
+      WHERE
+          s.CardCode = ${customer.CardCode}
+
+      GROUP BY
+          s.ItemCode
+
+      HAVING
+          revenue <> 0
+
+      ORDER BY
+          revenue DESC,
+          qtyKg DESC,
+          s.ItemCode;
+    `
+
+    const products = await prisma.products.findMany({
+      where: {
+        ItemCode: {
+          in: productAnalytics.map((pa) => pa.ItemCode),
+        },
+        validFor: 'Y',
+        frozenFor: 'N',
+      }
+    })
+
+    const productMap = new Map(products.map((p) => [p.ItemCode, p]));
+
+    const items = productAnalytics
+      .filter((pa) => productMap.has(pa.ItemCode))
+      .map((pa) => ({
+        product: productMap.get(pa.ItemCode)!,
+        revenue: Number(pa.revenue),
+        qtyKg: Number(pa.qtyKg),
+        orderedThisMonth: pa.orderedThisMonth,
+        lastPurchaseDate: pa.lastPurchaseDate,
+      }))
+
+    const totalItems = items.length
+    const orderedItems = items.filter((item) => item.orderedThisMonth).length
+    const coverage =
+      totalItems === 0
+        ? 0
+        : (orderedItems / totalItems) * 100
+
+    const lastPurchaseDate = items.reduce<Date | null>(
+      (latest, item) => {
+        if (!item.lastPurchaseDate) return latest
+
+        if (!latest || item.lastPurchaseDate > latest) {
+          return item.lastPurchaseDate
+        }
+
+        return latest
+      },
+      null
+    )
+
+    const totalRevenue = items.reduce(
+      (sum, item) => sum + Number(item.revenue),
+      0
+    )
+
+    const keyRevenue = totalRevenue * 0.8
+
+
+    let cumulativeRevenue = 0
+    const itemsWithKeyFlag = items.map((item) => {
+      const revenue = Number(item.revenue)
+
+      const isKeyProduct = cumulativeRevenue < keyRevenue
+
+      cumulativeRevenue += revenue
+
+      return {
+        ...item,
+        isKeyProduct,
+      }
+    })
+
+
+
+    return res.json({
+      message: 'Customer product coverage fetched successfully',
+      data: {
+        summary: {
+          totalItems,
+          orderedItems,
+          coverage,
+          lastPurchaseDate
+        },
+        items: itemsWithKeyFlag,
+      }
+
+    })
+
+  } catch (error) {
+    return handleApiError(error, res)
   }
 }

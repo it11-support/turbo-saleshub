@@ -8,6 +8,7 @@ import AvgRevenueAndTarget from '../components/AvgRevenueAndTarget'
 import CameraCaptureDialog from '../components/CameraCaptureDialog'
 import Competitors from '../components/Competitors'
 import ConfirmLocationDialog from '../components/ConfirmLocationDialog'
+import ProductCoverage from '../components/ProductCoverage'
 import { getFilteredProducts } from '../functions/filterProducts'
 import { groupVisitItems } from '../functions/groupVisitItems'
 import {
@@ -361,6 +362,11 @@ const VisitsPage = () => {
         <h5 className="ml-2">Target Overview</h5>
         <div className="p-2">
           <AvgRevenueAndTarget customer={customer} />
+        </div>
+        <Divider />
+        <h5 className="ml-2">Product Coverage</h5>
+        <div className="p-2">
+          <ProductCoverage customer={customer} />
         </div>
 
         <Divider />
