@@ -2,8 +2,10 @@
 
 import NavButton from './NavButton'
 import MapPreview from '../../components/map/MapPreview'
+import AvgRevenueAndTarget from '../../visits/components/AvgRevenueAndTarget'
 import { ICustomer, IVisit } from '@saleshub-tsm/types'
 import Image from 'next/image'
+import { Card } from 'primereact/card'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { useState } from 'react'
@@ -71,6 +73,9 @@ const VisitDetailHeader = (props: Props) => {
           </p>
         </div>
       </div>
+      <Card title="Target Overview" className="card mb-2">
+        <AvgRevenueAndTarget customer={customer} />
+      </Card>
       <div className="card mb-2">
         <h5 className="ml-2">Visit Details</h5>
 

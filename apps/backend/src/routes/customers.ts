@@ -3,6 +3,7 @@ import {
   createCustomer,
   customerList,
   customerSummary,
+  fetchCustomerRevenue,
   fetchGroups,
   fetchSubgroups,
   itemSuggestions,
@@ -21,5 +22,6 @@ router.post('/', createCustomer);
 router.get('/:id', customerSummary);
 router.get('/:id/suggestions', itemSuggestions);
 router.get('/:id/purchases', purchaseHistory);
+router.get('/:id/avg-revenue', fetchCustomerRevenue);
 
 export default router;

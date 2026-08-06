@@ -8,6 +8,7 @@ import { generateLocalCode } from '@/utils/localCode.js';
 import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
 import { customersWhereInput, productsGetPayload } from '@/generated/prisma/models.js';
+import { Decimal } from '@prisma/client/runtime/client';
 
 type CustomerListQuery = {
   search?: string
@@ -41,6 +42,11 @@ export type CustomerResponseType = PaginationResult<ICustomer> & {
   subGroupNames?: (string | null)[];
 };
 
+
+type CustomerRevenueResult = {
+  totalRevenue: Decimal
+  currentRevenue: Decimal
+}
 
 export const customerList = async (
   req: Request<CustomerRequestType>,
@@ -628,5 +634,80 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
       status: 'FAILED'
     })
     return handleApiError(error, res)
+  }
+}
+
+export const fetchCustomerRevenue = async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
+  try {
+
+    const customerId = Number(req.params.id);
+
+    const [result] = await prisma.$queryRaw<
+      CustomerRevenueResult[]
+    >`
+      WITH invoice_revenue AS (
+          SELECT
+              s.DocDate,
+              s.TotalSales + COALESCE(r.total_retur, 0) AS revenue
+          FROM sales_invoices s
+          INNER JOIN customers c
+              ON c.CardCode = s.CardCode
+          LEFT JOIN (
+              SELECT
+                  DocNum,
+                  LineNum,
+                  SUM(TotalSales) AS total_retur
+              FROM retur_invoices
+              GROUP BY DocNum, LineNum
+          ) r
+              ON r.DocNum = s.DocNum
+            AND r.LineNum = s.LineNum
+          WHERE c.id = ${customerId}
+      )
+
+      SELECT
+          COALESCE(
+              SUM(
+                  CASE
+                      WHEN DocDate >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 12 MONTH), '%Y-%m-01')
+                      AND DocDate < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                      THEN revenue
+                      ELSE 0
+                  END
+              ),
+              0
+          ) AS totalRevenue,
+
+          COALESCE(
+              SUM(
+                  CASE
+                      WHEN YEAR(DocDate) = YEAR(CURDATE())
+                      AND MONTH(DocDate) = MONTH(CURDATE())
+                      THEN revenue
+                      ELSE 0
+                  END
+              ),
+              0
+          ) AS currentRevenue
+
+      FROM invoice_revenue;
+      `
+
+    return res.json({
+      message: 'Customer revenue fetched successfully',
+      data: {
+        currentRevenue: Number(result.currentRevenue),
+        totalRevenue: Number(result.totalRevenue),
+      }
+    })
+  } catch (error) {
+    console.error(error)
+
+    return res.status(500).json({
+      message: 'Internal server error',
+    })
   }
 }

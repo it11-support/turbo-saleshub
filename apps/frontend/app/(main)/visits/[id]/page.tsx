@@ -4,6 +4,7 @@ import OfferedProduct from '../../components/product/OfferedProduct'
 import ProductOfferCard from '../../components/product/ProductOfferCard'
 import { CustomerInfo } from '../../customers/components/CustomerInfo'
 import NavButton from '../../customers/components/NavButton'
+import AvgRevenueAndTarget from '../components/AvgRevenueAndTarget'
 import CameraCaptureDialog from '../components/CameraCaptureDialog'
 import Competitors from '../components/Competitors'
 import ConfirmLocationDialog from '../components/ConfirmLocationDialog'
@@ -357,6 +358,12 @@ const VisitsPage = () => {
         />
         <Divider />
 
+        <h5 className="ml-2">Target Overview</h5>
+        <div className="p-2">
+          <AvgRevenueAndTarget customer={customer} />
+        </div>
+
+        <Divider />
         {!isVisitInitated ? (
           <div className="col-12 xl:col-6 md:col-6">
             <Button
