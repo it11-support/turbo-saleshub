@@ -92,7 +92,7 @@ const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Pro
                   color: '#ffffff',
                   width: 0.5,
                 }),
-                font: 'bold 10px monserrat, sans-serif',
+                font: 'bold 9px monserrat, sans-serif',
                 textAlign: 'center',
                 offsetY: -38,
               }),
