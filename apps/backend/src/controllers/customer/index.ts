@@ -48,6 +48,7 @@ type ProductAnalytics = {
   qtyKg: Decimal
   orderedThisMonth: boolean
   lastPurchaseDate: Date | null
+  revenueMtd: Decimal
 }
 
 type CustomerRevenueResult = {
@@ -754,6 +755,15 @@ export const fetchProductCoverageByCustomer = async (req: Request<{ id: string }
               s.TotalSales + COALESCE(r.retur_amount, 0)
           ) AS revenue,
 
+          SUM(
+              CASE
+                  WHEN s.DocDate >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                  AND s.DocDate < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+                  THEN s.TotalSales + COALESCE(r.retur_amount, 0)
+                  ELSE 0
+              END
+          ) AS revenueMtd,
+
           SUM(s.QtyKg) AS qtyKg,
 
           MAX(s.DocDate) AS lastPurchaseDate,
@@ -800,6 +810,7 @@ export const fetchProductCoverageByCustomer = async (req: Request<{ id: string }
       .map((pa) => ({
         product: productMap.get(pa.ItemCode)!,
         revenue: Number(pa.revenue),
+        revenueMtd: Number(pa.revenueMtd),
         qtyKg: Number(pa.qtyKg),
         orderedThisMonth: pa.orderedThisMonth,
         lastPurchaseDate: pa.lastPurchaseDate,

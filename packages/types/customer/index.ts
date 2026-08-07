@@ -201,6 +201,7 @@ export interface ProductCoverageSummary {
     qtyKg: number
     orderedThisMonth: boolean
     lastPurchaseDate: string | null
+    revenueMtd: number | null
     isKeyProduct?: boolean
   }[]
 }
