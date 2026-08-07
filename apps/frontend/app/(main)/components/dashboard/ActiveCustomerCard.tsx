@@ -7,7 +7,6 @@ import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Dialog } from 'primereact/dialog'
 import { Dropdown } from 'primereact/dropdown'
-import { SelectButton } from 'primereact/selectbutton'
 import { useMemo, useState } from 'react'
 
 import { BaseDataTable } from '@/components/base'
@@ -50,10 +49,10 @@ const ActiveCustomerCard = ({
   }, [salesPersons])
 
   const filterItems = [
-    { name: '1 M', value: 1 },
-    { name: '2 M', value: 2 },
-    { name: '3 M', value: 3 },
-    { name: '> 3 M', value: 0 },
+    { name: 'Last Month', value: 1 },
+    { name: 'Last 2 Months', value: 2 },
+    { name: 'Last 3 Months', value: 3 },
+    { name: '3+ Months', value: 0 },
   ]
 
   const options = useMemo(() => {
@@ -94,29 +93,46 @@ const ActiveCustomerCard = ({
   }, [nonActive?.customers, selectedSlp, filter])
 
   const headerTitle = (
-    <div className="flex align-items-center justify-content-between flex-wrap py-2">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h3 className="m-0">List Of Lagged Transactions</h3>
-        <small className="text-color-secondary">{`Lagged Transactions This Month (Total: ${filteredActiveCustomers.length})`}</small>
-        <div className="flex justify-content-start mt-4">
-          <SelectButton
-            value={filter}
-            onChange={(e) => setFilter(e.value as 0 | 1 | 2 | 3)}
-            optionLabel="name"
-            options={filterItems}
-          />
-        </div>
+        <h3 className="m-0 text-lg font-semibold">List of Lagged Transactions</h3>
+        <p className="m-0 mt-1 text-sm text-500">
+          Lagged Transactions This Month (Total: {filteredActiveCustomers.length})
+        </p>
       </div>
-      {isAdmin && (
-        <div className="flex gap-2 mt-4">
+
+      <div className="flex w-full items-center gap-2 sm:w-auto">
+        <Dropdown
+          value={filter}
+          options={filterItems}
+          optionLabel="name"
+          optionValue="value"
+          className="flex-1 sm:w-40"
+          onChange={(e) => setFilter(e.value)}
+          pt={{
+            root: {
+              className: 'h-9',
+            },
+            input: {
+              className: 'text-sm',
+            },
+          }}
+        />
+
+        {isAdmin && (
           <Button
             label="Export"
             icon="pi pi-download"
-            className="p-button-outlined p-button-sm"
+            className="p-button-outlined p-button-sm shrink-0"
             onClick={() => setShowExport(true)}
+            pt={{
+              root: {
+                className: 'h-9',
+              },
+            }}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 
