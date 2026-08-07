@@ -90,9 +90,9 @@ const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Pro
                 }),
                 stroke: new Stroke({
                   color: '#ffffff',
-                  width: 1,
+                  width: 0.5,
                 }),
-                font: 'bold 10px sans-serif',
+                font: 'bold 10px monserrat, sans-serif',
                 textAlign: 'center',
                 offsetY: -38,
               }),
