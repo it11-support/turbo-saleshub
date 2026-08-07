@@ -81,14 +81,14 @@ const ActiveCustomerCard = ({
       field: 'CardCode',
       header: 'Code',
       sortable: true,
-      filter: true,
+      filter: false,
       style: { width: '15%' },
     },
     {
       field: 'CardName',
       header: 'Customer Name',
       sortable: true,
-      filter: true,
+      filter: false,
       body: (row: ICustomerExtended) => <CustomerCell rowData={row} />,
       style: { width: '35%' },
     },
@@ -96,7 +96,7 @@ const ActiveCustomerCard = ({
       field: 'avgRevenuePerMonth',
       header: 'AVG Revenue/Month',
       sortable: true,
-      filter: true,
+      filter: false,
       body: (row: ICustomerExtended) => formatCurrency(Number(row.avgRevenuePerMonth), true, true),
       style: { width: '15%' },
     },
@@ -104,7 +104,7 @@ const ActiveCustomerCard = ({
       field: 'totalItems',
       header: 'Total Items',
       sortable: true,
-      filter: true,
+      filter: false,
       body: (row: ICustomerExtended) => `${row.totalItems} items`,
       style: { width: '15%' },
     },
@@ -112,7 +112,7 @@ const ActiveCustomerCard = ({
       field: 'lastTransactionDate',
       header: 'Last Transaction',
       sortable: true,
-      filter: true,
+      filter: false,
       style: { width: '20%' },
       body: (row: ICustomerExtended) => formatDate(row.lastTransactionDate, ' MMMM d, yyyy'),
     },
@@ -120,7 +120,6 @@ const ActiveCustomerCard = ({
       field: 'SalesName',
       header: 'Sales Person',
       sortable: true,
-      filter: true,
       style: { width: '30%' },
     },
   ]
@@ -138,15 +137,15 @@ const ActiveCustomerCard = ({
             <div className="col-12 mt-4">
               <Card>
                 <BaseDataTable<ICustomerExtended>
-                  value={nonActive?.customers}
+                  value={nonActive?.customers || []}
                   columns={columns}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[10, 25, 50]}
                   className="p-datatable-sm"
-                  filterDisplay="menu"
                   emptyMessage="All customers are active."
                   header={headerTitle}
+                  globalFilterFields={['CardCode', 'CardName', 'SalesName']}
                 />
               </Card>
             </div>

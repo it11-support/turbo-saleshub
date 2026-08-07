@@ -83,6 +83,15 @@ const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Pro
           const styles = [
             new Style({
               image: getCachedIcon(item),
+              text: new Text({
+                text: item.customer.CardName || '',
+                fill: new Fill({
+                  color: '#1f2937',
+                }),
+                font: 'bold 10px sans-serif',
+                textAlign: 'center',
+                offsetY: -38,
+              }),
             }),
           ]
 
