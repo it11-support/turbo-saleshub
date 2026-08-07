@@ -104,12 +104,14 @@ const ProductCoverageDetail = ({ visible, onHide, productCoverage }: Props) => {
                       <small className="text-500">({item.product.ItemCode})</small>
                     </div>
 
-                    <div className="mt-1">
-                      <div className="text-xs text-500">All-Time Revenue</div>
-                      <div className="text-xl font-semibold">
-                        {formatCurrency(item.revenue, true, true)}
+                    {item.revenueMtd! > 0 && (
+                      <div className="mt-2 border-t ">
+                        <div className="text-xs tracking-wide text-500">Revenue (MTD)</div>
+                        <div className="text-lg font-semibold">
+                          {formatCurrency(item.revenueMtd, true, true)}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="mt-1 text-sm text-500">
                       Last Purchase • {formatDate(item.lastPurchaseDate)}
                     </div>
