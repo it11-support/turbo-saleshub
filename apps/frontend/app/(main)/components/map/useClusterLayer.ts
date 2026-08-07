@@ -88,6 +88,10 @@ const useClusterLayer = ({ items, distance = 20, clusterColor = '#2563eb' }: Pro
                 fill: new Fill({
                   color: '#1f2937',
                 }),
+                stroke: new Stroke({
+                  color: '#ffffff',
+                  width: 1,
+                }),
                 font: 'bold 10px sans-serif',
                 textAlign: 'center',
                 offsetY: -38,
