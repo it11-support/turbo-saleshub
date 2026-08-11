@@ -1,4 +1,5 @@
 import { ExportVisitResponse, VisitListResponse, VisitListState } from '@saleshub-tsm/types'
+import { DataTableSortMeta } from '@saleshub-tsm/types'
 import { formatDate } from 'date-fns'
 import { Nullable } from 'primereact/ts-helpers'
 import { create } from 'zustand'
@@ -16,7 +17,7 @@ const initialState = {
   limit: 20,
   dates: null,
   exportDates: null,
-  multiSortMeta: [{ field: 'visit_date', order: -1 }],
+  multiSortMeta: [{ field: 'visit_date', order: -1 }] as DataTableSortMeta[],
   exportData: [],
   salesPersonFilter: null,
   status: undefined,
@@ -70,7 +71,7 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
   },
   setSalesPersonId: (salesPersonId) => set({ salesPersonId }),
   setDates: (dates: Nullable<(Date | null)[]>) => set({ dates }),
-  setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
+  setMultiSortMeta: (meta: DataTableSortMeta[]) => set({ multiSortMeta: meta }),
   fetchVisits: async () => {
     const { page, limit, dates, multiSortMeta, salesPersonId, status, needFollowUp } = get()
 

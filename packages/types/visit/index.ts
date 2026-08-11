@@ -1,4 +1,5 @@
 import { Decimal } from "@prisma/client/runtime/client";
+import { DataTableSortMeta } from "../common";
 import { IGeoLocation, Nullable } from "../common";
 import { RawVisitCompetitor } from "../competitor";
 import { IConcernCategory, IConcernStatus } from "../concerns";
@@ -118,7 +119,7 @@ export interface VisitListState {
   limit: number;
   dates: Nullable<(Date | null)[]>;
   exportDates: Nullable<(Date | null)[]>;
-  multiSortMeta: any[];
+  multiSortMeta: DataTableSortMeta[];
   exportData: ExportVisit[];
   setExportData: (data: ExportVisit[]) => void;
   fetchVisits: () => Promise<void>;
@@ -134,7 +135,7 @@ export interface VisitListState {
   setExportDates: (exportDates: Nullable<(Date | null)[]>) => void;
   setPage: (page: number) => void;
   setLimit: (limit: number) => void;
-  setMultiSortMeta: (meta: any[]) => void;
+  setMultiSortMeta: (meta: DataTableSortMeta[]) => void;
   fetchExportedData: () => Promise<void>;
   reset: () => void;
   setLoadingExport: (loading: boolean) => void;

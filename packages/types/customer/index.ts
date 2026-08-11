@@ -1,8 +1,9 @@
 import { ISalesPerson } from "../user"
+import { DataTableSortMeta } from "../common"
 import { ISalesInvoices } from '../sales'
 import { ISubGroup } from "../subgroups";
 import { CustomerRFM } from "../rfm";
-import { IProduct, SuggestedItemsGrouped } from "../product";
+import { IProduct, ProductWithFrequency, SuggestedItemsGrouped } from "../product";
 import { Decimal } from "@prisma/client/runtime/client";
 
 export interface ICustomer {
@@ -130,7 +131,7 @@ export interface ICustomerState {
   limit: number
   search: string
   isNewCustomer: boolean
-  multiSortMeta: any[]
+  multiSortMeta: DataTableSortMeta[]
   groupNames: string[]
   salesPersonNames: string[]
   loyaltyLevel: string[] | []
@@ -159,13 +160,13 @@ export interface ICustomerState {
   setPage: (page: number) => void
   setLimit: (limit: number) => void
   setSearch: (value: string) => void
-  setMultiSortMeta: (meta: any[]) => void
+  setMultiSortMeta: (meta: DataTableSortMeta[]) => void
   totalRecords: number
   suggestedItems: SuggestedItemsGrouped
   fetchCustomers: () => Promise<void>
   fetchCustomerSummary: (id: string) => Promise<ICustomer | null>
   fetchCustomerGroupOptions: () => Promise<void>
-  fetchSuggestedItems: (id: string) => Promise<any | null>
+  fetchSuggestedItems: (id: string) => Promise<SuggestedItemsGrouped | null>
   fetchPurchaseHistory: (id: string) => Promise<any | null>
   fetchSubgroupOptions: () => Promise<void>
   lastPurchase: ILastPurchase[]

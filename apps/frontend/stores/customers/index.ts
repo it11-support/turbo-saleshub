@@ -3,11 +3,13 @@ import {
   CustomerListResponse,
   CustomerSuggestionsResponse,
   CustomerSummaryResponse,
+  DataTableSortMeta,
   GroupResponse,
   ICustomer,
   ICustomerState,
   PurchaseHistoryResponse,
   SubgroupResponse,
+  SuggestedItemsGrouped,
 } from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { create } from 'zustand'
@@ -43,14 +45,14 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   setSubgroups: (subgroups: string[]) => set({ subgroups }),
   setGroups: (groups: string[]) => set({ groups }),
   setGroupNames: (groupNames: string[]) => set({ groupNames }),
-  multiSortMeta: [] as any[],
+  multiSortMeta: [] as DataTableSortMeta[],
   setCustomer: (customer: ICustomer) => set({ customer }),
   setCustomers: (customers: ICustomer[]) => set({ customers }),
   setLoading: (loading: boolean) => set({ loading }),
   setPage: (page: number) => set({ page }),
   setLimit: (limit: number) => set({ limit }),
   setSearch: (value: string) => set({ search: value }),
-  setMultiSortMeta: (meta: any[]) => set({ multiSortMeta: meta }),
+  setMultiSortMeta: (meta: DataTableSortMeta[]) => set({ multiSortMeta: meta }),
   setItemCount: (itemCount: number) => set({ itemCount }),
   suggestedItems: { distributor: [], groceries: [] },
   totalRecords: 0,
@@ -161,7 +163,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         async () => {
           const url = createUrl(`customers/${id}/suggestions`)
           const res = await $api<CustomerSuggestionsResponse>(url)
-          const suggestions = res.data ?? { distributor: [], groceries: [] }
+          const suggestions: SuggestedItemsGrouped = res.data ?? { distributor: [], groceries: [] }
           set({ suggestedItems: suggestions })
           return suggestions
         },

@@ -69,7 +69,7 @@ export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLo
     if (Array.isArray(dates)) {
       const [start, end] = dates;
 
-      const dateFilters: any[] = [];
+      const dateFilters: Array<{ created_at?: { gte?: string; lte?: string } }> = [];
 
       if (start && dayjs(start).isValid()) {
         dateFilters.push({
