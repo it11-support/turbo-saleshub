@@ -17,7 +17,7 @@ import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
@@ -33,15 +33,16 @@ type Props = {
   handleFollowUp?: (concern: IVisitItemConcern) => void
   defaultOpen?: boolean
 }
-const OfferedProduct = (props: Props) => {
-  const salesVisitStore = useSalesVisit()
+const OfferedProduct = memo(function OfferedProduct(props: Props) {
+  const followUpForm = useSalesVisit((state) => state.followUpForm)
+  const setFollowUpForm = useSalesVisit((state) => state.setFollowUpForm)
+  const addFollowUp = useSalesVisit((state) => state.addFollowUp)
   const [visible, setIsVisible] = useState(false)
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
   const { id } = useParams()
 
   const { visitItem, handleFollowUp, defaultOpen } = props
   const product = visitItem.product
-  const { followUpForm, setFollowUpForm, addFollowUp } = salesVisitStore
   const { isAdmin } = useAuth()
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
@@ -305,6 +306,6 @@ const OfferedProduct = (props: Props) => {
       </Dialog>
     </>
   )
-}
+})
 
 export default OfferedProduct

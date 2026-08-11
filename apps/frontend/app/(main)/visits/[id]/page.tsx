@@ -15,7 +15,9 @@ import {
   IConcernCategory,
   IConcernStatus,
   IDashboardData,
+  IInquiry,
   IResObject,
+  IVisitItem,
   ProductWithFrequency,
 } from '@saleshub-tsm/types'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
@@ -31,7 +33,7 @@ import { InputTextarea } from 'primereact/inputtextarea'
 import { OverlayPanel } from 'primereact/overlaypanel'
 import { Panel } from 'primereact/panel'
 import { ProgressSpinner } from 'primereact/progressspinner'
-import { useEffect, useRef, useState } from 'react'
+import { memo, type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
 import { calculateDistance, getCurrentLocation } from '@/lib/geolocation'
@@ -48,14 +50,512 @@ interface IConcernStatusResponse {
   concernStatuses: IConcernStatus[]
 }
 
+interface ConcernCategoryRowProps {
+  category: IConcernCategory
+  selection: { notes: string; statusId: number | null } | undefined
+  statusOptions: { label: string; value: number | null }[]
+  onToggle: (id: number, checked: boolean) => void
+  onNotesBlur: (id: number, notes: string) => void
+  onStatusChange: (id: number, statusId: number | null) => void
+  inputPrefix: string
+}
+
+const ConcernCategoryRow = memo(function ConcernCategoryRow({
+  category,
+  selection,
+  statusOptions,
+  onToggle,
+  onNotesBlur,
+  onStatusChange,
+  inputPrefix,
+}: ConcernCategoryRowProps) {
+  const [notes, setNotes] = useState(selection?.notes ?? '')
+  const [statusId, setStatusId] = useState<number | null>(selection?.statusId ?? null)
+
+  useEffect(() => {
+    if (selection) {
+      setNotes(selection.notes)
+      setStatusId(selection.statusId)
+    }
+  }, [selection?.notes, selection?.statusId])
+
+  const id = Number(category.id)
+
+  return (
+    <div className="border-bottom-1 surface-border pb-3">
+      <div className="flex align-items-center gap-2">
+        <Checkbox
+          inputId={`${inputPrefix}-concern-${category.id}`}
+          checked={Boolean(selection)}
+          onChange={(e) => onToggle(id, !!e.checked)}
+        />
+        <label htmlFor={`${inputPrefix}-concern-${category.id}`} className="font-semibold">
+          {category.name}
+        </label>
+      </div>
+
+      {selection && (
+        <div className="flex flex-column gap-2 mt-2">
+          <div className="flex flex-column gap-2">
+            <label
+              htmlFor={`${inputPrefix}-concern-notes-${category.id}`}
+              className="text-primary-400 font-semibold"
+            >
+              Notes
+            </label>
+            <InputTextarea
+              id={`${inputPrefix}-concern-notes-${category.id}`}
+              rows={2}
+              autoResize
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={() => onNotesBlur(id, notes)}
+              placeholder="Notes"
+              className="w-full"
+            />
+          </div>
+
+          <div className="flex flex-column gap-2">
+            <label
+              htmlFor={`${inputPrefix}-concern-status-${category.id}`}
+              className="text-primary-400 font-semibold"
+            >
+              Status
+            </label>
+            <Dropdown
+              inputId={`${inputPrefix}-concern-status-${category.id}`}
+              value={statusId}
+              options={statusOptions}
+              onChange={(e) => {
+                const newStatusId = e.value
+                setStatusId(newStatusId)
+                onStatusChange(id, newStatusId)
+              }}
+              placeholder="Select Status"
+              className="w-full lg:w-300"
+              showClear
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
+
+type BulkOfferSelection = Record<number, { notes: string; statusId: number | null }>
+type ProductOfferSelections = Record<
+  number | string,
+  Record<number, { notes: string; statusId: number | null }>
+>
+
+interface BulkOfferDialogProps {
+  visible: boolean
+  onHide: () => void
+  concernCategories: IConcernCategory[]
+  statusOptions: { label: string; value: number | null }[]
+  onSave: (selection: BulkOfferSelection, markedItemIds: number[]) => void
+  markedItemIds: number[]
+}
+
+const BulkOfferDialog = memo(function BulkOfferDialog({
+  visible,
+  onHide,
+  concernCategories,
+  statusOptions,
+  onSave,
+  markedItemIds,
+}: BulkOfferDialogProps) {
+  const [selection, setSelection] = useState<
+    Record<number, { notes: string; statusId: number | null }>
+  >({})
+
+  useEffect(() => {
+    if (!visible) {
+      setSelection({})
+    }
+  }, [visible])
+
+  const handleSave = () => {
+    onSave(selection, markedItemIds)
+    onHide()
+  }
+
+  const handleToggle = useCallback((id: number, checked: boolean) => {
+    setSelection((prev) => {
+      const next = { ...prev }
+      if (!checked) {
+        delete next[id]
+        return next
+      }
+      return {
+        ...next,
+        [id]: {
+          notes: prev[id]?.notes ?? '',
+          statusId: prev[id]?.statusId ?? null,
+        },
+      }
+    })
+  }, [])
+
+  const handleNotesBlur = useCallback((id: number, notes: string) => {
+    setSelection((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        notes,
+      },
+    }))
+  }, [])
+
+  const handleStatusChange = useCallback((id: number, statusId: number | null) => {
+    setSelection((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        statusId,
+      },
+    }))
+  }, [])
+
+  return (
+    <Dialog
+      modal
+      blockScroll
+      dismissableMask
+      header="Submit Items for Offer"
+      visible={visible}
+      onHide={onHide}
+      style={{ width: '90%', maxWidth: '400px' }}
+      footer={
+        <>
+          <Button icon="pi pi-times" label="Cancel" severity="danger" outlined onClick={onHide} />
+          <Button icon="pi pi-save" label="Save" outlined onClick={handleSave} />
+        </>
+      }
+    >
+      <div className="flex flex-column gap-3 w-full my-2">
+        <h6>Select Topic</h6>
+        {concernCategories.map((category: IConcernCategory) => {
+          const rowSelection = selection[Number(category.id)]
+          return (
+            <ConcernCategoryRow
+              key={Number(category.id)}
+              category={category}
+              selection={rowSelection}
+              statusOptions={statusOptions}
+              onToggle={handleToggle}
+              onNotesBlur={handleNotesBlur}
+              onStatusChange={handleStatusChange}
+              inputPrefix="bulk"
+            />
+          )
+        })}
+      </div>
+    </Dialog>
+  )
+})
+
+interface ProductOfferDialogProps {
+  visible: boolean
+  onHide: () => void
+  concernCategories: IConcernCategory[]
+  statusOptions: { label: string; value: number | null }[]
+  selectedProduct: ProductWithFrequency | null
+  onSave: (selections: ProductOfferSelections) => void
+}
+
+const ProductOfferDialog = memo(function ProductOfferDialog({
+  visible,
+  onHide,
+  concernCategories,
+  statusOptions,
+  selectedProduct,
+  onSave,
+}: ProductOfferDialogProps) {
+  const [concernSelections, setConcernSelections] = useState<
+    Record<number | string, Record<number, { notes: string; statusId: number | null }>>
+  >({})
+
+  useEffect(() => {
+    if (!visible) {
+      setConcernSelections({})
+    }
+  }, [visible])
+
+  useEffect(() => {
+    if (visible && selectedProduct) {
+      setConcernSelections({})
+    }
+  }, [visible, selectedProduct?.id])
+
+  const handleSave = () => {
+    onSave(concernSelections)
+    onHide()
+  }
+
+  const productId = selectedProduct ? Number(selectedProduct.id) : null
+
+  const handleToggle = useCallback(
+    (categoryId: number, checked: boolean) => {
+      if (productId === null) return
+      setConcernSelections((prev) => {
+        if (!checked) {
+          const next = { ...prev }
+          const productSelections = { ...(next[productId] || {}) }
+          delete productSelections[categoryId]
+          if (Object.keys(productSelections).length === 0) {
+            delete next[productId]
+          } else {
+            next[productId] = productSelections
+          }
+          return next
+        }
+        return {
+          ...prev,
+          [productId]: {
+            ...(prev[productId] || {}),
+            [categoryId]: {
+              notes: prev[productId]?.[categoryId]?.notes ?? '',
+              statusId: prev[productId]?.[categoryId]?.statusId ?? null,
+            },
+          },
+        }
+      })
+    },
+    [productId]
+  )
+
+  const handleNotesBlur = useCallback(
+    (categoryId: number, notes: string) => {
+      if (productId === null) return
+      setConcernSelections((prev) => ({
+        ...prev,
+        [productId]: {
+          ...(prev[productId] || {}),
+          [categoryId]: {
+            ...prev[productId]?.[categoryId],
+            notes,
+          },
+        },
+      }))
+    },
+    [productId]
+  )
+
+  const handleStatusChange = useCallback(
+    (categoryId: number, statusId: number | null) => {
+      if (productId === null) return
+      setConcernSelections((prev) => ({
+        ...prev,
+        [productId]: {
+          ...(prev[productId] || {}),
+          [categoryId]: {
+            ...prev[productId]?.[categoryId],
+            statusId,
+          },
+        },
+      }))
+    },
+    [productId]
+  )
+
+  return (
+    <Dialog
+      modal
+      blockScroll
+      dismissableMask
+      header="Product Offer"
+      visible={visible}
+      onHide={onHide}
+      style={{ width: '90%', maxWidth: '400px' }}
+      footer={
+        <>
+          <Button icon="pi pi-times" label="Cancel" severity="danger" outlined onClick={onHide} />
+          <Button icon="pi pi-save" label="Save" outlined onClick={handleSave} />
+        </>
+      }
+    >
+      <div className="flex flex-column gap-3 w-full my-2">
+        <h5>{selectedProduct?.ItemName}</h5>
+        <h6>Select Topic</h6>
+        {concernCategories.map((category: IConcernCategory) => {
+          const selection =
+            productId !== null ? concernSelections[productId]?.[Number(category.id)] : undefined
+          return (
+            <ConcernCategoryRow
+              key={Number(category.id)}
+              category={category}
+              selection={selection}
+              statusOptions={statusOptions}
+              onToggle={(categoryId, checked) => handleToggle(categoryId, checked)}
+              onNotesBlur={(categoryId, notes) => handleNotesBlur(categoryId, notes)}
+              onStatusChange={(categoryId, statusId) => handleStatusChange(categoryId, statusId)}
+              inputPrefix="product"
+            />
+          )
+        })}
+      </div>
+    </Dialog>
+  )
+})
+
+interface ProductGridItemProps {
+  item: ProductWithFrequency
+  category: string
+  markedItemIds: Set<number | bigint>
+  visitItemMap: Record<number, IVisitItem>
+  overlayRefs: RefObject<Record<string, OverlayPanel | null>>
+  setSelectedProduct?: (item: ProductWithFrequency | null) => void
+  setShowOfferDialog?: (show: boolean) => void
+  handleTagForOffer?: (item: ProductWithFrequency) => void
+}
+
+const ProductGridItem = memo(function ProductGridItem({
+  item,
+  category,
+  markedItemIds,
+  visitItemMap,
+  overlayRefs,
+  setSelectedProduct,
+  setShowOfferDialog,
+  handleTagForOffer,
+}: ProductGridItemProps) {
+  const visitItem = visitItemMap[Number(item.id)]
+  const visitItemConcerns = visitItem?.visit_item_concerns
+
+  return (
+    <div key={`${category}-${item.ItemCode}`} className="col-12 lg:col-6 xl:col-4">
+      <ProductOfferCard
+        item={item}
+        category={category}
+        visitItemConcern={visitItemConcerns?.[0]}
+        overlayRefs={overlayRefs}
+        setSelectedProduct={setSelectedProduct}
+        setShowOfferDialog={setShowOfferDialog}
+        handleTagForOffer={handleTagForOffer}
+        markedForOffer={markedItemIds.has(item.id)}
+      />
+    </div>
+  )
+})
+
+const VisitNoteInput = memo(function VisitNoteInput({ visitId }: { visitId: string }) {
+  const visitNote = useSalesVisit((state) => state.visitNote)
+  const setVisitNote = useSalesVisit((state) => state.setVisitNote)
+
+  return (
+    <div className="col-12 xl:col-6 md:col-6">
+      <label htmlFor={`note-${visitId}`} className="block mb-2">
+        Visit Note
+      </label>
+      <InputTextarea
+        id={`note-${visitId}`}
+        rows={2}
+        autoResize
+        value={visitNote}
+        onChange={(e) => setVisitNote(e.target.value)}
+        placeholder="Visit notes"
+        className="w-full"
+      />
+    </div>
+  )
+})
+
+interface InquiryItemProps {
+  inquiry: IInquiry
+  index: number
+  products: any[]
+  setSearchStore: (query: string) => void
+  onUpdate: (index: number, field: keyof IInquiry, value: any) => void
+  onRemove: (index: number) => void
+  onSync: (id: number) => void
+  visitId: string
+}
+
+const InquiryItem = memo(function InquiryItem({
+  inquiry,
+  index,
+  products,
+  setSearchStore,
+  onUpdate,
+  onRemove,
+  onSync,
+  visitId,
+}: InquiryItemProps) {
+  const [productName, setProductName] = useState(inquiry.product_name || '')
+  const [notes, setNotes] = useState(inquiry.notes || '')
+
+  useEffect(() => {
+    setProductName(inquiry.product_name || '')
+    setNotes(inquiry.notes || '')
+  }, [inquiry.product_name, inquiry.notes])
+
+  const handleNotesBlur = () => {
+    if (notes !== inquiry.notes) {
+      onUpdate(index, 'notes', notes)
+    }
+  }
+
+  const handleProductSelect = (e: any) => {
+    const selected = e.value
+    setProductName(selected.ItemName)
+    onUpdate(index, 'product_name', selected.ItemName)
+    onUpdate(index, 'product_id', selected.id)
+  }
+
+  const handleProductChange = (e: any) => {
+    setProductName(e.value)
+  }
+
+  const handleProductBlur = () => {
+    if (productName !== inquiry.product_name) {
+      onUpdate(index, 'product_name', productName)
+      onUpdate(index, 'product_id', null)
+    }
+  }
+
+  const handleRemove = () => {
+    onRemove(index)
+    onSync(Number(visitId))
+  }
+
+  return (
+    <div className="mb-3 p-3 border-1 surface-border border-round">
+      <div className="flex justify-content-between align-items-center mb-2">
+        <span className="text-sm font-semibold">Inquiry #{index + 1}</span>
+        <Button icon="pi pi-trash" severity="danger" text onClick={handleRemove} />
+      </div>
+
+      <AutoComplete
+        value={productName}
+        suggestions={products}
+        field="ItemName"
+        className="w-full my-2"
+        inputClassName="w-full"
+        placeholder="Search product..."
+        completeMethod={(e) => setSearchStore(e.query)}
+        onChange={handleProductChange}
+        onSelect={handleProductSelect}
+        onBlur={handleProductBlur}
+      />
+
+      <InputTextarea
+        placeholder="Notes"
+        className="w-full my-2"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        onBlur={handleNotesBlur}
+      />
+    </div>
+  )
+})
+
 const VisitsPage = () => {
   const salesVisitStore = useSalesVisit()
   const {
     fetchSalesVisit,
     salesVisit,
     syncOfferedItems,
-    visitNote,
-    setVisitNote,
     endVisit,
     startVisit,
     processItems,
@@ -79,13 +579,6 @@ const VisitsPage = () => {
 
   const [showOfferDialog, setShowOfferDialog] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductWithFrequency | null>(null)
-  const [concernSelections, setConcernSelections] = useState<
-    Record<number | string, Record<number, { notes: string; statusId: number | null }>>
-  >({})
-
-  const [concernSelctionForUpdate, setConcernSelctionForUpdate] = useState<
-    Record<number, { notes: string; statusId: number | null }>
-  >({})
 
   const [suggestedGroup, setSuggestedGroup] = useState('')
 
@@ -110,10 +603,71 @@ const VisitsPage = () => {
   const { inquiries, addInquiry, removeInquiry, updateInquiry, syncInquiries, fetchInquiries } =
     useInquiryStore()
 
+  const handleInquiryUpdate = useCallback(
+    (index: number, field: keyof IInquiry, value: any) => {
+      updateInquiry(index, field, value)
+    },
+    [updateInquiry]
+  )
+
+  const handleInquiryRemove = useCallback(
+    (index: number) => {
+      removeInquiry(index)
+    },
+    [removeInquiry]
+  )
+
+  const handleInquirySync = useCallback(
+    (id: number) => {
+      syncInquiries(id)
+    },
+    [syncInquiries]
+  )
+
   const { data: concernCategoriesData, mutate: mutateCategories } =
     useFetch<IResObject<IConcernCategoryResponse>>('concern-categories')
 
-  const concernCategories = concernCategoriesData?.data?.concernCategories ?? []
+  const concernCategories = useMemo(
+    () => concernCategoriesData?.data?.concernCategories ?? [],
+    [concernCategoriesData?.data?.concernCategories]
+  )
+
+  const { data: concernStatusesData, mutate: mutateStatus } = useFetch<
+    IResObject<IConcernStatusResponse>
+  >('concern-categories/statuses')
+
+  const concernStatuses = useMemo(
+    () => concernStatusesData?.data?.concernStatuses ?? [],
+    [concernStatusesData?.data?.concernStatuses]
+  )
+
+  const statusOptions = useMemo(
+    () => concernStatuses.map((s: IConcernStatus) => ({ label: s.status, value: Number(s.id) })),
+    [concernStatuses]
+  )
+
+  const handleProductOfferSave = useCallback(
+    (selections: ProductOfferSelections) => {
+      syncOfferedItems(selections).then(() => {
+        fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
+        mutateCategories()
+        mutateStatus()
+      })
+    },
+    [syncOfferedItems, fetchSalesVisit, id, type, mutateCategories, mutateStatus]
+  )
+
+  const handleBulkOfferSave = useCallback(
+    (selection: BulkOfferSelection, markedItemIds: number[]) => {
+      processItems(selection, markedItemIds).then(() => {
+        fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
+        mutateCategories()
+        mutateStatus()
+        setMarkedAs([])
+      })
+    },
+    [processItems, fetchSalesVisit, id, type, mutateCategories, mutateStatus, setMarkedAs]
+  )
   const { suggestedItems, customer, visit_items } = salesVisit
 
   const { mutate: mutateVisitDistribution } = useFetch<IResObject<IDashboardData['data']>>(
@@ -150,7 +704,6 @@ const VisitsPage = () => {
   useEffect(() => {
     if (!showOfferDialog) {
       setSelectedProduct(null)
-      setConcernSelections({})
     }
   }, [showOfferDialog])
 
@@ -222,12 +775,6 @@ const VisitsPage = () => {
     }
   }
 
-  const { data: concernStatusesData, mutate: mutateStatus } = useFetch<
-    IResObject<IConcernStatusResponse>
-  >('concern-categories/statuses')
-
-  const concernStatuses = concernStatusesData?.data?.concernStatuses ?? []
-
   const suggestedGroups = [
     { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
     { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
@@ -254,33 +801,52 @@ const VisitsPage = () => {
 
   const isDistributor = suggestedGroup === 'distributor'
 
-  const distributorCategories = isDistributor
-    ? activeProductGroup.reduce(
-        (acc, item) => {
-          const categoryName = item.ProductCategory ?? ''
+  const markedItemIds = useMemo(() => new Set(markedAs.map((i) => i.id)), [markedAs])
 
-          const exists = acc.find((option) => option.value === categoryName)
+  const visitItemMap = useMemo(() => {
+    return (visit_items ?? []).reduce((acc, vi: IVisitItem) => {
+      if (vi.product_id !== null && vi.product_id !== undefined) {
+        acc[Number(vi.product_id)] = vi
+      }
+      return acc
+    }, {} as any)
+  }, [visit_items])
 
-          if (categoryName && !exists) {
-            acc.push({
-              value: categoryName,
-              label: categoryName,
-            })
-          }
-          return acc
-        },
-        [] as { value: string; label: string }[]
-      )
-    : []
+  const distributorCategories = useMemo(() => {
+    if (!isDistributor) return []
+    return activeProductGroup.reduce(
+      (acc, item) => {
+        const categoryName = item.ProductCategory ?? ''
 
-  const offeredProductIds = new Set((visit_items ?? []).map((item) => item.product_id))
+        const exists = acc.find((option) => option.value === categoryName)
 
-  const filteredProducts = getFilteredProducts({
-    activeProductGroup,
-    offeredProductIds,
-    selectedCategories,
-    keyword: debouncedSearch,
-  })
+        if (categoryName && !exists) {
+          acc.push({
+            value: categoryName,
+            label: categoryName,
+          })
+        }
+        return acc
+      },
+      [] as { value: string; label: string }[]
+    )
+  }, [isDistributor, activeProductGroup])
+
+  const offeredProductIds = useMemo(
+    () => new Set((visit_items ?? []).map((item) => item.product_id)),
+    [visit_items]
+  )
+
+  const filteredProducts = useMemo(
+    () =>
+      getFilteredProducts({
+        activeProductGroup,
+        offeredProductIds,
+        selectedCategories,
+        keyword: debouncedSearch,
+      }),
+    [activeProductGroup, offeredProductIds, selectedCategories, debouncedSearch]
+  )
 
   useEffect(() => {
     if (!isDistributor) return
@@ -311,17 +877,19 @@ const VisitsPage = () => {
   const isVisitInitated = salesVisit.start_at !== null
 
   const handleTagAllForOffer = (items: ProductWithFrequency[]) => {
-    const itemIds = items.map((item) => item.id)
-    if (markedAs.some((item) => itemIds.includes(item.id))) {
-      setMarkedAs((prev) => prev.filter((item) => !itemIds.includes(item.id)))
+    const itemIds = new Set(items.map((item) => item.id))
+    const allTagged = items.every((item) => markedItemIds.has(item.id))
+
+    if (allTagged) {
+      setMarkedAs((prev) => prev.filter((item) => !itemIds.has(item.id)))
     } else {
-      const toMark = items.filter((item) => !markedAs.some((i) => i.id === item.id))
-      setMarkedAs((prev) => [...prev, ...toMark])
+      const toAdd = items.filter((item) => !markedItemIds.has(item.id))
+      setMarkedAs((prev) => [...prev, ...toAdd])
     }
   }
 
   const handleTagForOffer = (item: ProductWithFrequency) => {
-    if (markedAs.some((i) => i.id === item.id)) {
+    if (markedItemIds.has(item.id)) {
       setMarkedAs((prev) => prev.filter((i) => i.id !== item.id))
     } else {
       setMarkedAs((prev) => [...prev, item])
@@ -469,28 +1037,18 @@ const VisitsPage = () => {
                                       item.ProductCategory.slice(1).toLocaleLowerCase()
                                     : ''
 
-                                  const visitItems = visit_items?.find(
-                                    (i) => i.product_id === item.id
-                                  )
-                                  const checked = markedAs.map((i) => i.id).includes(item.id)
-                                  const visitItemConcerns = visitItems?.visit_item_concerns
-
                                   return (
-                                    <div
+                                    <ProductGridItem
                                       key={`distributor-${item.ItemCode}`}
-                                      className="col-12 lg:col-6 xl:col-4"
-                                    >
-                                      <ProductOfferCard
-                                        item={item}
-                                        category={category}
-                                        visitItemConcern={visitItemConcerns?.[0]}
-                                        overlayRefs={overlayRefs}
-                                        setSelectedProduct={setSelectedProduct}
-                                        setShowOfferDialog={setShowOfferDialog}
-                                        handleTagForOffer={handleTagForOffer}
-                                        markedForOffer={checked}
-                                      />
-                                    </div>
+                                      item={item}
+                                      category={category}
+                                      markedItemIds={markedItemIds}
+                                      visitItemMap={visitItemMap}
+                                      overlayRefs={overlayRefs}
+                                      setSelectedProduct={setSelectedProduct}
+                                      setShowOfferDialog={setShowOfferDialog}
+                                      handleTagForOffer={handleTagForOffer}
+                                    />
                                   )
                                 })}
                               </div>
@@ -513,25 +1071,18 @@ const VisitsPage = () => {
                           ? item.ProductCategory.charAt(0) +
                             item.ProductCategory.slice(1).toLocaleLowerCase()
                           : ''
-                        const checked = markedAs.map((i) => i.id).includes(item.id)
-                        const visitItems = visit_items?.find((i) => i.product_id === item.id)
-                        const visitItemConcerns = visitItems?.visit_item_concerns
                         return (
-                          <div
+                          <ProductGridItem
                             key={`groceries-${item.ItemCode}`}
-                            className="col-12 lg:col-6 xl:col-4"
-                          >
-                            <ProductOfferCard
-                              item={item}
-                              category={category}
-                              visitItemConcern={visitItemConcerns?.[0]}
-                              overlayRefs={overlayRefs}
-                              setSelectedProduct={setSelectedProduct}
-                              setShowOfferDialog={setShowOfferDialog}
-                              handleTagForOffer={handleTagForOffer}
-                              markedForOffer={checked}
-                            />
-                          </div>
+                            item={item}
+                            category={category}
+                            markedItemIds={markedItemIds}
+                            visitItemMap={visitItemMap}
+                            overlayRefs={overlayRefs}
+                            setSelectedProduct={setSelectedProduct}
+                            setShowOfferDialog={setShowOfferDialog}
+                            handleTagForOffer={handleTagForOffer}
+                          />
                         )
                       })}
                       {filteredProducts.length === 0 && (
@@ -597,20 +1148,7 @@ const VisitsPage = () => {
             <div className="col-12 xl:col-6 md:col-6 mt-5">
               <h5>Notes & Inquiries</h5>
             </div>
-            <div className="col-12 xl:col-6 md:col-6">
-              <label htmlFor={`note-${salesVisit.id}`} className="block mb-2">
-                Visit Note
-              </label>
-              <InputTextarea
-                id={`note-${salesVisit.id}`}
-                rows={2}
-                autoResize
-                value={visitNote}
-                onChange={(e) => setVisitNote(e.target.value)}
-                placeholder="Visit notes"
-                className="w-full"
-              />
-            </div>
+            <VisitNoteInput visitId={String(salesVisit.id)} />
             <div className="col-12 xl:col-6 md:col-6">
               {/* HEADER */}
               <div className="flex justify-content-between align-items-center mb-2">
@@ -619,51 +1157,17 @@ const VisitsPage = () => {
 
               {/* LIST */}
               {inquiries.map((inq, index) => (
-                <div key={index} className="mb-3 p-3 border-1 surface-border border-round">
-                  {/* HEADER ITEM */}
-                  <div className="flex justify-content-between align-items-center mb-2">
-                    <span className="text-sm font-semibold">Inquiry #{index + 1}</span>
-
-                    <Button
-                      icon="pi pi-trash"
-                      severity="danger"
-                      text
-                      onClick={() => {
-                        removeInquiry(index)
-                        syncInquiries(Number(id))
-                      }}
-                    />
-                  </div>
-
-                  {/* PRODUCT SELECT (OPTIONAL) */}
-                  <AutoComplete
-                    value={inq.product_name || ''}
-                    suggestions={products}
-                    field="ItemName"
-                    className="w-full my-2"
-                    inputClassName="w-full"
-                    placeholder="Search product..."
-                    completeMethod={(e) => {
-                      setSearchStore(e.query)
-                    }}
-                    onChange={(e) => {
-                      updateInquiry(index, 'product_name', e.value)
-                      updateInquiry(index, 'product_id', null)
-                    }}
-                    onSelect={(e) => {
-                      updateInquiry(index, 'product_name', e.value.ItemName)
-                      updateInquiry(index, 'product_id', e.value.id)
-                    }}
-                  />
-
-                  {/* NOTES */}
-                  <InputTextarea
-                    placeholder="Notes"
-                    className="w-full my-2"
-                    value={inq.notes}
-                    onChange={(e) => updateInquiry(index, 'notes', e.target.value)}
-                  />
-                </div>
+                <InquiryItem
+                  key={index}
+                  inquiry={inq}
+                  index={index}
+                  products={products}
+                  setSearchStore={setSearchStore}
+                  onUpdate={handleInquiryUpdate}
+                  onRemove={handleInquiryRemove}
+                  onSync={handleInquirySync}
+                  visitId={String(id)}
+                />
               ))}
               <div className="flex align-items-center gap-2">
                 <Button
@@ -714,298 +1218,25 @@ const VisitsPage = () => {
         onSave={handleUploadImage}
       />
 
-      <Dialog
-        modal
-        blockScroll
-        dismissableMask
-        header="Product Offer"
+      <ProductOfferDialog
         visible={showOfferDialog}
         onHide={() => setShowOfferDialog(false)}
-        style={{ width: '90%', maxWidth: '400px' }}
-        footer={
-          <>
-            <Button
-              icon="pi pi-times"
-              label="Cancel"
-              severity="danger"
-              outlined
-              onClick={() => setShowOfferDialog(false)}
-            />
-            <Button
-              icon="pi pi-save"
-              label="Save"
-              outlined
-              onClick={() => {
-                syncOfferedItems(concernSelections).then(() => {
-                  fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
-                  mutateCategories()
-                  mutateStatus()
-                  setShowOfferDialog(false)
-                })
-              }}
-            />
-          </>
-        }
-      >
-        <div className="flex flex-column gap-3 w-full my-2">
-          <h5>{selectedProduct?.ItemName}</h5>
-          <h6>Select Topic</h6>
-          {concernCategories.map((category: IConcernCategory) => {
-            const productId = selectedProduct ? Number(selectedProduct.id) : null
-            const selection =
-              productId !== null ? concernSelections[productId]?.[Number(category.id)] : undefined
-            return (
-              <div key={Number(category.id)} className="border-bottom-1 surface-border pb-3">
-                <div className="flex align-items-center gap-2">
-                  <Checkbox
-                    inputId={`concern-${category.id}`}
-                    checked={Boolean(selection)}
-                    onChange={(e) => {
-                      if (productId === null) return
-                      setConcernSelections((prev) => {
-                        if (!e.checked) {
-                          const next = { ...prev }
-                          const productSelections = { ...(next[productId] || {}) }
-                          delete productSelections[Number(category.id)]
-                          if (Object.keys(productSelections).length === 0) {
-                            delete next[productId]
-                          } else {
-                            next[productId] = productSelections
-                          }
-                          return next
-                        }
-                        return {
-                          ...prev,
-                          [productId]: {
-                            ...(prev[productId] || {}),
-                            [Number(category.id)]: {
-                              notes: prev[productId]?.[Number(category.id)]?.notes ?? '',
-                              statusId: prev[productId]?.[Number(category.id)]?.statusId ?? null,
-                            },
-                          },
-                        }
-                      })
-                    }}
-                  />
-                  <label htmlFor={`concern-${category.id}`} className="font-semibold">
-                    {category.name}
-                  </label>
-                </div>
-
-                {selection && (
-                  <div className="flex flex-column gap-2 mt-2">
-                    <div className="flex flex-column gap-2">
-                      <label
-                        htmlFor={`concern-notes-${category.id}`}
-                        className="text-primary-400 font-semibold"
-                      >
-                        Notes
-                      </label>
-                      <InputTextarea
-                        id={`concern-notes-${category.id}`}
-                        rows={2}
-                        autoResize
-                        value={selection.notes}
-                        onChange={(e) =>
-                          productId === null
-                            ? undefined
-                            : setConcernSelections((prev) => ({
-                                ...prev,
-                                [productId]: {
-                                  ...(prev[productId] || {}),
-                                  [Number(category.id)]: {
-                                    ...prev[productId]?.[Number(category.id)],
-                                    notes: e.target.value,
-                                  },
-                                },
-                              }))
-                        }
-                        placeholder="Notes"
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="flex flex-column gap-2">
-                      <label
-                        htmlFor={`concern-status-${category.id}`}
-                        className="text-primary-400 font-semibold"
-                      >
-                        Status
-                      </label>
-                      <Dropdown
-                        inputId={`concern-status-${category.id}`}
-                        value={selection.statusId}
-                        options={concernStatuses.map((s: IConcernStatus) => ({
-                          label: s.status,
-                          value: s.id,
-                        }))}
-                        onChange={(e) =>
-                          productId === null
-                            ? undefined
-                            : setConcernSelections((prev) => ({
-                                ...prev,
-                                [productId]: {
-                                  ...(prev[productId] || {}),
-                                  [Number(category.id)]: {
-                                    ...prev[productId]?.[Number(category.id)],
-                                    statusId: e.value,
-                                  },
-                                },
-                              }))
-                        }
-                        placeholder="Select Status"
-                        className="w-full lg:w-300"
-                        clearIcon="pi pi-times"
-                        showClear
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </Dialog>
-      <Dialog
-        modal
-        blockScroll
-        dismissableMask
-        header="Submit Items for Offer"
+        concernCategories={concernCategories}
+        statusOptions={statusOptions}
+        selectedProduct={selectedProduct}
+        onSave={handleProductOfferSave}
+      />
+      <BulkOfferDialog
         visible={showBulkOfferDialog}
-        onHide={() => setShowBulkOfferDialog(false)}
-        style={{ width: '90%', maxWidth: '400px' }}
-        footer={
-          <>
-            <Button
-              icon="pi pi-times"
-              label="Cancel"
-              severity="danger"
-              outlined
-              onClick={() => setShowBulkOfferDialog(false)}
-            />
-            <Button
-              icon="pi pi-save"
-              label="Save"
-              outlined
-              onClick={() => {
-                processItems(
-                  concernSelctionForUpdate,
-                  markedAs.map((item) => Number(item.id))
-                ).then(() => {
-                  fetchSalesVisit(Number(id), type === 'rule' ? 'rule' : undefined)
-                  mutateCategories()
-                  mutateStatus()
-                  setShowBulkOfferDialog(false)
-                  setMarkedAs([])
-                })
-              }}
-            />
-          </>
-        }
-      >
-        <div className="flex flex-column gap-3 w-full my-2">
-          <h6>Select Topic</h6>
-          {concernCategories.map((category: IConcernCategory) => {
-            const selection = concernSelctionForUpdate?.[Number(category.id)]
-            return (
-              <div key={Number(category.id)} className="border-bottom-1 surface-border pb-3">
-                <div className="flex align-items-center gap-2">
-                  <Checkbox
-                    inputId={`concern-${category.id}`}
-                    checked={Boolean(selection)}
-                    onChange={(e) => {
-                      const id = Number(category.id)
-
-                      setConcernSelctionForUpdate((prev) => {
-                        const next = { ...prev }
-
-                        if (!e.checked) {
-                          delete next[id]
-                          return next
-                        }
-
-                        return {
-                          ...next,
-                          [id]: {
-                            notes: prev[id]?.notes ?? '',
-                            statusId: prev[id]?.statusId ?? null,
-                          },
-                        }
-                      })
-                    }}
-                  />
-                  <label htmlFor={`concern-${category.id}`} className="font-semibold">
-                    {category.name}
-                  </label>
-                </div>
-
-                {selection && (
-                  <div className="flex flex-column gap-2 mt-2">
-                    <div className="flex flex-column gap-2">
-                      <label
-                        htmlFor={`concern-notes-${category.id}`}
-                        className="text-primary-400 font-semibold"
-                      >
-                        Notes
-                      </label>
-                      <InputTextarea
-                        id={`concern-notes-${category.id}`}
-                        rows={2}
-                        autoResize
-                        value={selection?.notes || ''}
-                        onChange={(e) => {
-                          const id = Number(category.id)
-
-                          setConcernSelctionForUpdate((prev) => ({
-                            ...prev,
-                            [id]: {
-                              ...prev[id],
-                              notes: e.target.value,
-                            },
-                          }))
-                        }}
-                        placeholder="Notes"
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="flex flex-column gap-2">
-                      <label
-                        htmlFor={`concern-status-${category.id}`}
-                        className="text-primary-400 font-semibold"
-                      >
-                        Status
-                      </label>
-                      <Dropdown
-                        inputId={`concern-status-${category.id}`}
-                        value={selection?.statusId ?? null}
-                        options={concernStatuses.map((s: IConcernStatus) => ({
-                          label: s.status,
-                          value: s.id,
-                        }))}
-                        onChange={(e) => {
-                          const id = Number(category.id)
-
-                          setConcernSelctionForUpdate((prev) => ({
-                            ...prev,
-                            [id]: {
-                              ...prev[id],
-                              statusId: e.value,
-                            },
-                          }))
-                        }}
-                        placeholder="Select Status"
-                        className="w-full lg:w-300"
-                        showClear
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </Dialog>
+        onHide={() => {
+          setShowBulkOfferDialog(false)
+          setMarkedAs([])
+        }}
+        concernCategories={concernCategories}
+        statusOptions={statusOptions}
+        onSave={handleBulkOfferSave}
+        markedItemIds={markedAs.map((item) => Number(item.id))}
+      />
     </>
   )
 }
