@@ -171,15 +171,12 @@ export const mtdSummary = async (req: Request, res: Response) => {
     const monthlyTrends = Array.from({ length: 12 }, (_, i) => {
       const month = i + 1
 
-      const result: Record<string | number, any> = {}
-      monthlyTrendData
-        .filter(x => x.month === month)
-        .forEach(({ year, month: _month, ...rest }) => {
-          result[year] = rest
-        })
-
       return {
-        [month]: result
+        [month]: Object.fromEntries(
+          monthlyTrendData
+            .filter(({ month: m }) => m === month)
+            .map(({ year, ...rest }) => [year, rest])
+        )
       }
     })
     // =====================
