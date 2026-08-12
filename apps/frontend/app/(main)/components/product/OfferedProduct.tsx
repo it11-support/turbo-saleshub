@@ -4,6 +4,7 @@ import ProductTag from './ProductTag'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
 import {
   EFollowUpType,
+  FollowUpVisitResponse,
   IConcernStatus,
   IResObject,
   IVisitItem,
@@ -13,6 +14,7 @@ import { useParams } from 'next/navigation'
 import { Accordion, AccordionTab } from 'primereact/accordion'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
+import { Checkbox } from 'primereact/checkbox'
 import { Dialog } from 'primereact/dialog'
 import { Divider } from 'primereact/divider'
 import { Dropdown } from 'primereact/dropdown'
@@ -21,8 +23,9 @@ import { memo, useEffect, useMemo, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
+import { $api, createUrl } from '@/lib/api'
 import { formatDate, normalizeDateToUTC } from '@/lib/dateUtils'
-import { useSalesVisit } from '@/stores'
+import { jsonBody } from '@/lib/storeHelper'
 
 interface IConcernStatusesResponse {
   concernStatuses: IConcernStatus[]
@@ -32,16 +35,24 @@ type Props = {
   visitItem: IVisitItem
   handleFollowUp?: (concern: IVisitItemConcern) => void
   defaultOpen?: boolean
+  selectedForFollowUp?: boolean
+  onToggleFollowUpSelection?: (itemId: number) => void
 }
 const OfferedProduct = memo(function OfferedProduct(props: Props) {
-  const followUpForm = useSalesVisit((state) => state.followUpForm)
-  const setFollowUpForm = useSalesVisit((state) => state.setFollowUpForm)
-  const addFollowUp = useSalesVisit((state) => state.addFollowUp)
+  const [followUpForm, setFollowUpForm] = useState({
+    visit_item_concern_id: 0,
+    status: '',
+    action_required: false,
+    type: EFollowUpType.Feedback,
+    notes: '',
+    next_follow_up_date: null as Date | null,
+  })
   const [visible, setIsVisible] = useState(false)
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
   const { id } = useParams()
 
-  const { visitItem, handleFollowUp, defaultOpen } = props
+  const { visitItem, handleFollowUp, defaultOpen, selectedForFollowUp, onToggleFollowUpSelection } =
+    props
   const product = visitItem.product
   const { isAdmin } = useAuth()
 
@@ -71,18 +82,25 @@ const OfferedProduct = memo(function OfferedProduct(props: Props) {
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [defaultOpen])
 
-  useEffect(() => {
-    if (selectedConcern && visible) {
-      setFollowUpForm({
-        visit_item_concern_id: selectedConcern.id,
-        status: selectedConcern.status.status,
-        action_required: selectedConcern.status.requires_action || false,
-        type: EFollowUpType.Feedback,
-        notes: '',
-        next_follow_up_date: null,
-      })
-    }
-  }, [selectedConcern, visible])
+  const handleFeedback = (concern: IVisitItemConcern) => {
+    setSelectedConcern(concern)
+    setFollowUpForm({
+      visit_item_concern_id: Number(concern.id),
+      status: concern.status.status,
+      action_required: concern.status.requires_action || false,
+      type: EFollowUpType.Feedback,
+      notes: '',
+      next_follow_up_date: null,
+    })
+    setIsVisible(true)
+  }
+
+  const handleSubmit = async () => {
+    await $api<FollowUpVisitResponse>(createUrl('visit/follow-up'), jsonBody(followUpForm))
+    await mutate()
+    setIsVisible(false)
+    setSelectedConcern(null)
+  }
 
   const statusOptions = concernStatuses.map((status: IConcernStatus) => ({
     label: status.status,
@@ -94,18 +112,6 @@ const OfferedProduct = memo(function OfferedProduct(props: Props) {
     label: t,
     value: t,
   }))
-
-  const handleSubmit = async () => {
-    await addFollowUp()
-    await mutate()
-    setIsVisible(false)
-    setSelectedConcern(null)
-  }
-
-  const handleFeedback = (concern: IVisitItemConcern) => {
-    setSelectedConcern(concern)
-    setIsVisible(true)
-  }
 
   const hasStatus = useMemo(() => {
     return visitItem.visit_item_concerns?.some((c) => c.status) ?? false
@@ -133,22 +139,37 @@ const OfferedProduct = memo(function OfferedProduct(props: Props) {
                 className="flex align-items-start justify-content-between w-full"
                 id={`acc-header-${product?.ItemCode}`}
               >
-                {/* Kontainer Teks */}
-                <div className="flex flex-column" style={{ flex: '1 1 auto', minWidth: 0 }}>
-                  <span className="font-semibold text-900 pr-2" style={{ wordBreak: 'break-word' }}>
-                    {product?.ItemName}
-                  </span>
-                  <small className="text-500 pt-1">
-                    {formatDate(visitItem?.created_at, { withTime: true })}
-                  </small>
+                <div
+                  className="flex align-items-center gap-2"
+                  style={{ flex: '1 1 auto', minWidth: 0 }}
+                >
+                  {onToggleFollowUpSelection && (
+                    <Checkbox
+                      checked={selectedForFollowUp || false}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={() => onToggleFollowUpSelection(Number(visitItem.id))}
+                    />
+                  )}
+                  <div className="flex flex-column" style={{ flex: '1 1 auto', minWidth: 0 }}>
+                    <span
+                      className="font-semibold text-900 pr-2"
+                      style={{ wordBreak: 'break-word' }}
+                    >
+                      {product?.ItemName}
+                    </span>
+                    <small className="text-500 pt-1">
+                      {formatDate(visitItem?.created_at, { withTime: true })}
+                    </small>
+                  </div>
                 </div>
 
-                {/* Kontainer Tag: Gunakan ml-auto dan pastikan tidak tersembunyi */}
-                {activeIndex !== 0 && hasStatus && visitItem.visit_item_concerns?.[0]?.status && (
-                  <div className="ml-auto flex-none align-self-start pt-0">
-                    <ProductTag status={visitItem.visit_item_concerns[0].status} />
-                  </div>
-                )}
+                <div className="flex align-items-center gap-2 ml-auto">
+                  {activeIndex !== 0 && hasStatus && visitItem.visit_item_concerns?.[0]?.status && (
+                    <div className="flex-none align-self-start pt-0">
+                      <ProductTag status={visitItem.visit_item_concerns[0].status} />
+                    </div>
+                  )}
+                </div>
               </div>
             }
           >
