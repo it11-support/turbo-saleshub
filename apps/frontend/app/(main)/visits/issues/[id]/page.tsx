@@ -27,6 +27,7 @@ import { memo, useCallback, useEffect, useState } from 'react'
 import OfferedProduct from '@/app/(main)/components/product/OfferedProduct'
 import VisitDetailHeader from '@/app/(main)/customers/components/VisitDetailHeader'
 import { useFetch } from '@/hooks/useFetch'
+import { useAuth } from '@/layout/context/AuthContext'
 import { useSocket } from '@/layout/context/SocketIoContext'
 import { $api, createUrl } from '@/lib/api'
 import { variantColors } from '@/lib/constants'
@@ -38,7 +39,7 @@ interface IConcernStatusesResponse {
 const VisitIssuesPage = () => {
   const { id } = useParams()
   const socket = useSocket()
-
+  const { isAdmin } = useAuth()
   const [visible, setIsVisible] = useState(false)
   const [selectedConcern, setSelectedConcern] = useState<IVisitItemConcern | null>(null)
 
@@ -177,33 +178,37 @@ const VisitIssuesPage = () => {
               return (
                 <div key={`distributor-${category}`} className="pb-3">
                   <h5>{category}</h5>
-                  <div className="flex align-items-center justify-content-between mb-4">
-                    <div className="flex align-items-center gap-2">
-                      <Checkbox
-                        checked={allSelected}
-                        onChange={(e) =>
-                          toggleSelectAllInCategory(
-                            category,
-                            visitItems.map((vi) => Number(vi.id)),
-                            e.checked ?? false
-                          )
-                        }
-                      />
-                      <span className="text-sm text-secondary">
-                        {selectedCount > 0 ? `${selectedCount} selected` : 'Select all'}
-                      </span>
+                  {isAdmin && (
+                    <div className="flex align-items-center justify-content-between mb-4">
+                      <div className="flex align-items-center gap-2">
+                        <Checkbox
+                          checked={allSelected}
+                          onChange={(e) =>
+                            toggleSelectAllInCategory(
+                              category,
+                              visitItems.map((vi) => Number(vi.id)),
+                              e.checked ?? false
+                            )
+                          }
+                        />
+
+                        <span className="text-sm text-secondary">
+                          {selectedCount > 0 ? `${selectedCount} selected` : 'Select all'}
+                        </span>
+                      </div>
+
+                      {selectedCount > 0 && (
+                        <Button
+                          size="small"
+                          outlined
+                          severity="info"
+                          icon="pi pi-pencil"
+                          label="Feedback Selected"
+                          onClick={() => handleBulkFollowUp(category)}
+                        />
+                      )}
                     </div>
-                    {selectedCount > 0 && (
-                      <Button
-                        size="small"
-                        outlined
-                        severity="info"
-                        icon="pi pi-pencil"
-                        label="Feedback Selected"
-                        onClick={() => handleBulkFollowUp(category)}
-                      />
-                    )}
-                  </div>
+                  )}
                   <div className="grid">
                     {visitItems.map((visitItem) => {
                       return (
@@ -225,36 +230,40 @@ const VisitIssuesPage = () => {
         )}
         {(offeredGroceries?.length ?? 0) > 0 && (
           <Card className="w-full h-full shadow-none px-0" title="GROCERIES">
-            <div className="flex align-items-center justify-content-between mb-4">
-              <div className="flex align-items-center gap-2">
-                <Checkbox
-                  checked={offeredGroceries.every((gi) => selectedForFollowUp.has(Number(gi.id)))}
-                  onChange={(e) =>
-                    toggleSelectAllInCategory(
-                      'groceries',
-                      offeredGroceries.map((gi) => Number(gi.id)),
-                      e.checked ?? false
-                    )
-                  }
-                />
-                <span className="text-sm text-secondary">
-                  {offeredGroceries.filter((gi) => selectedForFollowUp.has(Number(gi.id))).length >
-                  0
-                    ? `${offeredGroceries.filter((gi) => selectedForFollowUp.has(Number(gi.id))).length} selected`
-                    : 'Select all'}
-                </span>
+            {isAdmin && (
+              <div className="flex align-items-center justify-content-between mb-4">
+                <div className="flex align-items-center gap-2">
+                  <Checkbox
+                    checked={offeredGroceries.every((gi) => selectedForFollowUp.has(Number(gi.id)))}
+                    onChange={(e) =>
+                      toggleSelectAllInCategory(
+                        'groceries',
+                        offeredGroceries.map((gi) => Number(gi.id)),
+                        e.checked ?? false
+                      )
+                    }
+                  />
+
+                  <span className="text-sm text-secondary">
+                    {offeredGroceries.filter((gi) => selectedForFollowUp.has(Number(gi.id)))
+                      .length > 0
+                      ? `${offeredGroceries.filter((gi) => selectedForFollowUp.has(Number(gi.id))).length} selected`
+                      : 'Select all'}
+                  </span>
+                </div>
+
+                {offeredGroceries.some((gi) => selectedForFollowUp.has(Number(gi.id))) && (
+                  <Button
+                    size="small"
+                    outlined
+                    severity="info"
+                    icon="pi pi-pencil"
+                    label="Feedback Selected"
+                    onClick={() => handleBulkFollowUp('GROCERIES')}
+                  />
+                )}
               </div>
-              {offeredGroceries.some((gi) => selectedForFollowUp.has(Number(gi.id))) && (
-                <Button
-                  size="small"
-                  outlined
-                  severity="info"
-                  icon="pi pi-pencil"
-                  label="Feedback Selected"
-                  onClick={() => handleBulkFollowUp('GROCERIES')}
-                />
-              )}
-            </div>
+            )}
             <div className="grid">
               {offeredGroceries.map((groceriesItem) => {
                 return (

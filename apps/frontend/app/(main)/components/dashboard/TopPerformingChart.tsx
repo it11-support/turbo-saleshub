@@ -9,8 +9,14 @@ type TopPerformingChartProps = {
   isValidating: boolean
   data?: IDashboardData['data']
   visitDistribution?: IDashboardData['data']
+  isAdmin?: boolean
 }
-const TopPerformingChart = ({ isValidating, data, visitDistribution }: TopPerformingChartProps) => {
+const TopPerformingChart = ({
+  isValidating,
+  data,
+  visitDistribution,
+  isAdmin,
+}: TopPerformingChartProps) => {
   const { productRevenueDistributor, productRevenueGrocery, productRevenueAll } = data || {}
 
   const productRevenueDistributorLabel = productRevenueDistributor?.map((item) => item.ItemName)
@@ -44,17 +50,18 @@ const TopPerformingChart = ({ isValidating, data, visitDistribution }: TopPerfor
 
   return (
     <div className="grid mt-2">
-      {charts.map((chart) => (
-        <div key={chart.title} className="col-12 lg:col-12 xl:col-6 p-2">
-          <TopProductChart
-            title={chart.title}
-            labels={chart.labels}
-            values={chart.values}
-            isLoading={isValidating}
-            baseColor={baseColor}
-          />
-        </div>
-      ))}
+      {isAdmin &&
+        charts.map((chart) => (
+          <div key={chart.title} className="col-12 lg:col-12 xl:col-6 p-2">
+            <TopProductChart
+              title={chart.title}
+              labels={chart.labels}
+              values={chart.values}
+              isLoading={isValidating}
+              baseColor={baseColor}
+            />
+          </div>
+        ))}
       <div key="visitDistribution" className="col-12 lg:col-12 xl:col-6 p-2">
         <VisitDistribution isValidating={isValidating} data={visitDistribution} />
       </div>

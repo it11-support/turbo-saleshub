@@ -143,7 +143,7 @@ const OfferedProduct = memo(function OfferedProduct(props: Props) {
                   className="flex align-items-center gap-2"
                   style={{ flex: '1 1 auto', minWidth: 0 }}
                 >
-                  {onToggleFollowUpSelection && (
+                  {isAdmin && onToggleFollowUpSelection && (
                     <Checkbox
                       checked={selectedForFollowUp || false}
                       onClick={(e) => e.stopPropagation()}

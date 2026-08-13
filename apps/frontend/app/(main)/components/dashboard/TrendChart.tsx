@@ -7,9 +7,10 @@ import { MONTH_SHORT } from '@/lib/constants'
 type TrendChartProps = {
   isValidating: boolean
   data?: IDashboardData['data']
+  isAdmin?: boolean
 }
 
-const TrendChart = ({ isValidating, data }: TrendChartProps) => {
+const TrendChart = ({ isValidating, data, isAdmin }: TrendChartProps) => {
   const { monthlyTrends } = data || {}
 
   const chartData =
@@ -97,24 +98,34 @@ const TrendChart = ({ isValidating, data }: TrendChartProps) => {
 
   const orderMax = Math.ceil(Math.max(...orderValues) / 1000) * 1000
 
-  const charts = [
+  const charts: {
+    title: string
+    valueType: 'revenue' | 'orders'
+    labels: string[]
+    datasets: typeof revenueDatasets
+    orderedChartData: typeof orderedChartData
+    max: number
+  }[] = [
     {
       title: 'Revenue Trend',
-      valueType: 'revenue' as const,
+      valueType: 'revenue',
       labels: trendLabels,
       datasets: revenueDatasets,
-      orderedChartData: orderedChartData,
+      orderedChartData,
       max: revenueMax,
     },
-    {
-      title: 'Order Trend',
-      valueType: 'orders' as const,
+  ]
+
+  if (isAdmin) {
+    charts.push({
+      title: 'Orders Trend',
+      valueType: 'orders',
       labels: trendLabels,
       datasets: orderDatasets,
-      orderedChartData: orderedChartData,
+      orderedChartData,
       max: orderMax,
-    },
-  ]
+    })
+  }
 
   return (
     <div className="grid mt-4 ">

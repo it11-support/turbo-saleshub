@@ -15,13 +15,14 @@ import { useContext, useEffect, useState } from 'react'
 
 import 'chartjs-adapter-date-fns'
 import { useFetch } from '@/hooks/useFetch'
+import { useAuth } from '@/layout/context/AuthContext'
 import { useSocket } from '@/layout/context/SocketIoContext'
 
 const Dashboard = () => {
   const { layoutConfig } = useContext(LayoutContext)
   const socket = useSocket()
   const applyLightTheme = () => {}
-
+  const { isAdmin } = useAuth()
   const applyDarkTheme = () => {}
 
   useEffect(() => {
@@ -49,7 +50,7 @@ const Dashboard = () => {
 
   const { data: customerLoyaltyData, isValidating: isCustomerLoyaltyValidating } = useFetch<
     IResObject<IDashboardData['data']>
-  >('summary/customer-loyalty', undefined, {
+  >(isAdmin ? 'summary/customer-loyalty' : null, undefined, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
@@ -65,7 +66,7 @@ const Dashboard = () => {
 
   const { data: revenueByCategoryData, isValidating: isRevenueByCategoryValidating } = useFetch<
     IResObject<IDashboardData['data']>
-  >('summary/revenue-by-category', undefined, {
+  >(isAdmin ? 'summary/revenue-by-category' : null, undefined, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
@@ -73,7 +74,7 @@ const Dashboard = () => {
 
   const { data: revenueByAccountCategoryData, isValidating: isRevenueByAccountValidating } =
     useFetch<IResObject<IDashboardData['data']>>(
-      'summary/revenue-by-account',
+      isAdmin ? 'summary/revenue-by-account' : null,
       salesPersonId ? { salesPersonId } : {},
       {
         dedupingInterval: 60000,
@@ -84,7 +85,7 @@ const Dashboard = () => {
 
   const { data: customerTrendData, isValidating: isCustomerTrendValidating } = useFetch<
     IResObject<IDashboardData['data']>
-  >('summary/customer-trend', salesPersonId ? { salesPersonId } : {}, {
+  >(isAdmin ? 'summary/customer-trend' : null, salesPersonId ? { salesPersonId } : {}, {
     dedupingInterval: 60000,
     revalidateIfStale: false,
     revalidateOnReconnect: true,
@@ -143,34 +144,45 @@ const Dashboard = () => {
 
       <YoySummary isValidating={isValidating} summary={summary} period={period} />
 
-      <RevenueByProductCategory
-        revenueByCategoryData={revenueByCategoryData?.data}
-        period={period}
-        isValidating={isRevenueByCategoryValidating}
-      />
-      <CustomerLoyaltyCard
-        isCustomerLoyaltyValidating={isCustomerLoyaltyValidating}
-        customerLoyaltyData={customerLoyaltyData?.data}
-      />
+      {isAdmin && (
+        <>
+          <RevenueByProductCategory
+            revenueByCategoryData={revenueByCategoryData?.data}
+            period={period}
+            isValidating={isRevenueByCategoryValidating}
+          />
+
+          <CustomerLoyaltyCard
+            isCustomerLoyaltyValidating={isCustomerLoyaltyValidating}
+            customerLoyaltyData={customerLoyaltyData?.data}
+          />
+        </>
+      )}
 
       <ActiveCustomerCard
         isActiveCustomersValidating={isActiveCustomersValidating}
         activeCustomersData={activeCustomersData?.data}
       />
 
-      <TrendChart isValidating={isValidating} data={data?.data} />
-      <RevenueByAccountName
-        isValidating={isRevenueByAccountValidating}
-        revenueByAccountCategoryData={revenueByAccountCategoryData?.data}
-      />
-      <CustomerGrowth
-        isValidating={isCustomerTrendValidating}
-        customerTrendData={customerTrendData?.data}
-      />
+      <TrendChart isValidating={isValidating} data={data?.data} isAdmin={isAdmin} />
+      {isAdmin && (
+        <>
+          <RevenueByAccountName
+            isValidating={isRevenueByAccountValidating}
+            revenueByAccountCategoryData={revenueByAccountCategoryData?.data}
+          />
+
+          <CustomerGrowth
+            isValidating={isCustomerTrendValidating}
+            customerTrendData={customerTrendData?.data}
+          />
+        </>
+      )}
       <TopPerformingChart
         isValidating={isValidating}
         data={data?.data}
         visitDistribution={visitDistribution?.data}
+        isAdmin={isAdmin}
       />
     </>
   )
