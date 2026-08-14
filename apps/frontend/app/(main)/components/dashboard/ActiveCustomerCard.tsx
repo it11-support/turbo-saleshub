@@ -91,30 +91,32 @@ const ActiveCustomerCard = ({
 
     return customers
   }, [nonActive?.customers, selectedSlp, filter])
-
   const headerTitle = (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="grid w-full grid-rows-[auto_auto] gap-2">
+      {/* Row 1 */}
       <div>
-        <h3 className="m-0 text-lg font-semibold">List of Lagged Transactions</h3>
-        <p className="m-0 mt-1 text-sm text-500">
+        <h3 className="m-0 text-base font-semibold sm:text-lg">List of Lagged Transactions</h3>
+
+        <p className="m-0 mt-0.5 text-xs text-500">
           Lagged Transactions This Month (Total: {filteredActiveCustomers.length})
         </p>
       </div>
 
-      <div className="flex w-full items-center gap-2 sm:w-auto">
+      {/* Row 2 */}
+      <div className="flex w-full items-center gap-2">
         <Dropdown
           value={filter}
           options={filterItems}
           optionLabel="name"
           optionValue="value"
-          className="flex-1 sm:w-40"
           onChange={(e) => setFilter(e.value)}
+          className="w-3"
           pt={{
             root: {
               className: 'h-9',
             },
             input: {
-              className: 'text-sm',
+              className: 'text-sm w-full',
             },
           }}
         />
@@ -123,13 +125,8 @@ const ActiveCustomerCard = ({
           <Button
             label="Export"
             icon="pi pi-download"
-            className="p-button-outlined p-button-sm shrink-0"
+            className="h-9 shrink-0 p-button-outlined p-button-sm"
             onClick={() => setShowExport(true)}
-            pt={{
-              root: {
-                className: 'h-9',
-              },
-            }}
           />
         )}
       </div>
