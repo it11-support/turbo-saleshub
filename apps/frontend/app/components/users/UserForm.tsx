@@ -25,7 +25,7 @@ interface UserFormValues {
   password?: string
   confirm_password?: string
   role_id?: number
-  sales_person_id?: number
+  sales_person_id?: number | null
 }
 
 const schema = () =>
@@ -43,7 +43,7 @@ const schema = () =>
       otherwise: (schema) => schema.notRequired(),
     }),
     role_id: yup.number().required('Role required'),
-    sales_person_id: yup.number().optional(),
+    sales_person_id: yup.number().nullable().optional(),
   })
 
 const UserForm: React.FC<Props> = ({
