@@ -73,8 +73,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       dayjs:
-        specifier: ^1.11.21
-        version: 1.11.21
+        specifier: ^1.11.23
+        version: 1.11.23
       eslint-plugin-import-x:
         specifier: ^4.17.1
         version: 4.17.1(@typescript-eslint/utils@8.67.0(eslint@10.8.1(jiti@2.7.0))(typescript@5.9.3))(eslint-import-resolver-node@0.3.10)(eslint@10.8.1(jiti@2.7.0))
@@ -230,8 +230,8 @@ importers:
         specifier: ^2.8.6
         version: 2.8.6
       dayjs:
-        specifier: ^1.11.21
-        version: 1.11.21
+        specifier: ^1.11.23
+        version: 1.11.23
       dotenv:
         specifier: ^17.2.3
         version: 17.4.2
@@ -2624,8 +2624,8 @@ packages:
   dayjs@1.11.15:
     resolution: {integrity: sha512-MC+DfnSWiM9APs7fpiurHGCoeIx0Gdl6QZBy+5lu8MbYKN5FZEXqOgrundfibdfhGZ15o9hzmZ2xJjZnbvgKXQ==}
 
-  dayjs@1.11.21:
-    resolution: {integrity: sha512-98IT+HOahAisibz/yjKbzuOBwYcjJ7BCLPzARyHiyEBmRz4fatF+KPJszEHXsGYjUG234aH/cOjW1wwTbKUZlA==}
+  dayjs@1.11.23:
+    resolution: {integrity: sha512-QDTCU0M0MxR3hQfnlDJfwekQiaanm1ubOD231u73WBckQ/fsamwRLiE2GBz6D3a/xF1NgfiDLJjXBa1hYOYTtQ==}
 
   debug@3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
@@ -6921,7 +6921,7 @@ snapshots:
 
   dayjs@1.11.15: {}
 
-  dayjs@1.11.21: {}
+  dayjs@1.11.23: {}
 
   debug@3.2.7:
     dependencies:
@@ -8656,7 +8656,7 @@ snapshots:
       '@babel/runtime': 7.29.7
       clsx: 2.1.1
       date-arithmetic: 4.1.0
-      dayjs: 1.11.21
+      dayjs: 1.11.23
       dom-helpers: 6.0.1
       globalize: 1.7.1
       invariant: 2.2.4

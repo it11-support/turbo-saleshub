@@ -23,7 +23,7 @@
     "apriori": "^1.0.7",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
-    "dayjs": "^1.11.21",
+    "dayjs": "^1.11.23",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
