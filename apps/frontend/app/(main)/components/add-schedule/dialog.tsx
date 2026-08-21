@@ -2,18 +2,23 @@
 
 import { FormData, IResSingle, ISalesPerson, IVisit } from '@saleshub-tsm/types'
 import { useEffect, useRef, useState } from 'react'
+import { mutate } from 'swr'
 
 import { BaseDialog, FormAutoComplete, FormCalendar, FormDropdown } from '@/components/base'
 import { useFetch } from '@/hooks/useFetch'
 import { useAuth } from '@/layout/context/AuthContext'
+import { createUrl } from '@/lib/api'
 import { useScheduleDialog, useScheduleStore } from '@/stores'
 import { useCustomerStore } from '@/stores/customers'
 
 const AddScheduleDialog = () => {
   const { activeDialog, hide } = useScheduleDialog()
   const { isAdmin, user } = useAuth()
+
   const [localSearch, setLocalSearch] = useState<string>('')
+
   const { fetchCustomers, customers, setSearch, setLimit, limit, setSlpCode } = useCustomerStore()
+
   const originalLimit = useRef<number | null>(null)
   const { createVisitSchedule } = useScheduleStore()
 
@@ -31,7 +36,9 @@ const AddScheduleDialog = () => {
 
   const { data: salesPersonData, mutate: mutateSalesPerson } = useFetch<IResSingle<ISalesPerson>>(
     'sales-persons',
-    { withFilterUser: false }
+    {
+      withFilterUser: false,
+    }
   )
 
   const salesPersons = salesPersonData?.data || []
@@ -43,7 +50,8 @@ const AddScheduleDialog = () => {
       scheduleDate: '',
     }
 
-    if (!formData.salesPersonId) {
+    // Sales Person hanya wajib untuk mode dengan SLP
+    if (isAdmin && !formData.salesPersonId) {
       newErrors.salesPersonId = 'Sales Person is required'
     }
 
@@ -69,19 +77,41 @@ const AddScheduleDialog = () => {
     if (isAdmin) {
       mutateSalesPerson()
     }
-  }, [isAdmin])
+  }, [isAdmin, mutateSalesPerson])
 
   useEffect(() => {
     if (activeDialog === 'schedule') {
-      const slpId = isAdmin ? null : Number(user?.sales_person?.id)
-      setFormData((prev) => ({ ...prev, salesPersonId: slpId }))
+      const salesPersonId = isAdmin ? null : Number(user?.sales_person?.id)
+
+      setFormData((prev) => ({
+        ...prev,
+        salesPersonId,
+        customer: null,
+      }))
+
+      if (isAdmin) {
+        setSlpCode(null)
+      } else {
+        setSlpCode(null)
+      }
 
       originalLimit.current = limit
       setLimit(100)
     } else {
-      if (originalLimit.current !== null) setLimit(originalLimit.current)
-      setFormData({ salesPersonId: null, customer: null, scheduleDate: null })
+      if (originalLimit.current !== null) {
+        setLimit(originalLimit.current)
+      }
+
+      setFormData({
+        salesPersonId: null,
+        customer: null,
+        scheduleDate: null,
+      })
+
       setLocalSearch('')
+
+      // Reset customer source
+      setSlpCode(null)
     }
   }, [activeDialog, user, isAdmin])
 
@@ -100,19 +130,28 @@ const AddScheduleDialog = () => {
     }, 500)
 
     return () => clearTimeout(delay)
-  }, [localSearch, formData.salesPersonId])
+  }, [activeDialog, formData.salesPersonId, localSearch, fetchCustomers, setSearch])
 
   useEffect(() => {
-    if (formData.salesPersonId) {
-      const slp = salesPersons?.find((sp) => sp.id === formData.salesPersonId)
+    if (!isAdmin || !formData.salesPersonId) return
 
-      setSlpCode(Number(slp?.SlpCode))
+    const slp = salesPersons?.find((sp) => sp.id === formData.salesPersonId)
+
+    if (slp?.SlpCode != null) {
+      setSlpCode(Number(slp.SlpCode))
+    } else {
+      setSlpCode(null)
     }
-  }, [formData.salesPersonId])
+
+    // Admin menggunakan SLP, bukan potential customer
+  }, [isAdmin, formData.salesPersonId, salesPersons, setSlpCode])
 
   useEffect(() => {
     if (customers.length === 0 && localSearch) {
-      setErrors((prev) => ({ ...prev, customer: 'Customer not found' }))
+      setErrors((prev) => ({
+        ...prev,
+        customer: 'Customer not found',
+      }))
     }
   }, [customers, localSearch])
 
@@ -125,20 +164,51 @@ const AddScheduleDialog = () => {
       })) ?? []
 
   const handleCreateSchedule = async () => {
-    if (validateForm()) {
-      try {
-        const paylaod: Partial<IVisit> = {
-          sales_person_id: Number(formData.salesPersonId),
-          customer_id: Number(formData.customer?.id),
-          visit_date: formData.scheduleDate,
-        }
+    if (!validateForm()) return
 
-        await createVisitSchedule(paylaod)
-        hide()
-      } catch (error) {
-        console.error(error)
-        throw error
+    try {
+      const salesPersonId = isAdmin
+        ? formData.salesPersonId
+          ? Number(formData.salesPersonId)
+          : undefined
+        : user?.sales_person?.id
+          ? Number(user.sales_person.id)
+          : undefined
+
+      const payload: Partial<IVisit> = {
+        ...(salesPersonId ? { sales_person_id: salesPersonId } : {}),
+        customer_id: Number(formData.customer?.id),
+        visit_date: formData.scheduleDate,
       }
+
+      const userId = isAdmin ? undefined : Number(user?.id)
+
+      await createVisitSchedule(payload, userId)
+
+      const dateStr = formData.scheduleDate
+        ? new Date(formData.scheduleDate).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10)
+
+      const schedulePayload: Record<string, any> = {
+        page: 1,
+        pageSize: 25,
+        date: dateStr,
+      }
+
+      if (salesPersonId) {
+        schedulePayload.salesPersonId = String(salesPersonId)
+      }
+
+      if (userId) {
+        schedulePayload.userId = String(userId)
+      }
+
+      const scheduleUrl = createUrl('schedule', schedulePayload)
+      mutate(scheduleUrl)
+
+      hide()
+    } catch (error) {
+      console.error('CREATE SCHEDULE ERROR:', error)
     }
   }
 
@@ -159,8 +229,18 @@ const AddScheduleDialog = () => {
             value={formData.salesPersonId}
             options={salesPersonOptions}
             onChange={(e) => {
-              setFormData({ ...formData, salesPersonId: e.value, customer: null })
-              if (errors.salesPersonId) setErrors({ ...errors, salesPersonId: '' })
+              setFormData({
+                ...formData,
+                salesPersonId: e.value,
+                customer: null,
+              })
+
+              if (errors.salesPersonId) {
+                setErrors({
+                  ...errors,
+                  salesPersonId: '',
+                })
+              }
             }}
             error={errors.salesPersonId || undefined}
             showClear
@@ -178,15 +258,22 @@ const AddScheduleDialog = () => {
             fetchCustomers()
           }}
           onChange={(e) => {
-            setFormData({ ...formData, customer: e.value })
+            setFormData({
+              ...formData,
+              customer: e.value,
+            })
+
             if (e.value && typeof e.value !== 'string') {
-              setErrors((prev) => ({ ...prev, customer: '' }))
+              setErrors((prev) => ({
+                ...prev,
+                customer: '',
+              }))
             }
           }}
           field="CardName"
           dropdown
           virtualScrollerOptions={{ itemSize: 38 }}
-          disabled={!formData.salesPersonId}
+          // disabled={!formData.salesPersonId}
           error={errors.customer || undefined}
         />
 
@@ -196,8 +283,17 @@ const AddScheduleDialog = () => {
           value={formData.scheduleDate}
           minDate={minDate}
           onChange={(e) => {
-            setFormData({ ...formData, scheduleDate: e.value as Date })
-            if (errors.scheduleDate) setErrors({ ...errors, scheduleDate: '' })
+            setFormData({
+              ...formData,
+              scheduleDate: e.value as Date,
+            })
+
+            if (errors.scheduleDate) {
+              setErrors({
+                ...errors,
+                scheduleDate: '',
+              })
+            }
           }}
           showIcon
           required

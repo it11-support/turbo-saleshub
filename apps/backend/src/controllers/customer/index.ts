@@ -22,6 +22,7 @@ type CustomerListQuery = {
   slpCode?: number
   itemCount?: number
   isNewCustomer?: string | boolean
+  userId?: number
 }
 
 export type CustomerRequestType = {
@@ -72,6 +73,7 @@ export const customerList = async (
       slpCode,
       itemCount,
       isNewCustomer,
+      userId
     } = req.query as CustomerListQuery;
 
     const sortOptionsMapped = (): SortOption[] => {
@@ -137,6 +139,12 @@ export const customerList = async (
 
     if (slpCode) {
       query.SlpCode = Number(slpCode);
+    } else if (userId) {
+      query.potential_customers = {
+        some: {
+          user_id: BigInt(userId),
+        },
+      };
     }
 
     if (isNewCustomer) {
@@ -456,22 +464,18 @@ export const getSuggestedItems = async (
       include: { subgroup: true },
     });
 
-    if (!customer || !customer.subgroup) {
+    if (!customer) {
       return { groceries: [], distributor: [] };
     }
 
-    const subgroupCode = customer.subgroup.IndCode;
+    const subgroupCode = customer.subgroup?.IndCode;
 
     // 2. Ambil semua customer lain dalam subgroup
-    const subgroupCustomers = await prisma.customers.findMany({
-      where: { subgroup: { IndCode: subgroupCode } },
-      select: { id: true },
-    });
-
-    const subgroupCustomerIds = subgroupCustomers.map((c) => c.id);
-
-    if (subgroupCustomerIds.length === 0) {
-      return { groceries: [], distributor: [] };
+    if (subgroupCode) {
+      await prisma.customers.findMany({
+        where: { subgroup: { IndCode: subgroupCode } },
+        select: { id: true },
+      });
     }
 
     // 4. Ambil semua item yg pernah dibeli customer ini

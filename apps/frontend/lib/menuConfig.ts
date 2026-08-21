@@ -58,6 +58,12 @@ export const menuConfig: MenuSection[] = [
         type: 'action',
         commandKey: 'newCustomer',
       },
+      {
+        label: 'Potential Customers',
+        icon: 'pi pi-fw pi-briefcase',
+        to: '/customers/potential',
+        roles: ['admin'],
+      },
     ],
   },
 

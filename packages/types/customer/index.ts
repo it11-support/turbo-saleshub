@@ -83,10 +83,7 @@ export interface CustomerSummaryResponse {
 
 export interface CustomerSuggestionsResponse {
   message: string
-  data?: {
-    distributor: any[]
-    groceries: any[]
-  }
+  data?: SuggestedItemsGrouped
 }
 
 export interface PurchaseHistoryResponse {
@@ -139,6 +136,8 @@ export interface ICustomerState {
   subgroupOptions: { value: number; label: string }[]
   groupOptions: { value: string; label: string }[]
   slpCode: number | null
+  userNames: string[]
+  setUserNames: (userNames: string[]) => void
   setIsNewCustomer: (isNewCustomer: boolean) => void
   setNewCustomerForm: (form: INewCustomerForm) => void
   setSlpCode: (slpCode: number | null) => void

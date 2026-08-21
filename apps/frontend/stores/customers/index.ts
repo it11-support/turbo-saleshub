@@ -32,6 +32,8 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
   search: '',
   groupNames: [],
   subGroupNames: [],
+  userNames: [],
+  setUserNames: (userNames: string[]) => set({ userNames }),
   setSubGroupNames: (subGroupNames: string[]) => set({ subGroupNames }),
   salesPersonNames: [],
   setSalesPersonNames: (salesPersonNames: string[]) => set({ salesPersonNames }),
@@ -82,6 +84,7 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
           const userCookie = getCookie('userData')
           const userData = userCookie ? JSON.parse(String(userCookie)) : null
           const loginSlpCode = userData?.sales_person?.SlpCode
+          const isSalesWithoutSlp = userData?.roles?.role === 'sales' && !userData?.sales_person
 
           const {
             page,
@@ -112,7 +115,10 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
             ...(groups && groups.length > 0 ? { groups } : {}),
             ...(subgroups && subgroups.length > 0 ? { subgroups } : {}),
             ...(salesPersons && salesPersons.length > 0 ? { salesPersons } : {}),
-            ...(finalSlpCode ? { slpCode: finalSlpCode } : {}),
+            ...(finalSlpCode && !isSalesWithoutSlp ? { slpCode: finalSlpCode } : {}),
+            ...(isSalesWithoutSlp
+              ? { userId: userData?.id ? String(userData.id) : undefined }
+              : {}),
             ...(itemCount ? { itemCount } : {}),
             ...(loyaltyLevel ? { loyaltyLevel } : {}),
             ...(isNewCustomer ? { isNewCustomer } : {}),
@@ -163,7 +169,10 @@ export const useCustomerStore = create<ICustomerState>()((set, get) => ({
         async () => {
           const url = createUrl(`customers/${id}/suggestions`)
           const res = await $api<CustomerSuggestionsResponse>(url)
-          const suggestions: SuggestedItemsGrouped = res.data ?? { distributor: [], groceries: [] }
+          const suggestions: SuggestedItemsGrouped = res.data ?? {
+            distributor: [],
+            groceries: [],
+          }
           set({ suggestedItems: suggestions })
           return suggestions
         },

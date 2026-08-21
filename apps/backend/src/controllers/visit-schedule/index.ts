@@ -235,13 +235,26 @@ const weekdayMap: Record<string, number> = {
 
 const ANCHOR_MONDAY = startOfWeek(new Date('2025-01-01'), { weekStartsOn: 1 });
 
-export const getScheduleByDate = async (req: Request, res: Response) => {
+export const getScheduleByDate = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const salesPersonId = Number(req.query.salesPersonId);
+    let salesPersonId: number | null = req.query.salesPersonId
+      ? Number(req.query.salesPersonId)
+      : null
     const dateStr = req.query.date as string;
 
-    if (!salesPersonId || !dateStr) {
-      res.status(400).json({ message: 'salesPersonId and date are required' });
+    let userId: number | null = null
+    if (!salesPersonId && req.query.userId) {
+      userId = Number(req.query.userId)
+    } else if (!salesPersonId && req.user?.id) {
+      userId = Number(req.user.id)
+    }
+
+    if (!dateStr) {
+      res.status(200).json({
+        message: 'Success',
+        data: { data: [], total: 0, weekOfMonth: 0 },
+      });
+      return;
     }
 
     const date = dayjs(dateStr);
@@ -251,27 +264,47 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     if (date.day() === 0) {
       res.status(200).json({
         message: 'Sunday has no schedule',
-        data: { data: [], total: 0 },
+        data: { data: [], total: 0, weekOfMonth: 0 },
       });
+      return;
     }
 
     const weekOfMonth = getWeekOfMonth(date.toDate());
     const dayOfWeek = getDayOfWeekEnum(date.toDate());
     const cycleSlot = getCycleSlot(date.toDate());
 
+    const hasSalesPerson = salesPersonId !== null && salesPersonId !== undefined && !isNaN(salesPersonId)
+
+    // Get customer IDs from user_potential_customers if user has no sales_person
+    let potentialCustomerIds: number[] = []
+    if (!hasSalesPerson && userId) {
+      const potentialCustomers = await prisma.user_potential_customers.findMany({
+        where: { user_id: BigInt(userId) },
+        select: { customer_id: true },
+      })
+      potentialCustomerIds = potentialCustomers.map(pc => Number(pc.customer_id))
+    }
+
     // ================= RULES =================
-    const rules = await prisma.sales_visit_rules.findMany({
-      where: {
-        sales_person_id: salesPersonId,
-        day_of_week: dayOfWeek,
-        active: true,
-      },
-      include: {
-        customer: { include: { subgroup: true } },
-        salesPerson: true,
-      },
-      orderBy: { customer_id: 'asc' },
-    });
+    const rulesWhere: any = {
+      day_of_week: dayOfWeek,
+      active: true,
+    }
+
+    if (hasSalesPerson) {
+      rulesWhere.sales_person_id = Number(salesPersonId)
+    }
+
+    const rules = hasSalesPerson
+      ? await prisma.sales_visit_rules.findMany({
+          where: rulesWhere,
+          include: {
+            customer: { include: { subgroup: true } },
+            salesPerson: true,
+          },
+          orderBy: { customer_id: 'asc' },
+        })
+      : []
 
     const matchedRules = rules.filter(
       (r) => Array.isArray(r.visit_weeks) && r.visit_weeks.includes(cycleSlot)
@@ -281,12 +314,22 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     const monthStart = startOfMonth(date.toDate());
     const monthEnd = endOfMonth(date.toDate());
 
+    const visitsWhere: any = {
+      start_at: { gte: monthStart, lte: monthEnd },
+    }
+
+    if (hasSalesPerson) {
+      visitsWhere.sales_person_id = salesPersonId
+      visitsWhere.customer_id = { in: matchedRules.map((r) => r.customer_id) }
+    } else if (potentialCustomerIds.length > 0) {
+      visitsWhere.customer_id = { in: potentialCustomerIds }
+      visitsWhere.sales_person_id = null
+    } else {
+      visitsWhere.customer_id = { in: [] }
+    }
+
     const visitsInMonth = await prisma.visits.findMany({
-      where: {
-        sales_person_id: salesPersonId,
-        customer_id: { in: matchedRules.map((r) => r.customer_id) },
-        start_at: { gte: monthStart, lte: monthEnd },
-      },
+      where: visitsWhere,
       select: {
         id: true,
         customer_id: true,
@@ -349,7 +392,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
     // ================= MANUAL =================
     const manualSchedules = await prisma.visits.findMany({
       where: {
-        sales_person_id: salesPersonId,
+        ...(hasSalesPerson ? { sales_person_id: salesPersonId as number } : { sales_person_id: null }),
         visit_date: targetDateKey,
       },
       include: {
@@ -374,24 +417,26 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
       }));
 
     // ================= STATUS UPDATE =================
-    await prisma.visits.updateMany({
-      where: {
-        sales_person_id: salesPersonId,
-        start_at: { lt: limit.toDate() },
-        status: VisitStatus.Ongoing,
-      },
-      data: { status: VisitStatus.Missed },
-    });
+    if (hasSalesPerson) {
+      await prisma.visits.updateMany({
+        where: {
+          sales_person_id: salesPersonId,
+          start_at: { lt: limit.toDate() },
+          status: VisitStatus.Ongoing,
+        },
+        data: { status: VisitStatus.Missed },
+      });
 
-    await prisma.visits.updateMany({
-      where: {
-        sales_person_id: salesPersonId,
-        start_at: null,
-        status: VisitStatus.Planned,
-        visit_date: { lt: dayjs().format('YYYY-MM-DD') },
-      },
-      data: { status: VisitStatus.Missed },
-    });
+      await prisma.visits.updateMany({
+        where: {
+          sales_person_id: salesPersonId,
+          start_at: null,
+          status: VisitStatus.Planned,
+          visit_date: { lt: dayjs().format('YYYY-MM-DD') },
+        },
+        data: { status: VisitStatus.Missed },
+      });
+    }
 
     // ================= FILTER RULE DUPLICATE =================
     const getKey = (item: { customer_id: bigint; visit_date: string | null }) =>
@@ -407,7 +452,7 @@ export const getScheduleByDate = async (req: Request, res: Response) => {
         visit_item_concerns: {
           visit_items: {
             visit: {
-              sales_person_id: salesPersonId,
+              ...(hasSalesPerson ? { sales_person_id: salesPersonId as number } : { sales_person_id: null }),
             },
           },
           status: {
@@ -583,15 +628,15 @@ export const createVisitSchedule = async (req: AuthenticatedRequest, res: Respon
       },
       update: {},
       create: {
-        sales_person_id: Number(sales_person_id),
+        ...(sales_person_id ? { sales_person_id: Number(sales_person_id) } : {}),
         customer_id: Number(customer_id),
         visit_date: date,
         status: VisitStatus.Planned,
       },
       include: {
-        customer: true
-      }
-    });
+        customer: true,
+      },
+    })
 
     activityLogger({
       req,

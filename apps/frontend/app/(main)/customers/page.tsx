@@ -32,7 +32,8 @@ interface ICustomerMeta {
 
 const CustomerTable = () => {
   const isMobile = useIsMobile(768)
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
+  const isSalesWithoutSlp = user?.roles?.role === 'sales' && !user?.sales_person
   const router = useRouter()
   // Ambil setter dari store untuk metadata dropdown
   const { setGroupNames, setSalesPersonNames, setSubGroupNames } = useCustomerStore()
@@ -81,6 +82,7 @@ const CustomerTable = () => {
     ...(filters.loyaltyLevel.length > 0 ? { loyaltyLevel: filters.loyaltyLevel } : {}),
     ...(filters.itemCount > 0 ? { itemCount: filters.itemCount } : {}),
     ...(filters.isNewCustomer ? { isNewCustomer: filters.isNewCustomer } : {}),
+    ...(isSalesWithoutSlp ? { userId: user?.id ? String(user.id) : undefined } : {}),
   }
 
   const { data, isValidating } = useFetch<IResPaginated<ICustomer, ICustomerMeta>>(
