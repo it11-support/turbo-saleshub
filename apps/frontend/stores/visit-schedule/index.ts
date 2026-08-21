@@ -44,7 +44,7 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
       // error logged via withLoading onError
     }
   },
-  createVisitSchedule: async (data: Partial<IVisit>) => {
+  createVisitSchedule: async (data: Partial<IVisit>, userId?: number | string) => {
     try {
       return await withLoading(
         set,
@@ -53,17 +53,26 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
           const res = await $api<CreateScheduleResponse>(url, jsonBody(data))
 
           const date = new Date(data.visit_date as string)
+
+          const createdSalesPersonId = res.data?.sales_person_id
+            ? Number(res.data.sales_person_id)
+            : data.sales_person_id
+              ? Number(data.sales_person_id)
+              : null
+
           await get().fetchScheduleByDate(
-            Number(data.sales_person_id),
-            date.toISOString().slice(0, 10)
+            createdSalesPersonId,
+            date.toISOString().slice(0, 10),
+            userId
           )
 
           return res.data
         },
         console.error
       )
-    } catch {
-      return null
+    } catch (error) {
+      console.error('createVisitSchedule ERROR:', error)
+      throw error
     }
   },
   generateByRules: async (sales_person_id: number, year: number, month: number) => {
@@ -130,7 +139,11 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
       // error logged via withLoading onError
     }
   },
-  fetchScheduleByDate: async (sales_person_id: number, date: string) => {
+  fetchScheduleByDate: async (
+    sales_person_id: number | null,
+    date: string,
+    userId?: number | string
+  ) => {
     const { page, pageSize, currentDate } = get()
     const selectedDate = date ?? currentDate
 
@@ -139,11 +152,19 @@ export const useScheduleStore = create<ScheduleState>((set, get) => ({
         set,
         async () => {
           const payload: Record<string, any> = {
-            salesPersonId: sales_person_id,
             date: selectedDate,
             page,
             pageSize,
           }
+
+          if (sales_person_id) {
+            payload.salesPersonId = sales_person_id
+          }
+
+          if (userId) {
+            payload.userId = String(userId)
+          }
+
           const url = createUrl('schedule', payload)
 
           const res = await $api<ScheduleListResponse>(url)

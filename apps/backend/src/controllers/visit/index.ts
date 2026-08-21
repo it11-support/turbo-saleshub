@@ -316,7 +316,7 @@ export const followUpVisit = async (req: AuthenticatedRequest, res: Response) =>
       return follow_up;
     });
 
-    const userId = Number(result.visit_item_concerns.visit_items.visit.salesPerson.user?.id);
+    const userId = Number(result.visit_item_concerns.visit_items.visit.salesPerson?.user?.id);
     const salesPersonId = Number(result.visit_item_concerns.visit_items.visit.sales_person_id);
     const customerName = result.visit_item_concerns.visit_items.visit.customer.CardName;
     const productName = result.visit_item_concerns.visit_items.product.ItemName;

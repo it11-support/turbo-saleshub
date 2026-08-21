@@ -283,11 +283,8 @@ export const CustomerDetail = (props: Props) => {
                             </Panel>
                           </div>
                         ))}
-                      {items
-                        .filter((item) => item.Distributor !== 'Y')
-                        .map((item) => (
-                          <ProductCard key={item.ItemCode} item={item} />
-                        ))}
+                      {!isDistributor &&
+                        items.map((item) => <ProductCard key={item.ItemCode} item={item} />)}
                     </div>
                   </div>
                 </AccordionTab>

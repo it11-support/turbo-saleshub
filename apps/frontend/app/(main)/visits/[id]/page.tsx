@@ -36,6 +36,7 @@ import { ProgressSpinner } from 'primereact/progressspinner'
 import { memo, type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useFetch } from '@/hooks/useFetch'
+import { useAuth } from '@/layout/context/AuthContext'
 import { calculateDistance, getCurrentLocation } from '@/lib/geolocation'
 import { useSalesVisit, useScheduleStore } from '@/stores'
 import { useInquiryStore } from '@/stores/inquiry'
@@ -551,6 +552,9 @@ const InquiryItem = memo(function InquiryItem({
 })
 
 const VisitsPage = () => {
+  const { user } = useAuth()
+  const isUserWithoutSlp = !user?.sales_person
+
   const salesVisitStore = useSalesVisit()
   const {
     fetchSalesVisit,
@@ -775,10 +779,20 @@ const VisitsPage = () => {
     }
   }
 
-  const suggestedGroups = [
-    { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
-    { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
-  ] as const
+  const suggestedGroups = useMemo(
+    () =>
+      [
+        { key: 'distributor', label: 'Distributor', items: suggestedItems?.distributor ?? [] },
+        { key: 'groceries', label: 'Groceries', items: suggestedItems?.groceries ?? [] },
+      ] as const,
+    [suggestedItems]
+  )
+
+  useEffect(() => {
+    if (isUserWithoutSlp) {
+      setSuggestedGroup('distributor')
+    }
+  }, [isUserWithoutSlp])
 
   useEffect(() => {
     if (!suggestedGroup) {
@@ -787,7 +801,7 @@ const VisitsPage = () => {
     setActiveProductGroup(
       suggestedGroups.find((group) => group.key === suggestedGroup)?.items ?? []
     )
-  }, [suggestedGroup])
+  }, [suggestedGroup, suggestedGroups])
 
   const handleChangeSuggestedGroup = (value: string) => {
     setSuggestedGroup(value)
@@ -812,9 +826,22 @@ const VisitsPage = () => {
     }, {} as any)
   }, [visit_items])
 
+  const filteredActiveProductGroup = useMemo(() => {
+    if (isUserWithoutSlp) {
+      return activeProductGroup.filter((item) => {
+        const cat = item.ProductCategory?.toLowerCase() ?? ''
+        const name = item.ItemName?.toLowerCase() ?? ''
+        const isBeverage = cat === 'beverage'
+        const isMoninOrMilklab = name.includes('monin') || name.includes('milklab')
+        return isBeverage && isMoninOrMilklab
+      })
+    }
+    return activeProductGroup
+  }, [activeProductGroup, isUserWithoutSlp])
+
   const distributorCategories = useMemo(() => {
     if (!isDistributor) return []
-    return activeProductGroup.reduce(
+    return filteredActiveProductGroup.reduce(
       (acc, item) => {
         const categoryName = item.ProductCategory ?? ''
 
@@ -830,7 +857,7 @@ const VisitsPage = () => {
       },
       [] as { value: string; label: string }[]
     )
-  }, [isDistributor, activeProductGroup])
+  }, [isDistributor, filteredActiveProductGroup])
 
   const offeredProductIds = useMemo(
     () => new Set((visit_items ?? []).map((item) => item.product_id)),
@@ -840,12 +867,12 @@ const VisitsPage = () => {
   const filteredProducts = useMemo(
     () =>
       getFilteredProducts({
-        activeProductGroup,
+        activeProductGroup: filteredActiveProductGroup,
         offeredProductIds,
         selectedCategories,
         keyword: debouncedSearch,
       }),
-    [activeProductGroup, offeredProductIds, selectedCategories, debouncedSearch]
+    [filteredActiveProductGroup, offeredProductIds, selectedCategories, debouncedSearch]
   )
 
   useEffect(() => {
@@ -860,7 +887,7 @@ const VisitsPage = () => {
 
     const matchedCategories = Array.from(
       new Set(
-        activeProductGroup
+        filteredActiveProductGroup
           .filter((item) => item.ItemName?.toLowerCase().includes(keyword))
           .map((item) => item.ProductCategory ?? '')
           .filter(Boolean)
@@ -868,7 +895,7 @@ const VisitsPage = () => {
     )
 
     setSelectedCategories(matchedCategories)
-  }, [debouncedSearch, isDistributor, activeProductGroup])
+  }, [debouncedSearch, isDistributor, filteredActiveProductGroup])
 
   const { distributor: offeredDistributor, groceries: offeredGroceries } = groupVisitItems(
     salesVisit.visit_items ?? []
@@ -954,23 +981,25 @@ const VisitsPage = () => {
             <div className="col-12 xl:col-6 md:col-6">
               <h5>Product Offer</h5>
             </div>
-            <div className="col-12 xl:col-6 md:col-6">
-              <div className="">
-                <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
-                  Item Group
-                </label>
-                <Dropdown
-                  id={`itemGroup-${salesVisit.id}`}
-                  options={suggestedGroups.map((group) => {
-                    return { label: group.key.toUpperCase(), value: group.key }
-                  })}
-                  value={suggestedGroup}
-                  onChange={(e) => handleChangeSuggestedGroup(e.value)}
-                  placeholder="Item Group"
-                  className="w-full"
-                />
+            {!isUserWithoutSlp && (
+              <div className="col-12 xl:col-6 md:col-6">
+                <div className="">
+                  <label htmlFor={`itemGroup-${salesVisit.id}`} className="block mb-2">
+                    Item Group
+                  </label>
+                  <Dropdown
+                    id={`itemGroup-${salesVisit.id}`}
+                    options={suggestedGroups.map((group) => {
+                      return { label: group.key.toUpperCase(), value: group.key }
+                    })}
+                    value={suggestedGroup}
+                    onChange={(e) => handleChangeSuggestedGroup(e.value)}
+                    placeholder="Item Group"
+                    className="w-full"
+                  />
+                </div>
               </div>
-            </div>
+            )}
             {suggestedGroup && (
               <div className="col-12 xl:col-6 md:col-6 mb-2">
                 <label htmlFor={`search-${salesVisit.id}`} className="block mb-2">

@@ -57,7 +57,7 @@ export interface GenerateResult {
 export interface ScheduleState {
   currentDate: string
   setCurrentDate: (date: string) => void
-  fetchScheduleByDate: (sales_person_id: number, date: string) => Promise<void>
+  fetchScheduleByDate: (sales_person_id: number | null, date: string, userId?: number | string) => Promise<void>
   schedules: VisitSchedule[]
   loading: boolean
   error: string | null
@@ -73,7 +73,7 @@ export interface ScheduleState {
   generateByRules: (sales_person_id: number, year: number, month: number) => Promise<GenerateResult>
   updateStatus: (id: number, status: string) => Promise<void>
   deleteSchedule: (id: number) => Promise<void>
-  createVisitSchedule: (payload: Partial<IVisit>) => Promise<IVisit | null>
+  createVisitSchedule: (payload: Partial<IVisit>, userId?: number | string) => Promise<IVisit | null>
 }
 
 export interface ScheduleListResponse {

@@ -84,81 +84,73 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
     }
   },
   syncOfferedItems: async (data: IVisitDetails) => {
-    try {
-      await withLoading(
-        set,
-        async () => {
-          const payload = {
-            visit_items: Object.entries(data).flatMap(([productId, categories]) => ({
-              product_id: Number(productId),
-              visitNote: get().visitNote,
-              concerns: Object.entries(
-                categories as Record<string, { notes: string; statusId: number }>
-              ).map(([categoryId, detail]) => ({
-                concern_id: Number(categoryId),
-                note: detail.notes,
-                status_id: detail.statusId,
-              })),
+    await withLoading(
+      set,
+      async () => {
+        const payload = {
+          visit_items: Object.entries(data).flatMap(([productId, categories]) => ({
+            product_id: Number(productId),
+            visitNote: get().visitNote,
+            concerns: Object.entries(
+              categories as Record<string, { notes: string; statusId: number }>
+            ).map(([categoryId, detail]) => ({
+              concern_id: Number(categoryId),
+              note: detail.notes,
+              status_id: detail.statusId,
             })),
-          }
+          })),
+        }
 
-          const url = createUrl(`visit/${get().salesVisit.id}`)
-          const res = await $api<VisitResponse>(url, jsonBody(payload))
-          const offeredItems =
-            res.data?.visit_items?.map((item) => ({
-              product_id: item.product_id,
-              offered: Boolean(item.offered),
-              notes: item.notes || '',
-            })) || []
+        const url = createUrl(`visit/${get().salesVisit.id}`)
+        const res = await $api<VisitResponse>(url, jsonBody(payload))
+        const offeredItems =
+          res.data?.visit_items?.map((item) => ({
+            product_id: item.product_id,
+            offered: Boolean(item.offered),
+            notes: item.notes || '',
+          })) || []
 
-          set({ offeredItems })
-        },
-        console.error
-      )
-    } catch {
-      // error logged via withLoading onError
-    }
+        set({ offeredItems })
+      },
+      console.error
+    )
   },
   processItems: async (
     data: Record<number, { notes: string; statusId: number | null }>,
     productIds: number[]
   ) => {
-    try {
-      await withLoading(
-        set,
-        async () => {
-          const payload = {
-            visit_items: [
-              {
-                product_ids: productIds,
-                visitNote: get().visitNote,
-                concerns: Object.entries(data).map(([concernId, detail]) => ({
-                  concernId: Number(concernId),
-                  notes: detail.notes,
-                  statusId: detail.statusId,
-                })),
-              },
-            ],
-          }
+    await withLoading(
+      set,
+      async () => {
+        const payload = {
+          visit_items: [
+            {
+              product_ids: productIds,
+              visitNote: get().visitNote,
+              concerns: Object.entries(data).map(([concernId, detail]) => ({
+                concernId: Number(concernId),
+                notes: detail.notes,
+                statusId: detail.statusId,
+              })),
+            },
+          ],
+        }
 
-          const url = createUrl(`visit/${get().salesVisit.id}/close-items`)
+        const url = createUrl(`visit/${get().salesVisit.id}/close-items`)
 
-          const res = await $api<VisitResponse>(url, jsonBody(payload))
+        const res = await $api<VisitResponse>(url, jsonBody(payload))
 
-          const offeredItems =
-            res.data?.visit_items?.map((item) => ({
-              product_id: item.product_id,
-              offered: Boolean(item.offered),
-              notes: item.notes || '',
-            })) || []
+        const offeredItems =
+          res.data?.visit_items?.map((item) => ({
+            product_id: item.product_id,
+            offered: Boolean(item.offered),
+            notes: item.notes || '',
+          })) || []
 
-          set({ offeredItems })
-        },
-        console.error
-      )
-    } catch {
-      // error logged via withLoading onError
-    }
+        set({ offeredItems })
+      },
+      console.error
+    )
   },
   endVisit: async () => {
     try {
@@ -221,7 +213,7 @@ export const useSalesVisit = create<IVisitState>()((set, get) => ({
               'POST'
             )
           )
-          fetchSalesVisit(visitId)
+          await fetchSalesVisit(visitId)
         },
         console.error
       )

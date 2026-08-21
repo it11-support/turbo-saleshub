@@ -8,7 +8,7 @@ type BaseDialogProps = Omit<DialogProps, 'children'> & {
   footer?: React.ReactNode
   showFooter?: boolean
   onCancel?: () => void
-  onConfirm?: () => void
+  onConfirm?: () => void | Promise<void>
   confirmLabel?: string
   cancelLabel?: string
   confirmIcon?: string
@@ -39,6 +39,25 @@ const BaseDialog = ({
   onHide,
   ...dialogProps
 }: BaseDialogProps) => {
+  const [internalLoading, setInternalLoading] = React.useState(false)
+
+  const isAsync = onConfirm && (onConfirm as any).constructor.name === 'AsyncFunction'
+  const isLoading = loading || (isAsync ? internalLoading : false)
+
+  const handleConfirm = async () => {
+    if (!onConfirm) return
+    if (isAsync) {
+      setInternalLoading(true)
+      try {
+        await onConfirm()
+      } finally {
+        setInternalLoading(false)
+      }
+    } else {
+      onConfirm()
+    }
+  }
+
   const defaultFooter = (
     <div className="flex justify-end">
       <Button
@@ -55,10 +74,11 @@ const BaseDialog = ({
         icon={confirmIcon}
         severity={confirmSeverity}
         className="btn btn-primary mr-2"
-        onClick={onConfirm}
+        onClick={handleConfirm}
         label={confirmLabel}
         type="button"
-        disabled={loading}
+        disabled={isLoading}
+        loading={isLoading}
       />
     </div>
   )

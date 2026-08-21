@@ -38,6 +38,7 @@ const VisitSchedules = () => {
   const authStore = useAuth()
 
   const { isAdmin, user } = authStore
+  const isSalesWithoutSlp = user?.roles?.role === 'sales' && !user?.sales_person
   const currentSalesPersonId = isAdmin ? null : user?.sales_person?.id
   const [filters, setFilters] = useQueryStates(
     {
@@ -59,14 +60,15 @@ const VisitSchedules = () => {
     page: filters.page,
     pageSize: filters.limit,
     date: filters.date,
-    salesPersonId: filters.salesPersonId,
+    ...(filters.salesPersonId ? { salesPersonId: filters.salesPersonId } : {}),
+    ...(isSalesWithoutSlp && user?.id ? { userId: String(user.id) } : {}),
   }
 
   const { data: scheduleData } = useFetch<IResObject<VisitScheduleData['data']>>(
     'schedule',
     payload,
     {
-      enabled: !!filters.salesPersonId,
+      enabled: !!filters.salesPersonId || isSalesWithoutSlp,
     }
   )
 
@@ -99,7 +101,9 @@ const VisitSchedules = () => {
     }
 
     const prefetchUrl = createUrl('schedule', newPayload)
-    preload(prefetchUrl, fetcher)
+    preload(prefetchUrl, fetcher).catch((e) => {
+      console.error('Prefetch failed:', e)
+    })
 
     setFilters({ date: newDate })
   }
@@ -123,7 +127,7 @@ const VisitSchedules = () => {
   }
 
   const handleHoverButton = (dateStr: string) => {
-    if (!filters.salesPersonId) return
+    if (!filters.salesPersonId && !isSalesWithoutSlp) return
 
     const fetchDate = formatScheduleDate(dateStr)
     const prefetchPayload = {
@@ -131,7 +135,9 @@ const VisitSchedules = () => {
       date: fetchDate,
     }
     const prefetchUrl = createUrl('schedule', prefetchPayload)
-    preload(prefetchUrl, fetcher)
+    preload(prefetchUrl, fetcher).catch((e) => {
+      console.error('Prefetch failed:', e)
+    })
   }
   const completedSchedule = schedules.filter(
     (x) => x.status.toLowerCase() === VisitStatus.Completed.toLowerCase()
@@ -147,15 +153,18 @@ const VisitSchedules = () => {
   )
 
   const onDateCellHover = (dateObj: { day: number; month: number; year: number }) => {
-    if (!filters.salesPersonId) return
+    if (!filters.salesPersonId && !isSalesWithoutSlp) return
 
     const hoveredDate = new Date(dateObj.year, dateObj.month, dateObj.day)
 
     const formattedDate = hoveredDate.toLocaleDateString('en-CA')
 
     const prefetchPayload = {
-      ...filters,
+      page: filters.page,
+      pageSize: filters.limit,
       date: formattedDate,
+      ...(filters.salesPersonId ? { salesPersonId: filters.salesPersonId } : {}),
+      ...(isSalesWithoutSlp && user?.id ? { userId: String(user.id) } : {}),
     }
     const prefetchUrl = createUrl('schedule', prefetchPayload)
 
