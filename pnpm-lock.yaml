@@ -91,8 +91,8 @@ importers:
         specifier: ^0.577.0
         version: 0.577.0(react@19.2.8)
       mariadb:
-        specifier: ^3.5.3
-        version: 3.5.3
+        specifier: ^3.5.4
+        version: 3.5.4
       moment:
         specifier: ^2.30.1
         version: 2.30.1
@@ -3839,8 +3839,8 @@ packages:
     resolution: {integrity: sha512-gThTYkhIS5rRqkVr+Y0cIdzr+GRqJ9sA2Q34e0yzmyhMCwyApf3OKAC1jnF23aSlIOqJuyaUFUcj7O1qZslmmQ==}
     engines: {node: '>= 14'}
 
-  mariadb@3.5.3:
-    resolution: {integrity: sha512-i053Kc0MgdUv/hu9mCyq67TYfPXFj3/MV8I7ZW5wvJNixIyXC0VztMPUjIVj/449nQo+BsxFD4Fdk/sA/uqKPQ==}
+  mariadb@3.5.4:
+    resolution: {integrity: sha512-3m0vdfgRkjle5/9hHl4R7rlVvnDA7QfuFSNkdIAQNROWKOS0J3b9IQK9HaZSCGEVKiDUbFXFiINfC+cmR5P/aA==}
     engines: {node: '>= 20.0.0'}
 
   math-intrinsics@1.1.0:
@@ -8659,7 +8659,7 @@ snapshots:
       iconv-lite: 0.6.3
       lru-cache: 10.4.3
 
-  mariadb@3.5.3:
+  mariadb@3.5.4:
     dependencies:
       '@types/geojson': 7946.0.16
       '@types/node': 25.9.5
