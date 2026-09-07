@@ -37,6 +37,6 @@
     "eslint": "10.9.1",
     "eslint-config-next": "^16.3.3",
     "prettier": "^3.9.6",
-    "sass": "^1.103.1"
+    "sass": "^1.104.0"
   }
 }
