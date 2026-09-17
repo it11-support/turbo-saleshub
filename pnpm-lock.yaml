@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@types/scheduler': 0.26.0
+  '@types/scheduler': 0.28.0
   pm2>js-yaml: latest
 
 importers:
@@ -164,8 +164,8 @@ importers:
         specifier: ^1.16.3
         version: 1.16.3
       '@types/scheduler':
-        specifier: 0.26.0
-        version: 0.26.0
+        specifier: 0.28.0
+        version: 0.28.0
       eslint:
         specifier: 10.10.0
         version: 10.10.0(jiti@2.7.0)
@@ -188,8 +188,8 @@ importers:
         specifier: ^17.12.0
         version: 17.12.0
       scheduler:
-        specifier: ^0.27.0
-        version: 0.27.0
+        specifier: ^0.28.0
+        version: 0.28.0
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.9.5)(typescript@5.9.3)
@@ -1854,8 +1854,8 @@ packages:
   '@types/react@19.3.0':
     resolution: {integrity: sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==}
 
-  '@types/scheduler@0.26.0':
-    resolution: {integrity: sha512-WFHp9YUJQ6CKshqoC37iOlHnQSmxNc795UhB26CyBBttrN9svdIrUjl/NjnNmfcwtncN0h/0PPAFWv9ovP8mLA==}
+  '@types/scheduler@0.28.0':
+    resolution: {integrity: sha512-WuK7EQ0YBvNbYwanHo+x3kixrg10+7Ak4rmYmy1dYo3l4FCh0XWeoq/SdqQamKA5wShXse8WRhh0Tt1czTAuTQ==}
 
   '@types/send@1.2.1':
     resolution: {integrity: sha512-arsCikDvlU99zl1g69TcAB3mzZPpxgw0UQnaHeC1Nwb015xp8bknZv5rIfri9xTOcMuaVgvabfIRA7PSZVuZIQ==}
@@ -3501,8 +3501,8 @@ packages:
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
-  js-yaml@5.4.1:
-    resolution: {integrity: sha512-28R/k+NAjeuf7+CKlTxWZVExJGwVVLwY06DgEnOMz2gEpfNkDcD7QvyiVPT0xy0XXhU8vHsd4Ot42OOPdJG7dQ==}
+  js-yaml@5.4.2:
+    resolution: {integrity: sha512-m+aqu+LwO1O6sIopafj8HUVl5aawITwZQe/yHpMCKjaWBaA/d07B/QdMb3529REftiU+RMMHL3Vlsw3hON7vWg==}
     hasBin: true
 
   jsesc@3.1.0:
@@ -4275,9 +4275,6 @@ packages:
     resolution: {integrity: sha512-btHMApW2bgolvClhRW8AlQJzgI9lUB3pPSofBQQT+E46GWvf9o0TVQ13SYv5riWZVFyPN+JNz3TKW9XhBlc10w==}
     engines: {node: '>=20.19.0'}
     hasBin: true
-
-  scheduler@0.27.0:
-    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
   scheduler@0.28.0:
     resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
@@ -6052,7 +6049,7 @@ snapshots:
     dependencies:
       csstype: 3.2.3
 
-  '@types/scheduler@0.26.0': {}
+  '@types/scheduler@0.28.0': {}
 
   '@types/send@1.2.1':
     dependencies:
@@ -8096,7 +8093,7 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  js-yaml@5.4.1:
+  js-yaml@5.4.2:
     dependencies:
       argparse: 2.0.1
 
@@ -8544,7 +8541,7 @@ snapshots:
       debug: 4.4.3
       eventemitter2: 6.4.9
       fast-json-patch: 3.1.1
-      js-yaml: 5.4.1
+      js-yaml: 5.4.2
       pidusage: 4.0.1
       pm2-deploy: 1.0.2
       proxy-agent: 6.5.0
@@ -8911,8 +8908,6 @@ snapshots:
       source-map-js: 1.2.1
     optionalDependencies:
       '@parcel/watcher': 2.6.0
-
-  scheduler@0.27.0: {}
 
   scheduler@0.28.0: {}
 
