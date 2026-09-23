@@ -41,6 +41,8 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             SOCKET_IO_CLIENT_URL=${{ secrets.SOCKET_IO_CLIENT_URL }}
             CLIENT_URL=${{ secrets.CLIENT_URL }}
+            REDIS_HOST=127.0.0.1
+            REDIS_PORT=6379
             TZ=Asia/Makassar
             NODE_ENV=production
             PORT=4000

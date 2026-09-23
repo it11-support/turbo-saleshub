@@ -9,6 +9,7 @@ import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
 import { customersWhereInput, productsGetPayload } from '@/generated/prisma/models.js';
 import { Decimal } from '@prisma/client/runtime/client';
+import { cacheGet, cacheSet } from '@/libs/cache.js';
 
 type CustomerListQuery = {
   search?: string
@@ -24,6 +25,11 @@ type CustomerListQuery = {
   isNewCustomer?: string | boolean
   userId?: number
 }
+
+type SuggestedItemsResult = {
+  groceries: SuggestedProduct[];
+  distributor: SuggestedProduct[];
+};
 
 export type CustomerRequestType = {
   active?: string[];
@@ -455,113 +461,205 @@ type SuggestedProduct = productsGetPayload<{
 export const getSuggestedItems = async (
   id: number,
   includeRecentOffered: boolean = false
-): Promise<{ groceries: SuggestedProduct[], distributor: SuggestedProduct[] }> => {
+): Promise<SuggestedItemsResult> => {
   try {
+    const cacheKey =
+      `saleshub:suggested-items:${id}:${includeRecentOffered ? 'with-recent' : 'without-recent'}`;
 
-    // 1. Ambil customer + subgroup
+    // =============================
+    // CACHE
+    // =============================
+    const cached = await cacheGet<SuggestedItemsResult>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    // =============================
+    // CUSTOMER
+    // =============================
+    // Hanya untuk memastikan customer ada.
+    // Subgroup tidak digunakan langsung di function ini.
     const customer = await prisma.customers.findUnique({
       where: { id },
-      include: { subgroup: true },
+      select: { id: true },
     });
 
     if (!customer) {
-      return { groceries: [], distributor: [] };
+      return {
+        groceries: [],
+        distributor: [],
+      };
     }
 
-    const subgroupCode = customer.subgroup?.IndCode;
-
-    // 2. Ambil semua customer lain dalam subgroup
-    if (subgroupCode) {
-      await prisma.customers.findMany({
-        where: { subgroup: { IndCode: subgroupCode } },
-        select: { id: true },
-      });
-    }
-
-    // 4. Ambil semua item yg pernah dibeli customer ini
+    // =============================
+    // CUSTOMER PURCHASE HISTORY
+    // =============================
     const customerItems = await prisma.sales_invoices.findMany({
-      where: { customer: { id } },
+      where: {
+        customer: { id },
+      },
       distinct: ['ItemCode'],
-      select: { ItemCode: true },
+      select: {
+        ItemCode: true,
+      },
     });
 
     const boughtSet = new Set(
-      customerItems.map((i) => i.ItemCode).filter((code): code is string => code !== null)
+      customerItems
+        .map((item) => item.ItemCode)
+        .filter(
+          (code): code is string =>
+            code !== null
+        )
     );
 
-    // 7. Filter item yang telah ditawarkan dalam 30 hari
+    // =============================
+    // RECENT OFFERED PRODUCTS
+    // =============================
     const recentVisitItems = await prisma.visit_items.findMany({
       where: {
         offered: true,
+
         OR: [
-          // Exclude done item
           {
             visit_item_concerns: {
               some: {
                 status: {
-                  requires_action: false
-                }
-              }
-            }
+                  requires_action: false,
+                },
+              },
+            },
           },
           {
-            // KONDISI 2: Status 'Closed' - exclude jika < 30 hari
             created_at: {
-              gte: dayjs().subtract(30, 'days').toDate(),
+              gte: dayjs()
+                .subtract(30, 'days')
+                .toDate(),
             },
+
             visit_item_concerns: {
               some: {
-                status: { requires_action: false }
-              }
-            }
-          }
+                status: {
+                  requires_action: false,
+                },
+              },
+            },
+          },
         ],
+
         visit: {
           customer_id: id,
         },
       },
+
       select: {
         product_id: true,
       },
     });
 
-    const recentProductIds = new Set(recentVisitItems.map((item) => Number(item.product_id)));
+    const recentProductIds = new Set(
+      recentVisitItems.map(
+        (item) => Number(item.product_id)
+      )
+    );
 
-    const distributorProducts = await prisma.products.findMany({
-      where: { Distributor: 'Y' },
-      include: { product_developments: true },
-    });
+    // =============================
+    // DISTRIBUTOR PRODUCTS
+    // =============================
+    const distributorProducts =
+      await prisma.products.findMany({
+        where: {
+          Distributor: 'Y',
+        },
 
-    // Distributor group: ambil semua distributor, exclude jika sudah pernah dibeli
-    let distributorItems = distributorProducts
-      .map((p) => ({
-        ...p,
-        isDevelopment: (p.product_developments?.length ?? 0) > 0,
-      }))
-      .filter((p) => !boughtSet.has(p.ItemCode))
-      .sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
+        include: {
+          product_developments: true,
+        },
+      });
 
-    const pareto = await getParetoProducts(id);
+    let distributorItems: SuggestedProduct[] =
+      distributorProducts
+        .map((product) => ({
+          ...product,
 
+          isDevelopment:
+            product.product_developments.length > 0,
+        }))
+        .filter(
+          (product) =>
+            !boughtSet.has(product.ItemCode)
+        )
+        .sort(
+          (a, b) =>
+            Number(b.isDevelopment) -
+            Number(a.isDevelopment)
+        );
 
-    let paretoProduct = pareto.sort((a, b) => Number(b.isDevelopment) - Number(a.isDevelopment));
+    // =============================
+    // GROCERY / PARETO
+    // =============================
+    const pareto =
+      await getParetoProducts(id);
 
+    // Copy array sebelum sort.
+    // Jangan mutate result dari getParetoProducts.
+    let paretoProduct = [...pareto].sort(
+      (a, b) =>
+        Number(b.isDevelopment) -
+        Number(a.isDevelopment)
+    );
+
+    // =============================
+    // FILTER RECENT OFFERED
+    // =============================
     if (!includeRecentOffered) {
-      distributorItems = distributorItems.filter((p) => !recentProductIds.has(Number(p.id)));
-      paretoProduct = pareto.filter((p) => !recentProductIds.has(Number(p.id)));
+      distributorItems =
+        distributorItems.filter(
+          (product) =>
+            !recentProductIds.has(
+              Number(product.id)
+            )
+        );
+
+      paretoProduct =
+        paretoProduct.filter(
+          (product) =>
+            !recentProductIds.has(
+              Number(product.id)
+            )
+        );
     }
 
-    const result = {
+    // =============================
+    // RESULT
+    // =============================
+    const result: SuggestedItemsResult = {
       distributor: distributorItems,
       groceries: paretoProduct,
     };
 
+    // Cache 15 menit
+    await cacheSet(
+      cacheKey,
+      result,
+      900
+    );
+
     return result;
+
   } catch (err) {
-    console.error('getSuggestedItems error:', err);
-    return { groceries: [], distributor: [] };
+    console.error(
+      'getSuggestedItems error:',
+      err
+    );
+
+    return {
+      groceries: [],
+      distributor: [],
+    };
   }
-};
+}
 
 export const fetchSubgroups = async (req: Request, res: Response) => {
   try {

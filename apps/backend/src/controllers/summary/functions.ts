@@ -1,13 +1,30 @@
 
 
 import { Prisma } from '@/generated/prisma/client.js'
+import { cacheGet, cacheSet } from '@/libs/cache.js'
 import prisma from '@/libs/prisma.js'
 import { calcGrowth } from '@/utils/statsFunctions.js'
 import { BaseCustomerRow, CustomerSummaryRow, MonthlyTrendRow, RevenueByAccountCategoryMonthlyRow, RevenueByAccountCategoryYearlyRow, RevenueByCategory, RevenueCategoryRow, SalesSummaryRow, SummaryResult, YearlyTrendRow } from '@saleshub-tsm/types'
 import dayjs from 'dayjs'
 
+const CACHE_TTL = 3600;
 
 export const getSalesSummary = async (salesPersonId?: number | null) => {
+  const cacheKey = `saleshub:summary:sales:${salesPersonId ?? 'all'}`
+
+
+  const cached = await cacheGet<{
+    mtd: SummaryResult
+    ytd: SummaryResult
+  }>(cacheKey)
+
+  if (cached) {
+    console.log(`[CACHE HIT] ${cacheKey}`);
+    return cached;
+  }
+
+  console.log(`[CACHE MISS] ${cacheKey}`);
+
   const [mtd, ytd] = await Promise.all([
     prisma.$queryRaw<SalesSummaryRow[]>`
       SELECT
@@ -114,10 +131,18 @@ export const getSalesSummary = async (salesPersonId?: number | null) => {
     }
   }
 
-  return {
+  const result = {
     mtd: mapResult(mtd[0]),
-    ytd: mapResult(ytd[0])
-  }
+    ytd: mapResult(ytd[0]),
+  };
+
+  await cacheSet(
+    cacheKey,
+    result,
+    CACHE_TTL
+  );
+
+  return result
 }
 
 
@@ -125,6 +150,17 @@ export const getNooVsExisting = async (
   salesPersonId: number | null,
   period: number,
 ) => {
+  const cacheKey =
+    `saleshub:summary:noo-vs-existing:${salesPersonId ?? 'all'}:${period}`;
+  const cached = await cacheGet<{
+    newCustomer: number;
+    existingCustomer: number;
+  }>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
   const start = dayjs()
     .startOf('month')
     .subtract(period - 1, 'month')
@@ -176,15 +212,45 @@ export const getNooVsExisting = async (
       AND qi.DocDate < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
   `
 
-  return {
-    newCustomer: Number(result[0].new_customer),
-    existingCustomer: Number(result[0].existing_customer),
-  }
+  const data = {
+    newCustomer: Number(result[0]?.new_customer ?? 0),
+    existingCustomer: Number(result[0]?.existing_customer ?? 0),
+  };
+
+  // 3. Simpan data ke cache
+  await cacheSet(cacheKey, data, CACHE_TTL);
+
+  return data;
 }
 
-export const getActiveCustomers = async (salesPersonId: number | null) => {
+export const getActiveCustomers = async (
+  salesPersonId: number | null
+) => {
+  const cacheKey =
+    `saleshub:summary:active-customers:${salesPersonId ?? 'all'}`;
+
+  // 1. Cek Redis terlebih dahulu
+  const cached = await cacheGet<{
+    baseCustomer: {
+      total: number;
+    };
+    activeThisMonth: {
+      total: number;
+      penetration: number;
+    };
+    nonActive: {
+      total: number;
+      customers: BaseCustomerRow[];
+    };
+  }>(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  // 2. Cache MISS -> jalankan query existing
   const [baseRows, activeRows] = await Promise.all([
-    // Query Base: Customer yang pernah transaksi Jan 2025 - Bulan lalu
+    // Query Base: Customer yang pernah transaksi 12 bulan sebelumnya
     prisma.$queryRaw<BaseCustomerRow[]>`
       SELECT
         c.id,
@@ -198,7 +264,7 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
         c.SlpCode,
         MAX(v.date) as lastTransactionDate,
         SUM(v.revenue) / 12 AS avgRevenuePerMonth,
-        Max(i.totalItems) AS totalItems
+        MAX(i.totalItems) AS totalItems
 
       FROM daily_sales_summary_view v
 
@@ -213,61 +279,137 @@ export const getActiveCustomers = async (salesPersonId: number | null) => {
           CardCode,
           COUNT(DISTINCT ItemCode) AS totalItems
         FROM customer_item_monthly_raw
-        WHERE month >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
+        WHERE month >= DATE_SUB(
+          DATE_FORMAT(CURDATE(), '%Y-%m-01'),
+          INTERVAL 12 MONTH
+        )
           AND month < DATE_FORMAT(CURDATE(), '%Y-%m-01')
         GROUP BY CardCode
       ) i
         ON i.CardCode = v.CardCode
 
-      WHERE v.date >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 12 MONTH)
+      WHERE v.date >= DATE_SUB(
+        DATE_FORMAT(CURDATE(), '%Y-%m-01'),
+        INTERVAL 12 MONTH
+      )
         AND v.date < DATE_FORMAT(CURDATE(), '%Y-%m-01')
-        AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
-        AND (sp.SlpName IS NULL OR sp.SlpName NOT IN ('Langganan Kantor', 'Kontan Kantor'))
+        AND (
+          ${salesPersonId} IS NULL
+          OR v.sales_person_id = ${salesPersonId}
+        )
+        AND (
+          sp.SlpName IS NULL
+          OR sp.SlpName NOT IN (
+            'Langganan Kantor',
+            'Kontan Kantor'
+          )
+        )
 
       GROUP BY v.CardCode
     `,
+
     // Query Active: Customer yang transaksi bulan ini (MTD)
     prisma.$queryRaw<{ CardCode: string }[]>`
-      SELECT v.CardCode
+      SELECT
+        v.CardCode
       FROM daily_sales_summary_view v
+
       LEFT JOIN sales_persons sp
         ON v.sales_person_id = sp.id
+
       WHERE v.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
         AND v.date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-        AND (${salesPersonId} IS NULL OR v.sales_person_id = ${salesPersonId})
-        AND (sp.SlpName IS NULL OR sp.SlpName NOT IN ('Langganan Kantor', 'Kontan Kantor'))
+        AND (
+          ${salesPersonId} IS NULL
+          OR v.sales_person_id = ${salesPersonId}
+        )
+        AND (
+          sp.SlpName IS NULL
+          OR sp.SlpName NOT IN (
+            'Langganan Kantor',
+            'Kontan Kantor'
+          )
+        )
+
       GROUP BY v.CardCode
     `
   ]);
 
-  // 1. Ambil set CardCode yang sudah aktif bulan ini untuk komparasi cepat
-  const activeSet = new Set(activeRows.map(r => r.CardCode));
+  const activeSet = new Set(
+    activeRows.map((r) => r.CardCode)
+  );
 
-  // 2. Filter Non-Active: Ada di baseRows tapi TIDAK ADA di activeSet
-  const nonActiveCustomers = baseRows.filter(customer => !activeSet.has(customer.CardCode));
+  const nonActiveCustomers = baseRows.filter(
+    (customer) =>
+      !activeSet.has(customer.CardCode)
+  );
 
   const baseTotal = baseRows.length;
   const activeTotal = activeRows.length;
-  const penetration = baseTotal > 0 ? (activeTotal / baseTotal) * 100 : 0;
 
-  return {
+  const penetration =
+    baseTotal > 0
+      ? (activeTotal / baseTotal) * 100
+      : 0;
+
+  const result = {
     baseCustomer: {
       total: baseTotal,
     },
+
     activeThisMonth: {
       total: activeTotal,
       penetration,
     },
+
     nonActive: {
       total: nonActiveCustomers.length,
       customers: nonActiveCustomers,
-    }
+    },
   };
+
+  // 3. Simpan hasil ke Redis selama 5 menit
+  await cacheSet(
+    cacheKey,
+    result,
+    CACHE_TTL
+  );
+
+  return result;
 };
 
+export const getCustomerTrend = async (
+  salesPersonId: number | null
+) => {
+  const cacheKey =
+    `saleshub:summary:customer-trend:${salesPersonId ?? 'all'}`;
 
-export const getCustomerTrend = async (salesPersonId: number | null) => {
+  // 1. Cek Redis
+  const cached = await cacheGet<{
+    yearly: Record<
+      number,
+      {
+        noo: number;
+        existing: number;
+      }
+    >;
+    monthly: Record<
+      number,
+      Record<
+        number,
+        {
+          noo: number;
+          existing: number;
+        }
+      >
+    >;
+  }>(cacheKey);
 
+  if (cached) {
+    return cached;
+  }
+
+  // 2. Cache MISS -> query database
   const customerTrendBase = Prisma.sql`
     WITH RECURSIVE all_invoices AS (
       SELECT s.CardCode, s.DocDate
@@ -287,28 +429,33 @@ export const getCustomerTrend = async (salesPersonId: number | null) => {
       SELECT s.CardCode, s.DocNum, s.DocDate
       FROM sales_invoices s
       LEFT JOIN retur_invoices r
-        ON r.DocNum = s.DocNum AND r.LineNum = s.LineNum
-      LEFT JOIN customers c ON c.CardCode = s.CardCode
-      LEFT JOIN sales_persons sp ON sp.SlpCode = c.SlpCode
+        ON r.DocNum = s.DocNum
+        AND r.LineNum = s.LineNum
+      LEFT JOIN customers c
+        ON c.CardCode = s.CardCode
+      LEFT JOIN sales_persons sp
+        ON sp.SlpCode = c.SlpCode
       WHERE (${salesPersonId} IS NULL OR sp.id = ${salesPersonId})
       GROUP BY s.CardCode, s.DocNum, s.DocDate
-      HAVING SUM(COALESCE(s.TotalSales, 0) + COALESCE(r.TotalSales, 0)) > 0
+      HAVING SUM(
+        COALESCE(s.TotalSales, 0)
+        + COALESCE(r.TotalSales, 0)
+      ) > 0
     ),
-  `
+  `;
 
   const [yearlyRaw, monthlyRaw] = await Promise.all([
-    // =====================
-    // YEARLY: NOO vs Existing per tahun
-    // (2025 penuh, 2026 dihitung sampai CURDATE / YTD)
-    // =====================
-
-
     prisma.$queryRaw<YearlyTrendRow[]>`
       ${customerTrendBase}
+
       years AS (
         SELECT YEAR(CURDATE()) - 2 AS yr
+
         UNION ALL
-        SELECT yr + 1 FROM years WHERE yr < YEAR(CURDATE())
+
+        SELECT yr + 1
+        FROM years
+        WHERE yr < YEAR(CURDATE())
       ),
 
       windowed AS (
@@ -319,17 +466,27 @@ export const getCustomerTrend = async (salesPersonId: number | null) => {
         FROM years y
         JOIN qualifying_invoices qi
           ON qi.DocDate >= MAKEDATE(y.yr, 1)
-         AND qi.DocDate <= LEAST(MAKEDATE(y.yr + 1, 1) - INTERVAL 1 DAY, CURDATE())
+         AND qi.DocDate <= LEAST(
+           MAKEDATE(y.yr + 1, 1) - INTERVAL 1 DAY,
+           CURDATE()
+         )
         JOIN first_purchase fp
           ON fp.CardCode = qi.CardCode
-        GROUP BY y.yr, qi.CardCode, fp.first_date
+        GROUP BY
+          y.yr,
+          qi.CardCode,
+          fp.first_date
       )
 
       SELECT
         yr,
+
         COUNT(DISTINCT CASE
           WHEN first_date >= MAKEDATE(yr, 1)
-           AND first_date <= LEAST(MAKEDATE(yr + 1, 1) - INTERVAL 1 DAY, CURDATE())
+           AND first_date <= LEAST(
+             MAKEDATE(yr + 1, 1) - INTERVAL 1 DAY,
+             CURDATE()
+           )
           THEN CardCode
         END) AS noo,
 
@@ -339,23 +496,28 @@ export const getCustomerTrend = async (salesPersonId: number | null) => {
         END) AS existing
 
       FROM windowed
+
       GROUP BY yr
+
       ORDER BY yr
     `,
 
-    // =====================
-    // MONTHLY: MTD NOO vs Existing per bulan
-    // membandingkan tahun berjalan (2026) vs sebelumnya (2025)
-    // selama 12 bulan (Jan - Des)
-    // =====================
     prisma.$queryRaw<MonthlyTrendRow[]>`
       ${customerTrendBase}
+
       months AS (
-        SELECT MAKEDATE(YEAR(CURDATE()) - 1, 1) AS m_start
+        SELECT
+          MAKEDATE(YEAR(CURDATE()) - 1, 1) AS m_start
+
         UNION ALL
-        SELECT DATE_ADD(m_start, INTERVAL 1 MONTH)
+
+        SELECT DATE_ADD(
+          m_start,
+          INTERVAL 1 MONTH
+        )
         FROM months
-        WHERE m_start < MAKEDATE(YEAR(CURDATE()) + 1, 1)
+        WHERE m_start <
+          MAKEDATE(YEAR(CURDATE()) + 1, 1)
       ),
 
       windowed AS (
@@ -363,33 +525,69 @@ export const getCustomerTrend = async (salesPersonId: number | null) => {
           YEAR(m.m_start) AS yr,
           MONTH(m.m_start) AS mo,
           m.m_start AS m_start,
+
           CASE
-            WHEN YEAR(m.m_start) = YEAR(CURDATE()) - 1
-             AND MONTH(m.m_start) = MONTH(CURDATE())
-            THEN LEAST(LAST_DAY(m.m_start), DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
-            ELSE LEAST(LAST_DAY(m.m_start), CURDATE())
+            WHEN YEAR(m.m_start) =
+              YEAR(CURDATE()) - 1
+             AND MONTH(m.m_start) =
+              MONTH(CURDATE())
+            THEN LEAST(
+              LAST_DAY(m.m_start),
+              DATE_SUB(
+                CURDATE(),
+                INTERVAL 1 YEAR
+              )
+            )
+            ELSE LEAST(
+              LAST_DAY(m.m_start),
+              CURDATE()
+            )
           END AS m_end,
+
           qi.CardCode,
           fp.first_date
+
         FROM months m
+
         JOIN qualifying_invoices qi
           ON qi.DocDate >= m.m_start
          AND qi.DocDate <= CASE
-            WHEN YEAR(m.m_start) = YEAR(CURDATE()) - 1
-             AND MONTH(m.m_start) = MONTH(CURDATE())
-            THEN LEAST(LAST_DAY(m.m_start), DATE_SUB(CURDATE(), INTERVAL 1 YEAR))
-            ELSE LEAST(LAST_DAY(m.m_start), CURDATE())
+            WHEN YEAR(m.m_start) =
+              YEAR(CURDATE()) - 1
+             AND MONTH(m.m_start) =
+              MONTH(CURDATE())
+            THEN LEAST(
+              LAST_DAY(m.m_start),
+              DATE_SUB(
+                CURDATE(),
+                INTERVAL 1 YEAR
+              )
+            )
+            ELSE LEAST(
+              LAST_DAY(m.m_start),
+              CURDATE()
+            )
           END
+
         JOIN first_purchase fp
           ON fp.CardCode = qi.CardCode
-        GROUP BY yr, mo, m_start, m_end, qi.CardCode, fp.first_date
+
+        GROUP BY
+          yr,
+          mo,
+          m_start,
+          m_end,
+          qi.CardCode,
+          fp.first_date
       )
 
       SELECT
         yr,
         mo,
+
         COUNT(DISTINCT CASE
-          WHEN first_date >= m_start AND first_date <= m_end
+          WHEN first_date >= m_start
+           AND first_date <= m_end
           THEN CardCode
         END) AS noo,
 
@@ -399,36 +597,66 @@ export const getCustomerTrend = async (salesPersonId: number | null) => {
         END) AS existing
 
       FROM windowed
+
       GROUP BY yr, mo
+
       ORDER BY yr, mo
     `,
-  ])
+  ]);
 
-  const yearly: Record<number, { noo: number; existing: number }> = {}
-  yearlyRaw.forEach(r => {
+  const yearly: Record<
+    number,
+    {
+      noo: number;
+      existing: number;
+    }
+  > = {};
+
+  yearlyRaw.forEach((r) => {
     yearly[Number(r.yr)] = {
       noo: Number(r.noo ?? 0),
       existing: Number(r.existing ?? 0),
+    };
+  });
+
+  const monthly: Record<
+    number,
+    Record<
+      number,
+      {
+        noo: number;
+        existing: number;
+      }
+    >
+  > = {};
+
+  monthlyRaw.forEach((r) => {
+    const yr = Number(r.yr);
+    const mo = Number(r.mo);
+
+    if (!monthly[yr]) {
+      monthly[yr] = {};
     }
-  })
-
-  const monthly: Record<number, Record<number, { noo: number; existing: number }>> = {}
-  monthlyRaw.forEach(r => {
-    const yr = Number(r.yr)
-    const mo = Number(r.mo)
-
-    if (!monthly[yr]) monthly[yr] = {}
 
     monthly[yr][mo] = {
       noo: Number(r.noo ?? 0),
       existing: Number(r.existing ?? 0),
-    }
-  })
+    };
+  });
 
-  return {
+  const result = {
     yearly,
     monthly,
-  }
+  };
+
+  // 3. Cache hasil
+  await cacheSet(
+    cacheKey,
+    result,
+    CACHE_TTL
+  );
+
+  return result;
 }
 
 export const getPeriodRange = (months = 12) => {

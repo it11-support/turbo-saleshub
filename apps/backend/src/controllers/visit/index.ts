@@ -14,6 +14,8 @@ import { socketIoBroadcastEmitter, socketIoEmitter } from '@/libs/socket-io.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
 import { handleApiError } from '@/utils/apiResponse.js';
 import { MAX_IMAGE_SIZE } from '../product/constants.js';
+import { getConcerns, getConcernStatuses } from '@/services/index.js';
+import { cacheDelete } from '@/libs/cache.js';
 
 export const fetchSalesVisit = async (req: Request, res: Response) => {
   try {
@@ -373,6 +375,19 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
         },
       });
     });
+
+    if (updatedVisit?.customer?.id) {
+      const customerId = updatedVisit.customer.id;
+
+      await Promise.all([
+        cacheDelete(
+          `saleshub:suggested-items:${customerId}:with-recent`
+        ),
+        cacheDelete(
+          `saleshub:suggested-items:${customerId}:without-recent`
+        ),
+      ]);
+    }
 
     activityLogger({
       req,
@@ -794,27 +809,9 @@ export const closeItems = async (
         },
       }),
 
-      prisma.concern_categories.findMany({
-        where: {
-          id: {
-            in: Array.from(categoryIds),
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
+      getConcerns(),
 
-      prisma.concern_status.findMany({
-        where: {
-          id: {
-            in: Array.from(statusIds),
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
+      getConcernStatuses(),
     ]);
 
     // =====================================================
@@ -1003,6 +1000,19 @@ export const closeItems = async (
         },
       });
     });
+
+    if (updatedVisit?.customer?.id) {
+      const customerId = updatedVisit.customer.id;
+
+      await Promise.all([
+        cacheDelete(
+          `saleshub:suggested-items:${customerId}:with-recent`
+        ),
+        cacheDelete(
+          `saleshub:suggested-items:${customerId}:without-recent`
+        ),
+      ]);
+    }
 
     activityLogger({
       req,

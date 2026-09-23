@@ -1,45 +1,89 @@
+import { cacheDelete, cacheGet, cacheSet } from "@/libs/cache.js";
 import prisma from "@/libs/prisma.js";
 import { EBadgeVariant } from "@saleshub-tsm/types";
 
+const CONCERN_CATEGORIES_CACHE_KEY =
+  'saleshub:master:concern-categories';
+
+const CONCERN_STATUS_CACHE_KEY =
+  'saleshub:master:concern-status';
+
+const CACHE_TTL = 3600;
+
 export const getConcerns = async () => {
   try {
-    return await prisma.concern_categories.findMany();
+    const cached = await cacheGet<
+      Awaited<
+        ReturnType<typeof prisma.concern_categories.findMany>
+      >
+    >(CONCERN_CATEGORIES_CACHE_KEY);
+
+    if (cached) {
+      return cached;
+    }
+
+    const data =
+      await prisma.concern_categories.findMany();
+
+    await cacheSet(
+      CONCERN_CATEGORIES_CACHE_KEY,
+      data,
+      CACHE_TTL,
+    );
+
+    return data;
   } catch (error) {
     console.error(error);
     throw error;
   }
-}
+};
 
-export const createCategory = async (data: {name: string, description: string}) => {
+export const createCategory = async (
+  data: { name: string; description: string }
+) => {
   try {
-    const {name, description} = data
+    const { name, description } = data;
+
     const category = await prisma.concern_categories.create({
       data: {
         name,
-        description
-      }
-    })
-    return category
+        description,
+      },
+    });
+
+    // Invalidate cache setelah database berhasil berubah
+    await cacheDelete(CONCERN_CATEGORIES_CACHE_KEY);
+
+    return category;
   } catch (error) {
     console.error(error);
     throw error;
   }
-}
+};
 
 export const updateCategory = async (
   id: number,
   data: { name?: string; description?: string }
 ) => {
   try {
-    return await prisma.concern_categories.update({
+    const category = await prisma.concern_categories.update({
       where: {
         id: BigInt(id),
       },
       data: {
-        ...(data.name !== undefined ? { name: data.name } : {}),
-        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.name !== undefined
+          ? { name: data.name }
+          : {}),
+        ...(data.description !== undefined
+          ? { description: data.description }
+          : {}),
       },
     });
+
+    // Invalidate cache setelah update berhasil
+    await cacheDelete(CONCERN_CATEGORIES_CACHE_KEY);
+
+    return category;
   } catch (error) {
     console.error(error);
     throw error;
@@ -48,30 +92,53 @@ export const updateCategory = async (
 
 export const deleteCategory = async (id: number) => {
   try {
-    return await prisma.concern_categories.delete({
+    const category = await prisma.concern_categories.delete({
       where: {
         id: BigInt(id),
       },
     });
+
+    // Invalidate cache setelah delete berhasil
+    await cacheDelete(CONCERN_CATEGORIES_CACHE_KEY);
+
+    return category;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+export const getConcernStatuses = async () => {
+  try {
+    const cached = await cacheGet<
+      Awaited<
+        ReturnType<typeof prisma.concern_status.findMany>
+      >
+    >(CONCERN_STATUS_CACHE_KEY);
+
+    if (cached) {
+      return cached;
+    }
+
+    const data =
+      await prisma.concern_status.findMany();
+
+    await cacheSet(
+      CONCERN_STATUS_CACHE_KEY,
+      data,
+      CACHE_TTL,
+    );
+
+    return data;
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
 
-export const getConcernStatuses = async () => {
-  try {
-    return await prisma.concern_status.findMany();
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
 
-
-export const createStatus = async (data: {status: string, level: EBadgeVariant, icon: string, requires_action?: boolean}) => {
+export const createStatus = async (data: { status: string, level: EBadgeVariant, icon: string, requires_action?: boolean }) => {
   try {
-    const {status, level, icon, requires_action} = data
+    const { status, level, icon, requires_action } = data
     const statusData = await prisma.concern_status.create({
       data: {
         status,
