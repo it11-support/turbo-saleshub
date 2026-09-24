@@ -2,7 +2,7 @@
 
 import CustomerCell from '../../components/customer/CustomerCell'
 import NavButton from '../components/NavButton'
-import { ICustomer, IResPaginated } from '@saleshub-tsm/types'
+import { ICustomer, IResPaginated, IResSingle, ISalesPerson } from '@saleshub-tsm/types'
 import { useRouter } from 'next/navigation'
 import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { Button } from 'primereact/button'
@@ -93,16 +93,22 @@ const PotentialCustomerPage = () => {
   const [isUploading, setIsUploading] = useState(false)
   const { showToast } = useGlobalToast()
 
+  const { data: salesPersonData } = useFetch<IResSingle<ISalesPerson>>('sales-persons', {
+    withFilterUser: false,
+  })
+
+  const salesPersons = salesPersonData?.data || []
+
   // 5. Data Mapping untuk UI
   const customers = data?.data?.items || []
   const totalRecords = data?.data?.totalRecords || 0
   const totalPages = data?.data?.totalPages || 0
   const groupOptions = data?.groupNames?.map((name: string) => ({ label: name, value: name })) || []
   const userNameOptions =
-    data?.userNameOpts?.map((user) => ({
-      label: user.name,
-      value: String(user.id),
-    })) || []
+    salesPersons?.map((salesPerson) => ({
+      label: salesPerson.SlpName,
+      value: String(salesPerson.id),
+    })) ?? []
 
   // 6. Table Templates & Headers (Logika tetap sama)
   const rowClass = (data: ICustomer) =>
@@ -167,7 +173,7 @@ const PotentialCustomerPage = () => {
       const form = new FormData()
 
       form.append('file', selectedFile)
-      form.append('userId', selectedUser)
+      form.append('salesPersonId', selectedUser)
 
       const res = await $api<{ imported: number; errors: string[]; status: 'FAILED' | 'SUCCESS' }>(
         '/customers/potential/import',

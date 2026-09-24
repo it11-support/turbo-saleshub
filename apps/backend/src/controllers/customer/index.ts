@@ -146,9 +146,9 @@ export const customerList = async (
     if (slpCode) {
       query.SlpCode = Number(slpCode);
     } else if (userId) {
-      query.potential_customers = {
+      query.potential_customer = {
         some: {
-          user_id: BigInt(userId),
+          sales_person_id: BigInt(userId),
         },
       };
     }
@@ -272,11 +272,310 @@ export const customerList = async (
   }
 };
 
-export const customerSummary = async (req: Request<{ id: string }>, res: Response) => {
+
+export const potentialCustomerList = async (
+  req: Request<CustomerRequestType>,
+  res: Response<CustomerResponseType>
+) => {
+  try {
+    const {
+      search = '',
+      per_page = 10,
+      page = 1,
+      sort_options = [],
+      groups,
+      subgroups,
+      salesPersons,
+    } = req.query as CustomerListQuery
+
+    const sortOptionsMapped = (): SortOption[] => {
+      if (!sort_options) return []
+
+      if (typeof sort_options === 'string') {
+        return JSON.parse(sort_options) as SortOption[]
+      }
+
+      if (Array.isArray(sort_options)) {
+        return sort_options as SortOption[]
+      }
+
+      return []
+    }
+
+    let selectedGroups: string[] = []
+    let selectedSubgroups: string[] = []
+    let selectedSalesPersons: string[] = []
+
+    /**
+     * Potential customer WAJIB memiliki record
+     * di user_potential_customers.
+     */
+    const query: customersWhereInput = {
+      potential_customer: {
+        some: {},
+      },
+    }
+
+    // =========================
+    // SEARCH
+    // =========================
+
+    if (search) {
+      query.AND = [
+        {
+          OR: [
+            { CardCode: { contains: search } },
+            { LocalCode: { contains: search } },
+            { CardName: { contains: search } },
+            { GroupName: { contains: search } },
+            { CntctPrsn: { contains: search } },
+            { Phone1: { contains: search } },
+            { Cellular: { contains: search } },
+            { Address: { contains: search } },
+            { City: { contains: search } },
+            {
+              subgroup: {
+                OR: [
+                  { IndName: { contains: search } },
+                  { IndDesc: { contains: search } },
+                ],
+              },
+            },
+          ],
+        },
+      ]
+    }
+
+    // =========================
+    // GROUP
+    // =========================
+
+    if (groups) {
+      selectedGroups = Array.isArray(groups)
+        ? groups
+        : [groups]
+    }
+
+    if (selectedGroups.length > 0) {
+      query.GroupName =
+        selectedGroups.length === 1
+          ? { equals: selectedGroups[0] }
+          : { in: selectedGroups }
+    }
+
+    // =========================
+    // SUBGROUP
+    // =========================
+
+    if (subgroups) {
+      selectedSubgroups = Array.isArray(subgroups)
+        ? subgroups
+        : [subgroups]
+    }
+
+    if (selectedSubgroups.length > 0) {
+      query.subgroup = {
+        is: {
+          IndName:
+            selectedSubgroups.length === 1
+              ? { equals: selectedSubgroups[0] }
+              : { in: selectedSubgroups },
+        },
+      }
+    }
+
+    // =========================
+    // SALES PERSON
+    // =========================
+
+    if (salesPersons) {
+      selectedSalesPersons = Array.isArray(salesPersons)
+        ? salesPersons
+        : [salesPersons]
+    }
+
+    if (selectedSalesPersons.length > 0) {
+      query.potential_customer = {
+        some: {
+          sales_person: {
+            SlpName:
+              selectedSalesPersons.length === 1
+                ? { equals: selectedSalesPersons[0] }
+                : { in: selectedSalesPersons },
+          },
+        },
+      }
+    }
+
+    // =========================
+    // SORT
+    // =========================
+
+    const sortOptions =
+      sortOptionsParser(sortOptionsMapped())
+
+    const orderBy =
+      convertToPrismaOrderBy(sortOptions)
+
+    // =========================
+    // CUSTOMERS
+    // =========================
+
+    const [customers, meta] = await prisma.customers
+      .paginate({
+        where: query,
+
+        include: {
+          subgroup: true,
+
+          potential_customer: {
+            include: {
+              sales_person: true,
+            },
+          },
+        },
+
+        orderBy,
+      })
+      .withPages({
+        page: Number(page),
+        limit: Number(per_page),
+        includePageCount: true,
+      })
+
+    // =========================
+    // FILTER OPTIONS
+    // =========================
+
+    const customerGroup =
+      await prisma.customers.findMany({
+        where: {
+          potential_customer: {
+            some: {},
+          },
+        },
+        distinct: ['GroupName'],
+        select: {
+          GroupName: true,
+        },
+      })
+
+    const customerSubgroups =
+      await prisma.customers.findMany({
+        where: {
+          potential_customer: {
+            some: {},
+          },
+          subgroup: {
+            isNot: null,
+          },
+        },
+        distinct: ['GroupName'],
+        select: {
+          subgroup: {
+            select: {
+              IndName: true,
+            },
+          },
+        },
+      })
+
+    const salesPersonsData =
+      await prisma.sales_persons.findMany({
+        where: {
+          potential_customers: {
+            some: {},
+          },
+        },
+        select: {
+          id: true,
+          SlpName: true,
+        },
+        orderBy: {
+          SlpName: 'asc',
+        },
+      })
+
+    // =========================
+    // OPTIONS
+    // =========================
+
+    const groupNames = customerGroup
+      .map((g) => g.GroupName)
+      .filter(
+        (name): name is string => name !== null
+      )
+
+    const subGroupNames = [
+      ...new Set(
+        customerSubgroups
+          .map((c) => c.subgroup?.IndName)
+          .filter(
+            (name): name is string =>
+              name !== null && name !== undefined
+          )
+      ),
+    ]
+
+    const salesPersonNames = salesPersonsData
+      .map((sp) => sp.SlpName)
+      .filter(
+        (name): name is string => name !== null
+      )
+
+    // =========================
+    // RESPONSE
+    // =========================
+
+    return res.status(200).json({
+      message: 'Success',
+
+      data: {
+        items: customers,
+        totalRecords: meta.totalCount,
+        currentPage: meta.currentPage,
+        perPage: Number(per_page),
+        totalPages: meta.pageCount,
+      },
+
+      groupNames,
+      salesPersonNames,
+      subGroupNames,
+    })
+  } catch (error) {
+    return handleApiError(error, res)
+  }
+}
+
+
+export const customerSummary = async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
   try {
     const { id } = req.params;
+
+    console.log(id)
+    if (!id) {
+      return res.status(400).json({
+        message: 'Customer ID is required',
+      });
+    }
+
+    let customerId: bigint;
+
+    try {
+      customerId = BigInt(id);
+    } catch {
+      return res.status(400).json({
+        message: 'Invalid customer ID',
+      });
+    }
+
     const customer = await prisma.customers.findUnique({
-      where: { id: Number(id) },
+      where: {
+        id: customerId,
+      },
       include: {
         sales_person: true,
         sales_invoices: {
@@ -292,26 +591,32 @@ export const customerSummary = async (req: Request<{ id: string }>, res: Respons
         subgroup: true,
       },
     });
+
     const customerWithNetSales = customer
       ? {
         ...customer,
-        sales_invoices: customer.sales_invoices.map(({ returs, ...invoice }) => {
-          const totalRetur = returs.reduce(
-            (sum, retur) => sum + Number(retur.TotalSales ?? 0),
-            0
-          );
+        sales_invoices: customer.sales_invoices.map(
+          ({ returs, ...invoice }) => {
+            const totalRetur = returs.reduce(
+              (sum, retur) => sum + Number(retur.TotalSales ?? 0),
+              0
+            );
 
-          return {
-            ...invoice,
-            TotalSales: Number(invoice.TotalSales ?? 0) + totalRetur,
-          };
-        }),
+            return {
+              ...invoice,
+              TotalSales: Number(invoice.TotalSales ?? 0) + totalRetur,
+            };
+          }
+        ),
       }
       : null;
 
-    res.status(200).json({ message: 'Success', data: customerWithNetSales });
+    return res.status(200).json({
+      message: 'Success',
+      data: customerWithNetSales,
+    });
   } catch (error) {
-    return handleApiError(error, res)
+    return handleApiError(error, res);
   }
 };
 

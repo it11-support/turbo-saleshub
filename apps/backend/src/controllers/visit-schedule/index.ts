@@ -279,7 +279,7 @@ export const getScheduleByDate = async (req: AuthenticatedRequest, res: Response
     let potentialCustomerIds: number[] = []
     if (!hasSalesPerson && userId) {
       const potentialCustomers = await prisma.user_potential_customers.findMany({
-        where: { user_id: BigInt(userId) },
+        where: { sales_person_id: BigInt(userId) },
         select: { customer_id: true },
       })
       potentialCustomerIds = potentialCustomers.map(pc => Number(pc.customer_id))
@@ -297,13 +297,13 @@ export const getScheduleByDate = async (req: AuthenticatedRequest, res: Response
 
     const rules = hasSalesPerson
       ? await prisma.sales_visit_rules.findMany({
-          where: rulesWhere,
-          include: {
-            customer: { include: { subgroup: true } },
-            salesPerson: true,
-          },
-          orderBy: { customer_id: 'asc' },
-        })
+        where: rulesWhere,
+        include: {
+          customer: { include: { subgroup: true } },
+          salesPerson: true,
+        },
+        orderBy: { customer_id: 'asc' },
+      })
       : []
 
     const matchedRules = rules.filter(

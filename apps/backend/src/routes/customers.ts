@@ -8,9 +8,11 @@ import {
   fetchProductCoverageByCustomer,
   fetchSubgroups,
   itemSuggestions,
+  potentialCustomerList,
   purchaseHistory,
 } from '../controllers/index.js';
 import { authMiddleware } from '../middlewares/index.js';
+import { importPotentialCustomers } from '@/controllers/customer/import.js';
 
 const router = Router();
 
@@ -20,6 +22,8 @@ router.get('/subgroups', fetchSubgroups);
 router.get('/groups', fetchGroups);
 router.get('/', customerList);
 router.post('/', createCustomer);
+router.get('/potential', potentialCustomerList);
+router.post('/potential/import', importPotentialCustomers)
 router.get('/:id', customerSummary);
 router.get('/:id/suggestions', itemSuggestions);
 router.get('/:id/purchases', purchaseHistory);

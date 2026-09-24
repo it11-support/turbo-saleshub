@@ -73,23 +73,24 @@ model customers {
   schedule            sales_visit_schedules[]
   visits              visits[]
   rfm                 customer_rfm?
-  potential_customers user_potential_customers[]
+  potential_customer  user_potential_customers[]
 
   daily_sales_summary daily_sales_summary_view[]
 }
 
-model user_potential_customers {
-  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
-  user_id     BigInt   @db.UnsignedBigInt
-  customer_id BigInt   @db.UnsignedBigInt
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+model user_potential_customers  {
+  id              BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  sales_person_id BigInt   @db.UnsignedBigInt
+  customer_id     BigInt   @db.UnsignedBigInt
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
-  user     users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  customer customers @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  sales_person sales_persons @relation(fields: [sales_person_id],references: [id],onDelete: Cascade)
+
+  customer customers @relation(fields: [customer_id],references: [id],onDelete: Cascade)
 
   @@unique([customer_id])
-  @@index([user_id])
+  @@index([sales_person_id])
 }
 
 model customer_rfm {
@@ -422,6 +423,8 @@ model sales_persons {
   sales_visit_rules     sales_visit_rules[]
   sales_visit_schedules sales_visit_schedules[]
 
+  potential_customers user_potential_customers[]
+
   visits              visits[]
   sales_summary       sales_summary[]
   daily_sales_summary daily_sales_summary_view[]
@@ -658,7 +661,6 @@ model users {
   sales_person        sales_persons?             @relation(fields: [sales_person_id], references: [id])
   activities          user_activity[]
   notifications       notifications[]
-  potential_customers user_potential_customers[]
 
   @@index([role_id], map: "users_role_id_foreign")
   @@index([team_id], map: "users_team_id_foreign")
