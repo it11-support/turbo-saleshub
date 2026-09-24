@@ -10,6 +10,35 @@ import { handleApiError } from '@/utils/apiResponse.js';
 import { customersWhereInput, productsGetPayload } from '@/generated/prisma/models.js';
 import { Decimal } from '@prisma/client/runtime/client';
 import { cacheGet, cacheSet } from '@/libs/cache.js';
+import { getCachedFilterOptions } from '@/libs/filter-cache.js';
+
+const CACHE_TTL = 900;
+
+type CustomerFilterOptions = {
+  groupNames: string[]
+  subGroupNames: string[]
+  salesPersonNames: string[]
+}
+
+
+type ProductCoverageResult = {
+  summary: {
+    totalItems: number
+    orderedItems: number
+    coverage: number
+    lastPurchaseDate: Date | null
+  }
+  items: Array<{
+    product: any
+    revenue: number
+    revenueMtd: number
+    qtyKg: number
+    orderedThisMonth: boolean
+    lastPurchaseDate: Date | null
+    isKeyProduct: boolean
+  }>
+}
+
 
 type CustomerListQuery = {
   search?: string
@@ -59,8 +88,8 @@ type ProductAnalytics = {
 }
 
 type CustomerRevenueResult = {
-  totalRevenue: Decimal
-  currentRevenue: Decimal
+  totalRevenue: number | Decimal
+  currentRevenue: number | Decimal
 }
 
 export const customerList = async (
@@ -222,37 +251,45 @@ export const customerList = async (
         includePageCount: true,
       });
 
-    const customerGroup = await prisma.customers.findMany({
-      distinct: ['GroupName'],
-      select: {
-        GroupName: true,
-      },
-    });
+    const customerFilterOptions = await getCachedFilterOptions<CustomerFilterOptions>(
+      'saleshub:filters:customers',
+      async () => {
+        const [customerGroups, customerSubgroups, salesPersons] = await Promise.all([
+          prisma.customers.findMany({
+            distinct: ['GroupName'],
+            select: {
+              GroupName: true,
+            }
+          }),
+          prisma.subgroups.findMany({
+            distinct: ['IndName'],
+            select: {
+              IndName: true,
+            },
+          }),
+          prisma.customers.findMany({
+            distinct: ['SalesName'],
+            where: {
+              sales_person: {
+                user: {
+                  isNot: null,
+                },
+              },
+            },
+            select: {
+              SalesName: true,
+            },
+          })
+        ])
 
-    const customerSubgroups = await prisma.subgroups.findMany({
-      distinct: ['IndName'],
-      select: {
-        IndName: true,
-      },
-    });
-
-    const salesPersonsData = await prisma.customers.findMany({
-      distinct: ['SalesName'],
-      where: {
-        sales_person: {
-          user: {
-            isNot: null
-          }
+        return {
+          groupNames: customerGroups.map((g) => g.GroupName).filter((v): v is string => v !== null),
+          subGroupNames: customerSubgroups.map((g) => g.IndName).filter((v): v is string => v !== null),
+          salesPersonNames: salesPersons.map((g) => g.SalesName).filter((v): v is string => v !== null),
         }
       },
-      select: {
-        SalesName: true,
-      },
-    });
-
-    const salesPersonNames: (string | null)[] = salesPersonsData.map((sp) => sp.SalesName);
-    const groupNames: (string | null)[] = customerGroup.map((g) => g.GroupName);
-    const subGroupNames: (string | null)[] = customerSubgroups.map((g) => g.IndName);
+      CACHE_TTL * 4
+    )
 
     res.status(200).json({
       message: 'Success',
@@ -263,9 +300,7 @@ export const customerList = async (
         perPage: Number(per_page),
         totalPages: meta.pageCount,
       },
-      groupNames,
-      salesPersonNames,
-      subGroupNames,
+      ...customerFilterOptions
     });
   } catch (error) {
     return handleApiError(error, res)
@@ -635,12 +670,58 @@ export const itemSuggestions = async (req: Request, res: Response) => {
   }
 };
 
-export const purchaseHistory = async (req: Request, res: Response) => {
+export const purchaseHistory = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
+
+    const customerId = Number(id)
+
+    if (!Number.isInteger(customerId) || customerId <= 0) {
+      return res.status(400).json({
+        message: 'Invalid customer ID',
+      })
+    }
+
+    // =========================
+    // CACHE
+    // =========================
+
+    const cacheKey =
+      `saleshub:customer-purchase-history:${customerId}`
+
+    const cached = await cacheGet<{
+      customer: unknown
+      lastPurchase: unknown
+      ordersByRange: {
+        current: number
+        last3Months: number
+        last6Months: number
+      }
+      invoiceCountByRange: {
+        current: number
+        last3Months: number
+        last6Months: number
+      }
+    }>(cacheKey)
+
+    if (cached) {
+      return res.status(200).json({
+        message: 'Success',
+        data: cached,
+      })
+    }
+
+    // =========================
+    // DATABASE
+    // =========================
 
     const customer = await prisma.customers.findUnique({
-      where: { id: Number(id) },
+      where: {
+        id: customerId,
+      },
       include: {
         sales_invoices: {
           include: {
@@ -657,9 +738,19 @@ export const purchaseHistory = async (req: Request, res: Response) => {
           },
         },
       },
-    });
+    })
 
-    const now = dayjs();
+    if (!customer) {
+      return res.status(404).json({
+        message: 'Customer not found',
+      })
+    }
+
+    // =========================
+    // DATE RANGES
+    // =========================
+
+    const now = dayjs()
 
     const ranges = {
       current: {
@@ -674,85 +765,140 @@ export const purchaseHistory = async (req: Request, res: Response) => {
         start: now.subtract(6, 'month').toDate(),
         end: now.toDate(),
       },
-    };
-
-    const allOrders = customer?.orders;
-
-    const ordersByRange = {
-      current: allOrders?.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >= ranges.current.start &&
-          dayjs(o.DocDate).toDate() <= ranges.current.end
-      ).length,
-      last3Months: allOrders?.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >= ranges.last3Months.start &&
-          dayjs(o.DocDate).toDate() <= ranges.last3Months.end
-      ).length,
-      last6Months: allOrders?.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >= ranges.last6Months.start &&
-          dayjs(o.DocDate).toDate() <= ranges.last6Months.end
-      ).length,
-    };
-
-    const allInvoices = customer?.sales_invoices;
-
-    const invoiceCountByRange = {
-      current: allInvoices?.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >= ranges.current.start &&
-          dayjs(o.DocDate).toDate() <= ranges.current.end
-      ).length,
-      last3Months: allInvoices?.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >= ranges.last3Months.start &&
-          dayjs(o.DocDate).toDate() <= ranges.last3Months.end
-      ).length,
-      last6Months: allInvoices?.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >= ranges.last6Months.start &&
-          dayjs(o.DocDate).toDate() <= ranges.last6Months.end
-      ).length,
-    };
-
-    if (!customer) {
-      res.status(404).json({ message: 'Customer not found' });
-      return;
     }
 
-    type SalesInvoice = (typeof customer.sales_invoices)[number]
+    // =========================
+    // ORDERS
+    // =========================
+
+    const allOrders = customer.orders
+
+    const ordersByRange = {
+      current: allOrders.filter(
+        (o) =>
+          dayjs(o.DocDate).toDate() >=
+          ranges.current.start &&
+          dayjs(o.DocDate).toDate() <=
+          ranges.current.end
+      ).length,
+
+      last3Months: allOrders.filter(
+        (o) =>
+          dayjs(o.DocDate).toDate() >=
+          ranges.last3Months.start &&
+          dayjs(o.DocDate).toDate() <=
+          ranges.last3Months.end
+      ).length,
+
+      last6Months: allOrders.filter(
+        (o) =>
+          dayjs(o.DocDate).toDate() >=
+          ranges.last6Months.start &&
+          dayjs(o.DocDate).toDate() <=
+          ranges.last6Months.end
+      ).length,
+    }
+
+    // =========================
+    // INVOICES
+    // =========================
+
+    const allInvoices = customer.sales_invoices
+
+    const invoiceCountByRange = {
+      current: allInvoices.filter(
+        (o) =>
+          dayjs(o.DocDate).toDate() >=
+          ranges.current.start &&
+          dayjs(o.DocDate).toDate() <=
+          ranges.current.end
+      ).length,
+
+      last3Months: allInvoices.filter(
+        (o) =>
+          dayjs(o.DocDate).toDate() >=
+          ranges.last3Months.start &&
+          dayjs(o.DocDate).toDate() <=
+          ranges.last3Months.end
+      ).length,
+
+      last6Months: allInvoices.filter(
+        (o) =>
+          dayjs(o.DocDate).toDate() >=
+          ranges.last6Months.start &&
+          dayjs(o.DocDate).toDate() <=
+          ranges.last6Months.end
+      ).length,
+    }
+
+    // =========================
+    // LAST PURCHASE
+    // =========================
+
+    type SalesInvoice =
+      (typeof customer.sales_invoices)[number]
 
     type GroupedInvoice = SalesInvoice & {
       hasRetur: boolean
     }
 
-    const grouped: Record<number, GroupedInvoice[]> = {};
+    const grouped: Record<
+      number,
+      GroupedInvoice[]
+    > = {}
 
     customer.sales_invoices.forEach((inv) => {
       if (!grouped[inv.DocNum]) {
-        grouped[inv.DocNum] = [];
+        grouped[inv.DocNum] = []
       }
+
       grouped[inv.DocNum].push({
         ...inv,
-        hasRetur: (inv.returs?.length ?? 0) > 0,
-      });
-    });
+        hasRetur:
+          (inv.returs?.length ?? 0) > 0,
+      })
+    })
 
-    const docNums = Object.keys(grouped).map(Number);
-    docNums.sort((a, b) => b - a);
+    const docNums = Object
+      .keys(grouped)
+      .map(Number)
+      .sort((a, b) => b - a)
 
-    const firstDocNum = docNums[0];
-    const lastPurchase = grouped[firstDocNum];
+    const firstDocNum = docNums[0]
 
-    res.status(200).json({
+    const lastPurchase = firstDocNum
+      ? grouped[firstDocNum]
+      : []
+
+    // =========================
+    // RESULT
+    // =========================
+
+    const resultData = {
+      customer,
+      lastPurchase,
+      ordersByRange,
+      invoiceCountByRange,
+    }
+
+    // =========================
+    // CACHE - 15 MIN
+    // =========================
+
+    await cacheSet(
+      cacheKey,
+      resultData,
+      CACHE_TTL
+    )
+
+    return res.status(200).json({
       message: 'Success',
-      data: { customer, lastPurchase, ordersByRange, invoiceCountByRange },
-    });
+      data: resultData,
+    })
   } catch (error) {
     return handleApiError(error, res)
   }
-};
+}
 
 type SuggestedProduct = productsGetPayload<{
   include: {
@@ -948,7 +1094,7 @@ export const getSuggestedItems = async (
     await cacheSet(
       cacheKey,
       result,
-      900
+      CACHE_TTL
     );
 
     return result;
@@ -1057,118 +1203,210 @@ export const fetchCustomerRevenue = async (
   res: Response
 ) => {
   try {
-
-    const customerId = Number(req.params.id);
-
-    const [result] = await prisma.$queryRaw<
-      CustomerRevenueResult[]
-    >`
-      WITH invoice_revenue AS (
-          SELECT
-              s.DocDate,
-              s.TotalSales + COALESCE(r.total_retur, 0) AS revenue
-          FROM sales_invoices s
-          INNER JOIN customers c
-              ON c.CardCode = s.CardCode
-          LEFT JOIN (
-              SELECT
-                  DocNum,
-                  LineNum,
-                  SUM(TotalSales) AS total_retur
-              FROM retur_invoices
-              GROUP BY DocNum, LineNum
-          ) r
-              ON r.DocNum = s.DocNum
-            AND r.LineNum = s.LineNum
-          WHERE c.id = ${customerId}
-      )
-
-      SELECT
-          COALESCE(
-              SUM(
-                  CASE
-                      WHEN DocDate >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 12 MONTH), '%Y-%m-01')
-                      AND DocDate < DATE_FORMAT(CURDATE(), '%Y-%m-01')
-                      THEN revenue
-                      ELSE 0
-                  END
-              ),
-              0
-          ) AS totalRevenue,
-
-          COALESCE(
-              SUM(
-                  CASE
-                      WHEN YEAR(DocDate) = YEAR(CURDATE())
-                      AND MONTH(DocDate) = MONTH(CURDATE())
-                      THEN revenue
-                      ELSE 0
-                  END
-              ),
-              0
-          ) AS currentRevenue
-
-      FROM invoice_revenue;
-      `
-
-    return res.json({
-      message: 'Customer revenue fetched successfully',
-      data: {
-        currentRevenue: Number(result.currentRevenue),
-        totalRevenue: Number(result.totalRevenue),
-      }
-    })
-  } catch (error) {
-    console.error(error)
-
-    return res.status(500).json({
-      message: 'Internal server error',
-    })
-  }
-}
-
-export const fetchProductCoverageByCustomer = async (req: Request<{ id: string }>, res: Response) => {
-  try {
-
     const customerId = Number(req.params.id)
 
+    if (!Number.isInteger(customerId) || customerId <= 0) {
+      return res.status(400).json({
+        message: 'Invalid customer ID',
+      })
+    }
+
+    // =========================
+    // CACHE
+    // =========================
+
+    const cacheKey =
+      `saleshub:customer-revenue:${customerId}`
+
+    const cached =
+      await cacheGet<CustomerRevenueResult>(cacheKey)
+
+    if (cached) {
+      return res.status(200).json({
+        message: 'Customer revenue fetched successfully',
+        data: cached,
+      })
+    }
+
+    // =========================
+    // CUSTOMER
+    // =========================
+
     const customer = await prisma.customers.findUnique({
-      where: { id: customerId },
+      where: {
+        id: customerId,
+      },
       select: {
         CardCode: true,
-      }
+      },
     })
 
     if (!customer) {
-      throw new Error('Customer not found')
+      return res.status(404).json({
+        message: 'Customer not found',
+      })
     }
 
-    const productAnalytics = await prisma.$queryRaw<ProductAnalytics[]>`
-      WITH retur_summary AS (
-          SELECT
-              DocNum,
-              LineNum,
-              SUM(TotalSales) AS retur_amount
-          FROM retur_invoices
-          GROUP BY
-              DocNum,
-              LineNum
+    if (!customer.CardCode) {
+      const emptyResult: CustomerRevenueResult = {
+        currentRevenue: 0,
+        totalRevenue: 0,
+      }
+
+      await cacheSet(
+        cacheKey,
+        emptyResult,
+        CACHE_TTL
       )
 
-      SELECT
+      return res.status(200).json({
+        message: 'Customer revenue fetched successfully',
+        data: emptyResult,
+      })
+    }
+
+    // =========================
+    // EXISTING REVENUE QUERY
+    // =========================
+
+    const [result] = await prisma.$queryRaw<
+      {
+        currentRevenue: number | bigint | null
+        totalRevenue: number | bigint | null
+      }[]
+    >`
+      /*
+       * PERTAHANKAN SQL fetchCustomerRevenue
+       * kamu yang sekarang di sini.
+       */
+    `
+
+    // =========================
+    // NORMALIZE RESULT
+    // =========================
+
+    const resultData: CustomerRevenueResult = {
+      currentRevenue:
+        Number(result?.currentRevenue ?? 0),
+
+      totalRevenue:
+        Number(result?.totalRevenue ?? 0),
+    }
+
+    // =========================
+    // CACHE 15 MINUTES
+    // =========================
+
+    await cacheSet(
+      cacheKey,
+      resultData,
+      CACHE_TTL
+    )
+
+    return res.status(200).json({
+      message: 'Customer revenue fetched successfully',
+      data: resultData,
+    })
+  } catch (error) {
+    return handleApiError(error, res)
+  }
+}
+
+export const fetchProductCoverageByCustomer = async (
+  req: Request<{ id: string }>,
+  res: Response
+) => {
+  try {
+    const customerId = Number(req.params.id)
+
+    if (!Number.isInteger(customerId) || customerId <= 0) {
+      return res.status(400).json({
+        message: 'Invalid customer ID',
+      })
+    }
+
+    // =============================
+    // CACHE
+    // =============================
+
+    const cacheKey =
+      `saleshub:customer-product-coverage:${customerId}`
+
+    const cached =
+      await cacheGet<ProductCoverageResult>(cacheKey)
+
+    if (cached) {
+      return res.json({
+        message: 'Customer product coverage fetched successfully',
+        data: cached,
+      })
+    }
+
+    // =============================
+    // CUSTOMER
+    // =============================
+
+    const customer = await prisma.customers.findUnique({
+      where: {
+        id: customerId,
+      },
+      select: {
+        CardCode: true,
+      },
+    })
+
+    if (!customer) {
+      return res.status(404).json({
+        message: 'Customer not found',
+      })
+    }
+
+    if (!customer.CardCode) {
+      return res.json({
+        message: 'Customer product coverage fetched successfully',
+        data: {
+          summary: {
+            totalItems: 0,
+            orderedItems: 0,
+            coverage: 0,
+            lastPurchaseDate: null,
+          },
+          items: [],
+        },
+      })
+    }
+
+    // =============================
+    // PRODUCT ANALYTICS
+    // =============================
+
+    const productAnalytics =
+      await prisma.$queryRaw<ProductAnalytics[]>`
+        WITH retur_summary AS (
+          SELECT
+            DocNum,
+            LineNum,
+            SUM(TotalSales) AS retur_amount
+          FROM retur_invoices
+          GROUP BY
+            DocNum,
+            LineNum
+        )
+
+        SELECT
           s.ItemCode,
 
           SUM(
-              s.TotalSales + COALESCE(r.retur_amount, 0)
+            s.TotalSales + COALESCE(r.retur_amount, 0)
           ) AS revenue,
 
           SUM(
-              CASE
-                  WHEN s.DocDate >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-                  AND s.DocDate < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-                  THEN s.TotalSales + COALESCE(r.retur_amount, 0)
-                  ELSE 0
-              END
+            CASE
+              WHEN s.DocDate >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+              AND s.DocDate < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+              THEN s.TotalSales + COALESCE(r.retur_amount, 0)
+              ELSE 0
+            END
           ) AS revenueMtd,
 
           SUM(s.QtyKg) AS qtyKg,
@@ -1176,111 +1414,159 @@ export const fetchProductCoverageByCustomer = async (req: Request<{ id: string }
           MAX(s.DocDate) AS lastPurchaseDate,
 
           MAX(
-              s.DocDate >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+            s.DocDate >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
           ) AS orderedThisMonth
 
-      FROM sales_invoices s
+        FROM sales_invoices s
 
-      LEFT JOIN retur_summary r
-            ON r.DocNum = s.DocNum
-            AND r.LineNum = s.LineNum
+        LEFT JOIN retur_summary r
+          ON r.DocNum = s.DocNum
+          AND r.LineNum = s.LineNum
 
-      WHERE
+        WHERE
           s.CardCode = ${customer.CardCode}
 
-      GROUP BY
+        GROUP BY
           s.ItemCode
 
-      HAVING
+        HAVING
           revenue <> 0
 
-      ORDER BY
+        ORDER BY
           revenue DESC,
           qtyKg DESC,
           s.ItemCode;
-    `
+      `
+
+    // =============================
+    // PRODUCTS
+    // =============================
 
     const products = await prisma.products.findMany({
       where: {
         ItemCode: {
-          in: productAnalytics.map((pa) => pa.ItemCode),
+          in: productAnalytics.map(
+            (pa) => pa.ItemCode
+          ),
         },
         validFor: 'Y',
         frozenFor: 'N',
-      }
+      },
     })
 
-    const productMap = new Map(products.map((p) => [p.ItemCode, p]));
+    const productMap = new Map(
+      products.map((p) => [p.ItemCode, p])
+    )
 
     const items = productAnalytics
-      .filter((pa) => productMap.has(pa.ItemCode))
+      .filter((pa) =>
+        productMap.has(pa.ItemCode)
+      )
       .map((pa) => ({
         product: productMap.get(pa.ItemCode)!,
         revenue: Number(pa.revenue),
         revenueMtd: Number(pa.revenueMtd),
         qtyKg: Number(pa.qtyKg),
-        orderedThisMonth: pa.orderedThisMonth,
-        lastPurchaseDate: pa.lastPurchaseDate,
+        orderedThisMonth:
+          Boolean(pa.orderedThisMonth),
+        lastPurchaseDate:
+          pa.lastPurchaseDate,
       }))
 
+    // =============================
+    // COVERAGE
+    // =============================
+
     const totalItems = items.length
-    const orderedItems = items.filter((item) => item.orderedThisMonth).length
+
+    const orderedItems = items.filter(
+      (item) => item.orderedThisMonth
+    ).length
+
     const coverage =
       totalItems === 0
         ? 0
         : (orderedItems / totalItems) * 100
 
-    const lastPurchaseDate = items.reduce<Date | null>(
-      (latest, item) => {
-        if (!item.lastPurchaseDate) return latest
+    const lastPurchaseDate =
+      items.reduce<Date | null>(
+        (latest, item) => {
+          if (!item.lastPurchaseDate) {
+            return latest
+          }
 
-        if (!latest || item.lastPurchaseDate > latest) {
-          return item.lastPurchaseDate
-        }
+          if (
+            !latest ||
+            item.lastPurchaseDate > latest
+          ) {
+            return item.lastPurchaseDate
+          }
 
-        return latest
-      },
-      null
-    )
+          return latest
+        },
+        null
+      )
+
+    // =============================
+    // KEY PRODUCTS
+    // =============================
 
     const totalRevenue = items.reduce(
-      (sum, item) => sum + Number(item.revenue),
+      (sum, item) =>
+        sum + Number(item.revenue),
       0
     )
 
     const keyRevenue = totalRevenue * 0.8
 
-
     let cumulativeRevenue = 0
-    const itemsWithKeyFlag = items.map((item) => {
-      const revenue = Number(item.revenue)
 
-      const isKeyProduct = cumulativeRevenue < keyRevenue
+    const itemsWithKeyFlag = items.map(
+      (item) => {
+        const revenue =
+          Number(item.revenue)
 
-      cumulativeRevenue += revenue
+        const isKeyProduct =
+          cumulativeRevenue < keyRevenue
 
-      return {
-        ...item,
-        isKeyProduct,
+        cumulativeRevenue += revenue
+
+        return {
+          ...item,
+          isKeyProduct,
+        }
       }
-    })
+    )
 
+    // =============================
+    // RESULT
+    // =============================
 
+    const result: ProductCoverageResult = {
+      summary: {
+        totalItems,
+        orderedItems,
+        coverage,
+        lastPurchaseDate,
+      },
+      items: itemsWithKeyFlag,
+    }
+
+    // =============================
+    // CACHE 15 MINUTES
+    // =============================
+
+    await cacheSet(
+      cacheKey,
+      result,
+      CACHE_TTL
+    )
 
     return res.json({
-      message: 'Customer product coverage fetched successfully',
-      data: {
-        summary: {
-          totalItems,
-          orderedItems,
-          coverage,
-          lastPurchaseDate
-        },
-        items: itemsWithKeyFlag,
-      }
-
+      message:
+        'Customer product coverage fetched successfully',
+      data: result,
     })
-
   } catch (error) {
     return handleApiError(error, res)
   }

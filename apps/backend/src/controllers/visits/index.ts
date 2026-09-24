@@ -5,8 +5,13 @@ import { visitsWhereInput } from '@/generated/prisma/models.js';
 import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
 import { buildDateRangeFilter } from '@/utils/dateFilters.js';
+import { cacheGet, cacheSet } from '@/libs/cache.js';
 
-export const getScheduleList = async (req: Request, res: Response) => {
+const CACHE_TTL = 300
+export const getScheduleList = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const salesPersonId = Number(req.query.salesPersonId);
     const status = req.query.status as undefined | VisitStatus;
@@ -17,108 +22,245 @@ export const getScheduleList = async (req: Request, res: Response) => {
     const sort = req.query.sort || 'visit_date';
     const order = req.query.order || -1;
 
-
-    const sort_options = [{ key: sort, order: Number(order) === 1 ? 'asc' : 'desc' }];
-
     const parsedSalesPersonId = Number(salesPersonId);
 
+    // =============================
+    // CACHE KEY
+    // =============================
+
+    const normalizedDates = Array.isArray(dates)
+      ? [...dates].sort()
+      : dates
+        ? [String(dates)]
+        : [];
+
+    const cacheKey = [
+      'saleshub:schedule-list',
+      `sales:${Number.isNaN(parsedSalesPersonId) ? 'all' : parsedSalesPersonId}`,
+      `status:${status ?? 'default'}`,
+      `followup:${needFollowUp}`,
+      `dates:${normalizedDates.join(',') || 'all'}`,
+      `page:${page}`,
+      `limit:${limit}`,
+      `sort:${String(sort)}`,
+      `order:${String(order)}`,
+    ].join(':');
+
+    const cached = await cacheGet<{
+      items: unknown[];
+      totalRecords: number;
+      page: number;
+      totalPages: number;
+    }>(cacheKey);
+
+    if (cached) {
+      return res.status(200).json({
+        message: 'Success',
+        data: cached,
+      });
+    }
+
+    // =============================
+    // SORT
+    // =============================
+
+    const sort_options = [
+      {
+        key: sort,
+        order:
+          Number(order) === 1
+            ? 'asc'
+            : 'desc',
+      },
+    ];
+
+    // =============================
+    // WHERE
+    // =============================
+
     const where: visitsWhereInput = {
-      visit_date: { not: null },
+      visit_date: {
+        not: null,
+      },
+
       ...(!Number.isNaN(parsedSalesPersonId)
-        ? { sales_person_id: BigInt(parsedSalesPersonId) }
+        ? {
+          sales_person_id:
+            BigInt(parsedSalesPersonId),
+        }
         : {}),
-      ...(status ? { status } : {
-        status: {
-          in: [VisitStatus.Ongoing, VisitStatus.Completed, VisitStatus.Missed]
+
+      ...(status
+        ? {
+          status,
         }
-      }),
-      ...(needFollowUp ? {
-        status: {
-          in: [VisitStatus.Completed]
-        },
-        visit_items: {
-          some: {
-            visit_item_concerns: {
-              some: {
-                status: {
+        : {
+          status: {
+            in: [
+              VisitStatus.Ongoing,
+              VisitStatus.Completed,
+              VisitStatus.Missed,
+            ],
+          },
+        }),
+
+      ...(needFollowUp
+        ? {
+          status: {
+            in: [
+              VisitStatus.Completed,
+            ],
+          },
+
+          visit_items: {
+            some: {
+              visit_item_concerns: {
+                some: {
                   status: {
-                    notIn: ['Done', 'Closed']
-                  }
-                }
-              }
-            }
-          }
+                    status: {
+                      notIn: [
+                        'Done',
+                        'Closed',
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
         }
-      } : {})
+        : {}),
     };
 
-    const dateFilters = buildDateRangeFilter(dates);
+    const dateFilters =
+      buildDateRangeFilter(dates);
+
     if (dateFilters) {
       where.AND = dateFilters;
     }
 
-    const sortOprtions = sortOptionsParser(sort_options);
-    const orderBy = convertToPrismaOrderBy(sortOprtions);
+    const sortOptions =
+      sortOptionsParser(sort_options);
 
-    const [data, total] = await prisma.$transaction([
-      prisma.visits.findMany({
-        where,
-        include: {
-          visit_items: {
-            include: {
-              visit_item_concerns: {
-                include: {
-                  category: true,
-                  status: true,
+    const orderBy =
+      convertToPrismaOrderBy(sortOptions);
+
+    // =============================
+    // DATABASE
+    // =============================
+
+    const [data, total] =
+      await prisma.$transaction([
+        prisma.visits.findMany({
+          where,
+
+          include: {
+            visit_items: {
+              include: {
+                visit_item_concerns: {
+                  include: {
+                    category: true,
+                    status: true,
+                  },
+                },
+
+                product: true,
+              },
+            },
+
+            customer: {
+              include: {
+                subgroup: true,
+
+                sales_visit_rules: {
+                  where: {
+                    ...(
+                      !Number.isNaN(
+                        parsedSalesPersonId
+                      ) && {
+                        sales_person_id:
+                          salesPersonId,
+                      }
+                    ),
+
+                    active: true,
+                  },
                 },
               },
-              product: true,
             },
           },
-          customer: {
-            include: {
-              subgroup: true,
-              sales_visit_rules: {
-                where: {
-                  ...(!Number.isNaN(parsedSalesPersonId) && { sales_person_id: salesPersonId }),
-                  active: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.visits.count({
-        where,
-      }),
-    ]);
 
-    const result = data.map((visit) => ({
-      id: visit.id,
-      sales_person_id: visit.sales_person_id,
-      customer_id: visit.customer_id,
-      visit_date: visit.visit_date,
-      status: visit.status,
-      is_virtual: false,
-      max_items_per_visit: visit.customer.sales_visit_rules[0]?.max_items_per_visit ?? null,
-      visits: visit,
-    }));
+          orderBy,
 
-    res.status(200).json({
+          skip:
+            (page - 1) * limit,
+
+          take:
+            limit,
+        }),
+
+        prisma.visits.count({
+          where,
+        }),
+      ]);
+
+    // =============================
+    // RESULT
+    // =============================
+
+    const result = data.map(
+      (visit) => ({
+        id: visit.id,
+        sales_person_id:
+          visit.sales_person_id,
+        customer_id:
+          visit.customer_id,
+        visit_date:
+          visit.visit_date,
+        status:
+          visit.status,
+        is_virtual: false,
+
+        max_items_per_visit:
+          visit.customer
+            .sales_visit_rules[0]
+            ?.max_items_per_visit ??
+          null,
+
+        visits: visit,
+      })
+    );
+
+    const resultData = {
+      items: result,
+      totalRecords: total,
+      page,
+      totalPages:
+        Math.ceil(total / limit),
+    };
+
+    // =============================
+    // CACHE 5 MIN
+    // =============================
+
+    await cacheSet(
+      cacheKey,
+      resultData,
+      CACHE_TTL
+    );
+
+    return res.status(200).json({
       message: 'Success',
-      data: {
-        items: result,
-        totalRecords: total,
-        page,
-        totalPages: Math.ceil(total / limit),
-      },
+      data: resultData,
     });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error', error });
+
+    return res.status(500).json({
+      message: 'Server error',
+      error,
+    });
   }
 };
 
