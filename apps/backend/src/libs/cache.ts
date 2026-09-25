@@ -41,10 +41,7 @@ export const cacheGet = async <T>(
   } catch (error) {
     const safeKey = String(key).replace(/[\r\n]/g, '');
 
-    console.error(
-      `[Redis] GET failed: ${sanitizeLogValue(safeKey)}`,
-      error,
-    );
+    console.error('[Redis] GET failed:', safeKey, error);
 
     // Redis adalah cache.
     // Kalau Redis mati, aplikasi tetap menggunakan database.
@@ -65,10 +62,8 @@ export const cacheSet = async (
       ttlSeconds,
     );
   } catch (error) {
-    console.error(
-      `[Redis] SET failed: ${sanitizeLogValue(key)}`,
-      error,
-    );
+    const safeKey = String(key).replace(/[\r\n]/g, '');
+    console.error('[Redis] GET failed:', safeKey, error);
   }
 };
 
@@ -114,8 +109,4 @@ export const cacheDeletePattern = async (
   } while (cursor !== '0')
 
   return deleted
-}
-
-export const sanitizeLogValue = (value: unknown): string => {
-  return String(value).replace(/[\r\n]/g, '');
 }
