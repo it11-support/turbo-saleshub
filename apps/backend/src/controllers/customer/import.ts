@@ -20,7 +20,6 @@ export const importPotentialCustomers = async (
   try {
     const { salesPersonId } = req.body
 
-    console.log(salesPersonId)
     // =========================
     // Validate Sales Person
     // =========================
