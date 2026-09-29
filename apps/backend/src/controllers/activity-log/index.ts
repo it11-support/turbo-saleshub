@@ -4,6 +4,10 @@ import dayjs from "dayjs";
 import { Request, Response } from "express";
 import { handleApiError, buildSuccessResponse } from "@/utils/apiResponse.js";
 import { getPaginatedQuery } from "@/utils/pagination.js";
+import { getCachedFilterOptions } from "@/libs/filter-cache.js";
+import { cacheKeys } from "@/libs/cache-keys.js";
+
+const MASTER_TTL = 3600;
 
 interface FetchActivityLogsQuery {
   page: number;
@@ -115,13 +119,21 @@ export const fetchActivityLogs = async (req: Request<{}, {}, {}, FetchActivityLo
 
 export const fetchActivityActionTypes = async (req: Request, res: Response) => {
   try {
-    const activityActionTypes = await prisma.user_activity.findMany({
-      select: {
-        action_type: true,
-      },
-      distinct: ['action_type'],
-    });
-    res.status(200).json({ message: 'Activity action types fetched successfully', data: activityActionTypes });
+    const actionTypes = await getCachedFilterOptions<{
+      action_type: string
+    }[]>(
+      cacheKeys.activityActionTypes(),
+      async () =>
+        prisma.user_activity.findMany({
+          select: {
+            action_type: true,
+          },
+          distinct: ['action_type'],
+        }),
+      MASTER_TTL
+    );
+
+    res.status(200).json({ message: 'Activity action types fetched successfully', data: actionTypes });
   } catch (error) {
     console.error(error);
     return handleApiError(error, res)

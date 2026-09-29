@@ -10,6 +10,7 @@ import { handleApiError } from '@/utils/apiResponse.js';
 import { sales_visit_schedulesWhereInput, sales_visit_schedulesModel, visit_item_concernsModel, customersGetPayload, visitsGetPayload } from '@/generated/prisma/models.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { cacheGet, cacheSet } from '@/libs/cache.js';
+import { invalidateVisitCache } from '@/libs/cache-keys.js';
 
 const CACHE_TTL = 600;
 type OpenVisitItem = {
@@ -58,6 +59,33 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
       },
     };
 
+    // =============================
+    // CACHE
+    // =============================
+    // TTL pendek karena suggestedItems
+    // berubah saat visit item di-sync.
+
+    const cacheKey = [
+      'saleshub:schedule-by-sales-person',
+      `sales:${salesPersonId}`,
+      `year:${year}`,
+      `month:${month}`,
+      `page:${page}`,
+      `perPage:${perPage}`,
+    ].join(':');
+
+    const cached = await cacheGet<{
+      page: number
+      perPage: number
+      total: number
+      totalPages: number
+      data: unknown[]
+    }>(cacheKey);
+
+    if (cached) {
+      return res.json(cached);
+    }
+
     const schedules = await prisma.sales_visit_schedules.findMany({
       where,
       include: {
@@ -80,13 +108,22 @@ export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
         };
       })
     );
-    res.json({
+
+    const result = {
       page,
       perPage,
       total,
       totalPages: Math.ceil(total / perPage),
       data: schedulesWithSuggestions,
-    });
+    };
+
+    await cacheSet(
+      cacheKey,
+      result,
+      120
+    );
+
+    res.json(result);
   } catch (error) {
     console.error('❌ Error fetching schedules:', error);
     res.status(500).json({ message: 'Server error', error });
@@ -171,6 +208,10 @@ export const generateScheduleByRules = async (req: Request, res: Response) => {
       rules_count: rules.length,
       schedules_generated: insertedSchedules.length,
     };
+
+    if (insertedSchedules.length > 0) {
+      await invalidateVisitCache();
+    }
 
     res.status(200).json({ message: 'Schedules generated', data: response });
   } catch (error) {
@@ -672,6 +713,8 @@ export const createVisitSchedule = async (req: AuthenticatedRequest, res: Respon
         customer: true,
       },
     })
+
+    await invalidateVisitCache()
 
     activityLogger({
       req,

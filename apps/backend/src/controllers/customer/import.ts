@@ -5,6 +5,7 @@ import crypto from 'crypto'
 
 import { handleApiError } from '@/utils/apiResponse.js'
 import prisma from '@/libs/prisma.js'
+import { invalidateCustomerFiltersCache } from '@/libs/cache-keys.js'
 
 interface PotentialCustomerCsvRow {
   Nama?: string
@@ -171,6 +172,14 @@ export const importPotentialCustomers = async (
           }`
         )
       }
+    }
+
+    // Impor potential customer mengubah
+    // daftar group dan sales person
+    // pada filter option.
+
+    if (imported > 0) {
+      await invalidateCustomerFiltersCache();
     }
 
     return res.status(200).json({

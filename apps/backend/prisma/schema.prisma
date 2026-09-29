@@ -278,6 +278,8 @@ model sales_invoices {
   @@unique([DocNum, LineNum])
   @@index([CardCode])
   @@index([DocDate])
+  @@index([CardCode, DocDate])
+  @@index([CardCode, DocNum])
 }
 
 model daily_sales_summary_view {
@@ -731,6 +733,8 @@ model orders {
   customer customers? @relation(fields: [CardCode], references: [CardCode])
 
   @@unique([DocNum, LineNum], map: "orders_docnum_linenum_unique")
+  @@index([CardCode, DocDate])
+  @@index([CardCode, DocNum])
 }
 
 enum dayOfWeeks {

@@ -24,6 +24,12 @@ export const invalidateVisitRuleCache = async () => {
     cacheDeletePattern(
       'saleshub:schedule-list:*'
     ),
+    cacheDeletePattern(
+      'saleshub:schedule-by-date:*'
+    ),
+    cacheDeletePattern(
+      'saleshub:schedule-by-sales-person:*'
+    ),
   ])
 }
 

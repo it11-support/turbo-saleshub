@@ -7,6 +7,10 @@ import prisma from '@/libs/prisma.js';
 import { convertToPrismaOrderBy, sortOptionsParser } from '@/utils/sortOptionsParser.js';
 import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
+import { cacheGet, cacheSet } from '@/libs/cache.js';
+import { cacheKeys, invalidateUserCache } from '@/libs/cache-keys.js';
+
+const CACHE_TTL = 300;
 
 
 export const userList = async (
@@ -92,13 +96,36 @@ export const me = async (req: Request, res: Response<ProfileResponseType>) => {
       return;
     }
 
+    const numericUserId = Number(userId);
+
+    const cacheKey = cacheKeys.userMe(numericUserId);
+
+    const cached = await cacheGet<typeof user>(cacheKey);
+
+    if (cached) {
+      return res.status(200).json({
+        message: 'Success',
+        data: {
+          user: cached,
+        },
+      });
+    }
+
     const user = await prisma.users.findUnique({
-      where: { id: Number(userId) },
+      where: { id: numericUserId },
       include: {
         sales_person: true,
         roles: true,
       },
     });
+
+    if (user) {
+      await cacheSet(
+        cacheKey,
+        user,
+        CACHE_TTL
+      );
+    }
 
     res.status(200).json({
       message: 'Success',
@@ -126,6 +153,8 @@ export const updateUser = async (req: AuthenticatedRequest<{ id: string }>, res:
       where: { id: Number(id) },
       data: dataToUpdate,
     });
+
+    await invalidateUserCache(Number(id));
 
     activityLogger({
       req,
@@ -173,6 +202,8 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
     const user = await prisma.users.delete({
       where: { id: Number(id) },
     });
+
+    await invalidateUserCache(Number(id));
 
     activityLogger({
       req,

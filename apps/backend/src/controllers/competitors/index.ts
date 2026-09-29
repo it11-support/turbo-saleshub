@@ -1,10 +1,18 @@
 import prisma from "@/libs/prisma.js";
 import { handleApiError } from "@/utils/apiResponse.js";
 import { Request, Response } from "express";
+import { getCachedFilterOptions } from "@/libs/filter-cache.js";
+import { cacheKeys } from "@/libs/cache-keys.js";
+
+const MASTER_TTL = 3600;
 
 export const fetchCompetitors = async (req: Request, res: Response) => {
   try {
-    const competitors = await prisma.competitors.findMany();
+    const competitors = await getCachedFilterOptions(
+      cacheKeys.competitors(),
+      () => prisma.competitors.findMany(),
+      MASTER_TTL
+    );
     res.status(200).json({ message: "Competitors fetched successfully", data: competitors });
   } catch (error) {
     return handleApiError(error, res)

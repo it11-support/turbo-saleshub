@@ -147,6 +147,10 @@ export const createStatus = async (data: { status: string, level: EBadgeVariant,
         requires_action
       }
     })
+
+    // Invalidate cache setelah database berhasil berubah
+    await cacheDelete(CONCERN_STATUS_CACHE_KEY);
+
     return statusData
   } catch (error) {
     console.error(error);
@@ -160,7 +164,7 @@ export const updateStatus = async (
   data: { status?: string, level?: EBadgeVariant, icon?: string, requires_action?: boolean }
 ) => {
   try {
-    return await prisma.concern_status.update({
+    const status = await prisma.concern_status.update({
       where: {
         id: BigInt(id),
       },
@@ -171,6 +175,11 @@ export const updateStatus = async (
         ...(data.requires_action !== undefined ? { requires_action: data.requires_action } : {}),
       },
     });
+
+    // Invalidate cache setelah update berhasil
+    await cacheDelete(CONCERN_STATUS_CACHE_KEY);
+
+    return status;
   } catch (error) {
     console.error(error);
     throw error;
@@ -180,11 +189,16 @@ export const updateStatus = async (
 
 export const deleteStatus = async (id: number) => {
   try {
-    return await prisma.concern_status.delete({
+    const status = await prisma.concern_status.delete({
       where: {
         id: BigInt(id),
       },
     });
+
+    // Invalidate cache setelah delete berhasil
+    await cacheDelete(CONCERN_STATUS_CACHE_KEY);
+
+    return status;
   } catch (error) {
     console.error(error);
     throw error;

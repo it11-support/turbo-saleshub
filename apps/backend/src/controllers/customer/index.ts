@@ -11,8 +11,11 @@ import { customersWhereInput, productsGetPayload } from '@/generated/prisma/mode
 import { Decimal } from '@prisma/client/runtime/client';
 import { cacheGet, cacheSet } from '@/libs/cache.js';
 import { getCachedFilterOptions } from '@/libs/filter-cache.js';
+import { cacheKeys, invalidateCustomerFiltersCache } from '@/libs/cache-keys.js';
 
 const CACHE_TTL = 900;
+
+const MASTER_TTL = 3600;
 
 type PotentialCustomerFilterOptions = {
   groupNames: string[]
@@ -750,28 +753,34 @@ export const purchaseHistory = async (
     }
 
     // =========================
-    // DATABASE
+    // DATE RANGES
     // =========================
+
+    const now = dayjs()
+
+    const currentStart = now.startOf('month').toDate()
+    const last3MonthsStart = now.subtract(3, 'month').toDate()
+    const last6MonthsStart = now.subtract(6, 'month').toDate()
+    const rangeEnd = now.toDate()
+
+    // =========================
+    // CUSTOMER
+    // =========================
+    // Hanya kolom ringan. Riwayat invoice
+    // tidak pernah dikirim ke frontend
+    // dari endpoint ini.
 
     const customer = await prisma.customers.findUnique({
       where: {
         id: customerId,
       },
-      include: {
-        sales_invoices: {
-          include: {
-            product: true,
-            returs: true,
-          },
-          orderBy: {
-            DocDate: 'desc',
-          },
-        },
-        orders: {
-          orderBy: {
-            DocDate: 'desc',
-          },
-        },
+      select: {
+        id: true,
+        CardCode: true,
+        CardName: true,
+        LocalCode: true,
+        GroupName: true,
+        SalesName: true,
       },
     })
 
@@ -781,128 +790,141 @@ export const purchaseHistory = async (
       })
     }
 
-    // =========================
-    // DATE RANGES
-    // =========================
-
-    const now = dayjs()
-
-    const ranges = {
-      current: {
-        start: now.startOf('month').toDate(),
-        end: now.toDate(),
-      },
-      last3Months: {
-        start: now.subtract(3, 'month').toDate(),
-        end: now.toDate(),
-      },
-      last6Months: {
-        start: now.subtract(6, 'month').toDate(),
-        end: now.toDate(),
-      },
+    const emptyRange = {
+      current: 0,
+      last3Months: 0,
+      last6Months: 0,
     }
 
-    // =========================
-    // ORDERS
-    // =========================
+    if (!customer.CardCode) {
+      const emptyResult = {
+        customer,
+        lastPurchase: [],
+        ordersByRange: emptyRange,
+        invoiceCountByRange: emptyRange,
+      }
 
-    const allOrders = customer.orders
+      await cacheSet(
+        cacheKey,
+        emptyResult,
+        CACHE_TTL
+      )
 
-    const ordersByRange = {
-      current: allOrders.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >=
-          ranges.current.start &&
-          dayjs(o.DocDate).toDate() <=
-          ranges.current.end
-      ).length,
-
-      last3Months: allOrders.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >=
-          ranges.last3Months.start &&
-          dayjs(o.DocDate).toDate() <=
-          ranges.last3Months.end
-      ).length,
-
-      last6Months: allOrders.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >=
-          ranges.last6Months.start &&
-          dayjs(o.DocDate).toDate() <=
-          ranges.last6Months.end
-      ).length,
+      return res.status(200).json({
+        message: 'Success',
+        data: emptyResult,
+      })
     }
 
-    // =========================
-    // INVOICES
-    // =========================
+    const cardCode = customer.CardCode
 
-    const allInvoices = customer.sales_invoices
+    // =========================
+    // AGGREGATION
+    // =========================
+    // Dihitung di database, bukan dengan
+    // menarik seluruh baris ke memory.
+
+    type RangeCountRow = {
+      current: number
+      last3Months: number
+      last6Months: number
+    }
+
+    const [
+      invoiceCounts,
+      orderCounts,
+      latestDoc,
+    ] = await Promise.all([
+      prisma.$queryRaw<RangeCountRow[]>`
+        SELECT
+          COUNT(CASE
+            WHEN DocDate >= ${currentStart}
+             AND DocDate <= ${rangeEnd}
+            THEN 1 END) AS current,
+          COUNT(CASE
+            WHEN DocDate >= ${last3MonthsStart}
+             AND DocDate <= ${rangeEnd}
+            THEN 1 END) AS last3Months,
+          COUNT(CASE
+            WHEN DocDate >= ${last6MonthsStart}
+             AND DocDate <= ${rangeEnd}
+            THEN 1 END) AS last6Months
+        FROM sales_invoices
+        WHERE CardCode = ${cardCode}
+      `,
+
+      prisma.$queryRaw<RangeCountRow[]>`
+        SELECT
+          COUNT(CASE
+            WHEN DocDate >= ${currentStart}
+             AND DocDate <= ${rangeEnd}
+            THEN 1 END) AS current,
+          COUNT(CASE
+            WHEN DocDate >= ${last3MonthsStart}
+             AND DocDate <= ${rangeEnd}
+            THEN 1 END) AS last3Months,
+          COUNT(CASE
+            WHEN DocDate >= ${last6MonthsStart}
+             AND DocDate <= ${rangeEnd}
+            THEN 1 END) AS last6Months
+        FROM orders
+        WHERE CardCode = ${cardCode}
+      `,
+
+      prisma.sales_invoices.findFirst({
+        where: {
+          CardCode: cardCode,
+        },
+        orderBy: {
+          DocNum: 'desc',
+        },
+        select: {
+          DocNum: true,
+        },
+      }),
+    ])
 
     const invoiceCountByRange = {
-      current: allInvoices.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >=
-          ranges.current.start &&
-          dayjs(o.DocDate).toDate() <=
-          ranges.current.end
-      ).length,
+      current: Number(invoiceCounts[0]?.current ?? 0),
+      last3Months: Number(invoiceCounts[0]?.last3Months ?? 0),
+      last6Months: Number(invoiceCounts[0]?.last6Months ?? 0),
+    }
 
-      last3Months: allInvoices.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >=
-          ranges.last3Months.start &&
-          dayjs(o.DocDate).toDate() <=
-          ranges.last3Months.end
-      ).length,
-
-      last6Months: allInvoices.filter(
-        (o) =>
-          dayjs(o.DocDate).toDate() >=
-          ranges.last6Months.start &&
-          dayjs(o.DocDate).toDate() <=
-          ranges.last6Months.end
-      ).length,
+    const ordersByRange = {
+      current: Number(orderCounts[0]?.current ?? 0),
+      last3Months: Number(orderCounts[0]?.last3Months ?? 0),
+      last6Months: Number(orderCounts[0]?.last6Months ?? 0),
     }
 
     // =========================
     // LAST PURCHASE
     // =========================
+    // Hanya baris dari dokumen terakhir,
+    // bukan seluruh riwayat.
 
-    type SalesInvoice =
-      (typeof customer.sales_invoices)[number]
-
-    type GroupedInvoice = SalesInvoice & {
-      hasRetur: boolean
-    }
-
-    const grouped: Record<
-      number,
-      GroupedInvoice[]
-    > = {}
-
-    customer.sales_invoices.forEach((inv) => {
-      if (!grouped[inv.DocNum]) {
-        grouped[inv.DocNum] = []
-      }
-
-      grouped[inv.DocNum].push({
-        ...inv,
-        hasRetur:
-          (inv.returs?.length ?? 0) > 0,
-      })
-    })
-
-    const docNums = Object
-      .keys(grouped)
-      .map(Number)
-      .sort((a, b) => b - a)
-
-    const firstDocNum = docNums[0]
-
-    const lastPurchase = firstDocNum
-      ? grouped[firstDocNum]
+    const lastPurchase = latestDoc
+      ? await prisma.sales_invoices.findMany({
+        where: {
+          CardCode: cardCode,
+          DocNum: latestDoc.DocNum,
+        },
+        include: {
+          product: true,
+          returs: {
+            select: {
+              id: true,
+            },
+          },
+        },
+        orderBy: {
+          LineNum: 'asc',
+        },
+      }).then((rows) =>
+        rows.map((inv) => ({
+          ...inv,
+          hasRetur: (inv.returs?.length ?? 0) > 0,
+        }))
+      )
       : []
 
     // =========================
@@ -1149,13 +1171,21 @@ export const getSuggestedItems = async (
 
 export const fetchSubgroups = async (req: Request, res: Response) => {
   try {
-    const subgroups = await prisma.subgroups.findMany({
-      select: {
-        IndCode: true,
-        IndName: true,
-      },
-      distinct: ['IndCode'],
-    });
+    const subgroups = await getCachedFilterOptions<{
+      IndCode: number
+      IndName: string
+    }[]>(
+      cacheKeys.customerSubgroups(),
+      async () =>
+        prisma.subgroups.findMany({
+          select: {
+            IndCode: true,
+            IndName: true,
+          },
+          distinct: ['IndCode'],
+        }),
+      MASTER_TTL
+    );
     res.status(200).json({ message: 'Subgroups fetched successfully', data: subgroups });
   } catch (error) {
     return handleApiError(error, res)
@@ -1164,12 +1194,19 @@ export const fetchSubgroups = async (req: Request, res: Response) => {
 
 export const fetchGroups = async (req: Request, res: Response) => {
   try {
-    const groups = await prisma.customers.findMany({
-      select: {
-        GroupName: true,
-      },
-      distinct: ['GroupName'],
-    });
+    const groups = await getCachedFilterOptions<{
+      GroupName: string | null
+    }[]>(
+      cacheKeys.customerGroups(),
+      async () =>
+        prisma.customers.findMany({
+          select: {
+            GroupName: true,
+          },
+          distinct: ['GroupName'],
+        }),
+      MASTER_TTL
+    );
     res.status(200).json({ message: 'Groups fetched successfully', data: groups });
   } catch (error) {
     return handleApiError(error, res)
@@ -1212,6 +1249,12 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response) =
         sales_person: true,
       }
     });
+
+    // Customer baru mengubah daftar
+    // group, subgroup, dan sales person
+    // yang dipakai sebagai filter option.
+
+    await invalidateCustomerFiltersCache();
 
     activityLogger({
       req,

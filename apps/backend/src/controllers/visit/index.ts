@@ -16,6 +16,7 @@ import { handleApiError } from '@/utils/apiResponse.js';
 import { MAX_IMAGE_SIZE } from '../product/constants.js';
 import { getConcerns, getConcernStatuses } from '@/services/index.js';
 import { cacheDelete } from '@/libs/cache.js';
+import { invalidateVisitCache } from '@/libs/cache-keys.js';
 
 export const fetchSalesVisit = async (req: Request, res: Response) => {
   try {
@@ -377,7 +378,7 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
     });
 
     if (updatedVisit?.customer?.id) {
-      const customerId = updatedVisit.customer.id;
+      const customerId = Number(updatedVisit.customer.id);
 
       await Promise.all([
         cacheDelete(
@@ -386,6 +387,7 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
         cacheDelete(
           `saleshub:suggested-items:${customerId}:without-recent`
         ),
+        invalidateVisitCache(),
       ]);
     }
 
@@ -1002,7 +1004,7 @@ export const closeItems = async (
     });
 
     if (updatedVisit?.customer?.id) {
-      const customerId = updatedVisit.customer.id;
+      const customerId = Number(updatedVisit.customer.id);
 
       await Promise.all([
         cacheDelete(
@@ -1011,6 +1013,7 @@ export const closeItems = async (
         cacheDelete(
           `saleshub:suggested-items:${customerId}:without-recent`
         ),
+        invalidateVisitCache(),
       ]);
     }
 

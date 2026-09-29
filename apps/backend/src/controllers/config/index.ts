@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '@/libs/prisma.js';
 import { handleApiError } from '@/utils/apiResponse.js';
+import { cacheDelete, cacheGet, cacheSet } from '@/libs/cache.js';
+import { cacheKeys } from '@/libs/cache-keys.js';
+
+const CACHE_TTL = 600;
 
 export type ConfigRequstType = {
   userId: string;
@@ -29,15 +33,36 @@ export const userConfig = async (
       return;
     }
 
+    const numericUserId = Number(userId);
+
+    const cacheKey = cacheKeys.userConfig(numericUserId);
+
+    const cached = await cacheGet<ConfigType[]>(cacheKey);
+
+    if (cached) {
+      return res.status(200).json({
+        message: 'Success',
+        data: {
+          configs: cached,
+        },
+      });
+    }
+
     const configs = await prisma.configs.findMany({
       where: {
-        user_id: Number(userId),
+        user_id: numericUserId,
       },
       select: {
         key: true,
         value: true,
       },
     });
+
+    await cacheSet(
+      cacheKey,
+      configs,
+      CACHE_TTL
+    );
 
     res.status(200).json({
       message: 'Success',
@@ -68,6 +93,10 @@ export const updateConfig = async (req: Request, res: Response) => {
           create: { user_id, key, value: configs[key] },
         })
       )
+    );
+
+    await cacheDelete(
+      cacheKeys.userConfig(Number(user_id))
     );
 
     res.status(200).json({ message: 'Success', data: configs });
