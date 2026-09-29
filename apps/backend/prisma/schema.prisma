@@ -205,6 +205,9 @@ model products {
   MinPrice        Decimal?         @db.Decimal(19, 6)
   MaxPrice        Decimal?         @db.Decimal(19, 6)
   HargaJualNormal Decimal?         @db.Decimal(19, 6)
+  InStock         Decimal          @default(0) @db.Decimal(19, 6)
+  Committed       Decimal          @default(0) @db.Decimal(19, 6)
+  AvailableStock  Decimal          @default(0) @db.Decimal(19, 6)
   ItmsGrpCod      Int              @db.SmallInt
   RevenuesAc      String?          @db.VarChar(15)
   AcctName        String?          @db.VarChar(100)

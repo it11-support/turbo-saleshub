@@ -540,6 +540,64 @@ const ProductList = () => {
                     Revenue:{' '}
                     {item.revenue! > 0 ? formatCurrency(Number(item.revenue), true, true) : '-'}
                   </div>
+
+                  <div
+                    className="mt-3 border-1 border-200 border-round p-3"
+                    style={{ background: 'var(--surface-50)' }}
+                  >
+                    {/* AVAILABLE */}
+                    <div className="flex justify-content-between align-items-center pb-2 border-bottom-1 border-200">
+                      <div>
+                        <div className="text-sm font-medium text-700">Available</div>
+                        <div className="text-xs text-600 mt-1">Stock available for new sales</div>
+                      </div>
+
+                      <span
+                        className={`text-xl font-bold ${
+                          Number(item.AvailableStock) > 0
+                            ? 'text-green-600'
+                            : Number(item.AvailableStock) < 0
+                              ? 'text-red-500'
+                              : 'text-500'
+                        }`}
+                      >
+                        {Number(item.AvailableStock).toLocaleString()}
+                        <span className="text-xs font-normal ml-1 text-500">{item.SalUnitMsr}</span>
+                      </span>
+                    </div>
+
+                    <div className="grid mt-2">
+                      {/* IN STOCK */}
+                      <div className="col-6 py-1">
+                        <div className="text-sm font-medium text-700">In Stock</div>
+                        <div className="text-xs text-400 mt-1">
+                          Physical stock in General Warehouse
+                        </div>
+
+                        <div className="font-semibold mt-2">
+                          {Number(item.InStock).toLocaleString()}
+                          <span className="text-xs font-normal ml-1 text-500">
+                            {item.SalUnitMsr}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* COMMITTED */}
+                      <div className="col-6 py-1 text-right">
+                        <div className="text-sm font-medium text-700">Committed</div>
+                        <div className="text-xs text-400 mt-1">
+                          Stock allocated to existing orders
+                        </div>
+
+                        <div className="font-semibold mt-2">
+                          {Number(item.Committed).toLocaleString()}
+                          <span className="text-xs font-normal ml-1 text-500">
+                            {item.SalUnitMsr}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
