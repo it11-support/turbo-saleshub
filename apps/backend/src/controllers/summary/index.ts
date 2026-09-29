@@ -8,12 +8,45 @@ import { handleApiError } from '@/utils/apiResponse.js'
 import { VisitStatus } from '@/generated/prisma/enums.js';
 
 import dayjs from 'dayjs'
+import { cacheGet, cacheSet } from '@/libs/cache.js'
+
+const CACHE_TTL = 600
+type MtdSummaryResult = {
+  productRevenueDistributor: ReturnType<typeof buildProductRevenue>
+  productRevenueGrocery: ReturnType<typeof buildProductRevenue>
+  productRevenueAll: ReturnType<typeof buildProductRevenue>
+  summary: Awaited<ReturnType<typeof getSalesSummary>>
+  monthlyTrends: Array<
+    Record<
+      number,
+      Record<
+        string,
+        {
+          month: number
+          revenue: number
+          orders: number
+          customers: number
+        }
+      >
+    >
+  >
+}
 
 export const mtdSummary = async (req: Request, res: Response) => {
   try {
     const { mtdStart, mtdEnd } = getMtdDates()
 
     const { salesPersonId } = req.query
+    const cacheKey =
+      `saleshub:mtd-summary:${salesPersonId ? Number(salesPersonId) : 'all'}`
+    const cached = await cacheGet<MtdSummaryResult>(cacheKey)
+
+    if (cached) {
+      return res.status(200).json({
+        message: 'Success',
+        data: cached,
+      })
+    }
 
     const salesFilter = salesPersonId
       ? {
@@ -182,15 +215,23 @@ export const mtdSummary = async (req: Request, res: Response) => {
     // =====================
     // RESPONSE
     // =====================
-    res.status(200).json({
+    const result: MtdSummaryResult = {
+      productRevenueDistributor,
+      productRevenueGrocery,
+      productRevenueAll,
+      summary,
+      monthlyTrends,
+    }
+
+    await cacheSet(
+      cacheKey,
+      result,
+      CACHE_TTL
+    )
+
+    return res.status(200).json({
       message: 'Success',
-      data: {
-        productRevenueDistributor,
-        productRevenueGrocery,
-        productRevenueAll,
-        summary,
-        monthlyTrends
-      },
+      data: result,
     })
   } catch (error) {
     return handleApiError(error, res, 'Internal server error', [])

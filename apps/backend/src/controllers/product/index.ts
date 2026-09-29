@@ -12,6 +12,18 @@ import { deleteExistingImages, saveImage } from './upload.js';
 import { validateUploadFile } from './validation.js';
 import { findProductImage, getFallbackImage, processUploadFile } from './image.js';
 import { PRODUCT_IMAGE_DIR } from './constants.js';
+import { getCachedFilterOptions } from '@/libs/filter-cache.js';
+import { cacheGet, cacheSet } from '@/libs/cache.js';
+
+type ProductSalesStat = {
+  unitsSold: number
+  revenue: number
+}
+
+type ProductCategoryOption = {
+  ItmsGrpCod: number | null
+  ItmsGrpNam: string | null
+}
 
 export type ImageResponseType = never;
 
@@ -165,118 +177,350 @@ export const imageUpload = async (
   }
 }
 
-export const fetchProducts = async (req: Request, res: Response) => {
+export const fetchProducts = async (
+  req: Request,
+  res: Response
+) => {
   try {
-    const { page, limit, search, category, productFocused, distributor, group } = req.query;
-    const perPage = limit ? Number(limit) : 10;
-    const currentPage = page ? Number(page) : 1;
-    const keyword = typeof search === 'string' && search.trim() !== '' ? search.trim() : null;
-    const isProductFocused = productFocused === 'true';
-    const isDistributor = distributor === 'true';
-    const productCategory = group as EProductCategory
+    const {
+      page,
+      limit,
+      search,
+      category,
+      productFocused,
+      distributor,
+      group,
+    } = req.query
+
+    const perPage = limit ? Number(limit) : 10
+    const currentPage = page ? Number(page) : 1
+
+    const keyword =
+      typeof search === 'string' &&
+        search.trim() !== ''
+        ? search.trim()
+        : null
+
+    const isProductFocused =
+      productFocused === 'true'
+
+    const isDistributor =
+      distributor === 'true'
+
+    const productCategory =
+      group as EProductCategory
+
+    // =========================================
+    // WHERE
+    // =========================================
 
     const where: Prisma.productsWhereInput = {
-      ...(category ? { ItmsGrpCod: Number(category) } : {}),
+      ...(category
+        ? {
+          ItmsGrpCod: Number(category),
+        }
+        : {}),
+
       ...(keyword
         ? {
           OR: [
             {
-              ItemCode: { contains: keyword },
+              ItemCode: {
+                contains: keyword,
+              },
             },
             {
-              ItemName: { contains: keyword },
+              ItemName: {
+                contains: keyword,
+              },
             },
             {
-              ItmsGrpNam: { contains: keyword },
+              ItmsGrpNam: {
+                contains: keyword,
+              },
             },
           ],
         }
         : {}),
+
       ...(!isProductFocused && !isDistributor
-        ? { validFor: 'Y', frozenFor: 'N' }
+        ? {
+          validFor: 'Y',
+          frozenFor: 'N',
+        }
         : {}),
 
-      // 2. Logika OR Saling Silang (Hanya muncul jika flag terpilih)
       ...((isProductFocused || isDistributor) && {
         OR: [
-          // Muncul HANYA jika tombol/checkbox Focus dinyalakan
           ...(isProductFocused
-            ? [{ product_developments: { some: {} } }]
+            ? [
+              {
+                product_developments: {
+                  some: {},
+                },
+              },
+            ]
             : []),
 
-          // Muncul HANYA jika tombol/checkbox Distributor dinyalakan
           ...(isDistributor
-            ? [{
-              Distributor: 'Y',
-              validFor: 'Y',
-              frozenFor: 'N'
-            }]
+            ? [
+              {
+                Distributor: 'Y',
+                validFor: 'Y',
+                frozenFor: 'N',
+              },
+            ]
             : []),
-        ]
+        ],
       }),
-      ...(group ? { ProductCategory: productCategory } : {})
-    };
-    const products = await prisma.products.findMany({
-      skip: (currentPage - 1) * perPage,
-      take: perPage,
-      where,
-      include: {
-        product_developments: {
-          include: { subgroup: true },
-        },
-        sales_invoices: {
-          where: {
-            DocDate: {
-              gte: dayjs().subtract(1, 'month').startOf('day').toDate(),
-            }
-          },
-          select: {
-            QtyKg: true,
-            unitMsr: true,
-            TotalSales: true,
-          }
+
+      ...(group
+        ? {
+          ProductCategory:
+            productCategory,
         }
-      },
-    });
+        : {}),
+    }
 
-    const totalRecords = await prisma.products.count({ where });
+    // =========================================
+    // PRODUCTS + COUNT
+    // =========================================
 
-    const totalPages = Math.ceil(totalRecords / perPage);
+    const [products, totalRecords] =
+      await Promise.all([
+        prisma.products.findMany({
+          skip:
+            (currentPage - 1) *
+            perPage,
 
-    const producCategories = await prisma.products.findMany({
-      select: {
-        ItmsGrpCod: true,
-        ItmsGrpNam: true,
-      },
-      distinct: ['ItmsGrpCod'],
-    });
+          take: perPage,
 
-    const productList = products.map(p => {
-      const unitsSold = p.sales_invoices.reduce((sum, inv) => sum + Number(inv.QtyKg ?? 0), 0);
-      const revenue = p.sales_invoices.reduce(
-        (sum, inv) => sum + Number(inv.TotalSales ?? 0),
-        0
-      );
+          where,
 
-      return {
-        ...p,
-        unitsSold,
-        revenue
-      };
-    });
-    res.status(200).json({
-      message: 'Products fetched successfully',
-      data: {
-        items: productList,
-        totalRecords,
-        totalPages,
-        categories: producCategories,
-      },
-    });
+          include: {
+            product_developments: {
+              include: {
+                subgroup: true,
+              },
+            },
+          },
+        }),
+
+        prisma.products.count({
+          where,
+        }),
+      ])
+
+    const totalPages =
+      Math.ceil(
+        totalRecords / perPage
+      )
+
+    // =========================================
+    // CATEGORIES CACHE
+    // =========================================
+
+    const producCategories =
+      await getCachedFilterOptions<
+        ProductCategoryOption[]
+      >(
+        'saleshub:filters:product-categories',
+
+        () =>
+          prisma.products.findMany({
+            select: {
+              ItmsGrpCod: true,
+              ItmsGrpNam: true,
+            },
+
+            distinct: [
+              'ItmsGrpCod',
+            ],
+          }),
+
+        3600
+      )
+
+    // =========================================
+    // PRODUCT SALES CACHE
+    // =========================================
+
+    const salesStatsMap =
+      new Map<
+        string,
+        ProductSalesStat
+      >()
+
+    const missingItemCodes:
+      string[] = []
+
+    // Check Redis untuk setiap produk di page
+    await Promise.all(
+      products.map(
+        async product => {
+          const cacheKey =
+            `saleshub:product-sales-1m:${product.ItemCode}`
+
+          const cached =
+            await cacheGet<ProductSalesStat>(
+              cacheKey
+            )
+
+          if (cached) {
+            salesStatsMap.set(
+              product.ItemCode,
+              cached
+            )
+
+            return
+          }
+
+          missingItemCodes.push(
+            product.ItemCode
+          )
+        }
+      )
+    )
+
+    // =========================================
+    // FETCH ONLY CACHE MISSES
+    // =========================================
+
+    if (
+      missingItemCodes.length >
+      0
+    ) {
+      const sales =
+        await prisma.sales_invoices.groupBy({
+          by: ['ItemCode'],
+
+          where: {
+            ItemCode: {
+              in: missingItemCodes,
+            },
+
+            DocDate: {
+              gte: dayjs()
+                .subtract(
+                  1,
+                  'month'
+                )
+                .startOf('day')
+                .toDate(),
+            },
+          },
+
+          _sum: {
+            QtyKg: true,
+            TotalSales: true,
+          },
+        })
+
+      const salesMap =
+        new Map(
+          sales.map(item => [
+            item.ItemCode,
+            {
+              unitsSold: Number(
+                item._sum
+                  .QtyKg ?? 0
+              ),
+
+              revenue: Number(
+                item._sum
+                  .TotalSales ?? 0
+              ),
+            },
+          ])
+        )
+
+      // =========================================
+      // SAVE CACHE
+      // =========================================
+
+      await Promise.all(
+        missingItemCodes.map(
+          async itemCode => {
+            const stat:
+              ProductSalesStat =
+              salesMap.get(
+                itemCode
+              ) ?? {
+                unitsSold: 0,
+                revenue: 0,
+              }
+
+            salesStatsMap.set(
+              itemCode,
+              stat
+            )
+
+            const cacheKey =
+              `saleshub:product-sales-1m:${itemCode}`
+
+            await cacheSet(
+              cacheKey,
+              stat,
+              300
+            )
+          }
+        )
+      )
+    }
+
+    // =========================================
+    // BUILD PRODUCT LIST
+    // =========================================
+
+    const productList =
+      products.map(product => {
+        const stats =
+          salesStatsMap.get(
+            product.ItemCode
+          )
+
+        return {
+          ...product,
+
+          unitsSold:
+            stats?.unitsSold ??
+            0,
+
+          revenue:
+            stats?.revenue ??
+            0,
+        }
+      })
+
+    // =========================================
+    // RESPONSE
+    // =========================================
+
+    return res
+      .status(200)
+      .json({
+        message:
+          'Products fetched successfully',
+
+        data: {
+          items:
+            productList,
+
+          totalRecords,
+
+          totalPages,
+
+          categories:
+            producCategories,
+        },
+      })
   } catch (error) {
-    return handleApiError(error, res)
+    return handleApiError(
+      error,
+      res
+    )
   }
-};
+}
 
 export const bulkUploadProducts = async (
   req: AuthenticatedRequest,

@@ -14,6 +14,13 @@ import { getCachedFilterOptions } from '@/libs/filter-cache.js';
 
 const CACHE_TTL = 900;
 
+type PotentialCustomerFilterOptions = {
+  groupNames: string[]
+  subGroupNames: string[]
+  salesPersonNames: string[]
+}
+
+
 type CustomerFilterOptions = {
   groupNames: string[]
   subGroupNames: string[]
@@ -479,83 +486,112 @@ export const potentialCustomerList = async (
       })
 
     // =========================
-    // FILTER OPTIONS
+    // FILTER OPTIONS CACHE
     // =========================
 
-    const customerGroup =
-      await prisma.customers.findMany({
-        where: {
-          potential_customer: {
-            some: {},
-          },
-        },
-        distinct: ['GroupName'],
-        select: {
-          GroupName: true,
-        },
-      })
+    const {
+      groupNames,
+      subGroupNames,
+      salesPersonNames,
+    } =
+      await getCachedFilterOptions<PotentialCustomerFilterOptions>(
+        'saleshub:filters:potential-customers',
 
-    const customerSubgroups =
-      await prisma.customers.findMany({
-        where: {
-          potential_customer: {
-            some: {},
-          },
-          subgroup: {
-            isNot: null,
-          },
-        },
-        distinct: ['GroupName'],
-        select: {
-          subgroup: {
-            select: {
-              IndName: true,
-            },
-          },
-        },
-      })
+        async () => {
+          const [
+            customerGroup,
+            customerSubgroups,
+            salesPersonsData,
+          ] = await Promise.all([
+            prisma.customers.findMany({
+              where: {
+                potential_customer: {
+                  some: {},
+                },
+              },
+              distinct: ['GroupName'],
+              select: {
+                GroupName: true,
+              },
+            }),
 
-    const salesPersonsData =
-      await prisma.sales_persons.findMany({
-        where: {
-          potential_customers: {
-            some: {},
-          },
+            prisma.customers.findMany({
+              where: {
+                potential_customer: {
+                  some: {},
+                },
+                subgroup: {
+                  isNot: null,
+                },
+              },
+              distinct: ['GroupName'],
+              select: {
+                subgroup: {
+                  select: {
+                    IndName: true,
+                  },
+                },
+              },
+            }),
+
+            prisma.sales_persons.findMany({
+              where: {
+                potential_customers: {
+                  some: {},
+                },
+              },
+              select: {
+                id: true,
+                SlpName: true,
+              },
+              orderBy: {
+                SlpName: 'asc',
+              },
+            }),
+          ])
+
+          // =========================
+          // OPTIONS
+          // =========================
+
+          const groupNames = customerGroup
+            .map((g) => g.GroupName)
+            .filter(
+              (name): name is string =>
+                name !== null
+            )
+
+          const subGroupNames = [
+            ...new Set(
+              customerSubgroups
+                .map(
+                  (c) =>
+                    c.subgroup?.IndName
+                )
+                .filter(
+                  (name): name is string =>
+                    name !== null &&
+                    name !== undefined
+                )
+            ),
+          ]
+
+          const salesPersonNames =
+            salesPersonsData
+              .map((sp) => sp.SlpName)
+              .filter(
+                (name): name is string =>
+                  name !== null
+              )
+
+          return {
+            groupNames,
+            subGroupNames,
+            salesPersonNames,
+          }
         },
-        select: {
-          id: true,
-          SlpName: true,
-        },
-        orderBy: {
-          SlpName: 'asc',
-        },
-      })
 
-    // =========================
-    // OPTIONS
-    // =========================
-
-    const groupNames = customerGroup
-      .map((g) => g.GroupName)
-      .filter(
-        (name): name is string => name !== null
-      )
-
-    const subGroupNames = [
-      ...new Set(
-        customerSubgroups
-          .map((c) => c.subgroup?.IndName)
-          .filter(
-            (name): name is string =>
-              name !== null && name !== undefined
-          )
-      ),
-    ]
-
-    const salesPersonNames = salesPersonsData
-      .map((sp) => sp.SlpName)
-      .filter(
-        (name): name is string => name !== null
+        3600
       )
 
     // =========================

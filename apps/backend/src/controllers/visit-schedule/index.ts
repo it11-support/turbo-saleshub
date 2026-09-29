@@ -7,9 +7,11 @@ import prisma from '@/libs/prisma.js';
 import { getSuggestedItems } from '../customer/index.js';
 import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
-import { sales_visit_schedulesWhereInput, sales_visit_schedulesModel, visit_item_concernsModel } from '@/generated/prisma/models.js';
+import { sales_visit_schedulesWhereInput, sales_visit_schedulesModel, visit_item_concernsModel, customersGetPayload, visitsGetPayload } from '@/generated/prisma/models.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import { cacheGet, cacheSet } from '@/libs/cache.js';
 
+const CACHE_TTL = 600;
 type OpenVisitItem = {
   id: bigint;
   visit_id: bigint;
@@ -21,6 +23,12 @@ type OpenVisitItem = {
   updated_at: Date;
   visit_date: string | null;
   visit_item_concerns: visit_item_concernsModel[];
+};
+
+type ScheduleByDateResult = {
+  data: unknown[];
+  total: number;
+  weekOfMonth: number;
 };
 
 export const getScheduleBySalsePerson = async (req: Request, res: Response) => {
@@ -260,6 +268,21 @@ export const getScheduleByDate = async (req: AuthenticatedRequest, res: Response
     const date = dayjs(dateStr);
     const targetDateKey = date.format('YYYY-MM-DD');
     const limit = dayjs().subtract(1, 'day');
+
+    const cacheKey =
+      `saleshub:schedule-by-date:${salesPersonId ?? "none"}:${userId ?? "none"}:${targetDateKey}`;
+
+
+    const cached =
+      await cacheGet<ScheduleByDateResult>(cacheKey);
+
+    if (cached) {
+      return res.status(200).json({
+        message: "Success",
+        data: cached,
+      });
+    }
+
 
     if (date.day() === 0) {
       res.status(200).json({
@@ -575,9 +598,21 @@ export const getScheduleByDate = async (req: AuthenticatedRequest, res: Response
       open_issues: allVisitMaps.get(Number(item.customer_id)) || [],
     }));
 
-    res.status(200).json({
+    const result: ScheduleByDateResult = {
+      data: mergeData,
+      total: mergeData.length,
+      weekOfMonth,
+    };
+
+    await cacheSet(
+      cacheKey,
+      result,
+      CACHE_TTL
+    );
+
+    return res.status(200).json({
       message: 'Success',
-      data: { data: mergeData, total: mergeData.length, weekOfMonth },
+      data: result,
     });
 
   } catch (error) {
