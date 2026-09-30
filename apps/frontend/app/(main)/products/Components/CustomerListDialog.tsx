@@ -41,8 +41,7 @@ const CustomerListDialog = ({
     const keyword = search.toLowerCase()
     return customers.filter(
       (c) =>
-        c.CardName?.toLowerCase().includes(keyword) ||
-        c.CardCode?.toLowerCase().includes(keyword)
+        c.CardName?.toLowerCase().includes(keyword) || c.CardCode?.toLowerCase().includes(keyword)
     )
   }, [customers, search])
 
@@ -84,11 +83,7 @@ const CustomerListDialog = ({
             className="w-full"
           />
           {search && (
-            <Button
-              icon="pi pi-times"
-              className="p-button-danger"
-              onClick={() => setSearch('')}
-            />
+            <Button icon="pi pi-times" className="p-button-danger" onClick={() => setSearch('')} />
           )}
         </div>
 
@@ -109,7 +104,12 @@ const CustomerListDialog = ({
             sortable
             style={{ minWidth: '220px' }}
           />
-          <Column header="Last Purchase" body={(c: ProductCustomer) => lastPurchaseTemplate(c)} sortable style={{ minWidth: '140px' }} />
+          <Column
+            header="Last Purchase"
+            body={(c: ProductCustomer) => lastPurchaseTemplate(c)}
+            sortable
+            style={{ minWidth: '140px' }}
+          />
           <Column field="purchaseCount" header="Purchases" sortable style={{ minWidth: '120px' }} />
           <Column
             header="Total Qty"
