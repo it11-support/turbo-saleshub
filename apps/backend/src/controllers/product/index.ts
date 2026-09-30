@@ -345,6 +345,85 @@ export const fetchProducts = async (
     // PRODUCT SALES CACHE
     // =========================================
 
+    const currentYear = new Date().getFullYear()
+
+    const startOfYer = new Date(currentYear, 0, 1)
+    const startOfNextYear = new Date(currentYear + 1, 0, 1)
+
+    const itemCodes = products.map(
+      product => product.ItemCode
+    )
+
+    const productCustomerSales = await prisma.sales_invoices.findMany({
+      where: {
+        ItemCode: {
+          in: itemCodes
+        },
+        DocDate: {
+          gte: startOfYer,
+          lt: startOfNextYear
+        }
+      },
+      select: {
+        ItemCode: true,
+        CardCode: true,
+        CardName: true,
+        DocNum: true,
+        DocDate: true,
+        QtyKg: true,
+        TotalSales: true,
+      },
+    })
+
+    const productUnitMap = new Map<string, string | null>(
+      products.map((p) => [p.ItemCode, p.SalUnitMsr ?? null])
+    )
+
+    const productCustomersMap =
+      new Map<
+        string,
+        {
+          CardCode: string
+          CardName: string | null
+          lastPurchase: Date | null
+          purchaseCount: number
+          totalQty: number
+          totalSales: number
+          unitMsr: string | null
+        }[]
+      >()
+
+    for (const sale of productCustomerSales) {
+      const customers = productCustomersMap.get(sale.ItemCode) ?? []
+      const unitMsr = productUnitMap.get(sale.ItemCode) ?? null
+
+      const existing = customers.find((c) => c.CardCode === sale.CardCode)
+
+      if (existing) {
+        existing.purchaseCount += 1
+        existing.totalQty += Number(sale.QtyKg ?? 0)
+        existing.totalSales += Number(sale.TotalSales ?? 0)
+        if (sale.DocDate && (!existing.lastPurchase || sale.DocDate > existing.lastPurchase)) {
+          existing.lastPurchase = sale.DocDate
+        }
+      } else {
+        customers.push({
+          CardCode: sale.CardCode,
+          CardName: sale.CardName,
+          lastPurchase: sale.DocDate ?? null,
+          purchaseCount: 1,
+          totalQty: Number(sale.QtyKg ?? 0),
+          totalSales: Number(sale.TotalSales ?? 0),
+          unitMsr,
+        })
+      }
+
+      productCustomersMap.set(
+        sale.ItemCode,
+        customers
+      )
+    }
+
     const salesStatsMap =
       new Map<
         string,
@@ -479,6 +558,8 @@ export const fetchProducts = async (
             product.ItemCode
           )
 
+          const customers = productCustomersMap.get(product.ItemCode) ?? []
+
         return {
           ...product,
 
@@ -489,6 +570,8 @@ export const fetchProducts = async (
           revenue:
             stats?.revenue ??
             0,
+
+          customers,
         }
       })
 

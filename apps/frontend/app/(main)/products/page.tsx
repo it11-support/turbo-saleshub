@@ -1,5 +1,6 @@
 'use client'
 
+import CustomerListDialog from './Components/CustomerListDialog'
 import ProductImageUploader from './Components/ProductImageUploader'
 import CustomChip from '../components/custom/chip'
 import NavButton from '../customers/components/NavButton'
@@ -54,6 +55,7 @@ const ProductList = () => {
   const toast = useRef<Toast>(null)
   const quillRef = useRef<Editor>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const [showCustomerDialog, setShowCustomerDialog] = useState(false)
 
   const {
     setActiveProduct,
@@ -161,6 +163,11 @@ const ProductList = () => {
     setShowInfoDialog(true)
   }
 
+  const handleShowCustomerList = (product: IProduct) => {
+    setActiveProduct(product)
+    setShowCustomerDialog(true)
+  }
+
   const onTextChange = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
@@ -227,26 +234,37 @@ const ProductList = () => {
     }
 
     return (
-      <div className="flex flex-wrap gap-2 mt-2">
-        <Button
-          label="Set Priority"
-          rounded
-          severity="success"
-          size="small"
-          outlined
-          onClick={() => onSetPriority(item)}
-          icon="pi pi-star"
-        />
-        <Button
-          label="Info"
-          rounded
-          severity="success"
-          size="small"
-          outlined
-          onClick={() => handleShowProductInfo(item)}
-          icon="pi pi-info-circle"
-        />
-      </div>
+      <>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Button
+            label="Set Priority"
+            rounded
+            severity="success"
+            size="small"
+            outlined
+            onClick={() => onSetPriority(item)}
+            icon="pi pi-star"
+          />
+          <Button
+            label="Info"
+            rounded
+            severity="success"
+            size="small"
+            outlined
+            onClick={() => handleShowProductInfo(item)}
+            icon="pi pi-info-circle"
+          />
+          <Button
+            label="Customers"
+            rounded
+            severity="success"
+            size="small"
+            outlined
+            onClick={() => handleShowCustomerList(item)}
+            icon="pi pi-user"
+          />
+        </div>
+      </>
     )
   }
 
@@ -730,6 +748,13 @@ const ProductList = () => {
           style={{ height: '320px' }}
         />
       </Dialog>
+      <CustomerListDialog
+        visible={showCustomerDialog}
+        onHide={() => setShowCustomerDialog(false)}
+        title="Customers Who Bought This Item"
+        customers={(activeProduct as any)?.customers ?? []}
+        productName={activeProduct?.ItemName ?? undefined}
+      />
     </div>
   )
 }

@@ -47,6 +47,15 @@ export interface IProduct {
   unitsSold?: number;
   revenue?: number;
   ProductInfo?: string | null;
+  customers?: {
+    CardCode: string
+    CardName: string | null
+    lastPurchase: Date | null
+    purchaseCount: number
+    totalQty: number
+    totalSales: number
+    unitMsr?: string | null
+  }[]
 }
 export interface IProductDevelopment {
   subgroup_id: number
