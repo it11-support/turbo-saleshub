@@ -57,6 +57,7 @@ const ProductList = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const [showCustomerDialog, setShowCustomerDialog] = useState(false)
 
+  const { isAdmin } = auth
   const {
     setActiveProduct,
     activeProduct,
@@ -200,15 +201,17 @@ const ProductList = () => {
     if (item.product_developments?.length) {
       return (
         <div className="flex flex-wrap gap-2 mt-2">
-          <Button
-            label="Update Priority"
-            rounded
-            severity="success"
-            size="small"
-            outlined
-            onClick={() => onSetPriority(item)}
-            icon="pi pi-star"
-          />
+          {isAdmin && (
+            <Button
+              label="Update Priority"
+              rounded
+              severity="success"
+              size="small"
+              outlined
+              onClick={() => onSetPriority(item)}
+              icon="pi pi-star"
+            />
+          )}
           <Button
             label="Info"
             rounded
@@ -227,18 +230,20 @@ const ProductList = () => {
             onClick={() => handleShowCustomerList(item)}
             icon="pi pi-user"
           />
-          <Button
-            label="Remove Priority"
-            rounded
-            severity="warning"
-            size="small"
-            outlined
-            onClick={() => {
-              setActiveProduct(item)
-              setShowDeleteDialog(true)
-            }}
-            icon="pi pi-trash"
-          />
+          {isAdmin && (
+            <Button
+              label="Remove Priority"
+              rounded
+              severity="warning"
+              size="small"
+              outlined
+              onClick={() => {
+                setActiveProduct(item)
+                setShowDeleteDialog(true)
+              }}
+              icon="pi pi-trash"
+            />
+          )}
         </div>
       )
     }
@@ -246,15 +251,17 @@ const ProductList = () => {
     return (
       <>
         <div className="flex flex-wrap gap-2 mt-2">
-          <Button
-            label="Set Priority"
-            rounded
-            severity="success"
-            size="small"
-            outlined
-            onClick={() => onSetPriority(item)}
-            icon="pi pi-star"
-          />
+          {isAdmin && (
+            <Button
+              label="Set Priority"
+              rounded
+              severity="success"
+              size="small"
+              outlined
+              onClick={() => onSetPriority(item)}
+              icon="pi pi-star"
+            />
+          )}
           <Button
             label="Info"
             rounded
@@ -731,22 +738,24 @@ const ProductList = () => {
         dismissableMask
         blockScroll
         footer={
-          <div className="flex justify-end gap-2">
-            <Button
-              label="Cancel"
-              severity="danger"
-              icon="pi pi-times"
-              outlined
-              onClick={() => setShowInfoDialog(false)}
-            />
-            <Button
-              icon="pi pi-save"
-              severity="success"
-              label="Save"
-              outlined
-              onClick={() => handleSaveInfo()}
-            />
-          </div>
+          isAdmin ? (
+            <div className="flex justify-end gap-2">
+              <Button
+                label="Cancel"
+                severity="danger"
+                icon="pi pi-times"
+                outlined
+                onClick={() => setShowInfoDialog(false)}
+              />
+              <Button
+                icon="pi pi-save"
+                severity="success"
+                label="Save"
+                outlined
+                onClick={() => handleSaveInfo()}
+              />
+            </div>
+          ) : null
         }
       >
         <Editor

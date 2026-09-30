@@ -27,17 +27,19 @@ export const menuConfig: MenuSection[] = [
   },
   {
     label: 'Products',
-    roles: ['admin'],
+    roles: ['admin', 'sales'],
     items: [
       {
         label: 'Product List',
         icon: 'pi pi-fw pi-tags',
         to: '/products',
+        roles: ['admin', 'sales'],
       },
       {
         label: 'Bulk Upload',
         icon: 'pi pi-fw pi-upload',
         to: '/products/bulk-upload',
+        roles: ['admin'],
       },
     ],
   },

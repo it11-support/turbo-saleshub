@@ -7,6 +7,7 @@ import { FileUpload } from 'primereact/fileupload'
 import { useRef, useState } from 'react'
 import useSWRImmutable, { useSWRConfig } from 'swr' // Gunakan mutate dari sini
 
+import { useAuth } from '@/layout/context/AuthContext'
 import { $api } from '@/lib/api'
 
 type ProductImageUploaderProps = {
@@ -45,6 +46,7 @@ const ProductImageUploader = ({
   const [version, setVersion] = useState(Date.now())
 
   const { mutate } = useSWRConfig()
+  const { isAdmin } = useAuth()
 
   const swrKey = code
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}product/image/${code}?nofallback=1`
@@ -112,15 +114,17 @@ const ProductImageUploader = ({
     }
 
     return (
-      <FileUpload
-        chooseOptions={chooseOptions}
-        mode="basic"
-        chooseLabel="Upload"
-        accept="image/png,image/jpeg"
-        customUpload
-        auto
-        uploadHandler={(e) => handleUpload(e.files[0])}
-      />
+      isAdmin && (
+        <FileUpload
+          chooseOptions={chooseOptions}
+          mode="basic"
+          chooseLabel="Upload"
+          accept="image/png,image/jpeg"
+          customUpload
+          auto
+          uploadHandler={(e) => handleUpload(e.files[0])}
+        />
+      )
     )
   }
 
@@ -142,7 +146,7 @@ const ProductImageUploader = ({
         loading="eager"
       />
 
-      {!preview && hasImage && (
+      {!preview && hasImage && isAdmin && (
         <div className="absolute top-1 right-1 flex gap-1">
           <Button
             icon="pi pi-pencil"
