@@ -196,6 +196,7 @@ const ProductList = () => {
   }
 
   const footer = (item: IProduct) => {
+    const customerCount = item.customers?.length || 0
     if (item.product_developments?.length) {
       return (
         <div className="flex flex-wrap gap-2 mt-2">
@@ -216,6 +217,15 @@ const ProductList = () => {
             outlined
             onClick={() => handleShowProductInfo(item)}
             icon="pi pi-info-circle"
+          />
+          <Button
+            label={`Customers (${customerCount})`}
+            rounded
+            severity="success"
+            size="small"
+            outlined
+            onClick={() => handleShowCustomerList(item)}
+            icon="pi pi-user"
           />
           <Button
             label="Remove Priority"
@@ -255,7 +265,7 @@ const ProductList = () => {
             icon="pi pi-info-circle"
           />
           <Button
-            label="Customers"
+            label={`Customers (${customerCount})`}
             rounded
             severity="success"
             size="small"
