@@ -8,7 +8,7 @@ import fs from 'fs';
 
 import { VisitStatus } from '@/generated/prisma/enums.js';
 import { getSuggestedItems } from '../customer/index.js';
-import { AuthenticatedRequest, FollowUpUpdateData, IVisit } from '@saleshub-tsm/types';
+import { AuthenticatedRequest, FollowUpUpdateData, IVisit, IVisitItemCloseInput, IVisitItemConcernSyncInput, IVisitItemSyncPayloadInput, IVisitCloseItemsPayload, IVisitOfferedItemsPayload } from '@saleshub-tsm/types';
 import { activityLogger } from '@/services/logs/index.js';
 import { socketIoBroadcastEmitter, socketIoEmitter } from '@/libs/socket-io.js';
 import { visitsWhereInput } from '@/generated/prisma/models.js';
@@ -18,7 +18,9 @@ import { getConcerns, getConcernStatuses } from '@/services/index.js';
 import { cacheDelete } from '@/libs/cache.js';
 import { invalidateVisitCache } from '@/libs/cache-keys.js';
 
-const fetchUpdatedVisit = (tx: any, visitId: number) =>
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0]
+
+const fetchUpdatedVisit = (tx: TransactionClient, visitId: number) =>
   tx.visits.findUnique({
     where: { id: visitId },
     include: {
@@ -91,7 +93,7 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
 };
 
 const validateConcern = async (
-  concern: any,
+  concern: IVisitItemConcernSyncInput,
   productId: bigint,
   defaultStatusId: bigint
 ): Promise<void> => {
@@ -136,7 +138,7 @@ const validateConcern = async (
 }
 
 const validateVisitItems = async (
-  visit_items: any[],
+  visit_items: IVisitItemSyncPayloadInput[],
   defaultStatusId: bigint
 ): Promise<void> => {
   for (const item of visit_items) {
@@ -173,7 +175,7 @@ const validateVisitItems = async (
 export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { visit_items } = req.body;
+    const { visit_items } = req.body as IVisitOfferedItemsPayload;
 
     const visitId = Number(id);
 
@@ -584,7 +586,7 @@ export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 const prepareCloseItemsPayload = (
-  visit_items: any[],
+  visit_items: IVisitItemCloseInput[],
   defaultStatusId: bigint
 ): {
   productIds: bigint[]
@@ -676,7 +678,7 @@ const validateMasterData = async (
 }
 
 const buildConcernRows = (
-  visit_items: any[],
+  visit_items: IVisitItemCloseInput[],
   visitItemMap: Map<string, bigint>,
   defaultStatusId: bigint
 ): {
@@ -721,7 +723,7 @@ export const closeItems = async (
 ) => {
   try {
     const { id } = req.params;
-    const { visit_items } = req.body;
+    const { visit_items } = req.body as IVisitCloseItemsPayload;
 
     const visitId = Number(id);
 

@@ -250,3 +250,46 @@ export interface ExportVisitResponse {
   message: string
   data: ExportVisit[]
 }
+
+export interface IVisitItemConcernInput {
+  concernId: bigint | number | string
+  statusId?: bigint | number | string | null
+  notes?: string | null
+}
+
+export interface IVisitItemSyncInput {
+  product_id?: bigint | number | string
+  product_ids?: (bigint | number | string)[]
+  concerns: IVisitItemConcernInput[]
+  visitNote?: string
+}
+
+export interface IVisitSyncPayload {
+  visit_items: IVisitItemSyncInput[];
+}
+
+export interface IVisitItemConcernSyncInput {
+  concern_id: bigint | number | string
+  status_id?: bigint | number | string | null
+  note?: string | null
+}
+
+export interface IVisitItemSyncPayloadInput {
+  product_id: bigint | number | string
+  concerns: IVisitItemConcernSyncInput[]
+  visitNote?: string
+}
+
+export interface IVisitOfferedItemsPayload {
+  visit_items: IVisitItemSyncPayloadInput[]
+}
+
+export interface IVisitItemCloseInput {
+  product_ids: (bigint | number | string)[]
+  concerns: IVisitItemConcernInput[]
+  visitNote?: string
+}
+
+export interface IVisitCloseItemsPayload {
+  visit_items: IVisitItemCloseInput[]
+}
