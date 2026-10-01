@@ -18,6 +18,30 @@ import { getConcerns, getConcernStatuses } from '@/services/index.js';
 import { cacheDelete } from '@/libs/cache.js';
 import { invalidateVisitCache } from '@/libs/cache-keys.js';
 
+const fetchUpdatedVisit = (tx: any, visitId: number) =>
+  tx.visits.findUnique({
+    where: { id: visitId },
+    include: {
+      salesPerson: true,
+      customer: {
+        include: {
+          subgroup: true,
+        },
+      },
+      visit_items: {
+        include: {
+          product: true,
+          visit_item_concerns: {
+            include: {
+              category: true,
+              status: true,
+            },
+          },
+        },
+      },
+    },
+  })
+
 export const fetchSalesVisit = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -66,6 +90,86 @@ export const fetchSalesVisit = async (req: Request, res: Response) => {
   }
 };
 
+const validateConcern = async (
+  concern: any,
+  productId: bigint,
+  defaultStatusId: bigint
+): Promise<void> => {
+  if (!concern.concern_id) {
+    throw new Error(`Concern category is required for product ${productId}`)
+  }
+
+  let categoryId: bigint
+  try {
+    categoryId = BigInt(concern.concern_id)
+  } catch {
+    throw new Error(`Invalid concern category: ${concern.concern_id}`)
+  }
+
+  let statusId = defaultStatusId
+  if (concern.status_id) {
+    try {
+      statusId = BigInt(concern.status_id)
+    } catch {
+      throw new Error(`Invalid concern status: ${concern.status_id}`)
+    }
+  }
+
+  const [categoryExists, statusExists] = await Promise.all([
+    prisma.concern_categories.findUnique({
+      where: { id: categoryId },
+      select: { id: true },
+    }),
+    prisma.concern_status.findUnique({
+      where: { id: statusId },
+      select: { id: true },
+    }),
+  ])
+
+  if (!categoryExists) {
+    throw new Error(`Concern category not found: ${concern.concern_id}`)
+  }
+
+  if (!statusExists) {
+    throw new Error(`Concern status not found: ${statusId.toString()}`)
+  }
+}
+
+const validateVisitItems = async (
+  visit_items: any[],
+  defaultStatusId: bigint
+): Promise<void> => {
+  for (const item of visit_items) {
+    if (!item.product_id) {
+      throw new Error('Product id is required')
+    }
+
+    let productId: bigint
+    try {
+      productId = BigInt(item.product_id)
+    } catch {
+      throw new Error(`Invalid product id: ${item.product_id}`)
+    }
+
+    const productExists = await prisma.products.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    })
+
+    if (!productExists) {
+      throw new Error(`Product not found: ${item.product_id}`)
+    }
+
+    if (!Array.isArray(item.concerns)) {
+      throw new Error(`Invalid concerns for product ${item.product_id}`)
+    }
+
+    for (const concern of item.concerns) {
+      await validateConcern(concern, productId, defaultStatusId)
+    }
+  }
+}
+
 export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -74,49 +178,25 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
     const visitId = Number(id);
 
     if (!Number.isInteger(visitId) || visitId <= 0) {
-      return res.status(400).json({
-        message: 'Invalid visit id',
-      });
+      return res.status(400).json({ message: 'Invalid visit id' });
     }
 
     if (!Array.isArray(visit_items) || visit_items.length === 0) {
-      return res.status(400).json({
-        message: 'Visit items are required',
-      });
+      return res.status(400).json({ message: 'Visit items are required' });
     }
 
-    // Pastikan visit ada SEBELUM melakukan update apa pun
     const visit = await prisma.visits.findUnique({
       where: { id: visitId },
-      select: {
-        id: true,
-      },
+      select: { id: true },
     });
 
     if (!visit) {
-      return res.status(404).json({
-        message: 'Visit not found',
-      });
+      return res.status(404).json({ message: 'Visit not found' });
     }
 
-    /*
-     * Default status = Pending.
-     *
-     * Jangan hardcode ID 1 karena production saat ini:
-     * 25 = Closed
-     * 26 = Pending
-     * 27 = Follow Up
-     * 28 = Done
-     *
-     * Cari berdasarkan nama supaya tetap aman jika ID berubah.
-     */
     const defaultStatus = await prisma.concern_status.findFirst({
-      where: {
-        status: 'Pending',
-      },
-      select: {
-        id: true,
-      },
+      where: { status: 'Pending' },
+      select: { id: true },
     });
 
     if (!defaultStatus) {
@@ -125,184 +205,48 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
       });
     }
 
-    // =====================================================
-    // VALIDASI SEMUA DATA SEBELUM DATABASE DIUBAH
-    // =====================================================
-    for (const item of visit_items) {
-      if (!item.product_id) {
-        return res.status(400).json({
-          message: 'Product id is required',
-        });
-      }
-
-      let productId: bigint;
-
-      try {
-        productId = BigInt(item.product_id);
-      } catch {
-        return res.status(400).json({
-          message: `Invalid product id: ${item.product_id}`,
-        });
-      }
-
-      const productExists = await prisma.products.findUnique({
-        where: {
-          id: productId,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!productExists) {
-        return res.status(400).json({
-          message: `Product not found: ${item.product_id}`,
-        });
-      }
-
-      if (!Array.isArray(item.concerns)) {
-        return res.status(400).json({
-          message: `Invalid concerns for product ${item.product_id}`,
-        });
-      }
-
-      for (const concern of item.concerns) {
-        // Category tidak boleh menggunakan fallback.
-        if (!concern.concern_id) {
-          return res.status(400).json({
-            message: `Concern category is required for product ${item.product_id}`,
-          });
-        }
-
-        let categoryId: bigint;
-
-        try {
-          categoryId = BigInt(concern.concern_id);
-        } catch {
-          return res.status(400).json({
-            message: `Invalid concern category: ${concern.concern_id}`,
-          });
-        }
-
-        // status kosong -> Pending
-        let statusId = defaultStatus.id;
-
-        if (concern.status_id) {
-          try {
-            statusId = BigInt(concern.status_id);
-          } catch {
-            return res.status(400).json({
-              message: `Invalid concern status: ${concern.status_id}`,
-            });
-          }
-        }
-
-        const [categoryExists, statusExists] = await Promise.all([
-          prisma.concern_categories.findUnique({
-            where: {
-              id: categoryId,
-            },
-            select: {
-              id: true,
-            },
-          }),
-
-          prisma.concern_status.findUnique({
-            where: {
-              id: statusId,
-            },
-            select: {
-              id: true,
-            },
-          }),
-        ]);
-
-        if (!categoryExists) {
-          return res.status(400).json({
-            message: `Concern category not found: ${concern.concern_id}`,
-          });
-        }
-
-        if (!statusExists) {
-          return res.status(400).json({
-            message: `Concern status not found: ${statusId.toString()}`,
-          });
-        }
-      }
+    try {
+      await validateVisitItems(visit_items, defaultStatus.id)
+    } catch (validationError) {
+      return res.status(400).json({
+        message: (validationError as Error).message,
+      })
     }
 
-    // =====================================================
-    // SEMUA PERUBAHAN DALAM SATU TRANSACTION
-    // =====================================================
     const updatedVisit = await prisma.$transaction(async (tx) => {
-      // Set visit menjadi ongoing hanya jika belum dimulai
       await tx.visits.updateMany({
-        where: {
-          id: visitId,
-          start_at: null,
-        },
-        data: {
-          start_at: new Date(),
-          status: VisitStatus.Ongoing,
-        },
-      });
+        where: { id: visitId, start_at: null },
+        data: { start_at: new Date(), status: VisitStatus.Ongoing },
+      })
 
-      // Update visit note jika dikirim
-      const visitNote = visit_items[0]?.visitNote;
-
+      const visitNote = visit_items[0]?.visitNote
       if (typeof visitNote === 'string' && visitNote.trim() !== '') {
         await tx.visits.update({
-          where: {
-            id: visitId,
-          },
-          data: {
-            notes: visitNote,
-          },
-        });
+          where: { id: visitId },
+          data: { notes: visitNote },
+        })
       }
 
-      // Ambil existing visit items
       const existingItems = await tx.visit_items.findMany({
-        where: {
-          visit_id: visitId,
-        },
-      });
+        where: { visit_id: visitId },
+      })
 
-      /*
-       * BigInt sebagai key Map bisa membingungkan jika payload product_id
-       * berupa number/string.
-       * Normalisasi ke string.
-       */
       const existingMap = new Map(
-        existingItems.map((item) => [
-          item.product_id.toString(),
-          item,
-        ]),
-      );
+        existingItems.map((item) => [item.product_id.toString(), item])
+      )
 
       for (const item of visit_items) {
-        const productId = BigInt(item.product_id);
+        const productId = BigInt(item.product_id)
+        const existingItem = existingMap.get(productId.toString())
 
-        const existingItem = existingMap.get(
-          productId.toString(),
-        );
+        let currentVisitItemId: bigint
 
-        let currentVisitItemId: bigint;
-
-        // ==========================================
-        // UPSERT VISIT ITEM
-        // ==========================================
         if (existingItem) {
           const updatedItem = await tx.visit_items.update({
-            where: {
-              id: existingItem.id,
-            },
-            data: {
-              offered: true,
-            },
-          });
-
-          currentVisitItemId = updatedItem.id;
+            where: { id: existingItem.id },
+            data: { offered: true },
+          })
+          currentVisitItemId = updatedItem.id
         } else {
           const createdItem = await tx.visit_items.create({
             data: {
@@ -310,85 +254,40 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
               product_id: productId,
               offered: true,
             },
-          });
-
-          currentVisitItemId = createdItem.id;
+          })
+          currentVisitItemId = createdItem.id
         }
 
-        // ==========================================
-        // REPLACE CONCERNS
-        // ==========================================
         await tx.visit_item_concerns.deleteMany({
-          where: {
-            visit_item_id: currentVisitItemId,
-          },
-        });
+          where: { visit_item_id: currentVisitItemId },
+        })
 
         for (const concern of item.concerns) {
           const statusId = concern.status_id
             ? BigInt(concern.status_id)
-            : defaultStatus.id;
+            : defaultStatus.id
 
           await tx.visit_item_concerns.create({
             data: {
               visit_item_id: currentVisitItemId,
-
-              concern_category_id: BigInt(
-                concern.concern_id,
-              ),
-
+              concern_category_id: BigInt(concern.concern_id),
               status_id: statusId,
-
               notes: concern.note ?? null,
             },
-          });
+          })
         }
       }
 
-      // ==========================================
-      // RETURN FRESH DATA
-      // ==========================================
-      return tx.visits.findUnique({
-        where: {
-          id: visitId,
-        },
-        include: {
-          salesPerson: true,
-
-          customer: {
-            include: {
-              subgroup: true,
-            },
-          },
-
-          visit_items: {
-            include: {
-              product: true,
-
-              visit_item_concerns: {
-                include: {
-                  category: true,
-                  status: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    });
+      return fetchUpdatedVisit(tx, visitId)
+    })
 
     if (updatedVisit?.customer?.id) {
-      const customerId = Number(updatedVisit.customer.id);
-
+      const customerId = Number(updatedVisit.customer.id)
       await Promise.all([
-        cacheDelete(
-          `saleshub:suggested-items:${customerId}:with-recent`
-        ),
-        cacheDelete(
-          `saleshub:suggested-items:${customerId}:without-recent`
-        ),
+        cacheDelete(`saleshub:suggested-items:${customerId}:with-recent`),
+        cacheDelete(`saleshub:suggested-items:${customerId}:without-recent`),
         invalidateVisitCache(),
-      ]);
+      ])
     }
 
     activityLogger({
@@ -396,16 +295,13 @@ export const syncSalesVisit = async (req: AuthenticatedRequest, res: Response) =
       actionType: 'Sales Visit',
       description: `Sales Visit item synced : ${updatedVisit?.customer.CardName}`,
       status: 'SUCCESS',
-    });
+    })
 
-    return res.status(200).json({
-      message: 'Success',
-      data: updatedVisit,
-    });
+    return res.status(200).json({ message: 'Success', data: updatedVisit })
   } catch (error) {
-    return handleApiError(error, res);
+    return handleApiError(error, res)
   }
-};
+}
 
 export const completeSalesVisit = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -687,6 +583,138 @@ export const startVisit = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+const prepareCloseItemsPayload = (
+  visit_items: any[],
+  defaultStatusId: bigint
+): {
+  productIds: bigint[]
+  categoryIds: bigint[]
+  statusIds: bigint[]
+} => {
+  const productIds = new Set<bigint>()
+  const categoryIds = new Set<bigint>()
+  const statusIds = new Set<bigint>()
+
+  for (const item of visit_items) {
+    if (!Array.isArray(item.product_ids)) {
+      throw new Error('product_ids must be an array')
+    }
+
+    if (!Array.isArray(item.concerns)) {
+      throw new Error('concerns must be an array')
+    }
+
+    for (const productId of item.product_ids) {
+      try {
+        productIds.add(BigInt(productId))
+      } catch {
+        throw new Error(`Invalid product id: ${productId}`)
+      }
+    }
+
+    for (const concern of item.concerns) {
+      if (!concern.concernId) {
+        throw new Error('Concern category is required')
+      }
+
+      let categoryId: bigint
+      let statusId: bigint
+
+      try {
+        categoryId = BigInt(concern.concernId)
+        statusId = concern.statusId ? BigInt(concern.statusId) : defaultStatusId
+      } catch {
+        throw new Error('Invalid concern category/status')
+      }
+
+      categoryIds.add(categoryId)
+      statusIds.add(statusId)
+    }
+  }
+
+  return {
+    productIds: Array.from(productIds),
+    categoryIds: Array.from(categoryIds),
+    statusIds: Array.from(statusIds),
+  }
+}
+
+const validateMasterData = async (
+  productIds: bigint[],
+  categoryIds: bigint[],
+  statusIds: bigint[]
+): Promise<void> => {
+  const [products, categories, statuses] = await Promise.all([
+    prisma.products.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true },
+    }),
+    getConcerns(),
+    getConcernStatuses(),
+  ])
+
+  const validProductIds = new Set(products.map((p) => p.id.toString()))
+  const invalidProductIds = productIds.filter((p) => !validProductIds.has(p.toString()))
+
+  if (invalidProductIds.length > 0) {
+    throw new Error(`Some products were not found: ${invalidProductIds.map(String).join(', ')}`)
+  }
+
+  const validCategoryIds = new Set(categories.map((c) => c.id.toString()))
+  const invalidCategoryIds = categoryIds.filter((c) => !validCategoryIds.has(c.toString()))
+
+  if (invalidCategoryIds.length > 0) {
+    throw new Error(`Some concern categories were not found: ${invalidCategoryIds.map(String).join(', ')}`)
+  }
+
+  const validStatusIds = new Set(statuses.map((s) => s.id.toString()))
+  const invalidStatusIds = statusIds.filter((s) => !validStatusIds.has(s.toString()))
+
+  if (invalidStatusIds.length > 0) {
+    throw new Error(`Some concern statuses were not found: ${invalidStatusIds.map(String).join(', ')}`)
+  }
+}
+
+const buildConcernRows = (
+  visit_items: any[],
+  visitItemMap: Map<string, bigint>,
+  defaultStatusId: bigint
+): {
+  visit_item_id: bigint
+  concern_category_id: bigint
+  status_id: bigint
+  notes: string | null
+}[] => {
+  const concernRows: {
+    visit_item_id: bigint
+    concern_category_id: bigint
+    status_id: bigint
+    notes: string | null
+  }[] = []
+
+  for (const item of visit_items) {
+    for (const productIdRaw of item.product_ids) {
+      const productId = BigInt(productIdRaw)
+      const visitItemId = visitItemMap.get(productId.toString())
+
+      if (!visitItemId) {
+        throw new Error(`Visit item not found for product ${productId}`)
+      }
+
+      for (const concern of item.concerns) {
+        concernRows.push({
+          visit_item_id: visitItemId,
+          concern_category_id: BigInt(concern.concernId),
+          status_id: concern.statusId ? BigInt(concern.statusId) : defaultStatusId,
+          notes: concern.notes ?? null,
+        })
+      }
+    }
+  }
+
+  return concernRows
+}
+
 export const closeItems = async (
   req: AuthenticatedRequest,
   res: Response
@@ -698,37 +726,25 @@ export const closeItems = async (
     const visitId = Number(id);
 
     if (!Number.isInteger(visitId) || visitId <= 0) {
-      return res.status(400).json({
-        message: 'Invalid visit id',
-      });
+      return res.status(400).json({ message: 'Invalid visit id' });
     }
 
     if (!Array.isArray(visit_items) || visit_items.length === 0) {
-      return res.status(400).json({
-        message: 'Visit items are required',
-      });
+      return res.status(400).json({ message: 'Visit items are required' });
     }
 
-    // Pastikan visit ada
     const visit = await prisma.visits.findUnique({
       where: { id: visitId },
       select: { id: true },
     });
 
     if (!visit) {
-      return res.status(404).json({
-        message: 'Visit not found',
-      });
+      return res.status(404).json({ message: 'Visit not found' });
     }
 
-    // Default status berdasarkan master data, bukan hardcode ID 1
     const defaultStatus = await prisma.concern_status.findFirst({
-      where: {
-        status: 'Pending',
-      },
-      select: {
-        id: true,
-      },
+      where: { status: 'Pending' },
+      select: { id: true },
     });
 
     if (!defaultStatus) {
@@ -737,284 +753,62 @@ export const closeItems = async (
       });
     }
 
-    // =====================================================
-    // PREPARE + VALIDATE PAYLOAD
-    // =====================================================
+    let productIds: bigint[]
+    let categoryIds: bigint[]
+    let statusIds: bigint[]
 
-    const productIds = new Set<bigint>();
-    const categoryIds = new Set<bigint>();
-    const statusIds = new Set<bigint>();
-
-    for (const item of visit_items) {
-      if (!Array.isArray(item.product_ids)) {
-        return res.status(400).json({
-          message: 'product_ids must be an array',
-        });
-      }
-
-      if (!Array.isArray(item.concerns)) {
-        return res.status(400).json({
-          message: 'concerns must be an array',
-        });
-      }
-
-      for (const productId of item.product_ids) {
-        try {
-          productIds.add(BigInt(productId));
-        } catch {
-          return res.status(400).json({
-            message: `Invalid product id: ${productId}`,
-          });
-        }
-      }
-
-      for (const concern of item.concerns) {
-        if (!concern.concernId) {
-          return res.status(400).json({
-            message: 'Concern category is required',
-          });
-        }
-
-        let categoryId: bigint;
-        let statusId: bigint;
-
-        try {
-          categoryId = BigInt(concern.concernId);
-
-          statusId = concern.statusId
-            ? BigInt(concern.statusId)
-            : defaultStatus.id;
-        } catch {
-          return res.status(400).json({
-            message: 'Invalid concern category/status',
-          });
-        }
-
-        categoryIds.add(categoryId);
-        statusIds.add(statusId);
-      }
+    try {
+      const payload = prepareCloseItemsPayload(visit_items, defaultStatus.id)
+      productIds = payload.productIds
+      categoryIds = payload.categoryIds
+      statusIds = payload.statusIds
+    } catch (validationError) {
+      return res.status(400).json({ message: (validationError as Error).message })
     }
 
-    // =====================================================
-    // VALIDATE MASTER DATA - 3 QUERY SAJA
-    // =====================================================
-
-    const [products, categories, statuses] = await Promise.all([
-      prisma.products.findMany({
-        where: {
-          id: {
-            in: Array.from(productIds),
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
-
-      getConcerns(),
-
-      getConcernStatuses(),
-    ]);
-
-    // =====================================================
-    // CHECK PRODUCT
-    // =====================================================
-
-    const validProductIds = new Set(
-      products.map((product) => product.id.toString()),
-    );
-
-    const invalidProductIds = Array.from(productIds).filter(
-      (productId) => !validProductIds.has(productId.toString()),
-    );
-
-    if (invalidProductIds.length > 0) {
-      return res.status(400).json({
-        message: 'Some products were not found',
-        invalid_product_ids: invalidProductIds.map(String),
-      });
+    try {
+      await validateMasterData(productIds, categoryIds, statusIds)
+    } catch (validationError) {
+      return res.status(400).json({ message: (validationError as Error).message })
     }
-
-    // =====================================================
-    // CHECK CATEGORY
-    // =====================================================
-
-    const validCategoryIds = new Set(
-      categories.map((category) => category.id.toString()),
-    );
-
-    const invalidCategoryIds = Array.from(categoryIds).filter(
-      (categoryId) => !validCategoryIds.has(categoryId.toString()),
-    );
-
-    if (invalidCategoryIds.length > 0) {
-      return res.status(400).json({
-        message: 'Some concern categories were not found',
-        invalid_category_ids: invalidCategoryIds.map(String),
-      });
-    }
-
-    // =====================================================
-    // CHECK STATUS
-    // =====================================================
-
-    const validStatusIds = new Set(
-      statuses.map((status) => status.id.toString()),
-    );
-
-    const invalidStatusIds = Array.from(statusIds).filter(
-      (statusId) => !validStatusIds.has(statusId.toString()),
-    );
-
-    if (invalidStatusIds.length > 0) {
-      return res.status(400).json({
-        message: 'Some concern statuses were not found',
-        invalid_status_ids: invalidStatusIds.map(String),
-      });
-    }
-
-    // =====================================================
-    // DATABASE TRANSACTION
-    // =====================================================
 
     const updatedVisit = await prisma.$transaction(async (tx) => {
-      /*
-       * INSERT SEMUA VISIT ITEMS SEKALIGUS
-       */
       await tx.visit_items.createMany({
-        data: Array.from(productIds).map((productId) => ({
+        data: productIds.map((productId) => ({
           visit_id: BigInt(visitId),
           product_id: productId,
           offered: true,
         })),
-      });
+      })
 
-      /*
-       * Ambil ID visit_items yang baru dibuat.
-       *
-       * Kita perlu ID ini karena visit_item_concerns
-       * membutuhkan visit_item_id.
-       */
       const createdItems = await tx.visit_items.findMany({
         where: {
           visit_id: BigInt(visitId),
-
-          product_id: {
-            in: Array.from(productIds),
-          },
+          product_id: { in: productIds },
         },
+        select: { id: true, product_id: true },
+      })
 
-        select: {
-          id: true,
-          product_id: true,
-        },
-      });
-
-      /*
-       * Map:
-       *
-       * product_id -> visit_item_id
-       */
       const visitItemMap = new Map(
-        createdItems.map((item) => [
-          item.product_id.toString(),
-          item.id,
-        ]),
-      );
+        createdItems.map((item) => [item.product_id.toString(), item.id])
+      )
 
-      /*
-       * Build semua concerns di memory.
-       */
-      const concernRows: {
-        visit_item_id: bigint;
-        concern_category_id: bigint;
-        status_id: bigint;
-        notes: string | null;
-      }[] = [];
+      const concernRows = buildConcernRows(visit_items, visitItemMap, defaultStatus.id)
 
-      for (const item of visit_items) {
-        for (const productIdRaw of item.product_ids) {
-          const productId = BigInt(productIdRaw);
-
-          const visitItemId = visitItemMap.get(
-            productId.toString(),
-          );
-
-          if (!visitItemId) {
-            throw new Error(
-              `Visit item not found for product ${productId}`,
-            );
-          }
-
-          for (const concern of item.concerns) {
-            concernRows.push({
-              visit_item_id: visitItemId,
-
-              concern_category_id: BigInt(
-                concern.concernId,
-              ),
-
-              status_id: concern.statusId
-                ? BigInt(concern.statusId)
-                : defaultStatus.id,
-
-              notes: concern.notes ?? null,
-            });
-          }
-        }
-      }
-
-      /*
-       * INSERT SEMUA CONCERNS SEKALIGUS
-       */
       if (concernRows.length > 0) {
-        await tx.visit_item_concerns.createMany({
-          data: concernRows,
-        });
+        await tx.visit_item_concerns.createMany({ data: concernRows })
       }
 
-      return tx.visits.findUnique({
-        where: {
-          id: visitId,
-        },
-
-        include: {
-          salesPerson: true,
-
-          customer: {
-            include: {
-              subgroup: true,
-            },
-          },
-
-          visit_items: {
-            include: {
-              product: true,
-
-              visit_item_concerns: {
-                include: {
-                  category: true,
-                  status: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    });
+      return fetchUpdatedVisit(tx, visitId)
+    })
 
     if (updatedVisit?.customer?.id) {
-      const customerId = Number(updatedVisit.customer.id);
-
+      const customerId = Number(updatedVisit.customer.id)
       await Promise.all([
-        cacheDelete(
-          `saleshub:suggested-items:${customerId}:with-recent`
-        ),
-        cacheDelete(
-          `saleshub:suggested-items:${customerId}:without-recent`
-        ),
+        cacheDelete(`saleshub:suggested-items:${customerId}:with-recent`),
+        cacheDelete(`saleshub:suggested-items:${customerId}:without-recent`),
         invalidateVisitCache(),
-      ]);
+      ])
     }
 
     activityLogger({
@@ -1022,16 +816,13 @@ export const closeItems = async (
       actionType: 'Sales Visit',
       description: `Sales Visit item closed : ${process.env.CLIENT_URL}/visits/${visitId}`,
       status: 'SUCCESS',
-    });
+    })
 
-    return res.status(200).json({
-      message: 'Success',
-      data: updatedVisit,
-    });
+    return res.status(200).json({ message: 'Success', data: updatedVisit })
   } catch (error) {
-    return handleApiError(error, res);
+    return handleApiError(error, res)
   }
-};
+}
 
 export const handleUploadVisitImage = async (req: AuthenticatedRequest, res: Response) => {
   try {

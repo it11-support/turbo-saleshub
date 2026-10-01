@@ -39,7 +39,7 @@ type ProductCoverageResult = {
     lastPurchaseDate: Date | null
   }
   items: Array<{
-    product: any
+    product: productsGetPayload<{}>
     revenue: number
     revenueMtd: number
     qtyKg: number
@@ -102,6 +102,157 @@ type CustomerRevenueResult = {
   currentRevenue: number | Decimal
 }
 
+const parseSortOptions = (sort_options?: string | SortOption[]): SortOption[] => {
+  if (!sort_options) return []
+
+  if (typeof sort_options === 'string') {
+    return JSON.parse(sort_options) as SortOption[]
+  }
+
+  if (Array.isArray(sort_options)) {
+    return sort_options as SortOption[]
+  }
+
+  return []
+}
+
+const normalizeList = <T>(value: T | T[] | undefined): T[] => {
+  if (!value) return []
+  return Array.isArray(value) ? value : [value]
+}
+
+const buildCustomerQuery = (
+  search: string,
+  groups?: string | string[],
+  subgroups?: string | string[],
+  salesPersons?: string | string[],
+  slpCode?: number,
+  isNewCustomer?: string | boolean,
+  userId?: number
+): customersWhereInput => {
+  const query: customersWhereInput = {}
+
+  if (search) {
+    query.OR = [
+      { CardCode: { contains: search } },
+      { CardName: { contains: search } },
+      { GroupName: { contains: search } },
+      { CntctPrsn: { contains: search } },
+      { Phone1: { contains: search } },
+      { Cellular: { contains: search } },
+      { SalesName: { contains: search } },
+      { Address: { contains: search } },
+      { City: { contains: search } },
+      { PaymentTerm: { contains: search } },
+      { PriceList: { contains: search } },
+      {
+        subgroup: {
+          OR: [{ IndName: { contains: search } }, { IndDesc: { contains: search } }],
+        },
+      },
+    ]
+  }
+
+  const selectedGroups = normalizeList(groups)
+  if (selectedGroups.length > 0) {
+    query.GroupName =
+      selectedGroups.length === 1 ? { equals: selectedGroups[0] } : { in: selectedGroups }
+  }
+
+  const selectedSubgroups = normalizeList(subgroups)
+  if (selectedSubgroups.length > 0) {
+    query.subgroup = {
+      is: {
+        IndName:
+          selectedSubgroups.length === 1
+            ? { equals: selectedSubgroups[0] }
+            : { in: selectedSubgroups },
+      },
+    }
+  }
+
+  if (slpCode) {
+    query.SlpCode = Number(slpCode)
+  } else if (userId) {
+    query.potential_customer = {
+      some: {
+        sales_person_id: BigInt(userId),
+      },
+    }
+  }
+
+  if (isNewCustomer) {
+    query.isLocal = isNewCustomer === 'true' || isNewCustomer === true
+  }
+
+  const selectedSalesPersons = normalizeList(salesPersons)
+  if (selectedSalesPersons.length > 0) {
+    query.SalesName =
+      selectedSalesPersons.length === 1
+        ? { equals: selectedSalesPersons[0] }
+        : { in: selectedSalesPersons }
+  }
+
+  return query
+}
+
+const applyItemCountFilter = async (
+  query: customersWhereInput,
+  itemCount?: number | string
+): Promise<customersWhereInput> => {
+  if (!itemCount) return query
+
+  const grouped = await prisma.$queryRaw<
+    { CardCode: string; itemCount: number }[]
+  >`
+    SELECT
+      CardCode,
+      COUNT(DISTINCT ItemCode) AS itemCount
+    FROM sales_invoices
+    GROUP BY CardCode
+    HAVING COUNT(DISTINCT ItemCode) >= ${Number(itemCount)}
+  `
+
+  query.CardCode = { in: grouped.map((g) => g.CardCode) }
+  return query
+}
+
+const fetchCustomerFilterOptions = async (): Promise<CustomerFilterOptions> => {
+  const [customerGroups, customerSubgroups, salesPersons] = await Promise.all([
+    prisma.customers.findMany({
+      distinct: ['GroupName'],
+      select: {
+        GroupName: true,
+      }
+    }),
+    prisma.subgroups.findMany({
+      distinct: ['IndName'],
+      select: {
+        IndName: true,
+      },
+    }),
+    prisma.customers.findMany({
+      distinct: ['SalesName'],
+      where: {
+        sales_person: {
+          user: {
+            isNot: null,
+          },
+        },
+      },
+      select: {
+        SalesName: true,
+      },
+    })
+  ])
+
+  return {
+    groupNames: customerGroups.map((g) => g.GroupName).filter((v): v is string => v !== null),
+    subGroupNames: customerSubgroups.map((g) => g.IndName).filter((v): v is string => v !== null),
+    salesPersonNames: salesPersons.map((g) => g.SalesName).filter((v): v is string => v !== null),
+  }
+}
+
 export const customerList = async (
   req: Request<CustomerRequestType>,
   res: Response<CustomerResponseType>
@@ -119,132 +270,21 @@ export const customerList = async (
       itemCount,
       isNewCustomer,
       userId
-    } = req.query as CustomerListQuery;
+    } = req.query as CustomerListQuery
 
-    const sortOptionsMapped = (): SortOption[] => {
-      if (!sort_options) return []
+    const sortOptions = sortOptionsParser(parseSortOptions(sort_options))
+    const orderBy = convertToPrismaOrderBy(sortOptions)
 
-      if (typeof sort_options === 'string') {
-        return JSON.parse(sort_options) as SortOption[]
-      }
-
-      if (Array.isArray(sort_options)) {
-        return sort_options as SortOption[]
-      }
-
-      return []
-    }
-
-    let selectedGroups: string[] = [];
-    let selectedSubgroups: string[] = [];
-    const activeOpts: string[] = [];
-    let selectedSalesPersons: string[] = [];
-
-    const query: customersWhereInput = search
-      ? {
-        OR: [
-          { CardCode: { contains: search } },
-          { CardName: { contains: search } },
-          { GroupName: { contains: search } },
-          { CntctPrsn: { contains: search } },
-          { Phone1: { contains: search } },
-          { Cellular: { contains: search } },
-          { SalesName: { contains: search } },
-          { Address: { contains: search } },
-          { City: { contains: search } },
-          { PaymentTerm: { contains: search } },
-          { PriceList: { contains: search } },
-          {
-            subgroup: {
-              OR: [{ IndName: { contains: search } }, { IndDesc: { contains: search } }],
-            },
-          },
-        ],
-      }
-      : {};
-
-    if (activeOpts.length > 0) {
-      query.NonActive = activeOpts.length === 1 ? { equals: activeOpts[0] } : { in: activeOpts };
-    }
-
-    if (groups) {
-      if (Array.isArray(groups)) {
-        selectedGroups = groups;
-      } else {
-        selectedGroups = [groups];
-      }
-    }
-    if (subgroups) {
-      if (Array.isArray(subgroups)) {
-        selectedSubgroups = subgroups;
-      } else {
-        selectedSubgroups = [subgroups];
-      }
-    }
-
-    if (slpCode) {
-      query.SlpCode = Number(slpCode);
-    } else if (userId) {
-      query.potential_customer = {
-        some: {
-          sales_person_id: BigInt(userId),
-        },
-      };
-    }
-
-    if (isNewCustomer) {
-      query.isLocal = isNewCustomer === 'true' || isNewCustomer === true;
-    }
-
-    if (selectedGroups.length > 0) {
-      query.GroupName =
-        selectedGroups.length === 1 ? { equals: selectedGroups[0] } : { in: selectedGroups };
-    }
-
-    if (selectedSubgroups.length > 0) {
-      query.subgroup = {
-        is: {
-          IndName:
-            selectedSubgroups.length === 1
-              ? { equals: selectedSubgroups[0] }
-              : { in: selectedSubgroups },
-        },
-      };
-    }
-
-
-    if (salesPersons) {
-      if (Array.isArray(salesPersons)) {
-        selectedSalesPersons = salesPersons;
-      } else {
-        selectedSalesPersons = [salesPersons];
-      }
-    }
-
-    if (selectedSalesPersons.length > 0) {
-      query.SalesName =
-        selectedSalesPersons.length === 1
-          ? { equals: selectedSalesPersons[0] }
-          : { in: selectedSalesPersons };
-    }
-    if (itemCount) {
-      // prettier-ignore
-      const grouped = await prisma.$queryRaw<
-        { CardCode: string; itemCount: number }[]
-      >`
-        SELECT
-          CardCode,
-          COUNT(DISTINCT ItemCode) AS itemCount
-        FROM sales_invoices
-        GROUP BY CardCode
-        HAVING COUNT(DISTINCT ItemCode) >= ${Number(itemCount)}
-      `;
-
-      query.CardCode = { in: grouped.map((g) => g.CardCode) };
-    }
-
-    const sortOptions = sortOptionsParser(sortOptionsMapped());
-    const orderBy = convertToPrismaOrderBy(sortOptions);
+    let query = buildCustomerQuery(
+      search,
+      groups,
+      subgroups,
+      salesPersons,
+      slpCode,
+      isNewCustomer,
+      userId
+    )
+    query = await applyItemCountFilter(query, itemCount)
 
     const [customers, meta] = await prisma.customers
       .paginate({
@@ -259,45 +299,11 @@ export const customerList = async (
         page: Number(page),
         limit: Number(per_page),
         includePageCount: true,
-      });
+      })
 
     const customerFilterOptions = await getCachedFilterOptions<CustomerFilterOptions>(
       'saleshub:filters:customers',
-      async () => {
-        const [customerGroups, customerSubgroups, salesPersons] = await Promise.all([
-          prisma.customers.findMany({
-            distinct: ['GroupName'],
-            select: {
-              GroupName: true,
-            }
-          }),
-          prisma.subgroups.findMany({
-            distinct: ['IndName'],
-            select: {
-              IndName: true,
-            },
-          }),
-          prisma.customers.findMany({
-            distinct: ['SalesName'],
-            where: {
-              sales_person: {
-                user: {
-                  isNot: null,
-                },
-              },
-            },
-            select: {
-              SalesName: true,
-            },
-          })
-        ])
-
-        return {
-          groupNames: customerGroups.map((g) => g.GroupName).filter((v): v is string => v !== null),
-          subGroupNames: customerSubgroups.map((g) => g.IndName).filter((v): v is string => v !== null),
-          salesPersonNames: salesPersons.map((g) => g.SalesName).filter((v): v is string => v !== null),
-        }
-      },
+      fetchCustomerFilterOptions,
       CACHE_TTL * 4
     )
 
@@ -311,11 +317,11 @@ export const customerList = async (
         totalPages: meta.pageCount,
       },
       ...customerFilterOptions
-    });
+    })
   } catch (error) {
     return handleApiError(error, res)
   }
-};
+}
 
 
 export const potentialCustomerList = async (
@@ -731,8 +737,34 @@ export const purchaseHistory = async (
       `saleshub:customer-purchase-history:${customerId}`
 
     const cached = await cacheGet<{
-      customer: unknown
-      lastPurchase: unknown
+      customer: {
+        id: number
+        CardCode: string | null
+        CardName: string | null
+        LocalCode: string | null
+        GroupName: string | null
+        SalesName: string | null
+      } | null
+      lastPurchase: Array<{
+        id: bigint
+        DocNum: number
+        LineNum: number
+        DocDate: Date | null
+        CardCode: string
+        CardName: string | null
+        ItemCode: string
+        Dscription: string | null
+        QtyKg: Decimal | null
+        unitMsr: string | null
+        PriceBefDisc: Decimal | null
+        DiscLine: Decimal | null
+        DiscTotal: Decimal | null
+        TotalSales: Decimal | null
+        created_at: Date | null
+        updated_at: Date | null
+        product: productsGetPayload<{}>
+        hasRetur: boolean
+      }>
       ordersByRange: {
         current: number
         last3Months: number
