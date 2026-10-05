@@ -101,7 +101,7 @@ importers:
         version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       nuqs:
         specifier: ^2.10.1
-        version: 2.10.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0))(react@19.3.0)
+        version: 2.10.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1))(react@19.3.0)
       ol:
         specifier: ^10.10.0
         version: 10.10.0
@@ -316,10 +316,10 @@ importers:
         version: 4.5.1
       cookies-next:
         specifier: ^6.1.0
-        version: 6.1.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0))(react@19.3.0)
+        version: 6.1.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1))(react@19.3.0)
       next:
         specifier: 16.3.6
-        version: 16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0)
+        version: 16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1)
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
@@ -376,8 +376,8 @@ importers:
         specifier: ^3.9.9
         version: 3.9.9
       sass:
-        specifier: ^1.105.0
-        version: 1.105.0
+        specifier: ^1.105.1
+        version: 1.105.1
 
   packages/types:
     dependencies:
@@ -4302,8 +4302,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  sass@1.105.0:
-    resolution: {integrity: sha512-4EjSuRTyG8M4yRXXY1PT9OUV5zz23xBxJkbIAprohKHqf6HOU4MCpE3U3vAC+iO1gxobBjESNbcj8rYAQZWnyA==}
+  sass@1.105.1:
+    resolution: {integrity: sha512-1CnAWPyrrnVQzXGB/DUep1vYCKCm1CIBr+YxjjiW6wk9qtzemnGP4qicH56T2F9S4Hjtv/Ne3jDz8JqfdDU4oA==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -4423,6 +4423,10 @@ packages:
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
+    engines: {node: '>=0.10.0'}
+
+  source-map-js@1.2.2:
+    resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
     engines: {node: '>=0.10.0'}
 
   source-map@0.6.1:
@@ -6799,10 +6803,10 @@ snapshots:
 
   cookie@1.1.1: {}
 
-  cookies-next@6.1.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0))(react@19.3.0):
+  cookies-next@6.1.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1))(react@19.3.0):
     dependencies:
       cookie: 1.1.1
-      next: 16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0)
+      next: 16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1)
       react: 19.3.0
 
   cors@2.8.6:
@@ -8372,7 +8376,7 @@ snapshots:
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
-  next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0):
+  next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1):
     dependencies:
       '@next/env': 16.3.6
       '@swc/helpers': 0.5.23
@@ -8391,7 +8395,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.3.6
       '@next/swc-win32-arm64-msvc': 16.3.6
       '@next/swc-win32-x64-msvc': 16.3.6
-      sass: 1.105.0
+      sass: 1.105.1
       sharp: 0.35.4(@types/node@25.9.8)
     transitivePeerDependencies:
       - '@babel/core'
@@ -8420,12 +8424,12 @@ snapshots:
     dependencies:
       fflate: 0.8.3
 
-  nuqs@2.10.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0))(react@19.3.0):
+  nuqs@2.10.1(next@16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1))(react@19.3.0):
     dependencies:
       '@standard-schema/spec': 1.1.0
       react: 19.3.0
     optionalDependencies:
-      next: 16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.0)
+      next: 16.3.6(@babel/core@7.29.7)(@types/node@25.9.8)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(sass@1.105.1)
 
   object-assign@4.1.1: {}
 
@@ -8622,7 +8626,7 @@ snapshots:
     dependencies:
       nanoid: 3.3.19
       picocolors: 1.1.1
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   postcss@8.5.28:
     dependencies:
@@ -8968,11 +8972,11 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass@1.105.0:
+  sass@1.105.1:
     dependencies:
       chokidar: 5.0.0
       immutable: 5.1.9
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
     optionalDependencies:
       '@parcel/watcher': 2.6.0
 
@@ -9164,6 +9168,8 @@ snapshots:
       smart-buffer: 4.2.0
 
   source-map-js@1.2.1: {}
+
+  source-map-js@1.2.2: {}
 
   source-map@0.6.1:
     optional: true
