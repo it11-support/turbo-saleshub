@@ -17,7 +17,7 @@ const useFeatureInteraction = ({ mapInstanceRef, onFeatureHover, onEmptyHover }:
     const handlePointerMove = (e: any) => {
       const feature = map.forEachFeatureAtPixel(e.pixel, (f) => f as Feature)
 
-      map.getTargetElement().style.cursor = feature ? 'pointer' : ''
+      map.getTargetElement()?.style.setProperty('cursor', feature ? 'pointer' : '')
 
       if (!feature) {
         onEmptyHover?.()

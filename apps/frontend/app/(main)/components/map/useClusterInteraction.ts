@@ -69,7 +69,7 @@ const useClusterInteraction = (
 
     const pointerMoveHandler = (event: any) => {
       const hit = map.hasFeatureAtPixel(event.pixel)
-      map.getTargetElement().style.cursor = hit ? 'pointer' : ''
+      map.getTargetElement()?.style.setProperty('cursor', hit ? 'pointer' : '')
     }
 
     map.on('singleclick', singleClickHandler)
