@@ -15,7 +15,7 @@
     "schema": "apps/backend/prisma/schema.prisma"
   },
   "dependencies": {
-    "@prisma/adapter-mariadb": "^7.10.0",
+    "@prisma/adapter-mariadb": "^7.10.1",
     "@prisma/client": "^7.10.0",
     "@saleshub-tsm/types": "workspace:*",
     "@types/cors": "^2.8.19",
@@ -33,7 +33,7 @@
     "prisma-extension-pagination": "^0.7.6",
     "prisma-paginate": "^6.0.0",
     "socket.io": "^4.8.4",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
