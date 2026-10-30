@@ -56,6 +56,7 @@ const VisitList = () => {
     setExportDates,
     fetchExportedData,
     loadingExport,
+    setLoadingExport,
     salesPersonFilter,
     setSalesPersonFilter,
     setExportData,
@@ -80,15 +81,6 @@ const VisitList = () => {
     if (!user?.sales_person?.id) return
     setFilters({ salesPersonId: Number(user.sales_person.id) })
   }, [isAdmin, user])
-
-  useEffect(() => {
-    if (exportDates || salesPersonFilter) {
-      fetchExportedData()
-    }
-    if (!exportDates && !salesPersonFilter) {
-      setExportData([])
-    }
-  }, [exportDates, salesPersonFilter])
 
   const handleExportData = () => {
     if (!exportData || exportData.length === 0) {
@@ -410,6 +402,14 @@ const VisitList = () => {
     }
   }
 
+  const handleCloseExportDialog = () => {
+    setExportDates(null)
+    setSalesPersonFilter(undefined)
+    setExportData([])
+    setLoadingExport(false)
+    setDialogVisible(false)
+  }
+
   return (
     <>
       <div className="card p-4">
@@ -520,38 +520,29 @@ const VisitList = () => {
         {<VisitListTable />}
       </div>
       <Dialog
-        className="w-full lg:w-3 md:w-4 sm:w-6"
+        className="w-full lg:w-4 md:w-4 sm:w-6"
         header="Export Visits Report"
         visible={dialogVisible}
         blockScroll
-        onHide={() => {
-          setExportDates(null)
-          setDialogVisible(false)
-          setSalesPersonFilter(null)
-          setExportData([])
-        }}
+        onHide={handleCloseExportDialog}
         modal
         footer={
-          <div className="flex justify-end gap-2">
-            <Button
-              label="Cancel"
-              icon="pi pi-times"
-              outlined
-              onClick={() => {
-                setExportDates(null)
-                setDialogVisible(false)
-                setSalesPersonFilter(null)
-                setExportData([])
-              }}
-            />
-            <Button
-              label="Export"
-              icon="pi pi-download"
-              severity="success"
-              onClick={handleExportData}
-              loading={loadingExport}
-              disabled={exportData.length === 0 || Object.keys(exportData).length === 0}
-            />
+          <div className="flex flex-col gap-2">
+            {exportData.length > 0 && !loadingExport ? (
+              <Button label="Download Excel" icon="pi pi-download" onClick={handleExportData} />
+            ) : (
+              <Button
+                label="Generate Report"
+                icon="pi pi-refresh"
+                onClick={() => fetchExportedData()}
+                loading={loadingExport}
+                disabled={loadingExport || exportDates === null}
+              />
+            )}
+
+            {!loadingExport && exportData.length === 0 && (
+              <small className="text-gray-500">No report data available.</small>
+            )}
           </div>
         }
       >

@@ -52,21 +52,47 @@ export const useVisitsStore = create<VisitListState>((set, get) => ({
   },
   salesPersonId: undefined,
   fetchExportedData: async () => {
-    const { setLoadingExport, exportDates, setExportData, salesPersonFilter } = get()
-    try {
-      setLoadingExport(true)
-      const url = createUrl('visits/export', {
-        dates: exportDates?.filter((d): d is Date => !!d).map((d) => formatDate(d, 'yyyy-MM-dd')),
-        salesPersonId: salesPersonFilter,
+    const { exportDates, salesPersonFilter } = get()
+
+    // Validasi tanggal yang dipilih
+    const dates = exportDates?.filter(
+      (d): d is Date => d instanceof Date && !Number.isNaN(d.getTime())
+    )
+
+    // Wajib ada rentang tanggal lengkap
+    if (!dates || dates.length !== 2) {
+      set({
+        exportData: [],
       })
+      return
+    }
+
+    try {
+      set({
+        loadingExport: true,
+        exportData: [],
+      })
+
+      const url = createUrl('visits/export', {
+        dates: dates.map((d) => formatDate(d, 'yyyy-MM-dd')),
+        salesPersonId: salesPersonFilter || undefined,
+      })
+
       const res = await $api<ExportVisitResponse>(url)
-      const { data } = res
-      setExportData(data)
-      setLoadingExport(false)
+
+      set({
+        exportData: res.data ?? [],
+      })
     } catch (error) {
-      console.error('Failed to fetch sales persons:', error)
+      console.error('Failed to fetch export data:', error)
+
+      set({
+        exportData: [],
+      })
     } finally {
-      setLoadingExport(false)
+      set({
+        loadingExport: false,
+      })
     }
   },
   setSalesPersonId: (salesPersonId) => set({ salesPersonId }),
