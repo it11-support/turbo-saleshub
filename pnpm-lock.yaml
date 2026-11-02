@@ -101,7 +101,7 @@ importers:
         version: 0.4.6(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       nuqs:
         specifier: ^2.10.2
-        version: 2.10.2(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1))(react@19.3.1)
+        version: 2.10.2(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0))(react@19.3.1)
       ol:
         specifier: ^10.11.0
         version: 10.11.0
@@ -316,10 +316,10 @@ importers:
         version: 4.6.1
       cookies-next:
         specifier: ^6.1.0
-        version: 6.1.1(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1))(react@19.3.1)
+        version: 6.1.1(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0))(react@19.3.1)
       next:
         specifier: 16.4.3
-        version: 16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1)
+        version: 16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0)
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
@@ -376,8 +376,8 @@ importers:
         specifier: ^3.9.10
         version: 3.9.10
       sass:
-        specifier: ^1.106.1
-        version: 1.106.1
+        specifier: ^1.107.0
+        version: 1.107.0
 
   packages/types:
     dependencies:
@@ -4223,8 +4223,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  sass@1.106.1:
-    resolution: {integrity: sha512-kD+Gi66vycZcbJt+42NC4z4PXNMcCajVrJPhqoKKXy5cOBMmJQt052CxIBcRjwYXeImHYOpu/ydWWGZQIenl7A==}
+  sass@1.107.0:
+    resolution: {integrity: sha512-+whPilvVNoAD57xvdIPLQT0gXo4RD1lHYw+Uw8zYHlojaeaMDxK14tc0JmEsz/XMns48h3lpypisMP+3E8eHQA==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -6689,10 +6689,10 @@ snapshots:
 
   cookie@1.1.1: {}
 
-  cookies-next@6.1.1(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1))(react@19.3.1):
+  cookies-next@6.1.1(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0))(react@19.3.1):
     dependencies:
       cookie: 1.1.1
-      next: 16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1)
+      next: 16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0)
       react: 19.3.1
 
   cors@2.8.6:
@@ -8205,7 +8205,7 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1):
+  next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0):
     dependencies:
       '@next/env': 16.4.3
       '@swc/helpers': 0.5.23
@@ -8224,7 +8224,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.4.3
       '@next/swc-win32-arm64-msvc': 16.4.3
       '@next/swc-win32-x64-msvc': 16.4.3
-      sass: 1.106.1
+      sass: 1.107.0
       sharp: 0.35.5(@types/node@25.9.9)
     transitivePeerDependencies:
       - '@babel/core'
@@ -8253,12 +8253,12 @@ snapshots:
     dependencies:
       fflate: 0.8.3
 
-  nuqs@2.10.2(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1))(react@19.3.1):
+  nuqs@2.10.2(next@16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0))(react@19.3.1):
     dependencies:
       '@standard-schema/spec': 1.1.0
       react: 19.3.1
     optionalDependencies:
-      next: 16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.106.1)
+      next: 16.4.3(@babel/core@7.29.7)(@types/node@25.9.9)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.107.0)
 
   object-assign@4.1.1: {}
 
@@ -8772,7 +8772,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass@1.106.1:
+  sass@1.107.0:
     dependencies:
       chokidar: 5.0.0
       immutable: 5.1.9
