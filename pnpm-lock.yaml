@@ -239,8 +239,8 @@ importers:
         specifier: ^5.2.1
         version: 5.3.0
       express-fileupload:
-        specifier: ^1.5.2
-        version: 1.5.2
+        specifier: ^1.6.0
+        version: 1.6.0
       ioredis:
         specifier: ^6.0.0
         version: 6.0.0
@@ -3122,8 +3122,8 @@ packages:
     resolution: {integrity: sha512-h2z5mrROTxce56S+pnvAV890uu7ls7f1kEvVGJbw1OlFH3/mlJ5bkXu0KRyW94v37zzHPiUd55iLn3DA7TjWpw==}
     engines: {node: '>=0.8'}
 
-  express-fileupload@1.5.2:
-    resolution: {integrity: sha512-wxUJn2vTHvj/kZCVmc5/bJO15C7aSMyHeuXYY3geKpeKibaAoQGcEv5+sM6nHS2T7VF+QHS4hTWPiY2mKofEdg==}
+  express-fileupload@1.6.0:
+    resolution: {integrity: sha512-jIVP7PB+uNLrsglQUKzlK8PjxGkzPy3h0kH0XKpoxQnoT5sPNnHvfWnMMkLoP36LJS5Y8NkkdvkAYQnGCB6tdQ==}
     engines: {node: '>=12.0.0'}
 
   express-rate-limit@8.7.3:
@@ -7695,7 +7695,7 @@ snapshots:
 
   exit-on-epipe@1.0.1: {}
 
-  express-fileupload@1.5.2:
+  express-fileupload@1.6.0:
     dependencies:
       busboy: 1.6.0
 
