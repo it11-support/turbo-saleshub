@@ -26,7 +26,7 @@
     "dayjs": "^1.11.23",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "express-fileupload": "^1.5.2",
+    "express-fileupload": "^1.6.0",
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.6.0",
