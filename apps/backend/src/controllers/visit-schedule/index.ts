@@ -7,7 +7,7 @@ import prisma from '@/libs/prisma.js';
 import { getSuggestedItems } from '../customer/index.js';
 import { activityLogger } from '@/services/logs/index.js';
 import { handleApiError } from '@/utils/apiResponse.js';
-import { sales_visit_schedulesWhereInput, sales_visit_schedulesModel, visit_item_concernsModel, customersGetPayload, visitsGetPayload } from '@/generated/prisma/models.js';
+import { sales_visit_schedulesWhereInput, sales_visit_schedulesModel, visit_item_concernsModel } from '@/generated/prisma/models.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { cacheGet, cacheSet } from '@/libs/cache.js';
 import { invalidateVisitCache } from '@/libs/cache-keys.js';
