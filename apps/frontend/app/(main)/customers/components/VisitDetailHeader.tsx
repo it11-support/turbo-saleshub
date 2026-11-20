@@ -1,9 +1,9 @@
 'use client'
 
-import NavButton from './NavButton'
 import MapPreview from '../../components/map/MapPreview'
 import AvgRevenueAndTarget from '../../visits/components/AvgRevenueAndTarget'
 import ProductCoverage from '../../visits/components/ProductCoverage'
+import NavButton from './NavButton'
 import { ICustomer, IVisit } from '@saleshub-tsm/types'
 import Image from 'next/image'
 import { Card } from 'primereact/card'

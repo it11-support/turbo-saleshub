@@ -1,6 +1,6 @@
 'use client'
-import { visitFilters } from './filters'
 import VisitDataTable, { SalesVisit } from '../../components/visits/VisitDataTable'
+import { visitFilters } from './filters'
 import { EFollowUpStatus, IResPaginated, IVisitItemConcern } from '@saleshub-tsm/types'
 import Link from 'next/link'
 import { createSerializer, useQueryStates } from 'nuqs'

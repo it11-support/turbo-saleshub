@@ -1,7 +1,7 @@
 'use client'
 
-import ProductTag from './ProductTag'
 import VisitTimeLine from '../../visits/components/VisitTimeLine'
+import ProductTag from './ProductTag'
 import {
   EFollowUpType,
   FollowUpVisitResponse,

@@ -1,5 +1,5 @@
-import ProductCoverageDetail from './ProductCoverageDetail'
 import SkeletonLoader from '../../components/skeleton-loader/SkeletonLoader'
+import ProductCoverageDetail from './ProductCoverageDetail'
 import { ICustomer, IResObject, ProductCoverageSummary } from '@saleshub-tsm/types'
 import { Button } from 'primereact/button'
 import { Chart } from 'primereact/chart'

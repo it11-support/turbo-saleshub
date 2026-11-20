@@ -1,8 +1,8 @@
 'use client'
 
-import styles from './mobile.module.css'
 import { useAuth } from '../context/AuthContext'
 import { LayoutContext } from '../context/layoutcontext'
+import styles from './mobile.module.css'
 import Link from 'next/link'
 import { Badge } from 'primereact/badge'
 import { forwardRef, useContext, useImperativeHandle, useRef } from 'react'

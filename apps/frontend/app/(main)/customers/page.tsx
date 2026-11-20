@@ -1,8 +1,8 @@
 'use client'
 
+import CustomerCell from '../components/customer/CustomerCell'
 import { fetcher } from '../lib'
 import NavButton from './components/NavButton'
-import CustomerCell from '../components/customer/CustomerCell'
 import { ICustomer, IResPaginated } from '@saleshub-tsm/types'
 import { useRouter } from 'next/navigation'
 import { parseAsArrayOf, parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from 'nuqs'

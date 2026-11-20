@@ -1,11 +1,11 @@
 'use client'
 
+import MapPreview from '../../components/map/MapPreview'
 import { CustomerInfo } from './CustomerInfo'
 import CustomerRangeMeter from './CustomerRangeMeter'
 import { getMonthlySummary } from './functions'
 import ProductCard from './ProductCard'
 import PurchaseHistory from './PurchaseHistory'
-import MapPreview from '../../components/map/MapPreview'
 import { faIdBadge } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ICustomer, ILastPurchase, SuggestedItemsGrouped } from '@saleshub-tsm/types'

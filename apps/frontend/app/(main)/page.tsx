@@ -1,4 +1,5 @@
 'use client'
+import { LayoutContext } from '../../layout/context/layoutcontext'
 import ActiveCustomerCard from './components/dashboard/ActiveCustomerCard'
 import CustomerGrowth from './components/dashboard/CustomerGrowth'
 import CustomerLoyaltyCard from './components/dashboard/CustomerLoyaltyCard'
@@ -7,7 +8,6 @@ import RevenueByProductCategory from './components/dashboard/RevenueByProductCat
 import TopPerformingChart from './components/dashboard/TopPerformingChart'
 import TrendChart from './components/dashboard/TrendChart'
 import YoySummary from './components/dashboard/YoySummary'
-import { LayoutContext } from '../../layout/context/layoutcontext'
 import { IDashboardData, IResObject } from '@saleshub-tsm/types'
 import { getCookie } from 'cookies-next'
 import { SelectButton } from 'primereact/selectbutton'

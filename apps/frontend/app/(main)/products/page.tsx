@@ -1,10 +1,10 @@
 'use client'
 
-import CustomerListDialog from './Components/CustomerListDialog'
-import ProductImageUploader from './Components/ProductImageUploader'
 import CustomChip from '../components/custom/chip'
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
+import CustomerListDialog from './Components/CustomerListDialog'
+import ProductImageUploader from './Components/ProductImageUploader'
 import {
   EProductCategory,
   IProduct,

@@ -1,7 +1,7 @@
 'use client'
+import NavButton from '../customers/components/NavButton'
 import { visitFilters } from './components/filters'
 import VisitListTable from './components/VisitListTable'
-import NavButton from '../customers/components/NavButton'
 import { IResSingle, ISalesPerson, VisitStatus } from '@saleshub-tsm/types'
 import { format } from 'date-fns'
 import dayjs from 'dayjs'

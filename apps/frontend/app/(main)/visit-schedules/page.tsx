@@ -1,8 +1,8 @@
 'use client'
 
-import ScheduleCard from './components/ScheduleCard'
 import NavButton from '../customers/components/NavButton'
 import { fetcher } from '../lib'
+import ScheduleCard from './components/ScheduleCard'
 import {
   IResObject,
   IResSingle,
